@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redis ACL Builder</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+    <meta name="description" content="Test and validate Redis ACL rules with real-time command analysis">
+    <meta name="keywords" content="Redis, ACL, Access Control, Security, Database">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 Redis ACL Builder</h1>
+            <p class="subtitle">Test and validate Redis ACL rules with real-time command analysis</p>
+        </header>
+        
+        <div class="main-content">
+            <!-- ACL Rule Input Panel -->
+            <section class="panel">
+                <h2>ACL Rule Configuration</h2>
+                
+                <div class="version-selector">
+                    <label>Redis Version:</label>
+                    <input type="radio" id="redis7" name="version" value="redis7" checked>
+                    <label for="redis7">Redis 7</label>
+                    <input type="radio" id="redis8" name="version" value="redis8">
+                    <label for="redis8">Redis 8</label>
+                </div>
+                
+                <textarea 
+                    id="aclRule" 
+                    class="rule-input" 
+                    placeholder="Enter your ACL rule here...&#10;Examples:&#10;+@read ~cached:*&#10;+@all -@dangerous&#10;+get +set +@hash ~user:*"
+                    aria-label="ACL Rule Input"
+                    spellcheck="false"
+                ></textarea>
+                
+                <div class="rule-examples">
+                    <h4>Quick Examples:</h4>
+                    <button type="button" class="example" onclick="setRule('+@read ~cached:*')" title="Read-only access to cached keys">
+                        +@read ~cached:*
+                    </button>
+                    <button type="button" class="example" onclick="setRule('+@all -@dangerous')" title="Full access except dangerous commands">
+                        +@all -@dangerous
+                    </button>
+                    <button type="button" class="example" onclick="setRule('+get +set +@hash')" title="Specific commands plus hash operations">
+                        +get +set +@hash
+                    </button>
+                    <button type="button" class="example" onclick="setRule('+@write -flushdb -flushall')" title="Write access without destructive operations">
+                        +@write -flushdb -flushall
+                    </button>
+                    <button type="button" class="example" onclick="setRule('+@read +@write -@admin -@scripting')" title="Read/write without admin or scripting">
+                        +@read +@write -@admin -@scripting
+                    </button>
+                </div>
+            </section>
+            
+            <!-- Results Panel -->
+            <section class="panel">
+                <h2>Granted Commands</h2>
+                <div id="resultsSummary" class="results-summary" style="display: none;" role="status" aria-live="polite">
+                    <strong>No ACL rule specified - all commands granted by default</strong>
+                </div>
+                <div id="commandResults" role="region" aria-label="Command results" aria-live="polite"></div>
+            </section>
+        </div>
+        
+        <!-- Command Tester -->
+        <section class="panel test-section">
+            <h2>Command Tester</h2>
+            <p class="text-muted mb-2">Test if a specific command is allowed by your current ACL rule:</p>
+            
+            <div class="test-input-group">
+                <input 
+                    type="text" 
+                    id="testCommand" 
+                    class="test-command-input" 
+                    placeholder="Enter command to test (e.g., GET, SET, FLUSHDB)"
+                    aria-label="Command to test"
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+                <button type="button" class="test-button" onclick="testCommand()" aria-label="Test the entered command">
+                    Test Command
+                </button>
+            </div>
+            
+            <div id="testResult" role="region" aria-label="Test results" aria-live="polite"></div>
+        </section>
+    </div>
+
+    <!-- Load main JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
