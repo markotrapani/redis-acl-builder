@@ -166,7 +166,12 @@ class ACLParser:
                         explanation += f" (overrides previous rule)"
                     explanations[command] = explanation
                     rule_history[command] = i
-        
+            
+            # Before returning, log what we're granting
+            if 'search' in [rule['value'] for rule in parsed_rule['command_rules'] if rule['target'] == 'category']:
+                search_commands = [cmd for cmd in granted if 'ft.' in cmd.lower() or 'search' in self.get_command_categories(cmd)]
+                print(f"Search commands granted: {search_commands}")
+
         return granted, explanations
     
     def test_command_access(self, command: str, parsed_rule: Dict[str, Any]) -> Tuple[bool, str, List[str]]:

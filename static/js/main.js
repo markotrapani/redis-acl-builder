@@ -233,14 +233,16 @@ const RuleManager = {
         } else {
             sortedCategories.forEach(category => {
                 const commands = groupedCommands[category];
-                const categoryId = `category-${category}`;
+                // Sanitize category name for use as HTML ID
+                const safeCategoryId = category.replace(/[^a-zA-Z0-9]/g, '-');
+                const categoryId = `category-${safeCategoryId}`;
                 const commandsHtml = commands.map(cmd => 
                     `<div class="command-item" title="Command: ${Utils.escapeHtml(cmd.toUpperCase())}">${Utils.escapeHtml(cmd)}</div>`
                 ).join('');
                 
                 html += `
                     <div class="category-section">
-                        <div class="category-header" onclick="CategoryManager.toggle('${category}')" role="button" tabindex="0" aria-expanded="true" data-category="${category}">
+                        <div class="category-header" onclick="CategoryManager.toggle('${safeCategoryId}')" role="button" tabindex="0" aria-expanded="true" data-category="${safeCategoryId}">
                             ${Utils.escapeHtml(category)} (${Utils.formatNumber(commands.length)})
                         </div>
                         <div class="category-commands" id="${categoryId}">
@@ -261,7 +263,9 @@ const CategoryManager = {
      * Toggle category visibility
      */
     toggle(category) {
-        const element = document.getElementById(`category-${category}`);
+        // Sanitize the category for ID lookup
+        const safeCategoryId = category.replace(/[^a-zA-Z0-9]/g, '-');
+        const element = document.getElementById(`category-${safeCategoryId}`);
         const header = element?.previousElementSibling;
         
         if (element && header) {
