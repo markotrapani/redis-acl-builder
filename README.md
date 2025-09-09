@@ -37,6 +37,7 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 ### Installation
 
 1. **Download/Clone the project:**
+
    ```bash
    # Download and extract the project files
    # Or clone from your repository
@@ -44,6 +45,7 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
    ```
 
 2. **Create the proper directory structure:**
+
    ```bash
    mkdir -p helpers tests static/css static/js templates
    
@@ -62,17 +64,20 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
    - `templates/index.html` → templates folder
 
 4. **Create virtual environment (recommended):**
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 5. **Install dependencies:**
+
    ```bash
    pip install -r requirements.txt
    ```
 
 6. **Test the setup:**
+
    ```bash
    # Run diagnostic test
    python test_imports.py
@@ -83,6 +88,7 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
    ```
 
 7. **Run the application:**
+
    ```bash
    python app.py
    ```
@@ -92,7 +98,7 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 
 ## Project Structure
 
-```
+```txt
 redis_acl_builder/
 ├── app.py                      # Main Flask application
 ├── test_imports.py             # Import diagnostic tool
@@ -130,6 +136,7 @@ redis_acl_builder/
 The application supports standard Redis ACL syntax:
 
 #### Command and Category Rules
+
 - `+@read` - Grant all read commands
 - `-@write` - Deny all write commands  
 - `+@all` - Grant all commands
@@ -137,39 +144,46 @@ The application supports standard Redis ACL syntax:
 - `-flushdb` - Deny specific FLUSHDB command
 
 #### Key Pattern Rules
+
 - `~user:*` - Allow access to keys matching pattern
 - `~cache:*` - Allow access to cache keys
 
 #### Rule Examples
 
 **Read-only access:**
-```
+
+```acl
 +@read ~data:*
 ```
 
 **Application user with restrictions:**
-```
+
+```acl
 +@read +@write -@dangerous -@admin ~app:* ~session:*
 ```
 
 **Developer access:**
-```
+
+```acl
 +@all -flushdb -flushall -shutdown
 ```
 
 **Monitoring user:**
-```
+
+```acl
 +@read +info +ping +client
 ```
 
 **Analytics user:**
-```
+
+```acl
 +@read +@bitmap +@hyperloglog -@admin
 ```
 
 ### Command Testing
 
 Use the **Command Tester** section to:
+
 1. Enter a Redis command (e.g., `GET`, `SET`, `HGETALL`)
 2. Click "Test Command" 
 3. See if the command is allowed and why
@@ -222,17 +236,20 @@ The project includes a comprehensive test suite with 28 tests covering all funct
 ### Running Tests
 
 #### Method 1: Enhanced Test Runner (Recommended)
+
 ```bash
 chmod +x tests/run_tests.sh
 tests/run_tests.sh
 ```
 
 #### Method 2: Direct Python Execution
+
 ```bash
 python tests/test_app.py
 ```
 
 #### Method 3: With Coverage Analysis
+
 ```bash
 python -m coverage run --source=app,helpers tests/test_app.py
 python -m coverage report -m
@@ -240,6 +257,7 @@ python -m coverage html  # Generate HTML report
 ```
 
 #### Method 4: Using Pytest
+
 ```bash
 pip install pytest pytest-flask
 pytest tests/test_app.py -v
@@ -270,17 +288,22 @@ pytest tests/test_app.py -v
 
 1. **Fork/Clone the repository**
 2. **Create virtual environment:**
+
    ```bash
    python -m venv venv
    source venv/bin/activate
    ```
+
 3. **Install dependencies:**
+
    ```bash
    pip install -r requirements.txt
    ```
+
 4. **Run tests:**
+
    ```bash
-   tests/run_tests.sh
+   ./tests/run_tests.sh
    ```
 
 ### Code Organization
@@ -357,6 +380,7 @@ This project is provided as-is for educational and development purposes.
 ## Support
 
 For issues or questions:
+
 1. Run `python test_imports.py` for diagnostics
 2. Check test results with `tests/run_tests.sh`
 3. Review the troubleshooting section
