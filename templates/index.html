@@ -16,6 +16,29 @@
             <p class="subtitle">Test and validate Redis ACL rules with real-time command analysis</p>
         </header>
         
+        <!-- Command Tester -->
+        <section class="panel test-section">
+            <h2>Command Tester</h2>
+            <p class="text-muted mb-2">Test if a specific command is allowed by your current ACL rule:</p>
+            
+            <div class="test-input-group">
+                <input 
+                    type="text" 
+                    id="testCommand" 
+                    class="test-command-input" 
+                    placeholder="Enter command to test (e.g., GET, SET, FLUSHDB)"
+                    aria-label="Command to test"
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+                <button type="button" class="test-button" onclick="testCommand()" aria-label="Test the entered command">
+                    Test Command
+                </button>
+            </div>
+            
+            <div id="testResult" role="region" aria-label="Test results" aria-live="polite"></div>
+        </section>
+        
         <div class="main-content">
             <!-- ACL Rule Input Panel -->
             <section class="panel">
@@ -66,29 +89,6 @@
                 <div id="commandResults" role="region" aria-label="Command results" aria-live="polite"></div>
             </section>
         </div>
-        
-        <!-- Command Tester -->
-        <section class="panel test-section">
-            <h2>Command Tester</h2>
-            <p class="text-muted mb-2">Test if a specific command is allowed by your current ACL rule:</p>
-            
-            <div class="test-input-group">
-                <input 
-                    type="text" 
-                    id="testCommand" 
-                    class="test-command-input" 
-                    placeholder="Enter command to test (e.g., GET, SET, FLUSHDB)"
-                    aria-label="Command to test"
-                    autocomplete="off"
-                    spellcheck="false"
-                >
-                <button type="button" class="test-button" onclick="testCommand()" aria-label="Test the entered command">
-                    Test Command
-                </button>
-            </div>
-            
-            <div id="testResult" role="region" aria-label="Test results" aria-live="polite"></div>
-        </section>
     </div>
 
     <!-- Load main JavaScript -->
