@@ -93,6 +93,175 @@ const Utils = {
      */
     formatNumber(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    },
+
+    /**
+     * Show notification pop-up
+     */
+    showNotification(message, type = 'error', duration = 4000) {
+        const container = document.getElementById('notificationContainer');
+        if (!container) return;
+
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        
+        // Create message content
+        const messageContent = document.createElement('span');
+        messageContent.textContent = message;
+        
+        // Create close button
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'close-btn';
+        closeBtn.innerHTML = '×';
+        closeBtn.setAttribute('aria-label', 'Close notification');
+        
+        notification.appendChild(messageContent);
+        notification.appendChild(closeBtn);
+        
+        // Add to container
+        container.appendChild(notification);
+        
+        // Show with animation
+        requestAnimationFrame(() => {
+            notification.classList.add('show');
+        });
+        
+        // Auto-remove after duration
+        const autoRemove = setTimeout(() => {
+            this.removeNotification(notification);
+        }, duration);
+        
+        // Manual close
+        closeBtn.addEventListener('click', () => {
+            clearTimeout(autoRemove);
+            this.removeNotification(notification);
+        });
+    },
+
+    /**
+     * Remove notification with animation
+     */
+    removeNotification(notification) {
+        if (notification && notification.parentNode) {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }
+    },
+
+    /**
+     * Validate ACL rule syntax according to Redis Enterprise rules
+     */
+    /**
+     * Format version name for display (redis7 -> Redis 7)
+     */
+    formatVersionName(version) {
+        return version.replace(/^redis(\d+)$/, 'Redis $1');
+    },
+
+    async validateACLRule(rule) {
+        if (!rule || rule.trim() === '') {
+            return { valid: true }; // Empty rule is valid
+        }
+
+        const trimmedRule = rule.trim();
+        const tokens = trimmedRule.split(/\s+/);
+        const errors = [];
+
+        // Get valid categories and commands for the current Redis version
+        let validCategories = new Set();
+        let validCommands = new Set();
+        
+        try {
+            const categoriesData = await API.getCategories(AppState.currentVersion);
+            if (categoriesData && categoriesData.categories) {
+                // categoriesData.categories is an array, not an object
+                validCategories = new Set(categoriesData.categories);
+            }
+        } catch (error) {
+            console.warn('Could not fetch categories for validation, skipping category validation');
+        }
+
+        try {
+            const commandsArray = await API.getAllCommands(AppState.currentVersion);
+            if (commandsArray && Array.isArray(commandsArray)) {
+                validCommands = new Set(commandsArray.map(cmd => cmd.toLowerCase()));
+            }
+        } catch (error) {
+            console.warn('Could not fetch commands for validation, skipping command validation');
+        }
+
+        for (const token of tokens) {
+            if (token === '') continue;
+
+            // Check if token starts with +, -, or ~
+            if (token.startsWith('+') || token.startsWith('-')) {
+                // Command/category rule: +@category, +command, -@category, -command
+                const content = token.slice(1);
+                if (content === '') {
+                    errors.push(`Invalid operator token: "${token}"\nMissing content after operator`);
+                    continue;
+                }
+                
+                // Check for spaces within the token (should not happen after split, but safety check)
+                if (content.includes(' ')) {
+                    errors.push(`Invalid rule syntax: "${token}"\nNo spaces allowed within operator terms`);
+                    continue;
+                }
+                
+                // Validate category syntax (@category)
+                if (content.startsWith('@')) {
+                    const categoryName = content.slice(1);
+                    if (categoryName === '') {
+                        errors.push(`Invalid category syntax: "${token}"\nMissing category name after @`);
+                    } else if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(categoryName)) {
+                        errors.push(`Invalid category syntax: "${token}"\nCategory name must be alphanumeric`);
+                    } else if (validCategories.size > 0 && categoryName !== 'all' && !validCategories.has(categoryName)) {
+                        errors.push(`Invalid category: "${token}"\nCategory "${categoryName}" does not exist in ${this.formatVersionName(AppState.currentVersion)}`);
+                    }
+                }
+                // Validate command syntax (alphanumeric with special chars for Redis commands)
+                else if (!/^[a-zA-Z][a-zA-Z0-9._|-]*$/.test(content)) {
+                    errors.push(`Invalid command syntax: "${token}"\nCommand name contains invalid characters`);
+                }
+                // Check if command exists in Redis (if we have the commands list)
+                else if (validCommands.size > 0 && !validCommands.has(content.toLowerCase())) {
+                    errors.push(`Invalid command: "${token}"\nCommand "${content}" does not exist in ${this.formatVersionName(AppState.currentVersion)}`);
+                }
+            }
+            else if (token.startsWith('~')) {
+                // Keyspace rule: ~pattern
+                const pattern = token.slice(1);
+                if (pattern === '') {
+                    errors.push(`Invalid keyspace token: "${token}"\nMissing pattern after ~`);
+                    continue;
+                }
+                
+                // Check for spaces within the pattern
+                if (pattern.includes(' ')) {
+                    errors.push(`Invalid keyspace syntax: "${token}"\nNo spaces allowed in keyspace patterns`);
+                    continue;
+                }
+                
+                // Basic pattern validation (allow alphanumeric, wildcards, colons, etc.)
+                if (!/^[a-zA-Z0-9:*?[\]{}._-]+$/.test(pattern)) {
+                    errors.push(`Invalid keyspace pattern: "${token}"\nPattern contains invalid characters`);
+                }
+            }
+            else {
+                // Invalid token - doesn't start with +, -, or ~
+                errors.push(`Invalid rule syntax: "${token}"\nTerms must start with +, -, or ~ operators`);
+            }
+        }
+
+        return {
+            valid: errors.length === 0,
+            errors: errors
+        };
     }
 };
 
@@ -180,7 +349,6 @@ const API = {
      * Get all commands for version by parsing empty rule
      */
     async getAllCommands(version) {
-        const emptyRuleResponse = await this.parseRule('', version);
         const fullRuleResponse = await this.parseRule('+@all', version);
         
         if (fullRuleResponse && fullRuleResponse.grouped_commands) {
@@ -214,6 +382,25 @@ const RuleManager = {
         
         const rule = DOMElements.aclRuleInput.value.trim();
         
+        // Validate ACL rule syntax first
+        const validation = await Utils.validateACLRule(rule);
+        console.log('ACL Validation:', rule, validation); // Debug log
+        if (!validation.valid) {
+            // Show first error in notification
+            const firstError = validation.errors[0];
+            console.log('Showing notification for:', firstError); // Debug log
+            Utils.showNotification(firstError, 'error', 5000);
+            
+            // Still show in command results for detailed feedback
+            if (DOMElements.commandResults) {
+                Utils.showMessage(DOMElements.commandResults, `Invalid ACL syntax: ${firstError}`, 'error');
+            }
+            if (DOMElements.resultsSummary) {
+                DOMElements.resultsSummary.style.display = 'none';
+            }
+            return;
+        }
+        
         if (DOMElements.commandResults) {
             Utils.showLoading(DOMElements.commandResults);
         }
@@ -228,6 +415,9 @@ const RuleManager = {
             this.displayGroupedCommands(data.grouped_commands || {});
             
         } catch (error) {
+            // Show server error in notification
+            Utils.showNotification(`Server error: ${error.message}`, 'error', 5000);
+            
             if (DOMElements.commandResults) {
                 Utils.showMessage(DOMElements.commandResults, `Error parsing rule: ${error.message}`, 'error');
             }
@@ -658,9 +848,7 @@ const InteractiveACLBuilder = {
         this.state.grantedCategories.add(category);
         this.state.blockedCategories.delete(category);
         
-        await this.renderColumns();
-        this.updateRuleText();
-        this.updateStats();
+        this.scheduleRender();
     },
 
     /**
@@ -679,9 +867,7 @@ const InteractiveACLBuilder = {
             this.state.grantedCategories.add(category);
         }
 
-        await this.renderColumns();
-        this.updateRuleText();
-        this.updateStats();
+        this.scheduleRender();
     },
 
     /**
@@ -691,9 +877,7 @@ const InteractiveACLBuilder = {
         this.state.grantedCommands.add(command);
         this.state.blockedCommands.delete(command);
         
-        await this.renderColumns();
-        this.updateRuleText();
-        this.updateStats();
+        this.scheduleRender();
     },
 
     /**
@@ -712,9 +896,7 @@ const InteractiveACLBuilder = {
             this.state.grantedCommands.add(command);
         }
 
-        await this.renderColumns();
-        this.updateRuleText();
-        this.updateStats();
+        this.scheduleRender();
     },
 
     /**
@@ -723,6 +905,58 @@ const InteractiveACLBuilder = {
     async renderColumns() {
         this.renderCategoryButtons();
         await this.renderCommandButtons();
+    },
+
+    /**
+     * Debounced render to reduce flashing
+     */
+    debouncedRender: null,
+    
+    /**
+     * Schedule a render with debouncing to reduce visual flashing
+     */
+    scheduleRender() {
+        if (this.debouncedRender) {
+            clearTimeout(this.debouncedRender);
+        }
+        
+        this.debouncedRender = setTimeout(() => {
+            requestAnimationFrame(async () => {
+                await this.smoothRender();
+            });
+        }, 100); // 100ms debounce for smoother batching
+    },
+
+    /**
+     * Smooth rendering with fade transitions
+     */
+    async smoothRender() {
+        const containers = [
+            this.elements.grantedCategoriesButtons,
+            this.elements.grantedCommandsButtons,
+            this.elements.blockedCategoriesButtons, 
+            this.elements.blockedCommandsButtons
+        ].filter(Boolean);
+
+        // Quick fade out only the button containers, not their parents
+        containers.forEach(container => {
+            container.style.transition = 'opacity 0.1s ease';
+            container.style.opacity = '0.5';
+        });
+
+        // Wait for fade, then render
+        setTimeout(async () => {
+            await this.renderColumns();
+            this.updateRuleText();
+            this.updateStats();
+
+            // Fade back in
+            requestAnimationFrame(() => {
+                containers.forEach(container => {
+                    container.style.opacity = '1';
+                });
+            });
+        }, 80); // Slightly faster
     },
 
     /**
@@ -873,6 +1107,38 @@ const InteractiveACLBuilder = {
             wrapper.style.flexWrap = 'wrap';
             wrapper.style.gap = '6px';
             
+            // Create preview row that shows even when collapsed
+            if (allGrantedCommands.size > 0) {
+                const previewRow = document.createElement('div');
+                previewRow.className = 'command-preview-row';
+                previewRow.style.display = isCollapsed ? 'flex' : 'none';
+                previewRow.style.flexWrap = 'wrap';
+                previewRow.style.gap = '6px';
+                
+                // Show first 6-8 commands as preview
+                const previewCommands = Array.from(allGrantedCommands).sort().slice(0, 8);
+                previewCommands.forEach(command => {
+                    const isViaCategory = effectiveGrantedViaCategories.includes(command);
+                    const isIndividual = this.state.grantedCommands.has(command);
+                    const button = this.createGrantedCommandButton(command, isViaCategory, isIndividual);
+                    button.style.fontSize = '0.75em'; // Slightly smaller for preview
+                    previewRow.appendChild(button);
+                });
+                
+                // Add "..." indicator if there are more commands
+                if (allGrantedCommands.size > 8) {
+                    const moreIndicator = document.createElement('span');
+                    moreIndicator.textContent = `+${allGrantedCommands.size - 8} more...`;
+                    moreIndicator.style.color = '#666';
+                    moreIndicator.style.fontSize = '0.75em';
+                    moreIndicator.style.alignSelf = 'center';
+                    moreIndicator.style.fontStyle = 'italic';
+                    previewRow.appendChild(moreIndicator);
+                }
+                
+                this.elements.grantedCommandsButtons.appendChild(previewRow);
+            }
+            
             this.elements.grantedCommandsButtons.appendChild(wrapper);
             
             // Update the header to be clickable
@@ -967,6 +1233,56 @@ const InteractiveACLBuilder = {
             wrapper.style.flexWrap = 'wrap';
             wrapper.style.gap = '6px';
             
+            // Create preview row that shows even when collapsed
+            const allBlockedAndAvailable = new Set([...this.state.blockedCommands]);
+            
+            if (this.state.allCommands.length > 0) {
+                if (isEmptyACL) {
+                    // Empty ACL = all commands are effectively blocked/available for granting
+                    this.state.allCommands.forEach(cmd => allBlockedAndAvailable.add(cmd));
+                } else {
+                    // Non-empty ACL = show truly available commands (not granted anywhere)
+                    const grantedViaCategories = await this.getCommandsGrantedByCategories();
+                    const grantedViaCategoriesSet = new Set(grantedViaCategories);
+                    const availableCommands = this.state.allCommands.filter(cmd => 
+                        !this.state.grantedCommands.has(cmd) && 
+                        !this.state.blockedCommands.has(cmd) &&
+                        !grantedViaCategoriesSet.has(cmd)
+                    );
+                    availableCommands.forEach(cmd => allBlockedAndAvailable.add(cmd));
+                }
+            }
+            
+            if (allBlockedAndAvailable.size > 0) {
+                const previewRow = document.createElement('div');
+                previewRow.className = 'command-preview-row';
+                previewRow.style.display = isCollapsed ? 'flex' : 'none';
+                previewRow.style.flexWrap = 'wrap';
+                previewRow.style.gap = '6px';
+                
+                // Show first 8 commands as preview
+                const previewCommands = Array.from(allBlockedAndAvailable).sort().slice(0, 8);
+                previewCommands.forEach(command => {
+                    const isBlocked = this.state.blockedCommands.has(command);
+                    const button = this.createCommandButton(command, isBlocked ? 'blocked' : 'available');
+                    button.style.fontSize = '0.75em'; // Slightly smaller for preview
+                    previewRow.appendChild(button);
+                });
+                
+                // Add "..." indicator if there are more commands
+                if (allBlockedAndAvailable.size > 8) {
+                    const moreIndicator = document.createElement('span');
+                    moreIndicator.textContent = `+${allBlockedAndAvailable.size - 8} more...`;
+                    moreIndicator.style.color = '#666';
+                    moreIndicator.style.fontSize = '0.75em';
+                    moreIndicator.style.alignSelf = 'center';
+                    moreIndicator.style.fontStyle = 'italic';
+                    previewRow.appendChild(moreIndicator);
+                }
+                
+                this.elements.blockedCommandsButtons.appendChild(previewRow);
+            }
+            
             this.elements.blockedCommandsButtons.appendChild(wrapper);
             
             // Update the header to be clickable
@@ -992,9 +1308,9 @@ const InteractiveACLBuilder = {
         const header = section?.querySelector('h3');
         
         if (header) {
-            const arrow = isCollapsed ? '▶' : '▼';
+            const arrow = isCollapsed ? '+' : '−';
             const text = type === 'granted' ? 'Individual Commands' : 'Individual Commands';
-            header.innerHTML = `${text} ${count > 0 ? `(${count})` : ''} <span style="float: right; font-size: 0.8em;">${arrow}</span>`;
+            header.innerHTML = `${text} ${count > 0 ? `(${count})` : ''} <span style="float: right; font-size: 1.2em; font-weight: bold;">${arrow}</span>`;
             header.style.cursor = 'pointer';
             header.style.userSelect = 'none';
             header.onclick = () => this.toggleCommandSection(type);
@@ -1073,7 +1389,6 @@ const InteractiveACLBuilder = {
         } else if (isViaCategory) {
             // If only granted via category, use exclusion behavior
             button.title = `${command} - Click to exclude (granted via category)`;
-            button.style.opacity = '0.85';
             button.onclick = () => this.blockCommandFromCategory(command);
         }
         
@@ -1089,9 +1404,7 @@ const InteractiveACLBuilder = {
         // Make sure it's not in granted commands
         this.state.grantedCommands.delete(command);
         
-        await this.renderColumns();
-        this.updateRuleText();
-        this.updateStats();
+        this.scheduleRender();
     },
 
     /**
@@ -1188,8 +1501,14 @@ const InteractiveACLBuilder = {
         console.log('🔄 Syncing rule text to interactive display:', ruleText);
 
         try {
-            // Parse the rule to understand what it grants
-            const response = await API.parseRule(ruleText, AppState.currentVersion);
+            // Validate ACL rule syntax first
+            const validation = await Utils.validateACLRule(ruleText);
+            if (!validation.valid) {
+                const firstError = validation.errors[0];
+                Utils.showNotification(firstError, 'error', 5000);
+                console.log('InteractiveACLBuilder sync validation failed:', firstError);
+                return;
+            }
             
             // Reset state
             this.state.grantedCategories.clear();
