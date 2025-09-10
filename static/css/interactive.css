@@ -21,7 +21,6 @@
   padding: var(--spacing-sm);
   background: rgba(0,0,0,0.05);
   border-radius: var(--radius-sm);
-  font-style: italic;
 }
 
 /* Dark mode panel descriptions */
@@ -247,7 +246,6 @@
   display: block;
   text-align: center;
   color: var(--text-muted);
-  font-style: italic;
   padding: var(--spacing-lg);
 }
 

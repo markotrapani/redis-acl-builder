@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Info - Redis Enterprise ACL Builder</title>
+    <!-- Modular CSS Architecture -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/interactive.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+    <meta name="description" content="Learn about Redis Enterprise ACL Builder - Test and validate Redis ACL rules with real-time command analysis">
+    <meta name="keywords" content="Redis, ACL, Access Control, Security, Database, Info, Documentation">
+    
+    <style>
+        .info-page {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: var(--spacing-lg);
+        }
+        
+        .back-link {
+            background: linear-gradient(135deg, var(--gray-600), var(--gray-700));
+            color: white;
+            text-decoration: none;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            transition: all var(--transition-normal);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .back-link:hover {
+            background: linear-gradient(135deg, var(--gray-700), var(--gray-800));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            text-decoration: none;
+        }
+        
+        .info-section {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: var(--panel-padding);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .info-section h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .info-section h3 {
+            color: var(--info-color);
+            margin-top: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            margin: var(--spacing-lg) 0;
+        }
+        
+        .feature-card {
+            background: var(--gray-50);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+        }
+        
+        .feature-card h4 {
+            color: var(--success-color);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .syntax-example {
+            background: var(--gray-100);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: var(--spacing-md);
+            margin: var(--spacing-md) 0;
+            font-family: var(--font-mono);
+            font-size: var(--font-size-sm);
+        }
+        
+        .use-case {
+            background: var(--info-bg);
+            border-left: 4px solid var(--info-color);
+            padding: var(--spacing-md);
+            margin: var(--spacing-md) 0;
+        }
+        
+        .use-case h4 {
+            color: var(--info-color);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        /* List styling */
+        .info-section ul,
+        .info-section ol {
+            padding-left: var(--spacing-xl);
+            margin: var(--spacing-md) 0;
+        }
+        
+        .info-section li {
+            margin-bottom: var(--spacing-xs);
+            line-height: 1.6;
+        }
+        
+        .info-section ul ul,
+        .info-section ol ul {
+            margin: var(--spacing-xs) 0;
+            padding-left: var(--spacing-lg);
+        }
+        
+        /* Dark mode adjustments */
+        @media (prefers-color-scheme: dark) {
+            .feature-card {
+                background: var(--gray-100);
+                border-color: var(--border);
+                color: var(--text-primary);
+            }
+            
+            .syntax-example {
+                background: var(--gray-200);
+                border-color: var(--border);
+                color: var(--text-primary);
+            }
+            
+            .use-case {
+                background: rgba(33, 150, 243, 0.1);
+                color: var(--text-primary);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="info-page">
+            <!-- Back Navigation -->
+            <a href="/" class="back-link" title="Return to main application">
+                ← Back to ACL Builder
+            </a>
+            
+            <!-- Page Header -->
+            <header>
+                <h1>🔐 Redis Enterprise ACL Builder</h1>
+                <p class="subtitle">Complete Guide & Documentation</p>
+            </header>
+            
+            <!-- What is Redis Enterprise ACL Builder? -->
+            <section class="info-section">
+                <h2>🎯 What is Redis Enterprise ACL Builder?</h2>
+                <p>Redis Enterprise ACL Builder is a comprehensive web application designed to help developers, database administrators, and security teams understand, test, and validate Redis Access Control List (ACL) rules before deploying them to production environments.</p>
+                
+                <p>This tool provides an intuitive three-column interface that makes Redis ACL management accessible to both beginners and experts, offering real-time validation, interactive rule building, and comprehensive command testing capabilities.</p>
+                
+                <h3>🎯 Target Audience</h3>
+                <ul>
+                    <li><strong>Database Administrators</strong> - Configure secure access policies for Redis instances</li>
+                    <li><strong>Security Teams</strong> - Implement principle of least privilege access controls</li>
+                    <li><strong>Developers</strong> - Test application-specific Redis permissions during development</li>
+                    <li><strong>DevOps Engineers</strong> - Validate ACL rules before production deployment</li>
+                </ul>
+            </section>
+
+
+            <!-- Getting Started -->
+            <section class="info-section">
+                <h2>🚀 Getting Started</h2>
+                
+                <h3>Quick Start Guide</h3>
+                <ol>
+                    <li><strong>Choose Redis Version:</strong> Toggle between Redis 7 and Redis 8 based on your deployment</li>
+                    <li><strong>Try Examples:</strong> Click the example buttons in the left panel to see common patterns</li>
+                    <li><strong>Interactive Building:</strong> Click commands in the center/right panels to build rules visually</li>
+                    <li><strong>Test Commands:</strong> Use the command tester to verify your ACL rules work correctly</li>
+                    <li><strong>Copy & Deploy:</strong> Use the "Copy Rule" button to get the final ACL string</li>
+                </ol>
+                
+                <h3>💡 Pro Tips</h3>
+                <ul>
+                    <li>Start with restrictive rules and gradually add permissions as needed</li>
+                    <li>Use the redundancy analysis to optimize complex rules</li>
+                    <li>Test with real application commands using the Command Tester</li>
+                    <li>Save frequently used ACL patterns for quick reuse</li>
+                </ul>
+            </section>
+
+            <!-- How It Works -->
+            <section class="info-section">
+                <h2>🛠️ How It Works</h2>
+                
+                <h3>📋 Step-by-Step Workflow</h3>
+                <ol>
+                    <li><strong>Select Redis Version</strong> - Choose between Redis 7 or Redis 8 using the version toggle</li>
+                    <li><strong>Build ACL Rules</strong> - Either:
+                        <ul>
+                            <li>Type ACL rules manually in the left panel</li>
+                            <li>Click commands/categories in the center and right panels</li>
+                        </ul>
+                    </li>
+                    <li><strong>Real-time Preview</strong> - See granted and blocked commands instantly</li>
+                    <li><strong>Test Commands</strong> - Use the command tester to verify specific command permissions</li>
+                    <li><strong>Copy & Deploy</strong> - Copy the validated ACL rule for production use</li>
+                </ol>
+                
+                <h3>🎛️ Interface Layout</h3>
+                <ul>
+                    <li><strong>Left Panel (📝)</strong> - ACL Rule Configuration with syntax examples and validation</li>
+                    <li><strong>Center Panel (✅)</strong> - Granted Commands (click to revoke)</li>
+                    <li><strong>Right Panel (❌)</strong> - Blocked Commands (click to grant)</li>
+                    <li><strong>Bottom Panel (📋)</strong> - Command Tester for validation</li>
+                </ul>
+            </section>
+
+            <!-- Redis ACL Basics -->
+            <section class="info-section">
+                <h2>📚 Redis ACL Basics</h2>
+                
+                <h3>🔐 What are ACL Rules?</h3>
+                <p>Redis Access Control Lists (ACLs) allow you to define fine-grained permissions for Redis users, controlling which commands they can execute and which keys they can access. ACL rules follow a left-to-right evaluation order where later rules can override earlier ones.</p>
+                
+                <h3>📝 Rule Syntax</h3>
+                
+                <h4>Command Permissions</h4>
+                <div class="syntax-example">
+<strong>Grant Commands:</strong>
++@read           # Grant all read commands
++@write          # Grant all write commands  
++@all            # Grant all commands
++get +set        # Grant specific commands
+
+<strong>Deny Commands:</strong>
+-@dangerous      # Deny dangerous commands
+-@admin          # Deny administrative commands
+-flushdb         # Deny specific commands
+                </div>
+                
+                <h4>Key Patterns</h4>
+                <div class="syntax-example">
+~*               # Access to all keys
+~user:*          # Access to keys matching pattern
+~cache:* ~sess:* # Multiple key patterns
+                </div>
+                
+                <h4>Complete Rule Examples</h4>
+                <div class="syntax-example">
+<strong>Read-only user:</strong>
++@read ~*
+
+<strong>Application user:</strong>
++@read +@write -@dangerous ~app:* ~session:*
+
+<strong>Monitoring user:</strong>
++@read +info +ping +client
+
+<strong>Developer access:</strong>
++@all -flushdb -flushall -shutdown
+                </div>
+            </section>
+
+            <!-- Use Cases -->
+            <section class="info-section">
+                <h2>🎯 Common Use Cases</h2>
+                
+                <div class="use-case">
+                    <h4>🔍 Read-only Analytics User</h4>
+                    <p><strong>Rule:</strong> <code>+@read ~analytics:* ~reports:*</code></p>
+                    <p>Perfect for business intelligence tools that need to read aggregated data without modification capabilities.</p>
+                </div>
+                
+                <div class="use-case">
+                    <h4>📱 Application Backend</h4>
+                    <p><strong>Rule:</strong> <code>+@read +@write -@dangerous -@admin ~app:* ~cache:*</code></p>
+                    <p>Secure access pattern for application servers that need read/write access to specific key namespaces.</p>
+                </div>
+                
+                <div class="use-case">
+                    <h4>📊 Monitoring & Observability</h4>
+                    <p><strong>Rule:</strong> <code>+@read +info +ping +client +memory +latency</code></p>
+                    <p>Ideal for monitoring tools like Prometheus, Grafana, or custom health check systems.</p>
+                </div>
+                
+                <div class="use-case">
+                    <h4>🧪 Development & Testing</h4>
+                    <p><strong>Rule:</strong> <code>+@all -flushall -shutdown ~dev:* ~test:*</code></p>
+                    <p>Development environment access with safety guards against destructive operations.</p>
+                </div>
+                
+                <div class="use-case">
+                    <h4>🔄 Replication User</h4>
+                    <p><strong>Rule:</strong> <code>+@read +@stream +psync +replconf</code></p>
+                    <p>Specialized access for Redis replication processes and streaming operations.</p>
+                </div>
+            </section>
+
+            <!-- Security Best Practices -->
+            <section class="info-section">
+                <h2>🛡️ Security Best Practices</h2>
+                
+                <h3>🎯 Principle of Least Privilege</h3>
+                <ul>
+                    <li>Start with minimal permissions and add only what's necessary</li>
+                    <li>Use specific command grants rather than broad category access</li>
+                    <li>Implement key pattern restrictions to limit data access scope</li>
+                    <li>Regularly review and audit ACL rules</li>
+                </ul>
+                
+                <h3>⚠️ Common Pitfalls to Avoid</h3>
+                <ul>
+                    <li><strong>Overly Broad Access:</strong> Avoid <code>+@all ~*</code> unless absolutely necessary</li>
+                    <li><strong>Dangerous Commands:</strong> Always exclude <code>-@dangerous</code> for application users</li>
+                    <li><strong>Administrative Access:</strong> Restrict <code>@admin</code> commands to authorized personnel only</li>
+                    <li><strong>Key Pattern Validation:</strong> Test key patterns thoroughly to prevent unauthorized access</li>
+                </ul>
+                
+                <h3>🔍 Testing & Validation</h3>
+                <ul>
+                    <li>Use the Command Tester to verify permissions before deployment</li>
+                    <li>Test edge cases and boundary conditions</li>
+                    <li>Validate ACL rules in staging environments first</li>
+                    <li>Document ACL rules and their intended use cases</li>
+                </ul>
+            </section>
+
+            <!-- Key Features -->
+            <section class="info-section">
+                <h2>✨ Key Features</h2>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>📝 Interactive ACL Builder</h4>
+                        <p>Three-column layout with click-to-grant/revoke functionality. Build ACL rules visually without memorizing syntax.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🔄 Real-time Validation</h4>
+                        <p>Instant syntax checking with detailed error messages and auto-correction suggestions.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🧪 Command Testing</h4>
+                        <p>Test specific Redis commands against your ACL rules to verify permissions work as expected.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>📊 Redis 7 & 8 Support</h4>
+                        <p>Complete command databases for Redis 7 (311 commands) and Redis 8 (446 commands) including all modules.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>⚡ Performance Optimized</h4>
+                        <p>Debounced rendering, intelligent command previews, and smooth animations for optimal user experience.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🔍 Rule Analysis</h4>
+                        <p>Automatic detection of redundant rules with optimization suggestions to simplify ACL configurations.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Technical Details -->
+            <section class="info-section">
+                <h2>⚙️ Technical Details</h2>
+                
+                <h3>🗄️ Command Database</h3>
+                <ul>
+                    <li><strong>Redis 7:</strong> 311 commands across 21 categories</li>
+                    <li><strong>Redis 8:</strong> 446 commands across 29 categories</li>
+                    <li><strong>Module Support:</strong> RediSearch, RedisJSON, TimeSeries, Bloom, Cuckoo, CMS, TopK, T-Digest</li>
+                    <li><strong>Real-time Updates:</strong> Command permissions calculated instantly as you modify rules</li>
+                </ul>
+                
+                <h3>🔌 API Endpoints</h3>
+                <p>The application provides a RESTful API for programmatic access:</p>
+                <div class="syntax-example">
+POST /api/parse              # Parse ACL rule and return permissions
+POST /api/test-command       # Test specific command access
+POST /api/validate-rule      # Validate ACL syntax
+GET /api/categories          # Get available command categories
+POST /api/search-commands    # Search commands with patterns
+GET /health                  # Application health check
+                </div>
+                
+                <h3>🏗️ Architecture</h3>
+                <ul>
+                    <li><strong>Frontend:</strong> Modular ES6 JavaScript + Responsive CSS</li>
+                    <li><strong>Backend:</strong> Flask with comprehensive Redis ACL parsing</li>
+                    <li><strong>Testing:</strong> 29 automated tests with 82% code coverage</li>
+                    <li><strong>Performance:</strong> Debounced rendering, optimized command previews</li>
+                </ul>
+            </section>
+
+
+
+            <!-- Back to Application -->
+            <div style="text-align: center; margin-top: var(--spacing-xxl);">
+                <a href="/" class="test-button" style="text-decoration: none;">
+                    🔐 Start Building ACL Rules
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

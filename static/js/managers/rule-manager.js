@@ -24,7 +24,13 @@ const RuleManager = {
     async parseRule(skipRedundancyAnalysis = false) {
         if (AppState.isLoading) return;
         
-        const rule = DOMElements.aclRuleInput.value.trim();
+        const rawRule = DOMElements.aclRuleInput.value.trim();
+        const rule = Utils.normalizeACLRule(rawRule);
+        
+        // Update the textarea with normalized rule if it changed
+        if (rule !== rawRule) {
+            DOMElements.aclRuleInput.value = rule;
+        }
         
         // Validate ACL rule syntax first
         const validation = await Utils.validateACLRule(rule);
@@ -92,7 +98,7 @@ const RuleManager = {
      * Analyze current rule for redundancy and show warnings
      */
     async analyzeRedundancy() {
-        const rule = DOMElements.aclRuleInput.value.trim();
+        const rule = Utils.normalizeACLRule(DOMElements.aclRuleInput.value.trim());
         console.log('Analyzing rule for redundancy:', rule);
         
         // Skip analysis for empty rules only

@@ -23,9 +23,9 @@
   margin-bottom: var(--spacing-xxl);
 }
 
-/* Test Section - spans full width */
+/* Test Section - standalone panel */
 .test-section {
-  grid-column: 1 / -1;
+  margin-top: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
 }
 
@@ -93,7 +93,6 @@
   color: var(--text-secondary);
   font-size: var(--font-size-md);
   margin-bottom: var(--spacing-md);
-  font-style: italic;
 }
 
 /* Command categories container */

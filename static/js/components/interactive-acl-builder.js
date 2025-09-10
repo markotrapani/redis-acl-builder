@@ -260,7 +260,6 @@ const InteractiveACLBuilder = {
             if (this.state.grantedCategories.size === 0) {
                 const message = document.createElement('div');
                 message.className = 'text-muted';
-                message.style.fontStyle = 'italic';
                 message.style.padding = '10px';
                 message.textContent = 'No categories granted';
                 this.elements.grantedCategoriesButtons.appendChild(message);
@@ -303,7 +302,6 @@ const InteractiveACLBuilder = {
             if (availableCategories.length === 0 && this.state.blockedCategories.size === 0) {
                 const message = document.createElement('div');
                 message.className = 'text-muted';
-                message.style.fontStyle = 'italic';
                 message.style.padding = '10px';
                 message.textContent = 'Click categories below to grant access';
                 this.elements.blockedCategoriesButtons.appendChild(message);
@@ -378,7 +376,6 @@ const InteractiveACLBuilder = {
             if (allGrantedCommands.size === 0) {
                 const message = document.createElement('div');
                 message.className = 'text-muted';
-                message.style.fontStyle = 'italic';
                 message.style.padding = '10px';
                 message.textContent = 'No individual commands granted';
                 wrapper.appendChild(message);
@@ -421,7 +418,6 @@ const InteractiveACLBuilder = {
                     moreIndicator.style.color = '#666';
                     moreIndicator.style.fontSize = '1.0em';
                     moreIndicator.style.alignSelf = 'center';
-                    moreIndicator.style.fontStyle = 'italic';
                     moreIndicator.style.cursor = 'pointer';
                     moreIndicator.style.textDecoration = 'underline';
                     moreIndicator.title = 'Click to expand and view all commands';
@@ -531,7 +527,6 @@ const InteractiveACLBuilder = {
             if (totalCommandsToShow === 0) {
                 const message = document.createElement('div');
                 message.className = 'text-muted';
-                message.style.fontStyle = 'italic';
                 message.style.padding = '10px';
                 message.textContent = 'No individual commands blocked';
                 wrapper.appendChild(message);
@@ -579,7 +574,6 @@ const InteractiveACLBuilder = {
                     moreIndicator.style.color = '#666';
                     moreIndicator.style.fontSize = '1.0em';
                     moreIndicator.style.alignSelf = 'center';
-                    moreIndicator.style.fontStyle = 'italic';
                     moreIndicator.style.cursor = 'pointer';
                     moreIndicator.style.textDecoration = 'underline';
                     moreIndicator.title = 'Click to expand and view all commands';
@@ -845,7 +839,14 @@ const InteractiveACLBuilder = {
             return;
         }
 
-        const ruleText = this.elements.aclRuleInput.value.trim();
+        const rawRuleText = this.elements.aclRuleInput.value.trim();
+        const ruleText = Utils.normalizeACLRule(rawRuleText);
+        
+        // Update the textarea with normalized rule if it changed
+        if (ruleText !== rawRuleText) {
+            this.elements.aclRuleInput.value = ruleText;
+        }
+        
         console.log('🔄 Syncing rule text to interactive display:', ruleText);
 
         try {
@@ -880,12 +881,12 @@ const InteractiveACLBuilder = {
                         const category = token.substring(2);
                         this.state.blockedCategories.add(category);
                     } else if (token.startsWith('+')) {
-                        // Granted command
-                        const command = token.substring(1);
+                        // Granted command (normalize to lowercase)
+                        const command = token.substring(1).toLowerCase();
                         this.state.grantedCommands.add(command);
                     } else if (token.startsWith('-')) {
-                        // Blocked command
-                        const command = token.substring(1);
+                        // Blocked command (normalize to lowercase)
+                        const command = token.substring(1).toLowerCase();
                         this.state.blockedCommands.add(command);
                     } else if (token.startsWith('~')) {
                         // Key pattern

@@ -77,6 +77,11 @@ def index():
     """Serve the main web interface."""
     return render_template('index.html')
 
+@app.route('/info')
+def info():
+    """Serve the info page explaining the application."""
+    return render_template('info.html')
+
 @app.route('/api/parse', methods=['POST'])
 def api_parse():
     """Parse ACL rule and return granted commands."""

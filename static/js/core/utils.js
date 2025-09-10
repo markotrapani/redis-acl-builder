@@ -240,6 +240,31 @@ const Utils = {
             valid: errors.length === 0,
             errors: errors
         };
+    },
+
+    /**
+     * Normalize ACL rule by converting commands to lowercase
+     * @param {string} rule - The ACL rule string
+     * @returns {string} - Normalized rule with lowercase commands
+     */
+    normalizeACLRule(rule) {
+        if (!rule || typeof rule !== 'string') {
+            return rule;
+        }
+
+        return rule.trim().split(/\s+/).map(token => {
+            if (!token) return token;
+            
+            // Handle command tokens (+command, -command) but not categories (+@category, -@category)
+            if ((token.startsWith('+') || token.startsWith('-')) && !token.includes('@')) {
+                const operator = token[0];
+                const command = token.substring(1);
+                return operator + command.toLowerCase();
+            }
+            
+            // Keep other tokens unchanged (categories, key patterns, etc.)
+            return token;
+        }).join(' ');
     }
 };
 
