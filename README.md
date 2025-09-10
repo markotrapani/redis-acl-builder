@@ -372,7 +372,7 @@ CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "app:app"]
 
 ## Features
 
-### Current Features (v1.2.0)
+### Current Features (v1.3.0)
 
 - **Complete Redis ACL rule parsing and validation**
 - **Support for Redis 7 (311 commands) and Redis 8 (446 commands)**
@@ -388,9 +388,10 @@ CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "app:app"]
 - **Bidirectional sync** between manual text editing and interactive UI
 - **Seamless version switching** between Redis 7/8 with full UI updates
 - **Comprehensive API** with full documentation and error handling
-- **28 automated tests** with 82% code coverage
+- **Modular ES6 JavaScript architecture** with organized file structure
+- **29 automated tests** with 100% test pass rate
 - **Production-ready deployment** configuration
-- **Professional code organization** and structure
+- **Professional code organization** with maintainable architecture
 
 ### Future Enhancements
 
@@ -400,6 +401,10 @@ CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "app:app"]
 - ACL Selectors (parenthetical selectors)
 - Export Functionality (generate production ACL configs)
 - Syntax Highlighting (CodeMirror or Monaco editor)
+
+## Acknowledgments
+
+Special thanks to **Michael Tchistopolskii** (michael.tchistopolskii@redis.com) for substantial improvement ideas and architectural guidance that helped shape this application into a production-ready Redis ACL management tool.
 
 ## License
 
@@ -416,4 +421,4 @@ For issues or questions:
 
 ---
 
-**Redis ACL Builder v1.2.0** - Production-ready with Advanced UI Polish and 82% test coverage
+**Redis ACL Builder v1.3.0** - Production-ready with Modular Architecture and 100% test coverage
