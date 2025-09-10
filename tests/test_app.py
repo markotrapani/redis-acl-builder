@@ -420,6 +420,109 @@ class TestFlaskApp(unittest.TestCase):
         # Redis 8 should have JSON category
         self.assertIn('json', data8['categories'])
         self.assertNotIn('json', data7['categories'])
+    
+    def test_analyze_redundancy_api(self):
+        """Test ACL rule redundancy analysis API."""
+        # Test redundant rule
+        response = self.client.post('/api/analyze-redundancy', 
+            json={'rule': '+@all -@all', 'version': 'redis7'})
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        self.assertIn('analysis', data)
+        
+        # Test with invalid version
+        response = self.client.post('/api/analyze-redundancy', 
+            json={'rule': '+@all', 'version': 'invalid'})
+        self.assertEqual(response.status_code, 400)
+        
+        # Test with missing JSON data
+        response = self.client.post('/api/analyze-redundancy')
+        self.assertEqual(response.status_code, 400)
+    
+    def test_refactored_error_handling(self):
+        """Test the refactored shared validation functions."""
+        # Test all endpoints with invalid JSON
+        endpoints = ['/api/parse', '/api/test-command', '/api/command-info', 
+                    '/api/search-commands', '/api/validate-rule', '/api/analyze-redundancy']
+        
+        for endpoint in endpoints:
+            with self.subTest(endpoint=endpoint):
+                response = self.client.post(endpoint, data='invalid json', 
+                                          content_type='application/json')
+                self.assertEqual(response.status_code, 400)
+                data = json.loads(response.data)
+                self.assertTrue(data['error'])
+                self.assertIn('Invalid or missing JSON data', data['message'])
+    
+    def test_configuration_constants(self):
+        """Test that configuration constants are properly used."""
+        # Test health endpoint reflects proper configuration
+        response = self.client.get('/health')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['status'], 'healthy')
+        self.assertIn('redis_versions', data)
+        self.assertIn('total_commands', data)
+    
+    def test_search_limit_configuration(self):
+        """Test that search limit uses configuration constant."""
+        # Test search with large pattern should respect limit
+        response = self.client.post('/api/search-commands', 
+            json={'pattern': '*', 'version': 'redis7'})
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        
+        # Should have limited results (default 50 or configured limit)
+        self.assertLessEqual(len(data['results']), 50)
+        self.assertIn('showing', data)
+        self.assertIn('total_matches', data)
+
+
+class TestUserInterface(unittest.TestCase):
+    """Test user interface structure and functionality."""
+    
+    def setUp(self):
+        """Set up test client."""
+        app.config['TESTING'] = True
+        self.client = app.test_client()
+        self.ctx = app.app_context()
+        self.ctx.push()
+    
+    def tearDown(self):
+        """Clean up test context."""
+        self.ctx.pop()
+    
+    def test_copy_clear_buttons_presence_and_positioning(self):
+        """Test that Copy and Clear buttons are present and correctly positioned."""
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        html_content = response.data.decode('utf-8')
+        
+        # Check for Copy and Clear buttons
+        self.assertIn('📋 Copy Rule', html_content)
+        self.assertIn('🗑️ Clear Rule', html_content)
+        self.assertIn('id="copyRuleBtn"', html_content)
+        self.assertIn('id="clearRuleBtn"', html_content)
+        
+        # Check buttons are in correct position (after textarea, before Quick Examples)
+        copy_pos = html_content.find('📋 Copy Rule')
+        examples_pos = html_content.find('Quick Examples:')
+        textarea_pos = html_content.find('id="aclRule"')
+        
+        self.assertTrue(textarea_pos < copy_pos < examples_pos, 
+                       "Copy button should be between textarea and Quick Examples")
+    
+    def test_version_toggle_design_consistency(self):
+        """Test that version toggle uses final design without A/B testing artifacts."""
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        html_content = response.data.decode('utf-8')
+        
+        # Should not contain A/B testing elements
+        self.assertNotIn('Test Inverted Version Colors', html_content)
+        self.assertNotIn('styleToggle', html_content)
+        self.assertNotIn('inverted-toggle', html_content)
 
 
 class TestIntegration(unittest.TestCase):
@@ -519,6 +622,7 @@ def run_tests():
         TestDataLoader,
         TestACLParser, 
         TestFlaskApp,
+        TestUserInterface,
         TestIntegration
     ]
     

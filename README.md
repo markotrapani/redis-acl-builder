@@ -1,4 +1,4 @@
-# Redis ACL Builder
+# Redis Enterprise ACL Builder
 
 **Version 1.3.0** - Production-ready with Modular Architecture
 

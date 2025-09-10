@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Redis ACL Builder - Main Flask Application
+Redis Enterprise ACL Builder - Main Flask Application
 """
 
 from flask import Flask, render_template, request, jsonify
@@ -16,9 +16,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from helpers.data_loader import get_redis_data, build_command_indexes
 from helpers.acl_parser import ACLParser
 
+# Configuration constants
+DEFAULT_PORT = int(os.getenv('FLASK_PORT', '5001'))
+DEFAULT_SEARCH_LIMIT = int(os.getenv('DEFAULT_SEARCH_LIMIT', '50'))
+DEBUG_MODE = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
+
 # Initialize Flask app
 app = Flask(__name__)
-app.config['DEBUG'] = True
+app.config['DEBUG'] = DEBUG_MODE
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -50,6 +55,22 @@ def handle_api_error(error_msg: str, status_code: int = 400) -> Dict[str, Any]:
         'status_code': status_code
     }), status_code
 
+def validate_request_json(request) -> Dict[str, Any]:
+    """Extract and validate JSON from request."""
+    try:
+        data = request.get_json()
+        if not data:
+            raise ValueError("No JSON data provided")
+        return data
+    except Exception:
+        raise ValueError("Invalid or missing JSON data")
+
+def validate_redis_version(version: str) -> str:
+    """Validate Redis version parameter."""
+    if version not in PARSERS:
+        raise ValueError(f"Invalid Redis version: {version}")
+    return version
+
 # Routes
 @app.route('/')
 def index():
@@ -60,19 +81,9 @@ def index():
 def api_parse():
     """Parse ACL rule and return granted commands."""
     try:
-        try:
-            data = request.get_json()
-            if not data:
-                return handle_api_error("No JSON data provided")
-        except Exception:
-            return handle_api_error("Invalid or missing JSON data")
-        
+        data = validate_request_json(request)
         rule = data.get('rule', '')
-        version = data.get('version', 'redis7')
-        
-        # Validate version
-        if version not in PARSERS:
-            return handle_api_error(f"Invalid Redis version: {version}")
+        version = validate_redis_version(data.get('version', 'redis7'))
         
         parser = get_parser(version)
         
@@ -107,6 +118,8 @@ def api_parse():
             'version': version
         })
         
+    except ValueError as e:
+        return handle_api_error(str(e))
     except Exception as e:
         logger.error(f"Error in api_parse: {str(e)}")
         return handle_api_error(f"Internal error: {str(e)}", 500)
@@ -115,23 +128,13 @@ def api_parse():
 def api_test_command():
     """Test if specific command is allowed."""
     try:
-        try:
-            data = request.get_json()
-            if not data:
-                return handle_api_error("No JSON data provided")
-        except Exception:
-            return handle_api_error("Invalid or missing JSON data")
-        
+        data = validate_request_json(request)
         rule = data.get('rule', '')
         command = data.get('command', '').strip()
-        version = data.get('version', 'redis7')
+        version = validate_redis_version(data.get('version', 'redis7'))
         
         if not command:
-            return handle_api_error("No command specified")
-        
-        # Validate version
-        if version not in PARSERS:
-            return handle_api_error(f"Invalid Redis version: {version}")
+            raise ValueError("No command specified")
         
         parser = get_parser(version)
         
@@ -153,6 +156,8 @@ def api_test_command():
             'version': version
         })
         
+    except ValueError as e:
+        return handle_api_error(str(e))
     except Exception as e:
         logger.error(f"Error in api_test_command: {str(e)}")
         return handle_api_error(f"Internal error: {str(e)}", 500)
@@ -161,22 +166,12 @@ def api_test_command():
 def api_command_info():
     """Get information about a command."""
     try:
-        try:
-            data = request.get_json()
-            if not data:
-                return handle_api_error("No JSON data provided")
-        except Exception:
-            return handle_api_error("Invalid or missing JSON data")
-        
+        data = validate_request_json(request)
         command = data.get('command', '').strip()
-        version = data.get('version', 'redis7')
+        version = validate_redis_version(data.get('version', 'redis7'))
         
         if not command:
-            return handle_api_error("No command specified")
-        
-        # Validate version
-        if version not in PARSERS:
-            return handle_api_error(f"Invalid Redis version: {version}")
+            raise ValueError("No command specified")
         
         parser = get_parser(version)
         categories = parser.get_command_categories(command)
@@ -189,6 +184,8 @@ def api_command_info():
             'version': version
         })
         
+    except ValueError as e:
+        return handle_api_error(str(e))
     except Exception as e:
         logger.error(f"Error in api_command_info: {str(e)}")
         return handle_api_error(f"Internal error: {str(e)}", 500)
@@ -197,11 +194,7 @@ def api_command_info():
 def api_categories():
     """Get all available categories for a Redis version."""
     try:
-        version = request.args.get('version', 'redis7')
-        
-        # Validate version
-        if version not in PARSERS:
-            return handle_api_error(f"Invalid Redis version: {version}")
+        version = validate_redis_version(request.args.get('version', 'redis7'))
         
         parser = get_parser(version)
         category_info = parser.get_category_info()
@@ -214,6 +207,8 @@ def api_categories():
             'total_categories': len(category_info)
         })
         
+    except ValueError as e:
+        return handle_api_error(str(e))
     except Exception as e:
         logger.error(f"Error in api_categories: {str(e)}")
         return handle_api_error(f"Internal error: {str(e)}", 500)
@@ -222,23 +217,13 @@ def api_categories():
 def api_search_commands():
     """Search for commands matching a pattern."""
     try:
-        try:
-            data = request.get_json()
-            if not data:
-                return handle_api_error("No JSON data provided")
-        except Exception:
-            return handle_api_error("Invalid or missing JSON data")
-        
+        data = validate_request_json(request)
         pattern = data.get('pattern', '').strip()
-        version = data.get('version', 'redis7')
-        limit = data.get('limit', 50)  # Limit results to avoid overwhelming UI
+        version = validate_redis_version(data.get('version', 'redis7'))
+        limit = data.get('limit', DEFAULT_SEARCH_LIMIT)  # Limit results to avoid overwhelming UI
         
         if not pattern:
-            return handle_api_error("No search pattern specified")
-        
-        # Validate version
-        if version not in PARSERS:
-            return handle_api_error(f"Invalid Redis version: {version}")
+            raise ValueError("No search pattern specified")
         
         parser = get_parser(version)
         matching_commands = parser.search_commands(pattern)
@@ -262,6 +247,8 @@ def api_search_commands():
             'version': version
         })
         
+    except ValueError as e:
+        return handle_api_error(str(e))
     except Exception as e:
         logger.error(f"Error in api_search_commands: {str(e)}")
         return handle_api_error(f"Internal error: {str(e)}", 500)
@@ -270,19 +257,9 @@ def api_search_commands():
 def api_validate_rule():
     """Validate ACL rule syntax."""
     try:
-        try:
-            data = request.get_json()
-            if not data:
-                return handle_api_error("No JSON data provided")
-        except Exception:
-            return handle_api_error("Invalid or missing JSON data")
-        
+        data = validate_request_json(request)
         rule = data.get('rule', '')
-        version = data.get('version', 'redis7')
-        
-        # Validate version
-        if version not in PARSERS:
-            return handle_api_error(f"Invalid Redis version: {version}")
+        version = validate_redis_version(data.get('version', 'redis7'))
         
         parser = get_parser(version)
         is_valid, errors = parser.validate_rule_syntax(rule)
@@ -295,6 +272,8 @@ def api_validate_rule():
             'version': version
         })
         
+    except ValueError as e:
+        return handle_api_error(str(e))
     except Exception as e:
         logger.error(f"Error in api_validate_rule: {str(e)}")
         return handle_api_error(f"Internal error: {str(e)}", 500)
@@ -303,19 +282,9 @@ def api_validate_rule():
 def api_analyze_redundancy():
     """Analyze ACL rule for redundant terms and optimization opportunities."""
     try:
-        try:
-            data = request.get_json()
-            if not data:
-                return handle_api_error("No JSON data provided")
-        except Exception:
-            return handle_api_error("Invalid JSON data")
-        
+        data = validate_request_json(request)
         rule = data.get('rule', '')
-        version = data.get('version', 'redis7')
-        
-        # Validate version
-        if version not in PARSERS:
-            return handle_api_error(f"Invalid Redis version: {version}")
+        version = validate_redis_version(data.get('version', 'redis7'))
         
         parser = get_parser(version)
         analysis = parser.analyze_rule_redundancy(rule)
@@ -327,6 +296,8 @@ def api_analyze_redundancy():
             'analysis': analysis
         })
         
+    except ValueError as e:
+        return handle_api_error(str(e))
     except Exception as e:
         logger.error(f"Error in api_analyze_redundancy: {str(e)}")
         return handle_api_error(f"Internal error: {str(e)}", 500)
@@ -364,11 +335,11 @@ def internal_error(error):
 
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("🔐 Redis ACL Builder Starting Up")
+    print("🔐 Redis Enterprise ACL Builder Starting Up")
     print("="*60)
     print(f"✅ Redis 7: {len(REDIS_DATA['redis7']['commands'])} commands, {len(REDIS_DATA['redis7']['categories'])} categories")
     print(f"✅ Redis 8: {len(REDIS_DATA['redis8']['commands'])} commands, {len(REDIS_DATA['redis8']['categories'])} categories")
-    print("🌐 Server starting at http://localhost:5001")
+    print(f"🌐 Server starting at http://localhost:{DEFAULT_PORT}")
     print("="*60 + "\n")
     
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    app.run(debug=DEBUG_MODE, host='0.0.0.0', port=DEFAULT_PORT)

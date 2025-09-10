@@ -82,11 +82,20 @@ const API = {
      * Get categories for version
      */
     async getCategories(version) {
-        const response = await fetch(`/api/categories?version=${version}`);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+        try {
+            const response = await fetch(`/api/categories?version=${version}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const result = await response.json();
+            if (result.error) {
+                throw new Error(result.message || 'API returned an error');
+            }
+            return result;
+        } catch (error) {
+            console.error('API call to /api/categories failed:', error);
+            throw error;
         }
-        return response.json();
     },
 
     /**

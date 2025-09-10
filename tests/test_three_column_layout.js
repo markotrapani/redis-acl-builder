@@ -12,8 +12,6 @@ function testThreeColumnLayout() {
         grantedCommandsButtons: document.querySelector('#grantedCommands .command-buttons'),
         blockedCategoriesButtons: document.querySelector('#blockedCategories .category-buttons'),
         blockedCommandsButtons: document.querySelector('#blockedCommands .command-buttons'),
-        grantedStats: document.getElementById('grantedStats'),
-        blockedStats: document.getElementById('blockedStats'),
         ruleStats: document.getElementById('ruleStats'),
         aclRuleInput: document.getElementById('aclRule')
     };
@@ -44,10 +42,6 @@ function testThreeColumnLayout() {
     test('Empty rule input shows empty value', 
         elements.aclRuleInput.value === '');
     
-    // Test 4: Stats elements show loading or have content
-    test('Stats elements are not empty', 
-        elements.grantedStats.textContent.length > 0 &&
-        elements.blockedStats.textContent.length > 0);
     
     // Test 5: Interactive builder state is accessible
     let builder = null;

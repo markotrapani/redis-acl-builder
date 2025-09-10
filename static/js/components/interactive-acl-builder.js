@@ -31,8 +31,6 @@ const InteractiveACLBuilder = {
         grantedCommandsButtons: null,
         blockedCategoriesButtons: null,
         blockedCommandsButtons: null,
-        grantedStats: null,
-        blockedStats: null,
         ruleStats: null,
         aclRuleInput: null,
         submitChangesBtn: null
@@ -49,8 +47,6 @@ const InteractiveACLBuilder = {
         this.elements.grantedCommandsButtons = document.querySelector('#grantedCommands .command-buttons');
         this.elements.blockedCategoriesButtons = document.querySelector('#blockedCategories .category-buttons');
         this.elements.blockedCommandsButtons = document.querySelector('#blockedCommands .command-buttons');
-        this.elements.grantedStats = document.getElementById('grantedStats');
-        this.elements.blockedStats = document.getElementById('blockedStats');
         this.elements.ruleStats = document.getElementById('ruleStats');
         this.elements.aclRuleInput = document.getElementById('aclRule');
         this.elements.submitChangesBtn = document.getElementById('submitChangesBtn');
@@ -60,7 +56,7 @@ const InteractiveACLBuilder = {
             grantedCommands: !!this.elements.grantedCommandsButtons,
             blockedCategories: !!this.elements.blockedCategoriesButtons,
             blockedCommands: !!this.elements.blockedCommandsButtons,
-            stats: !!this.elements.grantedStats
+            ruleStats: !!this.elements.ruleStats
         });
 
         // Check if we have the three-column layout
@@ -80,7 +76,6 @@ const InteractiveACLBuilder = {
             console.log('🎨 Rendering columns...');
             await this.renderColumns();
             await this.updateRuleText();
-            this.updateStats();
             
             // Add event listeners
             this.setupEventListeners();
@@ -90,12 +85,6 @@ const InteractiveACLBuilder = {
         } catch (error) {
             console.error('❌ Failed to initialize Interactive ACL Builder:', error);
             // Show error in the UI
-            if (this.elements.grantedStats) {
-                this.elements.grantedStats.textContent = 'Error loading data';
-            }
-            if (this.elements.blockedStats) {
-                this.elements.blockedStats.textContent = 'Error loading data';
-            }
         }
     },
 
@@ -246,7 +235,6 @@ const InteractiveACLBuilder = {
         setTimeout(async () => {
             await this.renderColumns();
             await this.updateRuleText();
-            this.updateStats();
 
             // Fade back in and clean up inline styles
             requestAnimationFrame(() => {
@@ -405,9 +393,9 @@ const InteractiveACLBuilder = {
             }
             
             // Determine collapsed state: default to collapsed for many commands, expanded for few
-            const shouldCollapse = allGrantedCommands.size > 8 ? 
+            const shouldCollapse = allGrantedCommands.size > 3 ? 
                 (this.state.grantedCommandsCollapsed === true) : // Only collapse if explicitly set for many commands
-                false; // Always expanded for 8 or fewer commands
+                false; // Always expanded for 3 or fewer commands
             
             wrapper.className = shouldCollapse ? 'command-buttons-collapsible collapsed' : 'command-buttons-collapsible';
             
@@ -416,8 +404,8 @@ const InteractiveACLBuilder = {
                 const previewRow = document.createElement('div');
                 previewRow.className = shouldCollapse ? 'command-preview-row' : 'command-preview-row collapsed';
                 
-                // Show first 6-8 commands as preview
-                const previewCommands = Array.from(allGrantedCommands).sort().slice(0, 8);
+                // Show first 3 commands as preview
+                const previewCommands = Array.from(allGrantedCommands).sort().slice(0, 3);
                 previewCommands.forEach(command => {
                     const isViaCategory = effectiveGrantedViaCategories.includes(command);
                     const isIndividual = this.state.grantedCommands.has(command);
@@ -427,9 +415,9 @@ const InteractiveACLBuilder = {
                 });
                 
                 // Add "..." indicator if there are more commands
-                if (allGrantedCommands.size > 8) {
+                if (allGrantedCommands.size > 3) {
                     const moreIndicator = document.createElement('span');
-                    moreIndicator.textContent = `+${allGrantedCommands.size - 8} more...`;
+                    moreIndicator.textContent = `+${allGrantedCommands.size - 3} more...`;
                     moreIndicator.style.color = '#666';
                     moreIndicator.style.fontSize = '1.0em';
                     moreIndicator.style.alignSelf = 'center';
@@ -469,9 +457,9 @@ const InteractiveACLBuilder = {
             const commandCount = this.state.blockedCommands.size + (isEmptyACL ? this.state.allCommands.length : availableCommands.length);
             
             // Determine collapsed state: default to collapsed for many commands, expanded for few
-            const shouldCollapseBlocked = commandCount > 8 ? 
+            const shouldCollapseBlocked = commandCount > 3 ? 
                 (this.state.blockedCommandsCollapsed === true) : // Only collapse if explicitly set for many commands
-                false; // Always expanded for 8 or fewer commands
+                false; // Always expanded for 3 or fewer commands
             
             if (isEmptyACL && this.state.allCommands.length > 0) {
                 // Show ALL available commands as clickable buttons to grant
@@ -575,8 +563,8 @@ const InteractiveACLBuilder = {
                 const previewRow = document.createElement('div');
                 previewRow.className = shouldCollapseBlocked ? 'command-preview-row' : 'command-preview-row collapsed';
                 
-                // Show first 8 commands as preview
-                const previewCommands = Array.from(allBlockedAndAvailable).sort().slice(0, 8);
+                // Show first 3 commands as preview
+                const previewCommands = Array.from(allBlockedAndAvailable).sort().slice(0, 3);
                 previewCommands.forEach(command => {
                     const isBlocked = this.state.blockedCommands.has(command);
                     const button = this.createCommandButton(command, isBlocked ? 'blocked' : 'available');
@@ -585,9 +573,9 @@ const InteractiveACLBuilder = {
                 });
                 
                 // Add "..." indicator if there are more commands
-                if (allBlockedAndAvailable.size > 8) {
+                if (allBlockedAndAvailable.size > 3) {
                     const moreIndicator = document.createElement('span');
-                    moreIndicator.textContent = `+${allBlockedAndAvailable.size - 8} more...`;
+                    moreIndicator.textContent = `+${allBlockedAndAvailable.size - 3} more...`;
                     moreIndicator.style.color = '#666';
                     moreIndicator.style.fontSize = '1.0em';
                     moreIndicator.style.alignSelf = 'center';
@@ -620,8 +608,8 @@ const InteractiveACLBuilder = {
         if (header) {
             const text = type === 'granted' ? 'Individual Commands' : 'Individual Commands';
             
-            // Only show collapse/expand controls if there are more than 8 commands
-            if (count > 8) {
+            // Only show collapse/expand controls if there are more than 3 commands
+            if (count > 3) {
                 const arrow = isCollapsed ? '+' : '−';
                 header.innerHTML = `${text} ${count > 0 ? `(${count})` : ''} <span style="float: right; font-size: 1.2em; font-weight: bold;">${arrow}</span>`;
                 header.style.cursor = 'pointer';
@@ -831,23 +819,6 @@ const InteractiveACLBuilder = {
         return true;
     },
 
-    /**
-     * Update statistics displays
-     */
-    updateStats() {
-        // Hide all bottom stats for a cleaner interface
-        if (this.elements.grantedStats) {
-            this.elements.grantedStats.style.display = 'none';
-        }
-
-        if (this.elements.blockedStats) {
-            this.elements.blockedStats.style.display = 'none';
-        }
-
-        if (this.elements.ruleStats) {
-            this.elements.ruleStats.style.display = 'none';
-        }
-    },
 
     /**
      * Setup event listeners
@@ -925,7 +896,6 @@ const InteractiveACLBuilder = {
 
             // Re-render the interactive display
             await this.renderColumns();
-            this.updateStats();
             
             // Update tracking state
             this.state.lastGeneratedRule = ruleText;

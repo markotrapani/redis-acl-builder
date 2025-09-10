@@ -1,6 +1,6 @@
 /**
  * Main Application Entry Point
- * Modular version of the Redis ACL Builder application
+ * Modular version of the Redis Enterprise ACL Builder application
  */
 
 // Import all modules
@@ -31,7 +31,7 @@ const App = {
             // Initialize interactive ACL builder (three-column layout)
             await InteractiveACLBuilder.init();
             
-            console.log('Redis ACL Builder initialized successfully');
+            console.log('Redis Enterprise ACL Builder initialized successfully');
         } catch (error) {
             console.error('Failed to initialize application:', error);
             // Show user-friendly error message
@@ -56,6 +56,88 @@ window.setRuleAndParse = (rule) => {
 window.testCommand = () => CommandTester.testCommand();
 window.CategoryManager = CategoryManager; // Make available for HTML onclick
 window.syncRuleToInteractive = () => InteractiveACLBuilder.syncFromRuleText();
+window.copyACLRule = () => {
+    const aclRuleTextarea = document.getElementById('aclRule');
+    if (!aclRuleTextarea) {
+        Utils.showNotification('Error: ACL rule text area not found! ❌', 'error');
+        return;
+    }
+    
+    const ruleText = aclRuleTextarea.value.trim();
+    
+    // Check if rule is empty
+    if (!ruleText) {
+        Utils.showNotification('Cannot copy empty ACL rule! ⚠️', 'warning');
+        return;
+    }
+    
+    // Check if rule appears to be invalid (basic validation)
+    const isInvalid = !ruleText.includes('+') && !ruleText.includes('-') && !ruleText.includes('~');
+    
+    navigator.clipboard.writeText(ruleText).then(() => {
+        if (isInvalid) {
+            Utils.showNotification('Warning: ACL rule may be invalid - copied anyway 📋⚠️', 'warning');
+        } else {
+            Utils.showNotification('ACL rule copied to clipboard! 📋', 'success');
+        }
+    }).catch(() => {
+        try {
+            // Fallback for older browsers
+            aclRuleTextarea.select();
+            const successful = document.execCommand('copy');
+            if (successful) {
+                if (isInvalid) {
+                    Utils.showNotification('Warning: ACL rule may be invalid - copied anyway 📋⚠️', 'warning');
+                } else {
+                    Utils.showNotification('ACL rule copied to clipboard! 📋', 'success');
+                }
+            } else {
+                Utils.showNotification('Failed to copy ACL rule! ❌', 'error');
+            }
+        } catch (error) {
+            Utils.showNotification('Copy operation not supported by browser! ❌', 'error');
+        }
+    });
+};
+window.clearACLRule = () => {
+    const aclRuleTextarea = document.getElementById('aclRule');
+    if (!aclRuleTextarea) {
+        Utils.showNotification('Error: ACL rule text area not found! ❌', 'error');
+        return;
+    }
+    
+    const currentRule = aclRuleTextarea.value.trim();
+    
+    // Check if rule is already empty
+    if (!currentRule) {
+        Utils.showNotification('ACL rule is already empty! 📝', 'info');
+        return;
+    }
+    
+    try {
+        // Clear the rule
+        aclRuleTextarea.value = '';
+        aclRuleTextarea.focus();
+        
+        // Hide redundancy warnings
+        RuleManager.hideRedundancyWarnings();
+        
+        // Parse the empty rule (skip redundancy analysis for empty rule)
+        RuleManager.parseRule(true);
+        
+        // Sync to interactive builder to update command lists
+        if (InteractiveACLBuilder.state.isInitialized) {
+            InteractiveACLBuilder.syncFromRuleText();
+        }
+        
+        Utils.showNotification('ACL rule cleared and command lists updated! 🗑️', 'success');
+    } catch (error) {
+        console.error('Error clearing ACL rule:', error);
+        Utils.showNotification('Error occurred while clearing ACL rule! ❌', 'error');
+        // Restore the original rule if there was an error
+        aclRuleTextarea.value = currentRule;
+    }
+};
 
 // Auto-initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', App.init);

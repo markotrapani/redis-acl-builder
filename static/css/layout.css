@@ -1,4 +1,4 @@
-/* Redis ACL Builder - Layout Styles */
+/* Redis Enterprise ACL Builder - Layout Styles */
 
 /* Three Column Layout */
 .three-column-layout {
@@ -6,6 +6,12 @@
   grid-template-columns: 1fr 1fr 1fr;
   gap: var(--spacing-lg);
   margin-bottom: var(--spacing-xxl);
+  align-items: start;
+}
+
+/* Make all panels in three-column layout the same height */
+.three-column-layout > .panel {
+  height: 850px;
 }
 
 /* Legacy main-content for backwards compatibility */
@@ -31,11 +37,15 @@
 .granted-commands-panel {
   border-left: 4px solid var(--success-color);
   background: linear-gradient(135deg, #1e2b1e 0%, var(--surface) 100%);
+  display: flex;
+  flex-direction: column;
 }
 
 .blocked-commands-panel {
   border-left: 4px solid var(--error-color);
   background: linear-gradient(135deg, #2b1e1e 0%, var(--surface) 100%);
+  display: flex;
+  flex-direction: column;
 }
 
 /* Dark mode panel styling */
@@ -87,12 +97,13 @@
 
 /* Command categories container */
 .command-categories-container {
-  max-height: 600px;
+  flex: 1;
+  max-height: 650px;
   overflow-y: auto;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 0;
   background: rgba(0,0,0,0.02);
 }
 
@@ -116,38 +127,14 @@
 }
 
 /* Categories and commands sections */
-.categories-section, 
+.categories-section {
+  margin-bottom: 10px;
+}
+
 .commands-section {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 0px;
 }
 
-/* Column statistics */
-.column-stats {
-  text-align: center;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-light);
-}
-
-.stats-text {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-/* Dark mode column stats */
-@media (prefers-color-scheme: dark) {
-  .column-stats,
-  .granted-commands-panel .column-stats,
-  .blocked-commands-panel .column-stats {
-    border-top-color: var(--border);
-  }
-  
-  .stats-text,
-  .granted-commands-panel .stats-text,
-  .blocked-commands-panel .stats-text {
-    color: var(--text-secondary) !important;
-  }
-}
 
 /* Rule stats in ACL config panel */
 .rule-stats {
@@ -273,8 +260,12 @@
     gap: var(--spacing-md);
   }
   
+  .three-column-layout > .panel {
+    height: 650px;
+  }
+  
   .command-categories-container {
-    max-height: 400px;
+    max-height: 450px;
   }
 }
 

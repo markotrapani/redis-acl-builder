@@ -1,4 +1,4 @@
-/* Redis ACL Builder Styles */
+/* Redis Enterprise ACL Builder Styles */
 
 * {
     margin: 0;
@@ -864,26 +864,26 @@ h1 {
     }
     
     .category-button.granted {
-        background: #1e3a1e;
+        background: #1a2e1a;
         border-color: #4CAF50;
-        color: #81C784;
+        color: #a5d6a7;
     }
     
     .category-button.blocked {
-        background: #3a1e1e;
+        background: #2e1a1a;
         border-color: #f44336;
-        color: #ef5350;
+        color: #ffab91;
     }
     
     .command-button.granted {
         background: #1a2e1a;
         border-color: #66BB6A;
-        color: #81C784;
+        color: #a5d6a7;
     }
     
     .command-button.blocked {
         background: #2e1a1a;
-        border-color: #ef5350;
+        border-color: #f44336;
         color: #ffab91;
     }
     
@@ -898,14 +898,6 @@ h1 {
         border-color: #ff5252;
     }
     
-    /* Dark mode column statistics */
-    .column-stats {
-        border-top-color: #555;
-    }
-    
-    .stats-text {
-        color: #bbb;
-    }
     
     /* Dark mode rule stats */
     .rule-stats {
@@ -1019,19 +1011,10 @@ h1 {
 .granted-commands-panel .commands-section h3,
 .blocked-commands-panel .categories-section h3,
 .blocked-commands-panel .commands-section h3 {
-    color: #ccc !important;
+    color: #ffab91 !important;
     border-bottom-color: #555;
 }
 
-.granted-commands-panel .stats-text,
-.blocked-commands-panel .stats-text {
-    color: #bbb !important;
-}
-
-.granted-commands-panel .column-stats,
-.blocked-commands-panel .column-stats {
-    border-top-color: #555;
-}
 
 .acl-config-panel h2 {
     color: #64B5F6 !important;
@@ -1067,8 +1050,12 @@ h1 {
     margin-bottom: 15px;
 }
 
-.categories-section, .commands-section {
-    margin-bottom: 20px;
+.categories-section {
+    margin-bottom: 10px;
+}
+
+.commands-section {
+    margin-bottom: 0px;
 }
 
 .categories-section h3, .commands-section h3 {
@@ -1161,13 +1148,13 @@ h1 {
 .category-button.granted {
     background: #e8f5e8;
     border-color: #4CAF50;
-    color: #2e7d2e;
+    color: #a5d6a7;
 }
 
 .category-button.blocked {
     background: #fde8e8;
     border-color: #f44336;
-    color: #c62828;
+    color: #ffab91;
 }
 
 /* Command button styling - match category buttons */
@@ -1179,13 +1166,13 @@ h1 {
 .command-button.granted {
     background: #e8f5e8;
     border-color: #4CAF50;
-    color: #2e7d2e;
+    color: #a5d6a7;
 }
 
 .command-button.blocked {
     background: #fde8e8;
     border-color: #f44336;
-    color: #c62828;
+    color: #ffab91;
 }
 
 /* Hover effects */
@@ -1210,18 +1197,7 @@ h1 {
     transition: transform 0.1s ease;
 }
 
-/* Column statistics */
-.column-stats {
-    text-align: center;
-    padding-top: 10px;
-    border-top: 1px solid #eee;
-}
 
-.stats-text {
-    font-size: 0.85em;
-    color: #666;
-    font-weight: 500;
-}
 
 /* Rule stats in ACL config panel */
 .rule-stats {
