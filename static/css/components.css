@@ -154,6 +154,7 @@
 .rule-input,
 .test-command-input {
   width: 100%;
+  box-sizing: border-box;
   padding: 12px;
   font-family: var(--font-mono);
   font-size: 14px;
@@ -204,23 +205,34 @@
 
 /* Buttons */
 .test-button {
-  background: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
   color: white;
-  border: none;
-  padding: 10px var(--spacing-lg);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--primary-color);
+  padding: 12px var(--spacing-xl);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  transition: background-color var(--transition-normal);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all var(--transition-normal);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  position: relative;
+  overflow: hidden;
 }
 
 .test-button:hover {
-  background: var(--primary-hover);
+  background: linear-gradient(135deg, var(--primary-hover), var(--primary-active));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border-color: var(--primary-hover);
 }
 
 .test-button:active {
   background: var(--primary-active);
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: all 0.1s ease;
 }
 
 /* Interactive buttons for categories and commands */
@@ -381,6 +393,12 @@
   
   .test-command-input {
     margin-bottom: 10px;
+  }
+  
+  .test-button {
+    width: 100%;
+    padding: 14px var(--spacing-lg);
+    font-size: 14px;
   }
 }
 

@@ -3,15 +3,16 @@
 /* Three Column Layout */
 .three-column-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--spacing-lg);
   margin-bottom: var(--spacing-xxl);
   align-items: start;
 }
 
-/* Make all panels in three-column layout the same height */
+/* Make all panels in three-column layout uniform */
 .three-column-layout > .panel {
   height: 850px;
+  min-width: 0;
 }
 
 /* Legacy main-content for backwards compatibility */
@@ -248,12 +249,6 @@
 }
 
 /* Responsive Design */
-@media (max-width: 1600px) and (min-width: 1201px) {
-  .three-column-layout {
-    grid-template-columns: 1.2fr 1fr 1fr;
-  }
-}
-
 @media (max-width: 1200px) {
   .three-column-layout {
     grid-template-columns: 1fr;

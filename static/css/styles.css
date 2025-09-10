@@ -1226,11 +1226,6 @@ h1 {
     }
 }
 
-@media (min-width: 1201px) and (max-width: 1600px) {
-    .three-column-layout {
-        grid-template-columns: 1.2fr 1fr 1fr;
-    }
-}
 
 /* Loading states */
 .column-loading {

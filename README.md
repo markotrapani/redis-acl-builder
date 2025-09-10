@@ -426,7 +426,7 @@ This project is provided as-is for educational and development purposes.
 For issues or questions:
 
 1. Run `python test_imports.py` for diagnostics
-2. Check test results with `tests/run_tests.sh`
+2. Check test results with `../tests/run_tests.sh`
 3. Review the troubleshooting section
 4. Ensure all files are in the correct locations
 
