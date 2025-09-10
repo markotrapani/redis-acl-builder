@@ -39,9 +39,10 @@
             <div id="testResult" role="region" aria-label="Test results" aria-live="polite"></div>
         </section>
         
-        <div class="main-content">
-            <!-- ACL Rule Input Panel -->
-            <section class="panel">
+        <!-- Three Column Layout -->
+        <div class="three-column-layout">
+            <!-- Left Column: ACL Rule Configuration -->
+            <section class="panel acl-config-panel">
                 <h2>ACL Rule Configuration</h2>
                 
                 <div class="version-selector">
@@ -55,10 +56,14 @@
                 <textarea 
                     id="aclRule" 
                     class="rule-input" 
-                    placeholder="Enter your ACL rule here...&#10;Examples:&#10;+@read ~cached:*&#10;+@all -@dangerous&#10;+get +set +@hash ~user:*"
+                    placeholder="Click commands/categories in the panels to the right to build your ACL rule interactively, or type manually..."
                     aria-label="ACL Rule Input"
                     spellcheck="false"
                 ></textarea>
+                
+                <button type="button" id="submitChangesBtn" class="test-button" onclick="syncRuleToInteractive()" style="margin-top: 10px; width: 100%; display: none;">
+                    Submit Changes
+                </button>
                 
                 <div class="rule-examples">
                     <h4>Quick Examples:</h4>
@@ -80,13 +85,48 @@
                 </div>
             </section>
             
-            <!-- Results Panel -->
-            <section class="panel">
-                <h2>Granted Commands</h2>
-                <div id="resultsSummary" class="results-summary" style="display: none;" role="status" aria-live="polite">
-                    <strong>No ACL rule specified - all commands granted by default</strong>
+            <!-- Center Column: Granted Commands -->
+            <section class="panel granted-commands-panel">
+                <h2>✅ Granted Commands</h2>
+                <p class="panel-description">Click any item below to <strong>revoke</strong> access and move it to blocked commands</p>
+                
+                <div class="command-categories-container">
+                    <div id="grantedCategories" class="categories-section">
+                        <h3>Categories</h3>
+                        <div class="category-buttons" role="group" aria-label="Granted categories"></div>
+                    </div>
+                    
+                    <div id="grantedCommands" class="commands-section">
+                        <h3>Individual Commands</h3>
+                        <div class="command-buttons" role="group" aria-label="Granted commands"></div>
+                    </div>
                 </div>
-                <div id="commandResults" role="region" aria-label="Command results" aria-live="polite"></div>
+                
+                <div class="column-stats">
+                    <span id="grantedStats" class="stats-text">Loading...</span>
+                </div>
+            </section>
+            
+            <!-- Right Column: Blocked Commands -->
+            <section class="panel blocked-commands-panel">
+                <h2>❌ Blocked Commands</h2>
+                <p class="panel-description">Click any item below to <strong>grant</strong> access and move it to granted commands</p>
+                
+                <div class="command-categories-container">
+                    <div id="blockedCategories" class="categories-section">
+                        <h3>Categories</h3>
+                        <div class="category-buttons" role="group" aria-label="Blocked categories"></div>
+                    </div>
+                    
+                    <div id="blockedCommands" class="commands-section">
+                        <h3>Individual Commands</h3>
+                        <div class="command-buttons" role="group" aria-label="Blocked commands"></div>
+                    </div>
+                </div>
+                
+                <div class="column-stats">
+                    <span id="blockedStats" class="stats-text">Loading...</span>
+                </div>
             </section>
         </div>
     </div>
