@@ -19,16 +19,17 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 ### Key Features
 
 - **Complete Command Database**: Pre-loaded with 311 Redis 7 commands and 446 Redis 8 commands
-- **Interactive Three-Column Layout**: ACL Config, Granted Commands, and Blocked Commands panels
-- **Real-time Validation**: Live parsing and validation of ACL rule syntax
-- **Category Organization**: Commands grouped by Redis categories (read, write, admin, etc.)
+- **Interactive Three-Column Layout**: ACL Config (📝), Granted Commands (✅), and Blocked Commands (❌) panels
+- **Real-time Validation**: Live parsing with smooth pop-up notifications for invalid syntax
+- **Advanced UX Polish**: Debounced rendering, fade transitions, consistent button styling
+- **Collapsible Preview Rows**: Show first 8 commands when sections are collapsed
 - **Command Exclusion Logic**: Exclude specific commands even when granted via categories
 - **Submit Changes Button**: Dynamic button appears when manual ACL edits are detected
 - **Bidirectional Sync**: Changes in interactive UI update text rule and vice versa
 - **Rule Precedence**: Correctly implements left-to-right Redis ACL rule evaluation
-- **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
-- **Enhanced Dark Mode**: Improved theme with better visual distinction between panels
-- **Collapsible Sections**: Individual Commands sections can be expanded/collapsed
+- **Enhanced Error Handling**: Comprehensive validation for categories, commands, and syntax
+- **Smooth Animations**: Eliminated screen flashing with optimized rendering
+- **Redis Enterprise Compliance**: Full validation against Redis ACL specifications
 - **Version Switching**: Seamless switching between Redis 7/8 with full UI updates
 - **Comprehensive Testing**: 28 automated tests with 82% code coverage
 - **Production Ready**: Professional code structure with proper error handling
@@ -364,23 +365,25 @@ CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "app:app"]
 
 ## Features
 
-### Current Features (v1.1.0)
+### Current Features (v1.2.0)
 
-- Complete Redis ACL rule parsing and validation
-- Support for Redis 7 (311 commands) and Redis 8 (446 commands)  
-- Interactive three-column layout with real-time command management
-- Submit Changes button with automatic change detection
-- Command exclusion logic for granular permission control
-- Bidirectional sync between manual text editing and interactive UI
-- Enhanced dark theme with improved visual distinction
-- Collapsible Individual Commands sections
-- Seamless version switching between Redis 7/8
-- Real-time web interface with responsive design
-- Comprehensive API with full documentation
-- 28 automated tests with 82% code coverage
-- Production-ready deployment configuration
-- Professional code organization and structure
-- Import diagnostics and troubleshooting tools
+- **Complete Redis ACL rule parsing and validation**
+- **Support for Redis 7 (311 commands) and Redis 8 (446 commands)**
+- **Interactive three-column layout** with emoji branding (📝✅❌)
+- **Real-time validation** with smooth pop-up notifications
+- **Advanced UX polish**: debounced rendering, fade transitions, consistent styling
+- **Collapsible preview rows** showing first 8 commands when collapsed
+- **Submit Changes button** with automatic change detection
+- **Command exclusion logic** for granular permission control
+- **Enhanced error handling** for categories, commands, and syntax validation
+- **Smooth animations** eliminating screen flashing and visual inconsistencies
+- **Redis Enterprise compliance** with comprehensive validation
+- **Bidirectional sync** between manual text editing and interactive UI
+- **Seamless version switching** between Redis 7/8 with full UI updates
+- **Comprehensive API** with full documentation and error handling
+- **28 automated tests** with 82% code coverage
+- **Production-ready deployment** configuration
+- **Professional code organization** and structure
 
 ### Future Enhancements
 
@@ -406,4 +409,4 @@ For issues or questions:
 
 ---
 
-**Redis ACL Builder v1.1.0** - Production-ready with Enhanced UI and 82% test coverage
+**Redis ACL Builder v1.2.0** - Production-ready with Advanced UI Polish and 82% test coverage
