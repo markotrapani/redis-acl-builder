@@ -17,7 +17,8 @@ const DOMElements = {
     commandResults: null,
     testCommandInput: null,
     testResult: null,
-    versionRadios: null,
+    versionToggle: null,
+    versionDetail: null,
     
     // Initialize DOM references
     init() {
@@ -26,7 +27,8 @@ const DOMElements = {
         this.commandResults = document.getElementById('commandResults');
         this.testCommandInput = document.getElementById('testCommand');
         this.testResult = document.getElementById('testResult');
-        this.versionRadios = document.querySelectorAll('input[name="version"]');
+        this.versionToggle = document.getElementById('versionToggle');
+        this.versionDetail = document.getElementById('versionDetail');
     }
 };
 
@@ -319,6 +321,13 @@ const API = {
     async validateRule(rule, version) {
         return this.makeCall('/api/validate-rule', { rule, version });
     },
+    
+    /**
+     * Analyze rule for redundancy and optimization opportunities
+     */
+    async analyzeRedundancy(rule, version) {
+        return this.makeCall('/api/analyze-redundancy', { rule, version });
+    },
 
     /**
      * Search commands
@@ -376,8 +385,9 @@ const RuleManager = {
 
     /**
      * Parse current ACL rule
+     * @param {boolean} skipRedundancyAnalysis - Skip redundancy analysis (for version changes)
      */
-    async parseRule() {
+    async parseRule(skipRedundancyAnalysis = false) {
         if (AppState.isLoading) return;
         
         const rule = DOMElements.aclRuleInput.value.trim();
@@ -428,6 +438,127 @@ const RuleManager = {
             if (DOMElements.commandResults) {
                 Utils.hideLoading(DOMElements.commandResults);
             }
+        }
+        
+        // Analyze for redundancy after successful parsing (skip during version changes)
+        if (!skipRedundancyAnalysis) {
+            try {
+                console.log('Starting redundancy analysis for rule:', DOMElements.aclRuleInput.value);
+                this.analyzeRedundancy();
+            } catch (error) {
+                console.error('Error starting redundancy analysis:', error);
+            }
+        } else {
+            console.log('Skipping redundancy analysis (version change)');
+            this.hideRedundancyWarnings(); // Hide any existing warnings
+        }
+    },
+    
+    /**
+     * Analyze current rule for redundancy and show warnings
+     */
+    async analyzeRedundancy() {
+        const rule = DOMElements.aclRuleInput.value.trim();
+        console.log('Analyzing rule for redundancy:', rule);
+        
+        // Skip analysis for empty rules only
+        if (!rule || rule.trim() === '') {
+            console.log('Skipping analysis - empty rule');
+            this.hideRedundancyWarnings();
+            return;
+        }
+        
+        try {
+            console.log('Making API call to analyze-redundancy');
+            const response = await API.analyzeRedundancy(rule, AppState.currentVersion);
+            console.log('Redundancy analysis response:', response);
+            
+            if (response.success && response.analysis) {
+                console.log('Displaying redundancy warnings');
+                this.displayRedundancyWarnings(response.analysis);
+            } else {
+                console.log('No analysis data or unsuccessful response');
+                this.hideRedundancyWarnings();
+            }
+        } catch (error) {
+            console.error('Redundancy analysis failed:', error);
+            this.hideRedundancyWarnings();
+        }
+    },
+    
+    /**
+     * Display redundancy warnings in the UI
+     */
+    displayRedundancyWarnings(analysis) {
+        const warningsContainer = document.getElementById('redundancyWarnings');
+        const warningsList = document.getElementById('warningsList');
+        const suggestionsList = document.getElementById('suggestionsList');
+        
+        if (!analysis.has_redundancy) {
+            this.hideRedundancyWarnings();
+            return;
+        }
+        
+        // Clear existing content
+        warningsList.innerHTML = '';
+        suggestionsList.innerHTML = '';
+        
+        // Add warnings
+        if (analysis.warnings && analysis.warnings.length > 0) {
+            analysis.warnings.forEach(warning => {
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'warning-item';
+                // Convert newlines to <br> tags for proper display
+                warningDiv.innerHTML = warning.replace(/\n/g, '<br>');
+                warningsList.appendChild(warningDiv);
+            });
+        }
+        
+        // Add suggestions
+        if (analysis.suggestions && analysis.suggestions.length > 0) {
+            analysis.suggestions.forEach(suggestion => {
+                const suggestionDiv = document.createElement('div');
+                suggestionDiv.className = 'suggestion-item';
+                
+                if (suggestion.includes('Simplified rule:')) {
+                    const parts = suggestion.split('Simplified rule: ');
+                    suggestionDiv.innerHTML = `${parts[0]}Simplified rule: <span class="simplified-rule">${parts[1]}</span>`;
+                    
+                    // Make simplified rule clickable
+                    const ruleSpan = suggestionDiv.querySelector('.simplified-rule');
+                    if (ruleSpan) {
+                        ruleSpan.style.cursor = 'pointer';
+                        ruleSpan.title = 'Click to apply this simplified rule';
+                        ruleSpan.onclick = () => {
+                            const simplifiedRule = ruleSpan.textContent.replace(/'/g, '');
+                            // Handle special case of "(empty rule)" - clear the text area completely
+                            if (simplifiedRule === '(empty rule)') {
+                                DOMElements.aclRuleInput.value = '';
+                            } else {
+                                DOMElements.aclRuleInput.value = simplifiedRule;
+                            }
+                            this.parseRule(); // Re-parse with simplified rule
+                        };
+                    }
+                } else {
+                    suggestionDiv.textContent = suggestion;
+                }
+                
+                suggestionsList.appendChild(suggestionDiv);
+            });
+        }
+        
+        // Show the warnings container
+        warningsContainer.style.display = 'block';
+    },
+    
+    /**
+     * Hide redundancy warnings
+     */
+    hideRedundancyWarnings() {
+        const warningsContainer = document.getElementById('redundancyWarnings');
+        if (warningsContainer) {
+            warningsContainer.style.display = 'none';
         }
     },
 
@@ -611,25 +742,35 @@ const EventHandlers = {
      * Initialize all event listeners
      */
     init() {
-        // ACL rule input with debounced parsing
-        DOMElements.aclRuleInput.addEventListener('input', 
-            Utils.debounce(() => RuleManager.parseRule(), 300)
-        );
+        // ACL rule input with debounced parsing - REMOVED per user request
+        // Parsing now only occurs on explicit actions: Submit Changes, button clicks, Quick Examples
+        // DOMElements.aclRuleInput.addEventListener('input', 
+        //     Utils.debounce(() => RuleManager.parseRule(), 300)
+        // );
         
-        // Version selector
-        DOMElements.versionRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (AppState.currentVersion !== this.value) {
-                    AppState.currentVersion = this.value;
-                    RuleManager.parseRule();
-                    // Also update interactive builder if initialized
-                    if (InteractiveACLBuilder.state.isInitialized) {
-                        InteractiveACLBuilder.loadAllData().then(async () => {
-                            await InteractiveACLBuilder.renderColumns();
-                        });
-                    }
+        // Hide optimization suggestions when user starts typing
+        DOMElements.aclRuleInput.addEventListener('input', function() {
+            RuleManager.hideRedundancyWarnings();
+        });
+        
+        // Version toggle
+        DOMElements.versionToggle.addEventListener('change', function() {
+            const newVersion = this.checked ? 'redis8' : 'redis7';
+            if (AppState.currentVersion !== newVersion) {
+                AppState.currentVersion = newVersion;
+                
+                // Update version detail text
+                const commandCount = newVersion === 'redis8' ? '446' : '311';
+                DOMElements.versionDetail.textContent = `Redis ${newVersion.slice(-1)} (${commandCount} commands)`;
+                
+                RuleManager.parseRule(true); // Skip redundancy analysis during version changes
+                // Also update interactive builder if initialized
+                if (InteractiveACLBuilder.state.isInitialized) {
+                    InteractiveACLBuilder.loadAllData().then(async () => {
+                        await InteractiveACLBuilder.renderColumns();
+                    });
                 }
-            });
+            }
         });
         
         // Test command input
@@ -667,7 +808,7 @@ const EventHandlers = {
         
         // Handle browser back/forward
         window.addEventListener('popstate', function() {
-            RuleManager.parseRule();
+            RuleManager.parseRule(true); // Skip redundancy analysis during navigation
         });
         
         // Handle visibility change (tab switching)
@@ -692,8 +833,8 @@ const App = {
             // Set up event handlers
             EventHandlers.init();
             
-            // Parse initial rule (empty)
-            await RuleManager.parseRule();
+            // Parse initial rule (empty) - skip redundancy analysis on startup
+            await RuleManager.parseRule(true);
             
             // Initialize interactive ACL builder (three-column layout)
             await InteractiveACLBuilder.init();
@@ -718,6 +859,7 @@ const InteractiveACLBuilder = {
         grantedCategories: new Set(),
         blockedCommands: new Set(),
         blockedCategories: new Set(),
+        keyPatterns: new Set(),          // Store key patterns like ~*, ~user:*, etc.
         allCategories: [],
         allCommands: [],
         isInitialized: false,
@@ -781,7 +923,7 @@ const InteractiveACLBuilder = {
             
             console.log('🎨 Rendering columns...');
             await this.renderColumns();
-            this.updateRuleText();
+            await this.updateRuleText();
             this.updateStats();
             
             // Add event listeners
@@ -947,13 +1089,18 @@ const InteractiveACLBuilder = {
         // Wait for fade, then render
         setTimeout(async () => {
             await this.renderColumns();
-            this.updateRuleText();
+            await this.updateRuleText();
             this.updateStats();
 
-            // Fade back in
+            // Fade back in and clean up inline styles
             requestAnimationFrame(() => {
                 containers.forEach(container => {
                     container.style.opacity = '1';
+                    // Clean up inline styles to avoid conflicts with CSS classes
+                    setTimeout(() => {
+                        container.style.transition = '';
+                        container.style.opacity = '';
+                    }, 150); // After fade completes
                 });
             });
         }, 80); // Slightly faster
@@ -1077,7 +1224,6 @@ const InteractiveACLBuilder = {
             
             // Create collapsible wrapper
             const wrapper = document.createElement('div');
-            const isCollapsed = this.state.grantedCommandsCollapsed === true; // Default to collapsed
             
             // Get all commands granted via categories and individual grants
             const grantedViaCategories = await this.getCommandsGrantedByCategories();
@@ -1102,18 +1248,17 @@ const InteractiveACLBuilder = {
                 });
             }
             
-            wrapper.className = 'command-buttons-collapsible';
-            wrapper.style.display = isCollapsed ? 'none' : 'flex';
-            wrapper.style.flexWrap = 'wrap';
-            wrapper.style.gap = '6px';
+            // Determine collapsed state: default to collapsed for many commands, expanded for few
+            const shouldCollapse = allGrantedCommands.size > 8 ? 
+                (this.state.grantedCommandsCollapsed === true) : // Only collapse if explicitly set for many commands
+                false; // Always expanded for 8 or fewer commands
+            
+            wrapper.className = shouldCollapse ? 'command-buttons-collapsible collapsed' : 'command-buttons-collapsible';
             
             // Create preview row that shows even when collapsed
             if (allGrantedCommands.size > 0) {
                 const previewRow = document.createElement('div');
-                previewRow.className = 'command-preview-row';
-                previewRow.style.display = isCollapsed ? 'flex' : 'none';
-                previewRow.style.flexWrap = 'wrap';
-                previewRow.style.gap = '6px';
+                previewRow.className = shouldCollapse ? 'command-preview-row' : 'command-preview-row collapsed';
                 
                 // Show first 6-8 commands as preview
                 const previewCommands = Array.from(allGrantedCommands).sort().slice(0, 8);
@@ -1121,7 +1266,7 @@ const InteractiveACLBuilder = {
                     const isViaCategory = effectiveGrantedViaCategories.includes(command);
                     const isIndividual = this.state.grantedCommands.has(command);
                     const button = this.createGrantedCommandButton(command, isViaCategory, isIndividual);
-                    button.style.fontSize = '0.75em'; // Slightly smaller for preview
+                    button.style.fontSize = '1.0em'; // Same size as regular buttons
                     previewRow.appendChild(button);
                 });
                 
@@ -1130,9 +1275,13 @@ const InteractiveACLBuilder = {
                     const moreIndicator = document.createElement('span');
                     moreIndicator.textContent = `+${allGrantedCommands.size - 8} more...`;
                     moreIndicator.style.color = '#666';
-                    moreIndicator.style.fontSize = '0.75em';
+                    moreIndicator.style.fontSize = '1.0em';
                     moreIndicator.style.alignSelf = 'center';
                     moreIndicator.style.fontStyle = 'italic';
+                    moreIndicator.style.cursor = 'pointer';
+                    moreIndicator.style.textDecoration = 'underline';
+                    moreIndicator.title = 'Click to expand and view all commands';
+                    moreIndicator.onclick = () => this.toggleCommandSection('granted');
                     previewRow.appendChild(moreIndicator);
                 }
                 
@@ -1142,7 +1291,7 @@ const InteractiveACLBuilder = {
             this.elements.grantedCommandsButtons.appendChild(wrapper);
             
             // Update the header to be clickable
-            this.updateCommandSectionHeader('granted', allGrantedCommands.size, isCollapsed);
+            this.updateCommandSectionHeader('granted', allGrantedCommands.size, shouldCollapse);
         }
 
         // Render blocked/available commands
@@ -1152,16 +1301,30 @@ const InteractiveACLBuilder = {
             // Create collapsible wrapper
             const wrapper = document.createElement('div');
             const isEmptyACL = this.state.grantedCategories.size === 0 && this.state.grantedCommands.size === 0;
-            const isCollapsed = this.state.blockedCommandsCollapsed === true; // Default to collapsed
+            
+            // Pre-calculate command count to determine collapse state early
+            const grantedViaCategories = await this.getCommandsGrantedByCategories();
+            const grantedViaCategoriesSet = new Set(grantedViaCategories);
+            const availableCommands = this.state.allCommands.filter(cmd => 
+                !this.state.grantedCommands.has(cmd) && 
+                !this.state.blockedCommands.has(cmd) &&
+                !grantedViaCategoriesSet.has(cmd)
+            );
+            const commandCount = this.state.blockedCommands.size + (isEmptyACL ? this.state.allCommands.length : availableCommands.length);
+            
+            // Determine collapsed state: default to collapsed for many commands, expanded for few
+            const shouldCollapseBlocked = commandCount > 8 ? 
+                (this.state.blockedCommandsCollapsed === true) : // Only collapse if explicitly set for many commands
+                false; // Always expanded for 8 or fewer commands
             
             if (isEmptyACL && this.state.allCommands.length > 0) {
                 // Show ALL available commands as clickable buttons to grant
-                const availableCommands = this.state.allCommands.filter(cmd => 
+                const allAvailableForEmptyACL = this.state.allCommands.filter(cmd => 
                     !this.state.grantedCommands.has(cmd) && !this.state.blockedCommands.has(cmd)
                 );
                 
-                if (availableCommands.length > 0) {
-                    availableCommands.forEach(command => {
+                if (allAvailableForEmptyACL.length > 0) {
+                    allAvailableForEmptyACL.forEach(command => {
                         const button = this.createCommandButton(command, 'available');
                         button.title = `Click to grant ${command} command`;
                         wrapper.appendChild(button);
@@ -1208,7 +1371,7 @@ const InteractiveACLBuilder = {
                         wrapper.appendChild(divider);
                     }
                     
-                    availableCommands.forEach(command => {
+                    availableCommands.sort().forEach(command => {
                         const button = this.createCommandButton(command, 'available');
                         button.title = `Click to grant ${command} command`;
                         wrapper.appendChild(button);
@@ -1216,22 +1379,21 @@ const InteractiveACLBuilder = {
                 }
             }
             
-            // Show fallback message only if nothing to show
-            if (this.state.blockedCommands.size === 0 && 
-                (!this.state.allCommands.length || 
-                 this.state.allCommands.every(cmd => this.state.grantedCommands.has(cmd)))) {
+            // Calculate the total count to determine if we should show a "no commands" message
+            const totalCommandsToShow = this.state.blockedCommands.size + 
+                (isEmptyACL ? this.state.allCommands.length : availableCommands.length);
+            
+            // Show message when there are no individual commands to show at all
+            if (totalCommandsToShow === 0) {
                 const message = document.createElement('div');
                 message.className = 'text-muted';
                 message.style.fontStyle = 'italic';
                 message.style.padding = '10px';
-                message.textContent = 'No individual commands available';
+                message.textContent = 'No individual commands blocked';
                 wrapper.appendChild(message);
             }
             
-            wrapper.className = 'command-buttons-collapsible';
-            wrapper.style.display = isCollapsed ? 'none' : 'flex';
-            wrapper.style.flexWrap = 'wrap';
-            wrapper.style.gap = '6px';
+            wrapper.className = shouldCollapseBlocked ? 'command-buttons-collapsible collapsed' : 'command-buttons-collapsible';
             
             // Create preview row that shows even when collapsed
             const allBlockedAndAvailable = new Set([...this.state.blockedCommands]);
@@ -1255,17 +1417,14 @@ const InteractiveACLBuilder = {
             
             if (allBlockedAndAvailable.size > 0) {
                 const previewRow = document.createElement('div');
-                previewRow.className = 'command-preview-row';
-                previewRow.style.display = isCollapsed ? 'flex' : 'none';
-                previewRow.style.flexWrap = 'wrap';
-                previewRow.style.gap = '6px';
+                previewRow.className = shouldCollapseBlocked ? 'command-preview-row' : 'command-preview-row collapsed';
                 
                 // Show first 8 commands as preview
                 const previewCommands = Array.from(allBlockedAndAvailable).sort().slice(0, 8);
                 previewCommands.forEach(command => {
                     const isBlocked = this.state.blockedCommands.has(command);
                     const button = this.createCommandButton(command, isBlocked ? 'blocked' : 'available');
-                    button.style.fontSize = '0.75em'; // Slightly smaller for preview
+                    button.style.fontSize = '1.0em'; // Same size as regular buttons
                     previewRow.appendChild(button);
                 });
                 
@@ -1274,9 +1433,13 @@ const InteractiveACLBuilder = {
                     const moreIndicator = document.createElement('span');
                     moreIndicator.textContent = `+${allBlockedAndAvailable.size - 8} more...`;
                     moreIndicator.style.color = '#666';
-                    moreIndicator.style.fontSize = '0.75em';
+                    moreIndicator.style.fontSize = '1.0em';
                     moreIndicator.style.alignSelf = 'center';
                     moreIndicator.style.fontStyle = 'italic';
+                    moreIndicator.style.cursor = 'pointer';
+                    moreIndicator.style.textDecoration = 'underline';
+                    moreIndicator.title = 'Click to expand and view all commands';
+                    moreIndicator.onclick = () => this.toggleCommandSection('blocked');
                     previewRow.appendChild(moreIndicator);
                 }
                 
@@ -1286,16 +1449,7 @@ const InteractiveACLBuilder = {
             this.elements.blockedCommandsButtons.appendChild(wrapper);
             
             // Update the header to be clickable
-            // Calculate command count for header - only count truly available commands in blocked section
-            const grantedViaCategories = await this.getCommandsGrantedByCategories();
-            const grantedViaCategoriesSet = new Set(grantedViaCategories);
-            const availableCommands = this.state.allCommands.filter(cmd => 
-                !this.state.grantedCommands.has(cmd) && 
-                !this.state.blockedCommands.has(cmd) &&
-                !grantedViaCategoriesSet.has(cmd)
-            );
-            const commandCount = this.state.blockedCommands.size + (isEmptyACL ? this.state.allCommands.length : availableCommands.length);
-            this.updateCommandSectionHeader('blocked', commandCount, isCollapsed);
+            this.updateCommandSectionHeader('blocked', commandCount, shouldCollapseBlocked);
         }
     },
 
@@ -1308,12 +1462,22 @@ const InteractiveACLBuilder = {
         const header = section?.querySelector('h3');
         
         if (header) {
-            const arrow = isCollapsed ? '+' : '−';
             const text = type === 'granted' ? 'Individual Commands' : 'Individual Commands';
-            header.innerHTML = `${text} ${count > 0 ? `(${count})` : ''} <span style="float: right; font-size: 1.2em; font-weight: bold;">${arrow}</span>`;
-            header.style.cursor = 'pointer';
-            header.style.userSelect = 'none';
-            header.onclick = () => this.toggleCommandSection(type);
+            
+            // Only show collapse/expand controls if there are more than 8 commands
+            if (count > 8) {
+                const arrow = isCollapsed ? '+' : '−';
+                header.innerHTML = `${text} ${count > 0 ? `(${count})` : ''} <span style="float: right; font-size: 1.2em; font-weight: bold;">${arrow}</span>`;
+                header.style.cursor = 'pointer';
+                header.style.userSelect = 'none';
+                header.onclick = () => this.toggleCommandSection(type);
+            } else {
+                // No collapse/expand controls for small lists
+                header.innerHTML = `${text} ${count > 0 ? `(${count})` : ''}`;
+                header.style.cursor = 'default';
+                header.style.userSelect = 'auto';
+                header.onclick = null;
+            }
         }
     },
 
@@ -1410,10 +1574,10 @@ const InteractiveACLBuilder = {
     /**
      * Update the ACL rule text based on current state
      */
-    updateRuleText() {
+    async updateRuleText() {
         if (!this.elements.aclRuleInput) return;
 
-        const rule = this.generateOptimizedRule();
+        const rule = await this.generateOptimizedRule();
         this.elements.aclRuleInput.value = rule;
         
         // Track the rule we just generated
@@ -1428,7 +1592,7 @@ const InteractiveACLBuilder = {
     /**
      * Generate optimized ACL rule from current state
      */
-    generateOptimizedRule() {
+    async generateOptimizedRule() {
         const parts = [];
 
         // Add granted categories
@@ -1436,22 +1600,79 @@ const InteractiveACLBuilder = {
             parts.push(`+@${category}`);
         });
 
-        // Add blocked categories
-        Array.from(this.state.blockedCategories).sort().forEach(category => {
-            parts.push(`-@${category}`);
-        });
-
         // Add granted individual commands
         Array.from(this.state.grantedCommands).sort().forEach(command => {
             parts.push(`+${command}`);
         });
 
-        // Add blocked individual commands
-        Array.from(this.state.blockedCommands).sort().forEach(command => {
-            parts.push(`-${command}`);
-        });
+        // Check if we have any inclusion terms (granted categories or commands)
+        const hasInclusions = this.state.grantedCategories.size > 0 || this.state.grantedCommands.size > 0;
+
+        // Only add exclusions if we have inclusions, and only meaningful exclusions
+        if (hasInclusions) {
+            // Get all commands that would be granted by the inclusion terms
+            const grantedCommands = await this.getCommandsGrantedByInclusions();
+
+            // Add blocked categories only if they would actually exclude granted commands
+            Array.from(this.state.blockedCategories).sort().forEach(category => {
+                if (this.categoryOverlapsWithGranted(category, grantedCommands)) {
+                    parts.push(`-@${category}`);
+                }
+            });
+
+            // Add blocked individual commands only if they would be granted by inclusions
+            Array.from(this.state.blockedCommands).sort().forEach(command => {
+                if (grantedCommands.has(command)) {
+                    parts.push(`-${command}`);
+                }
+            });
+        }
+
+        // Add key patterns (preserve existing patterns)
+        if (this.state.keyPatterns) {
+            Array.from(this.state.keyPatterns).sort().forEach(pattern => {
+                parts.push(pattern);
+            });
+        }
 
         return parts.join(' ');
+    },
+
+    /**
+     * Get all commands that would be granted by current inclusion terms
+     * Uses the same API call pattern as the existing getCommandsGrantedByCategories method
+     */
+    async getCommandsGrantedByInclusions() {
+        const grantedCommands = new Set();
+
+        // Add individual granted commands
+        this.state.grantedCommands.forEach(command => {
+            grantedCommands.add(command);
+        });
+
+        // Add commands from granted categories (if any)
+        if (this.state.grantedCategories.size > 0) {
+            try {
+                const categoryCommands = await this.getCommandsGrantedByCategories();
+                categoryCommands.forEach(command => {
+                    grantedCommands.add(command);
+                });
+            } catch (error) {
+                console.error('Error getting category commands:', error);
+            }
+        }
+
+        return grantedCommands;
+    },
+
+    /**
+     * Check if a blocked category would actually exclude any granted commands
+     * For now, always return true to be safe - we can optimize this later
+     */
+    categoryOverlapsWithGranted(_category, _grantedCommands) {
+        // Conservative approach: assume all categories might overlap
+        // This prevents overly aggressive filtering while we implement proper category lookup
+        return true;
     },
 
     /**
@@ -1515,6 +1736,8 @@ const InteractiveACLBuilder = {
             this.state.grantedCommands.clear();
             this.state.blockedCategories.clear();
             this.state.blockedCommands.clear();
+            
+            this.state.keyPatterns.clear();
 
             // Parse the rule text to extract categories and commands
             if (ruleText) {
@@ -1537,6 +1760,9 @@ const InteractiveACLBuilder = {
                         // Blocked command
                         const command = token.substring(1);
                         this.state.blockedCommands.add(command);
+                    } else if (token.startsWith('~')) {
+                        // Key pattern
+                        this.state.keyPatterns.add(token);
                     }
                 }
             }
@@ -1551,6 +1777,14 @@ const InteractiveACLBuilder = {
             this.hideSubmitButton();
             
             console.log('✅ Rule synced successfully');
+            
+            // Analyze for redundancy after successful sync
+            try {
+                console.log('Starting redundancy analysis after sync');
+                RuleManager.analyzeRedundancy();
+            } catch (error) {
+                console.error('Error during post-sync redundancy analysis:', error);
+            }
             
         } catch (error) {
             console.error('❌ Error syncing rule:', error);
@@ -1600,6 +1834,14 @@ const InteractiveACLBuilder = {
 
 // Global functions (for onclick handlers in HTML)
 window.setRule = (rule) => RuleManager.setRule(rule);
+window.setRuleAndParse = (rule) => {
+    RuleManager.setRule(rule);
+    RuleManager.parseRule();
+    // Also sync to interactive builder (same as clicking Submit Changes)
+    if (InteractiveACLBuilder.state.isInitialized) {
+        InteractiveACLBuilder.syncFromRuleText();
+    }
+};
 window.testCommand = () => CommandTester.testCommand();
 window.CategoryManager = CategoryManager; // Make available for HTML onclick
 window.syncRuleToInteractive = () => InteractiveACLBuilder.syncFromRuleText();
