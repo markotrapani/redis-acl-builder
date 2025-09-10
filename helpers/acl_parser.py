@@ -118,12 +118,11 @@ class ACLParser:
                 explanations: Dict mapping command -> explanation string
         """
         # Start with empty permissions (Redis default is no access)
-        # But if no explicit command rules, default to +@all
+        # Empty ACL rule should block all commands
         if not parsed_rule['command_rules']:
-            # No rules = grant all (equivalent to +@all)
-            granted = set(self.data['commands'].keys())
-            explanations = {cmd: "Default: no ACL restrictions (equivalent to +@all)" 
-                           for cmd in granted}
+            # No rules = block all commands
+            granted = set()
+            explanations = {}
             return granted, explanations
         
         granted = set()
