@@ -1,0 +1,315 @@
+/* Redis ACL Builder - Layout Styles */
+
+/* Three Column Layout */
+.three-column-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xxl);
+}
+
+/* Legacy main-content for backwards compatibility */
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xxl);
+  margin-bottom: var(--spacing-xxl);
+}
+
+/* Test Section - spans full width */
+.test-section {
+  grid-column: 1 / -1;
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Column-specific panel styling */
+.acl-config-panel {
+  border-left: 4px solid var(--info-color);
+  background: linear-gradient(135deg, #1e1f2b 0%, var(--surface) 100%);
+}
+
+.granted-commands-panel {
+  border-left: 4px solid var(--success-color);
+  background: linear-gradient(135deg, #1e2b1e 0%, var(--surface) 100%);
+}
+
+.blocked-commands-panel {
+  border-left: 4px solid var(--error-color);
+  background: linear-gradient(135deg, #2b1e1e 0%, var(--surface) 100%);
+}
+
+/* Dark mode panel styling */
+@media (prefers-color-scheme: dark) {
+  .acl-config-panel {
+    color: var(--text-primary);
+  }
+  
+  .acl-config-panel h2 {
+    color: var(--info-light) !important;
+  }
+  
+  .acl-config-panel .text-muted {
+    color: var(--text-secondary) !important;
+  }
+  
+  .granted-commands-panel {
+    color: var(--text-primary);
+  }
+  
+  .granted-commands-panel h2 {
+    color: var(--success-light) !important;
+  }
+  
+  .granted-commands-panel .panel-description {
+    color: var(--text-secondary) !important;
+  }
+  
+  .blocked-commands-panel {
+    color: var(--text-primary);
+  }
+  
+  .blocked-commands-panel h2 {
+    color: var(--error-light) !important;
+  }
+  
+  .blocked-commands-panel .panel-description {
+    color: var(--text-secondary) !important;
+  }
+}
+
+/* Panel descriptions */
+.panel-description {
+  color: var(--text-secondary);
+  font-size: var(--font-size-md);
+  margin-bottom: var(--spacing-md);
+  font-style: italic;
+}
+
+/* Command categories container */
+.command-categories-container {
+  max-height: 600px;
+  overflow-y: auto;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  background: rgba(0,0,0,0.02);
+}
+
+/* Dark mode for command categories container */
+@media (prefers-color-scheme: dark) {
+  .command-categories-container,
+  .acl-config-panel .command-categories-container,
+  .granted-commands-panel .command-categories-container,
+  .blocked-commands-panel .command-categories-container {
+    background: rgba(0,0,0,0.3);
+    border-color: var(--border);
+    color: var(--text-primary);
+  }
+  
+  .acl-config-panel .command-categories-container h3,
+  .granted-commands-panel .command-categories-container h3,
+  .blocked-commands-panel .command-categories-container h3 {
+    color: var(--text-secondary) !important;
+    border-bottom-color: var(--border);
+  }
+}
+
+/* Categories and commands sections */
+.categories-section, 
+.commands-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Column statistics */
+.column-stats {
+  text-align: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light);
+}
+
+.stats-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Dark mode column stats */
+@media (prefers-color-scheme: dark) {
+  .column-stats,
+  .granted-commands-panel .column-stats,
+  .blocked-commands-panel .column-stats {
+    border-top-color: var(--border);
+  }
+  
+  .stats-text,
+  .granted-commands-panel .stats-text,
+  .blocked-commands-panel .stats-text {
+    color: var(--text-secondary) !important;
+  }
+}
+
+/* Rule stats in ACL config panel */
+.rule-stats {
+  margin-top: var(--spacing-md);
+  padding: 10px;
+  background: var(--gray-50);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+/* Dark mode rule stats */
+@media (prefers-color-scheme: dark) {
+  .rule-stats,
+  .acl-config-panel .rule-stats {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+  }
+  
+  .rule-stats .text-muted,
+  .acl-config-panel .rule-stats .text-muted {
+    color: var(--text-secondary) !important;
+  }
+}
+
+/* Loading states */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid var(--gray-200);
+  border-top: 2px solid var(--primary-color);
+  border-radius: var(--radius-round);
+  animation: spin 1s linear infinite;
+}
+
+.column-loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.column-loading::before {
+  content: "⏳ ";
+  font-size: 1.2em;
+}
+
+/* Scrollbars */
+.command-grid::-webkit-scrollbar,
+.category-commands::-webkit-scrollbar,
+.command-categories-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.command-grid::-webkit-scrollbar-track,
+.category-commands::-webkit-scrollbar-track,
+.command-categories-container::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: var(--radius-sm);
+}
+
+.command-grid::-webkit-scrollbar-thumb,
+.category-commands::-webkit-scrollbar-thumb,
+.command-categories-container::-webkit-scrollbar-thumb {
+  background: var(--gray-400);
+  border-radius: var(--radius-sm);
+}
+
+.command-grid::-webkit-scrollbar-thumb:hover,
+.category-commands::-webkit-scrollbar-thumb:hover,
+.command-categories-container::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
+/* Animations */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(-10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1600px) and (min-width: 1201px) {
+  .three-column-layout {
+    grid-template-columns: 1.2fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 1200px) {
+  .three-column-layout {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .command-categories-container {
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .container {
+    padding: var(--spacing-md);
+  }
+  
+  .panel {
+    padding: var(--spacing-lg);
+  }
+  
+  h1 {
+    font-size: 2em;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.8em;
+  }
+  
+  .subtitle {
+    font-size: var(--font-size-base);
+  }
+  
+  .panel {
+    padding: var(--spacing-md);
+  }
+  
+  .container {
+    padding: 10px;
+  }
+}

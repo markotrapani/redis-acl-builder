@@ -1,0 +1,451 @@
+/* Redis ACL Builder - Component Styles */
+
+/* Version Selector */
+.version-selector {
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.version-selector .version-label {
+  font-weight: 600;
+  margin-right: 0;
+  display: inline-block;
+}
+
+/* Modern Toggle Switch */
+.toggle-switch {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.toggle-switch-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.toggle-input {
+  display: none;
+}
+
+.toggle-label {
+  position: relative;
+  display: inline-block;
+  width: 80px;
+  height: 36px;
+  cursor: pointer;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--blue-gradient);
+  border-radius: 18px;
+  transition: all var(--transition-slow);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-xs);
+  box-shadow: var(--blue-shadow);
+}
+
+.toggle-option {
+  font-weight: bold;
+  font-size: 16px;
+  z-index: 2;
+  transition: all var(--transition-slow);
+  width: 36px;
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+}
+
+/* Default state (Redis 7 - Blue) */
+.toggle-option-left {
+  left: var(--spacing-xs);
+  color: white;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 5px rgba(0,0,0,0.5);
+}
+
+.toggle-option-right {
+  right: var(--spacing-xs);
+  color: #000000;
+  text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 28px;
+  width: 36px;
+  left: var(--spacing-xs);
+  bottom: var(--spacing-xs);
+  background: white;
+  border-radius: 14px;
+  transition: all var(--transition-slow);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* Unchecked state (Redis 7 - Blue) - explicit selectors */
+.toggle-input:not(:checked) + .toggle-label .toggle-option-left {
+  color: white;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 5px rgba(0,0,0,0.5);
+}
+
+.toggle-input:not(:checked) + .toggle-label .toggle-option-right {
+  color: #000000 !important;
+  text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
+}
+
+/* Checked state (Redis 8 - Green) */
+.toggle-input:checked + .toggle-label .toggle-slider {
+  background: var(--green-gradient);
+  box-shadow: var(--green-shadow);
+}
+
+.toggle-input:checked + .toggle-label .toggle-slider::before {
+  transform: translateX(36px);
+}
+
+.toggle-input:checked + .toggle-label .toggle-option-left {
+  color: #0a3d0f !important;
+  text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
+}
+
+.toggle-input:checked + .toggle-label .toggle-option-right {
+  color: white !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 5px rgba(0,0,0,0.5);
+}
+
+/* Version info display */
+.version-info {
+  align-self: flex-start;
+}
+
+.version-detail {
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Hover effects */
+.toggle-label:hover .toggle-slider {
+  box-shadow: var(--blue-hover-shadow);
+}
+
+.toggle-input:checked + .toggle-label:hover .toggle-slider {
+  box-shadow: var(--green-hover-shadow);
+}
+
+/* Form Elements */
+.rule-input,
+.test-command-input {
+  width: 100%;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--gray-50);
+  resize: vertical;
+  min-height: 100px;
+  transition: all var(--transition-normal);
+}
+
+.rule-input:focus,
+.test-command-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background: var(--surface);
+}
+
+.test-command-input {
+  min-height: auto;
+}
+
+/* Enhanced rule input for interactive mode */
+.acl-config-panel .rule-input {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Dark mode form elements */
+@media (prefers-color-scheme: dark) {
+  .rule-input,
+  .test-command-input {
+    background: var(--gray-100);
+    border-color: var(--border);
+    color: var(--text-primary);
+  }
+  
+  .rule-input:focus,
+  .test-command-input:focus {
+    background: var(--gray-50);
+    border-color: var(--primary-color);
+  }
+  
+  .version-detail {
+    color: var(--text-secondary);
+  }
+}
+
+/* Buttons */
+.test-button {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background-color var(--transition-normal);
+}
+
+.test-button:hover {
+  background: var(--primary-hover);
+}
+
+.test-button:active {
+  background: var(--primary-active);
+}
+
+/* Interactive buttons for categories and commands */
+.category-button, 
+.command-button {
+  padding: var(--spacing-sm) 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  font-family: var(--font-mono);
+  transition: all var(--transition-normal);
+  user-select: none;
+  font-weight: 600;
+  border-width: 2px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  flex-shrink: 1;
+}
+
+/* Category button specific styling */
+.category-button.granted {
+  background: var(--success-bg);
+  border-color: var(--success-color);
+  color: #2e7d2e;
+}
+
+.category-button.blocked {
+  background: var(--error-bg);
+  border-color: var(--error-color);
+  color: #c62828;
+}
+
+/* Command button styling - match category buttons */
+.command-button.granted {
+  background: var(--success-bg);
+  border-color: var(--success-color);
+  color: #2e7d2e;
+}
+
+.command-button.blocked {
+  background: var(--error-bg);
+  border-color: var(--error-color);
+  color: #c62828;
+}
+
+/* Hover effects */
+.category-button:hover, 
+.command-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.category-button.granted:hover, 
+.command-button.granted:hover {
+  background: var(--success-hover);
+  border-color: var(--success-border);
+}
+
+.category-button.blocked:hover, 
+.command-button.blocked:hover {
+  background: var(--error-hover);
+  border-color: var(--error-border);
+}
+
+/* Active/Click effects */
+.category-button:active, 
+.command-button:active {
+  transform: translateY(0);
+  transition: transform 0.1s ease;
+}
+
+/* Dark mode button styling */
+@media (prefers-color-scheme: dark) {
+  .category-button, 
+  .command-button {
+    background: var(--gray-100);
+    border-color: var(--border);
+    color: var(--text-primary);
+  }
+  
+  .category-button.granted {
+    background: #1e3a1e;
+    border-color: var(--success-color);
+    color: var(--success-light);
+  }
+  
+  .category-button.blocked {
+    background: #3a1e1e;
+    border-color: var(--error-color);
+    color: var(--error-light);
+  }
+  
+  .command-button.granted {
+    background: #1a2e1a;
+    border-color: var(--success-border);
+    color: var(--success-light);
+  }
+  
+  .command-button.blocked {
+    background: #2e1a1a;
+    border-color: var(--error-border);
+    color: #ffab91;
+  }
+  
+  /* Dark mode hover effects */
+  .category-button.granted:hover, 
+  .command-button.granted:hover {
+    background: #2e4a2e;
+    border-color: var(--success-border);
+  }
+  
+  .category-button.blocked:hover, 
+  .command-button.blocked:hover {
+    background: #4a2e2e;
+    border-color: #ff5252;
+  }
+}
+
+/* Button containers */
+.category-buttons, 
+.command-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  transition: opacity var(--transition-fast);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Collapsible command button containers */
+.command-buttons-collapsible {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.command-buttons-collapsible.collapsed {
+  display: none;
+}
+
+/* Input groups */
+.test-input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Responsive form adjustments */
+@media (max-width: 768px) {
+  .test-input-group {
+    flex-direction: column;
+  }
+  
+  .test-command-input {
+    margin-bottom: 10px;
+  }
+}
+
+/* Example buttons */
+.example {
+  background: var(--gray-200);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: background-color var(--transition-normal);
+  border: none;
+  font-size: var(--font-size-md);
+  width: 100%;
+  text-align: left;
+  color: inherit;
+}
+
+.example:hover {
+  background: var(--gray-300);
+}
+
+.example:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Dark mode example buttons */
+@media (prefers-color-scheme: dark) {
+  .example {
+    background: var(--gray-100);
+    color: var(--text-primary);
+  }
+  
+  .example:hover {
+    background: var(--gray-300);
+  }
+}
+
+/* Rule Examples */
+.rule-examples {
+  margin-top: var(--spacing-md);
+  font-size: 1.2em;
+}
+
+.rule-examples h4 {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.example-group {
+  margin-bottom: 12px;
+}
+
+.example-category {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-xs) 0;
+  letter-spacing: 0.5px;
+}
+
+/* Dark mode example categories */
+@media (prefers-color-scheme: dark) {
+  .example-category {
+    color: var(--text-secondary);
+  }
+}
