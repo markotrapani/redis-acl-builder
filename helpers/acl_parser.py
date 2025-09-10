@@ -310,3 +310,150 @@ class ACLParser:
             'category_impact': category_impact,
             'redis_version': self.redis_version
         }
+    
+    def analyze_rule_redundancy(self, rule):
+        """
+        Analyze an ACL rule for redundant terms and suggest optimizations.
+        
+        Args:
+            rule (str): The ACL rule string to analyze
+            
+        Returns:
+            dict: Analysis results with warnings and simplification suggestions
+        """
+        if not rule.strip():
+            return {'warnings': [], 'suggestions': [], 'redundant_terms': []}
+        
+        try:
+            parsed = self.parse_acl_rule(rule)
+        except Exception as e:
+            return {'warnings': [], 'suggestions': [], 'redundant_terms': [], 'error': str(e)}
+        
+        warnings = []
+        suggestions = []
+        redundant_terms = []
+        
+        # Track cumulative effects as we process left-to-right
+        cumulative_granted = set()
+        cumulative_denied = set()
+        
+        command_rules = parsed['command_rules']
+        
+        # Group rules by original token to handle @all expansion properly
+        processed_tokens = set()
+        
+        i = 0
+        while i < len(command_rules):
+            current_rule = command_rules[i]
+            
+            if current_rule.get('error'):
+                i += 1
+                continue
+                
+            original_token = current_rule.get('original_token', f"{'+' if current_rule['type'] == 'allow' else '-'}{current_rule['value']}")
+            
+            # Skip if we already processed this token (handles @all expansion)
+            if original_token in processed_tokens:
+                i += 1
+                continue
+                
+            processed_tokens.add(original_token)
+            
+            # For @all, collect all commands from the expanded rules with same token
+            if original_token in ['+@all', '-@all']:
+                rule_commands = set()
+                # Collect all commands from rules with this token
+                for rule in command_rules:
+                    if rule.get('original_token') == original_token:
+                        if rule['target'] == 'category' and rule['value'] in self.data['categories']:
+                            rule_commands.update(self.data['categories'][rule['value']])
+            else:
+                # Regular rule processing
+                if current_rule['target'] == 'category':
+                    category = current_rule['value']
+                    if category in self.data['categories']:
+                        rule_commands = set(self.data['categories'][category])
+                    else:
+                        i += 1
+                        continue
+                elif current_rule['target'] == 'command':
+                    command = current_rule['value'].lower()
+                    if command in self.data['commands']:
+                        rule_commands = {command}
+                    else:
+                        i += 1
+                        continue
+                else:
+                    i += 1
+                    continue
+            
+            # Check for redundancy based on rule type
+            if current_rule['type'] == 'allow':
+                # Check if these commands are already granted
+                already_granted = rule_commands.intersection(cumulative_granted)
+                if already_granted == rule_commands:
+                    # All commands in this rule are already granted - completely redundant
+                    warnings.append(f"Redundant inclusion: '{original_token}'\nAll commands already granted by earlier rules")
+                    redundant_terms.append({
+                        'term': original_token,
+                        'position': i,
+                        'type': 'inclusion',
+                        'reason': 'All commands already granted by earlier rules'
+                    })
+                elif already_granted:
+                    # Some commands already granted - partially redundant
+                    warnings.append(f"Partially redundant inclusion: '{original_token}'\n{len(already_granted)}/{len(rule_commands)} commands already granted")
+                
+                # Update cumulative granted set
+                cumulative_granted.update(rule_commands)
+                cumulative_denied.difference_update(rule_commands)
+                
+            else:  # deny
+                # Check if these commands are already denied
+                not_granted = rule_commands - cumulative_granted
+                already_denied = rule_commands.intersection(cumulative_denied)
+                
+                if not_granted == rule_commands:
+                    # All commands weren't granted anyway - completely redundant
+                    warnings.append(f"Redundant exclusion: '{original_token}'\nCommands were not granted by earlier rules")
+                    redundant_terms.append({
+                        'term': original_token,
+                        'position': i,
+                        'type': 'exclusion',
+                        'reason': 'Commands were not granted by earlier rules'
+                    })
+                elif already_denied:
+                    # Some commands already explicitly denied - partially redundant
+                    warnings.append(f"Partially redundant exclusion: '{original_token}'\n{len(already_denied)}/{len(rule_commands)} commands already denied")
+                
+                # Update cumulative sets
+                cumulative_granted.difference_update(rule_commands)
+                cumulative_denied.update(rule_commands)
+            
+            i += 1
+        
+        # Generate simplification suggestions
+        if redundant_terms:
+            # Extract original tokens from the input rule string, preserving order
+            tokens = parsed['raw_rule'].strip().split()
+            redundant_token_set = {rt['term'] for rt in redundant_terms}
+            
+            # Keep only non-redundant tokens
+            simplified_tokens = []
+            for token in tokens:
+                if token not in redundant_token_set:
+                    simplified_tokens.append(token)
+            
+            if simplified_tokens:
+                simplified_rule = ' '.join(simplified_tokens)
+                suggestions.append(f"Simplified rule: {simplified_rule}")
+            elif len(redundant_terms) > 0:
+                # All terms are redundant - suggest empty rule
+                suggestions.append("Simplified rule: (empty rule)")
+            
+        return {
+            'warnings': warnings,
+            'suggestions': suggestions,
+            'redundant_terms': redundant_terms,
+            'has_redundancy': len(redundant_terms) > 0 or len(warnings) > 0
+        }

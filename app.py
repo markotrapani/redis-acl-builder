@@ -299,6 +299,38 @@ def api_validate_rule():
         logger.error(f"Error in api_validate_rule: {str(e)}")
         return handle_api_error(f"Internal error: {str(e)}", 500)
 
+@app.route('/api/analyze-redundancy', methods=['POST'])
+def api_analyze_redundancy():
+    """Analyze ACL rule for redundant terms and optimization opportunities."""
+    try:
+        try:
+            data = request.get_json()
+            if not data:
+                return handle_api_error("No JSON data provided")
+        except Exception:
+            return handle_api_error("Invalid JSON data")
+        
+        rule = data.get('rule', '')
+        version = data.get('version', 'redis7')
+        
+        # Validate version
+        if version not in PARSERS:
+            return handle_api_error(f"Invalid Redis version: {version}")
+        
+        parser = get_parser(version)
+        analysis = parser.analyze_rule_redundancy(rule)
+        
+        return jsonify({
+            'success': True,
+            'rule': rule,
+            'version': version,
+            'analysis': analysis
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in api_analyze_redundancy: {str(e)}")
+        return handle_api_error(f"Internal error: {str(e)}", 500)
+
 @app.route('/health')
 def health_check():
     """Health check endpoint."""

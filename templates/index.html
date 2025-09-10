@@ -46,11 +46,21 @@
                 <h2>📝 ACL Rule Configuration</h2>
                 
                 <div class="version-selector">
-                    <label>Redis Version:</label>
-                    <input type="radio" id="redis7" name="version" value="redis7" checked>
-                    <label for="redis7">Redis 7</label>
-                    <input type="radio" id="redis8" name="version" value="redis8">
-                    <label for="redis8">Redis 8</label>
+                    <div class="toggle-switch-container">
+                        <label class="version-label">Redis Version:</label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="versionToggle" class="toggle-input">
+                            <label for="versionToggle" class="toggle-label">
+                                <span class="toggle-slider">
+                                    <span class="toggle-option toggle-option-left">7</span>
+                                    <span class="toggle-option toggle-option-right">8</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="version-info">
+                        <span class="version-detail" id="versionDetail">Redis 7 (311 commands)</span>
+                    </div>
                 </div>
                 
                 <textarea 
@@ -61,27 +71,53 @@
                     spellcheck="false"
                 ></textarea>
                 
+                <!-- Rule Optimization Warnings -->
+                <div id="redundancyWarnings" class="redundancy-warnings" style="display: none;">
+                    <h4>⚠️ Rule Optimization Suggestions:</h4>
+                    <div id="warningsList"></div>
+                    <div id="suggestionsList"></div>
+                </div>
+                
                 <button type="button" id="submitChangesBtn" class="test-button" onclick="syncRuleToInteractive()" style="margin-top: 10px; width: 100%; display: none;">
                     Submit Changes
                 </button>
                 
                 <div class="rule-examples">
                     <h4>Quick Examples:</h4>
-                    <button type="button" class="example" onclick="setRule('+@read ~cached:*')" title="Read-only access to cached keys">
-                        +@read ~cached:*
-                    </button>
-                    <button type="button" class="example" onclick="setRule('+@all -@dangerous')" title="Full access except dangerous commands">
-                        +@all -@dangerous
-                    </button>
-                    <button type="button" class="example" onclick="setRule('+get +set +@hash')" title="Specific commands plus hash operations">
-                        +get +set +@hash
-                    </button>
-                    <button type="button" class="example" onclick="setRule('+@write -flushdb -flushall')" title="Write access without destructive operations">
-                        +@write -flushdb -flushall
-                    </button>
-                    <button type="button" class="example" onclick="setRule('+@read +@write -@admin -@scripting')" title="Read/write without admin or scripting">
-                        +@read +@write -@admin -@scripting
-                    </button>
+                    
+                    <div class="example-group">
+                        <h5 class="example-category">Full Access</h5>
+                        <button type="button" class="example" onclick="setRuleAndParse('+@all ~*')" title="Full access to all commands and keys">
+                            +@all ~*
+                        </button>
+                    </div>
+                    
+                    <div class="example-group">
+                        <h5 class="example-category">Read-Write</h5>
+                        <button type="button" class="example" onclick="setRuleAndParse('+@read +@write -@dangerous ~*')" title="Read and write access excluding dangerous commands">
+                            +@read +@write -@dangerous ~*
+                        </button>
+                    </div>
+                    
+                    <div class="example-group">
+                        <h5 class="example-category">Read-Only</h5>
+                        <button type="button" class="example" onclick="setRuleAndParse('+@read ~*')" title="Read-only access to all keys">
+                            +@read ~*
+                        </button>
+                    </div>
+                    
+                    <div class="example-group">
+                        <h5 class="example-category">Other Access</h5>
+                        <button type="button" class="example" onclick="setRuleAndParse('+@read ~user:* ~session:*')" title="Read-only access to user and session keys">
+                            +@read ~user:* ~session:*
+                        </button>
+                        <button type="button" class="example" onclick="setRuleAndParse('+get +set +del +exists ~*')" title="Basic key operations only">
+                            +get +set +del +exists ~*
+                        </button>
+                        <button type="button" class="example" onclick="setRuleAndParse('+@all -@scripting -@dangerous ~*')" title="Application user access without scripting or dangerous commands">
+                            +@all -@scripting -@dangerous ~*
+                        </button>
+                    </div>
                 </div>
             </section>
             
