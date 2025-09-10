@@ -18,7 +18,7 @@
         
         <!-- Command Tester -->
         <section class="panel test-section">
-            <h2>Command Tester</h2>
+            <h2>📋 Command Tester</h2>
             <p class="text-muted mb-2">Test if a specific command is allowed by your current ACL rule:</p>
             
             <div class="test-input-group">
@@ -43,7 +43,7 @@
         <div class="three-column-layout">
             <!-- Left Column: ACL Rule Configuration -->
             <section class="panel acl-config-panel">
-                <h2>ACL Rule Configuration</h2>
+                <h2>📝 ACL Rule Configuration</h2>
                 
                 <div class="version-selector">
                     <label>Redis Version:</label>
@@ -130,6 +130,9 @@
             </section>
         </div>
     </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
 
     <!-- Load main JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
