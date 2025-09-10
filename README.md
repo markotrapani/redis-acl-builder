@@ -1,10 +1,16 @@
 # Redis ACL Builder
 
-Initial project commit with full README and project setup documentation.
-
-Project structured for initial development and testing.
+**Version 1.3.0** - Production-ready with Modular Architecture
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis.
+
+## 🏗️ Architecture
+
+The application features a modern, modular ES6 JavaScript architecture:
+- **Frontend**: Modular ES6 JavaScript with organized separation of concerns
+- **Backend**: Flask with comprehensive Redis ACL parsing and API layer  
+- **Database**: Hardcoded Redis command databases for Redis 7 (311 commands) and Redis 8 (446 commands)
+- **Testing**: 28 automated tests with 82% code coverage
 
 ## Overview
 
@@ -32,7 +38,8 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Redis Enterprise Compliance**: Full validation against Redis ACL specifications
 - **Version Switching**: Seamless switching between Redis 7/8 with full UI updates
 - **Comprehensive Testing**: 28 automated tests with 82% code coverage
-- **Production Ready**: Professional code structure with proper error handling
+- **Modular Architecture**: ES6 modules with organized file structure (core/, api/, managers/, components/, handlers/)
+- **Production Ready**: Professional code structure with proper error handling and maintainable codebase
 
 ## Quick Start
 
