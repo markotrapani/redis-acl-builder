@@ -18,12 +18,18 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 
 ### Key Features
 
-- **Complete Command Database**: Pre-loaded with 311 Redis 7 commands and 346 Redis 8 commands
+- **Complete Command Database**: Pre-loaded with 311 Redis 7 commands and 446 Redis 8 commands
+- **Interactive Three-Column Layout**: ACL Config, Granted Commands, and Blocked Commands panels
 - **Real-time Validation**: Live parsing and validation of ACL rule syntax
 - **Category Organization**: Commands grouped by Redis categories (read, write, admin, etc.)
+- **Command Exclusion Logic**: Exclude specific commands even when granted via categories
+- **Submit Changes Button**: Dynamic button appears when manual ACL edits are detected
+- **Bidirectional Sync**: Changes in interactive UI update text rule and vice versa
 - **Rule Precedence**: Correctly implements left-to-right Redis ACL rule evaluation
 - **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
-- **Dark Mode**: Automatic dark theme based on system preferences
+- **Enhanced Dark Mode**: Improved theme with better visual distinction between panels
+- **Collapsible Sections**: Individual Commands sections can be expanded/collapsed
+- **Version Switching**: Seamless switching between Redis 7/8 with full UI updates
 - **Comprehensive Testing**: 28 automated tests with 82% code coverage
 - **Production Ready**: Professional code structure with proper error handling
 
@@ -94,7 +100,7 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
    ```
 
 8. **Open your browser:**
-   Navigate to `http://localhost:5000`
+   Navigate to `http://localhost:5001`
 
 ## Project Structure
 
@@ -126,10 +132,15 @@ redis_acl_builder/
 
 ### Basic Usage
 
-1. **Select Redis Version**: Choose between Redis 7 or Redis 8
-2. **Enter ACL Rule**: Type your ACL rule in the text area
-3. **View Results**: See granted commands organized by category
-4. **Test Commands**: Use the command tester to check specific commands
+1. **Select Redis Version**: Choose between Redis 7 or Redis 8 using the radio buttons
+2. **Enter ACL Rule**: Type your ACL rule in the text area (left column)
+3. **Interactive Management**: 
+   - Click granted commands (center column) to revoke them
+   - Click blocked commands (right column) to grant them
+   - Use Submit Changes button when manually editing rules
+4. **View Results**: See granted and blocked commands organized by categories and individual commands
+5. **Test Commands**: Use the command tester at the top to check specific commands
+6. **Collapsible Sections**: Click on "Individual Commands" headers to expand/collapse sections
 
 ### ACL Rule Syntax
 
@@ -207,17 +218,17 @@ The application provides a RESTful API for programmatic access:
 
 ```bash
 # Parse an ACL rule
-curl -X POST http://localhost:5000/api/parse \
+curl -X POST http://localhost:5001/api/parse \
   -H "Content-Type: application/json" \
   -d '{"rule": "+@read -@dangerous", "version": "redis7"}'
 
 # Test a command
-curl -X POST http://localhost:5000/api/test-command \
+curl -X POST http://localhost:5001/api/test-command \
   -H "Content-Type: application/json" \
   -d '{"rule": "+@read", "command": "GET", "version": "redis7"}'
 
 # Validate rule syntax
-curl -X POST http://localhost:5000/api/validate-rule \
+curl -X POST http://localhost:5001/api/validate-rule \
   -H "Content-Type: application/json" \
   -d '{"rule": "+@read +get", "version": "redis7"}'
 ```
@@ -353,10 +364,17 @@ CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "app:app"]
 
 ## Features
 
-### Current Features (v1.0.1)
+### Current Features (v1.1.0)
 
 - Complete Redis ACL rule parsing and validation
-- Support for Redis 7 (311 commands) and Redis 8 (346 commands)  
+- Support for Redis 7 (311 commands) and Redis 8 (446 commands)  
+- Interactive three-column layout with real-time command management
+- Submit Changes button with automatic change detection
+- Command exclusion logic for granular permission control
+- Bidirectional sync between manual text editing and interactive UI
+- Enhanced dark theme with improved visual distinction
+- Collapsible Individual Commands sections
+- Seamless version switching between Redis 7/8
 - Real-time web interface with responsive design
 - Comprehensive API with full documentation
 - 28 automated tests with 82% code coverage
@@ -388,13 +406,4 @@ For issues or questions:
 
 ---
 
-**Redis ACL Builder v1.0.1** - Production-ready with 82% test coverage## Redis ACL Builder
-
-A comprehensive web application for testing and validating Redis ACL rules.
-
-- Version: 1.0
-- Coverage: 82%
-- Tests: 28 (all passing)
-- Status: Production-ready
-
-See [redis-acl-builder/README.md](./redis-acl-builder/README.md) for full documentation.
+**Redis ACL Builder v1.1.0** - Production-ready with Enhanced UI and 82% test coverage
