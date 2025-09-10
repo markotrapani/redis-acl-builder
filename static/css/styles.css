@@ -356,6 +356,86 @@ h1 {
     100% { transform: rotate(360deg); }
 }
 
+/* Pop-up Notifications */
+.notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.notification {
+    background: #f44336;
+    color: white;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    max-width: 300px;
+    word-wrap: break-word;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease-in-out;
+    pointer-events: auto;
+    position: relative;
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.notification.error {
+    background: #f44336;
+}
+
+.notification.warning {
+    background: #ff9800;
+}
+
+.notification.success {
+    background: #4CAF50;
+}
+
+.notification.info {
+    background: #2196F3;
+}
+
+.notification::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 6px 0 0 6px;
+}
+
+.notification .close-btn {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.notification .close-btn:hover {
+    opacity: 1;
+}
+
 /* Utilities */
 .text-muted {
     color: #666;
@@ -607,6 +687,8 @@ h1 {
 /* Column-specific panel styling */
 .acl-config-panel {
     border-left: 4px solid #2196F3;
+    background: linear-gradient(135deg, #1e1f2b 0%, #2d2d2d 100%);
+    color: #e0e0e0;
 }
 
 /* Dark styling for the interactive instruction box in ACL config */
@@ -715,6 +797,22 @@ h1 {
     border-top-color: #555;
 }
 
+.acl-config-panel h2 {
+    color: #64B5F6 !important;
+}
+
+.acl-config-panel .panel-description {
+    color: #bbb !important;
+}
+
+.acl-config-panel * {
+    color: #e0e0e0;
+}
+
+.acl-config-panel .text-muted {
+    color: #bbb !important;
+}
+
 /* Panel descriptions */
 .panel-description {
     color: #666;
@@ -750,6 +848,32 @@ h1 {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    transition: opacity 0.15s ease;
+}
+
+/* Smooth transitions for panel sections */
+.granted-commands-panel .command-categories-container,
+.blocked-commands-panel .command-categories-container,
+.acl-config-panel,
+.panel {
+    transition: opacity 0.2s ease;
+}
+
+/* Preview rows for collapsed sections */
+.command-preview-row {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 8px;
+    background: transparent;
+    margin-bottom: 8px;
+}
+
+/* Dark mode for preview rows */
+@media (prefers-color-scheme: dark) {
+    .command-preview-row {
+        border-color: rgba(255, 255, 255, 0.1);
+        background: transparent;
+    }
 }
 
 .category-button, .command-button {
