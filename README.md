@@ -6,8 +6,8 @@ A comprehensive web application for testing and validating Redis Access Control 
 
 ## 🏗️ Architecture
 
-The application features a modern, modular ES6 JavaScript architecture:
-- **Frontend**: Modular ES6 JavaScript with organized separation of concerns
+The application features modern, modular frontend and backend architectures:
+- **Frontend**: Modular ES6 JavaScript (8 modules) + Modular CSS (5 modules) with organized separation of concerns
 - **Backend**: Flask with comprehensive Redis ACL parsing and API layer  
 - **Database**: Hardcoded Redis command databases for Redis 7 (311 commands) and Redis 8 (446 commands)
 - **Testing**: 28 automated tests with 82% code coverage
@@ -38,7 +38,8 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Redis Enterprise Compliance**: Full validation against Redis ACL specifications
 - **Version Switching**: Seamless switching between Redis 7/8 with full UI updates
 - **Comprehensive Testing**: 28 automated tests with 82% code coverage
-- **Modular Architecture**: ES6 modules with organized file structure (core/, api/, managers/, components/, handlers/)
+- **Modular JavaScript**: ES6 modules with organized file structure (core/, api/, managers/, components/, handlers/)
+- **Modular CSS**: 5-file CSS architecture with custom properties, separation of concerns, and enhanced maintainability
 - **Production Ready**: Professional code structure with proper error handling and maintainable codebase
 
 ## Quick Start
@@ -124,10 +125,20 @@ redis_acl_builder/
 │   ├── data_loader.py         # Redis command data management
 │   └── acl_parser.py          # ACL parsing and evaluation logic
 ├── static/
-│   ├── css/
-│   │   └── styles.css         # Application styles and responsive design
-│   └── js/
-│       └── main.js            # Client-side functionality and API communication
+│   ├── css/                   # Modular CSS Architecture (5 files)
+│   │   ├── base.css          # CSS variables, reset, typography, containers
+│   │   ├── layout.css        # Grid layouts, responsive design, columns
+│   │   ├── components.css    # Buttons, forms, toggles, interactions
+│   │   ├── themes.css        # Messages, notifications, theming, states
+│   │   ├── interactive.css   # UX enhancements, animations, micro-interactions
+│   │   └── styles.css        # Legacy monolithic file (preserved)
+│   └── js/                   # Modular ES6 JavaScript (8 files)
+│       ├── main.js          # Entry point and app initialization
+│       ├── core/            # Core functionality modules
+│       ├── api/             # API communication modules
+│       ├── managers/        # State and rule management
+│       ├── components/      # UI component modules
+│       └── handlers/        # Event and interaction handlers
 ├── templates/
 │   └── index.html             # Main web interface
 └── tests/
