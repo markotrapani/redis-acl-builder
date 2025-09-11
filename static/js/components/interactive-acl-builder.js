@@ -48,13 +48,7 @@ const InteractiveACLBuilder = {
         this.elements.aclRuleInput = document.getElementById('aclRule');
         this.elements.submitChangesBtn = document.getElementById('submitChangesBtn');
 
-        console.log('📍 DOM Elements found:', {
-            grantedCategories: !!this.elements.grantedCategoriesButtons,
-            grantedCommands: !!this.elements.grantedCommandsButtons,
-            blockedCategories: !!this.elements.blockedCategoriesButtons,
-            blockedCommands: !!this.elements.blockedCommandsButtons,
-            ruleStats: !!this.elements.ruleStats
-        });
+        // DOM elements initialized
 
         // Check if we have the three-column layout
         if (!this.elements.grantedCategoriesButtons) {
@@ -572,9 +566,10 @@ const InteractiveACLBuilder = {
         this.elements.aclRuleInput.dataset.programmaticUpdate = 'true';
         this.elements.aclRuleInput.value = rule;
         
-        // Update character counter
+        // Update character counter and button states
         import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
             EventHandlers.updateCharacterCounterProgrammatically(this.elements.aclRuleInput);
+            EventHandlers.updateActionButtonStates(rule);
         });
         
         // Track the rule we just generated
@@ -588,20 +583,23 @@ const InteractiveACLBuilder = {
 
     /**
      * Generate optimized ACL rule from current state
+     * Terms are ordered: inclusions first, then exclusions, then key patterns (~)
+     * Within each group, preserve insertion order rather than alphabetical sorting
      */
     async generateOptimizedRule() {
         const parts = [];
 
-        // Add granted categories
-        Array.from(this.state.grantedCategories).sort().forEach(category => {
+        // Group 1: Inclusion terms (granted categories and commands)
+        // Preserve insertion order by converting to arrays without sorting
+        Array.from(this.state.grantedCategories).forEach(category => {
             parts.push(`+@${category}`);
         });
 
-        // Add granted individual commands
-        Array.from(this.state.grantedCommands).sort().forEach(command => {
+        Array.from(this.state.grantedCommands).forEach(command => {
             parts.push(`+${command}`);
         });
 
+        // Group 2: Exclusion terms (blocked categories and commands)
         // Check if we have any inclusion terms (granted categories or commands)
         const hasInclusions = this.state.grantedCategories.size > 0 || this.state.grantedCommands.size > 0;
 
@@ -611,23 +609,25 @@ const InteractiveACLBuilder = {
             const grantedCommands = await this.getCommandsGrantedByInclusions();
 
             // Add blocked categories only if they would actually exclude granted commands
-            Array.from(this.state.blockedCategories).sort().forEach(category => {
+            // Preserve insertion order
+            Array.from(this.state.blockedCategories).forEach(category => {
                 if (this.categoryOverlapsWithGranted(category, grantedCommands)) {
                     parts.push(`-@${category}`);
                 }
             });
 
             // Add blocked individual commands only if they would be granted by inclusions
-            Array.from(this.state.blockedCommands).sort().forEach(command => {
+            // Preserve insertion order
+            Array.from(this.state.blockedCommands).forEach(command => {
                 if (grantedCommands.has(command)) {
                     parts.push(`-${command}`);
                 }
             });
         }
 
-        // Add key patterns (preserve existing patterns)
+        // Group 3: Key patterns (~) - these should always come last
         if (this.state.keyPatterns) {
-            Array.from(this.state.keyPatterns).sort().forEach(pattern => {
+            Array.from(this.state.keyPatterns).forEach(pattern => {
                 parts.push(pattern);
             });
         }
@@ -707,13 +707,14 @@ const InteractiveACLBuilder = {
             this.elements.aclRuleInput.dataset.programmaticUpdate = 'true';
             this.elements.aclRuleInput.value = ruleText;
             
-            // Update character counter
+            // Update character counter and button states
             import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
                 EventHandlers.updateCharacterCounterProgrammatically(this.elements.aclRuleInput);
+                EventHandlers.updateActionButtonStates(ruleText);
             });
         }
         
-        console.log('🔄 Syncing rule text to interactive display:', ruleText);
+        // Syncing rule text to interactive display
 
         try {
             // Validate ACL rule syntax first

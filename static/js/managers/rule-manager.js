@@ -26,10 +26,28 @@ const RuleManager = {
     },
 
     /**
-     * Parse current ACL rule
+     * Parse current ACL rule with full validation and error notifications
      * @param {boolean} skipRedundancyAnalysis - Skip redundancy analysis (for version changes)
      */
     async parseRule(skipRedundancyAnalysis = false) {
+        return this.parseRuleInternal(skipRedundancyAnalysis, true);
+    },
+
+    /**
+     * Parse current ACL rule silently (no error notifications) 
+     * Used for real-time input processing to avoid annoying popup notifications
+     * @param {boolean} skipRedundancyAnalysis - Skip redundancy analysis (for version changes)
+     */
+    async parseRuleSilent(skipRedundancyAnalysis = false) {
+        return this.parseRuleInternal(skipRedundancyAnalysis, false);
+    },
+
+    /**
+     * Internal rule parsing logic with configurable error notifications
+     * @param {boolean} skipRedundancyAnalysis - Skip redundancy analysis (for version changes)
+     * @param {boolean} showErrorNotifications - Whether to show popup error notifications
+     */
+    async parseRuleInternal(skipRedundancyAnalysis = false, showErrorNotifications = true) {
         if (AppState.isLoading) return;
         
         const rawRule = DOMElements.aclRuleInput.value.trim();
@@ -50,11 +68,14 @@ const RuleManager = {
         // Validate ACL rule syntax first
         const validation = await Utils.validateACLRule(rule);
         if (!validation.valid) {
-            // Show first error in notification
             const firstError = validation.errors[0];
-            Utils.showNotification(firstError, 'error', 5000);
             
-            // Still show in command results for detailed feedback
+            // Only show popup notifications if explicitly requested (e.g., Submit Changes button)
+            if (showErrorNotifications) {
+                Utils.showNotification(firstError, 'error', 5000);
+            }
+            
+            // Still show in command results for detailed feedback (if available)
             if (DOMElements.commandResults) {
                 Utils.showMessage(DOMElements.commandResults, `Invalid ACL syntax: ${firstError}`, 'error');
             }
@@ -78,8 +99,10 @@ const RuleManager = {
             this.displayGroupedCommands(data.grouped_commands || {});
             
         } catch (error) {
-            // Show server error in notification
-            Utils.showNotification(`Server error: ${error.message}`, 'error', 5000);
+            // Only show popup notifications if explicitly requested
+            if (showErrorNotifications) {
+                Utils.showNotification(`Server error: ${error.message}`, 'error', 5000);
+            }
             
             if (DOMElements.commandResults) {
                 Utils.showMessage(DOMElements.commandResults, `Error parsing rule: ${error.message}`, 'error');
@@ -101,7 +124,6 @@ const RuleManager = {
                 console.error('Error starting redundancy analysis:', error);
             }
         } else {
-            console.log('Skipping redundancy analysis (version change)');
             this.hideRedundancyWarnings(); // Hide any existing warnings
         }
     },
@@ -114,21 +136,16 @@ const RuleManager = {
         
         // Skip analysis for empty rules only
         if (!rule || rule.trim() === '') {
-            console.log('Skipping analysis - empty rule');
             this.hideRedundancyWarnings();
             return;
         }
         
         try {
-            console.log('Making API call to analyze-redundancy');
             const response = await API.analyzeRedundancy(rule, AppState.currentVersion);
-            console.log('Redundancy analysis response:', response);
             
             if (response.success && response.analysis) {
-                console.log('Displaying redundancy warnings');
                 this.displayRedundancyWarnings(response.analysis);
             } else {
-                console.log('No analysis data or unsuccessful response');
                 this.hideRedundancyWarnings();
             }
         } catch (error) {
