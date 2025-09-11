@@ -37,12 +37,20 @@ const EventHandlers = {
             
             // Check if current text matches the last generated rule (no manual changes)
             const currentText = this.value.trim();
-            const lastGeneratedRule = window.InteractiveACLBuilder?.state?.lastGeneratedRule || '';
+            const lastGeneratedRule = InteractiveACLBuilder.state?.lastGeneratedRule || '';
             const isRevertedToGenerated = currentText === lastGeneratedRule;
             
             if (hasContent && !isRevertedToGenerated && layout && !layout.classList.contains('submit-button-visible')) {
                 layout.classList.add('submit-button-visible');
             } else if (!hasContent || isRevertedToGenerated) {
+                // Auto-sync when content becomes empty or reverted to generated rule
+                if (!hasContent && InteractiveACLBuilder.state.isInitialized) {
+                    // Auto-sync empty content without showing submit button
+                    setTimeout(() => {
+                        InteractiveACLBuilder.syncFromRuleText();
+                    }, 50); // Small delay to ensure the input event completes
+                }
+                
                 // Hide submit button first, then shrink panels after content shifts up
                 const submitBtn = document.getElementById('submitChangesBtn');
                 if (submitBtn && submitBtn.style.display !== 'none') {

@@ -760,6 +760,12 @@ const InteractiveACLBuilder = {
             this.state.hasManualChanges = false;
             this.hideSubmitButton();
             
+            // Shrink panels after successful sync since no manual changes remain
+            const layout = document.querySelector('.three-column-layout');
+            if (layout && layout.classList.contains('submit-button-visible')) {
+                layout.classList.remove('submit-button-visible');
+            }
+            
             console.log('✅ Rule synced successfully');
             
             // Analyze for redundancy after successful sync
