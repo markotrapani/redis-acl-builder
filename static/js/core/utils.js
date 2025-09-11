@@ -265,6 +265,145 @@ const Utils = {
             // Keep other tokens unchanged (categories, key patterns, etc.)
             return token;
         }).join(' ');
+    },
+
+    /**
+     * Get Redis 8 module categories
+     * @returns {Set} - Set of Redis 8-specific module categories
+     */
+    getRedis8ModuleCategories() {
+        return new Set(['json', 'timeseries', 'search', 'bloom', 'cuckoo', 'cms', 'topk', 'tdigest']);
+    },
+
+    /**
+     * Get Redis 8 module command prefixes
+     * @returns {Set} - Set of Redis 8-specific command prefixes
+     */
+    getRedis8CommandPrefixes() {
+        return new Set(['json.', 'ts.', 'ft.', 'bf.', 'cf.', 'cms.', 'topk.', 'tdigest.']);
+    },
+
+    /**
+     * Check if an ACL rule contains Redis 8-specific content
+     * @param {string} rule - The ACL rule to check
+     * @returns {Object} - Analysis result with incompatible items
+     */
+    analyzeRedis8Content(rule) {
+        if (!rule || typeof rule !== 'string') {
+            return { hasRedis8Content: false, incompatibleItems: [] };
+        }
+
+        const redis8Categories = this.getRedis8ModuleCategories();
+        const redis8Prefixes = this.getRedis8CommandPrefixes();
+        const tokens = rule.trim().split(/\s+/);
+        const incompatibleItems = [];
+
+        for (const token of tokens) {
+            if (!token) continue;
+
+            // Check for Redis 8 module categories (@json, @search, etc.)
+            if ((token.startsWith('+@') || token.startsWith('-@'))) {
+                const category = token.slice(2); // Remove +@ or -@
+                if (redis8Categories.has(category)) {
+                    incompatibleItems.push({
+                        type: 'category',
+                        token: token,
+                        name: category,
+                        description: `Module category @${category}`
+                    });
+                }
+            }
+            // Check for Redis 8 module commands (json.get, ft.search, etc.)
+            else if ((token.startsWith('+') || token.startsWith('-')) && !token.includes('@')) {
+                const command = token.slice(1).toLowerCase();
+                for (const prefix of redis8Prefixes) {
+                    if (command.startsWith(prefix)) {
+                        incompatibleItems.push({
+                            type: 'command',
+                            token: token,
+                            name: command,
+                            description: `Module command ${command}`
+                        });
+                        break;
+                    }
+                }
+            }
+        }
+
+        return {
+            hasRedis8Content: incompatibleItems.length > 0,
+            incompatibleItems: incompatibleItems
+        };
+    },
+
+    /**
+     * Clean ACL rule by removing Redis 8-specific content
+     * @param {string} rule - The ACL rule to clean
+     * @returns {string} - Cleaned rule without Redis 8 content
+     */
+    cleanRedis8ContentFromRule(rule) {
+        if (!rule || typeof rule !== 'string') {
+            return rule;
+        }
+
+        const redis8Categories = this.getRedis8ModuleCategories();
+        const redis8Prefixes = this.getRedis8CommandPrefixes();
+        const tokens = rule.trim().split(/\s+/);
+        const cleanedTokens = [];
+
+        for (const token of tokens) {
+            if (!token) continue;
+
+            let shouldKeep = true;
+
+            // Check for Redis 8 module categories
+            if ((token.startsWith('+@') || token.startsWith('-@'))) {
+                const category = token.slice(2);
+                if (redis8Categories.has(category)) {
+                    shouldKeep = false;
+                }
+            }
+            // Check for Redis 8 module commands
+            else if ((token.startsWith('+') || token.startsWith('-')) && !token.includes('@')) {
+                const command = token.slice(1).toLowerCase();
+                for (const prefix of redis8Prefixes) {
+                    if (command.startsWith(prefix)) {
+                        shouldKeep = false;
+                        break;
+                    }
+                }
+            }
+
+            if (shouldKeep) {
+                cleanedTokens.push(token);
+            }
+        }
+
+        return cleanedTokens.join(' ');
+    },
+
+    /**
+     * Show confirmation dialog for Redis version downgrade
+     * @param {Array} incompatibleItems - List of incompatible items
+     * @param {Function} onConfirm - Callback when user confirms
+     * @param {Function} onCancel - Callback when user cancels
+     */
+    showVersionDowngradeConfirmation(incompatibleItems, onConfirm, onCancel) {
+        const itemsList = incompatibleItems.map(item => 
+            `• ${item.token} (${item.description})`
+        ).join('\n');
+
+        const message = `Switching to Redis 7 will remove the following Redis 8-specific items from your ACL rule:
+
+${itemsList}
+
+Do you want to continue and automatically clean the rule?`;
+
+        if (confirm(message)) {
+            onConfirm();
+        } else {
+            onCancel();
+        }
     }
 };
 

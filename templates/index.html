@@ -24,8 +24,10 @@
                 </div>
                 <nav class="header-nav">
                     <a href="/info" class="info-link" title="Learn more about this application">
-                        ℹ️ Info
+                        ℹ️
                     </a>
+                    <button type="button" id="themeToggle" class="theme-toggle" data-emoji="☀️" title="Switch to light mode">
+                    </button>
                 </nav>
             </div>
         </header>
@@ -50,13 +52,21 @@
                         </div>
                     </div>
                     <div class="version-info">
-                        <span class="version-detail" id="versionDetail">Redis 7 (311 commands)</span>
+                        <span class="version-detail" id="versionDetail">Redis 7 (21 categories, 311 commands)</span>
+                        <div class="inline-action-buttons">
+                            <button type="button" id="clearRuleBtn" class="inline-action-button clear-button" onclick="clearACLRule()" title="Clear ACL Rule text area">
+                                🗑️
+                            </button>
+                            <button type="button" id="copyRuleBtn" class="inline-action-button copy-button" onclick="copyACLRule()" title="Copy ACL Rule to clipboard">
+                                📋
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
                 <textarea 
                     id="aclRule" 
-                    class="rule-input" 
+                    class="rule-input rule-input-compact" 
                     placeholder="Click commands/categories in the panels to the right to build your ACL rule interactively, or type manually..."
                     aria-label="ACL Rule Input"
                     spellcheck="false"
@@ -72,16 +82,6 @@
                 <button type="button" id="submitChangesBtn" class="test-button" onclick="syncRuleToInteractive()" style="margin-top: 10px; width: 100%; display: none;">
                     Submit Changes
                 </button>
-                
-                <!-- Copy and Clear buttons for ACL Rule -->
-                <div class="rule-actions">
-                    <button type="button" id="copyRuleBtn" class="action-button copy-button" onclick="copyACLRule()" title="Copy ACL Rule to clipboard">
-                        📋 Copy Rule
-                    </button>
-                    <button type="button" id="clearRuleBtn" class="action-button clear-button" onclick="clearACLRule()" title="Clear ACL Rule text area">
-                        🗑️ Clear Rule
-                    </button>
-                </div>
                 
                 <div class="rule-examples">
                     <h4>Quick Examples:</h4>

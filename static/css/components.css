@@ -6,7 +6,6 @@
   margin-bottom: var(--spacing-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
 }
 
 .version-selector .version-label {
@@ -133,12 +132,65 @@
 /* Version info display */
 .version-info {
   align-self: flex-start;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .version-detail {
   font-size: var(--font-size-md);
   color: var(--text-secondary);
   font-weight: 500;
+}
+
+/* Inline action buttons */
+.inline-action-buttons {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.inline-action-button {
+  padding: 4px 8px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+}
+
+.inline-action-button.clear-button {
+  background: linear-gradient(135deg, #FF5722, #E64A19);
+  color: white;
+  border-color: #E64A19;
+}
+
+.inline-action-button.clear-button:hover {
+  background: linear-gradient(135deg, #E64A19, #D84315);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(255, 87, 34, 0.4);
+}
+
+.inline-action-button.copy-button {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  color: white;
+  border-color: #1976D2;
+}
+
+.inline-action-button.copy-button:hover {
+  background: linear-gradient(135deg, #1976D2, #1565C0);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(33, 150, 243, 0.4);
+}
+
+.inline-action-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 
 /* Hover effects */
@@ -181,6 +233,48 @@
 .acl-config-panel .rule-input {
   min-height: 120px;
   resize: vertical;
+}
+
+/* Compact rule input with better height for preview text */
+.rule-input-compact {
+  min-height: 80px !important; /* Increased from 60px to prevent text cutoff */
+}
+
+/* Version selector back to standard layout */
+.version-selector {
+  margin-bottom: 2px; /* Tight spacing to textarea */
+}
+
+.toggle-switch-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: 2px; /* Remove gap between selector and version detail */
+}
+
+.version-info {
+  margin-bottom: 2px; /* Tight spacing to textarea */
+}
+
+/* Responsive adjustments for inline action buttons */
+@media (max-width: 768px) {
+  .version-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+  
+  .inline-action-buttons {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .inline-action-button {
+    min-width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
 }
 
 /* Dark mode form elements */
@@ -233,6 +327,16 @@
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   transition: all 0.1s ease;
+}
+
+.test-button:focus {
+  outline: none; /* Remove default browser outline */
+  border-color: var(--primary-hover);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 0 0 3px rgba(33, 150, 243, 0.3);
+}
+
+.test-button:focus:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2), 0 0 0 3px rgba(33, 150, 243, 0.3);
 }
 
 /* Interactive buttons for categories and commands */
@@ -365,18 +469,6 @@
   overflow-wrap: break-word;
 }
 
-/* Collapsible command button containers */
-.command-buttons-collapsible {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-.command-buttons-collapsible.collapsed {
-  display: none;
-}
 
 /* Input groups */
 .test-input-group {
@@ -469,10 +561,10 @@
   }
 }
 
-/* Rule Actions (Copy/Clear buttons) */
+/* Rule Actions (Copy/Clear buttons) - Legacy layout (hidden by default) */
 .rule-actions {
   margin-top: var(--spacing-md);
-  display: flex;
+  display: none; /* Hidden since we use compact layout */
   gap: var(--spacing-sm);
   justify-content: center;
 }

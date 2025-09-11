@@ -19,8 +19,6 @@ const InteractiveACLBuilder = {
         allCategories: [],
         allCommands: [],
         isInitialized: false,
-        grantedCommandsCollapsed: true,  // Start collapsed
-        blockedCommandsCollapsed: true,  // Start collapsed
         lastGeneratedRule: '',           // Track the last rule we generated
         hasManualChanges: false          // Track if user made manual changes
     },
@@ -389,73 +387,19 @@ const InteractiveACLBuilder = {
                 });
             }
             
-            // Determine collapsed state: default to collapsed for many commands, expanded for few
-            const shouldCollapse = allGrantedCommands.size > 3 ? 
-                (this.state.grantedCommandsCollapsed === true) : // Only collapse if explicitly set for many commands
-                false; // Always expanded for 3 or fewer commands
-            
-            wrapper.className = shouldCollapse ? 'command-buttons-collapsible collapsed' : 'command-buttons-collapsible';
-            
-            // Create preview row that shows even when collapsed
-            if (allGrantedCommands.size > 0) {
-                const previewRow = document.createElement('div');
-                previewRow.className = shouldCollapse ? 'command-preview-row' : 'command-preview-row collapsed';
-                
-                // Show first 3 commands as preview
-                const previewCommands = Array.from(allGrantedCommands).sort().slice(0, 3);
-                previewCommands.forEach(command => {
-                    const isViaCategory = effectiveGrantedViaCategories.includes(command);
-                    const isIndividual = this.state.grantedCommands.has(command);
-                    const button = this.createGrantedCommandButton(command, isViaCategory, isIndividual);
-                    button.style.fontSize = '1.0em'; // Same size as regular buttons
-                    previewRow.appendChild(button);
-                });
-                
-                // Add "..." indicator if there are more commands
-                if (allGrantedCommands.size > 3) {
-                    const moreIndicator = document.createElement('span');
-                    moreIndicator.textContent = `+${allGrantedCommands.size - 3} more...`;
-                    moreIndicator.style.color = '#666';
-                    moreIndicator.style.fontSize = '1.0em';
-                    moreIndicator.style.alignSelf = 'center';
-                    moreIndicator.style.cursor = 'pointer';
-                    moreIndicator.style.textDecoration = 'underline';
-                    moreIndicator.title = 'Click to expand and view all commands';
-                    moreIndicator.onclick = () => this.toggleCommandSection('granted');
-                    previewRow.appendChild(moreIndicator);
-                }
-                
-                this.elements.grantedCommandsButtons.appendChild(previewRow);
-            }
-            
+            wrapper.className = 'command-buttons';
             this.elements.grantedCommandsButtons.appendChild(wrapper);
             
-            // Update the header to be clickable
-            this.updateCommandSectionHeader('granted', allGrantedCommands.size, shouldCollapse);
+            // Update header with command count
+            this.updateCommandSectionHeader('granted', allGrantedCommands.size);
         }
 
         // Render blocked/available commands
         if (this.elements.blockedCommandsButtons) {
             this.elements.blockedCommandsButtons.innerHTML = '';
             
-            // Create collapsible wrapper
             const wrapper = document.createElement('div');
             const isEmptyACL = this.state.grantedCategories.size === 0 && this.state.grantedCommands.size === 0;
-            
-            // Pre-calculate command count to determine collapse state early
-            const grantedViaCategories = await this.getCommandsGrantedByCategories();
-            const grantedViaCategoriesSet = new Set(grantedViaCategories);
-            const availableCommands = this.state.allCommands.filter(cmd => 
-                !this.state.grantedCommands.has(cmd) && 
-                !this.state.blockedCommands.has(cmd) &&
-                !grantedViaCategoriesSet.has(cmd)
-            );
-            const commandCount = this.state.blockedCommands.size + (isEmptyACL ? this.state.allCommands.length : availableCommands.length);
-            
-            // Determine collapsed state: default to collapsed for many commands, expanded for few
-            const shouldCollapseBlocked = commandCount > 3 ? 
-                (this.state.blockedCommandsCollapsed === true) : // Only collapse if explicitly set for many commands
-                false; // Always expanded for 3 or fewer commands
             
             if (isEmptyACL && this.state.allCommands.length > 0) {
                 // Show ALL available commands as clickable buttons to grant
@@ -464,7 +408,7 @@ const InteractiveACLBuilder = {
                 );
                 
                 if (allAvailableForEmptyACL.length > 0) {
-                    allAvailableForEmptyACL.forEach(command => {
+                    allAvailableForEmptyACL.sort().forEach(command => {
                         const button = this.createCommandButton(command, 'available');
                         button.title = `Click to grant ${command} command`;
                         wrapper.appendChild(button);
@@ -472,10 +416,9 @@ const InteractiveACLBuilder = {
                 }
             }
             
-            // Always show explicitly blocked commands (in addition to available ones)
+            // Always show explicitly blocked commands
             if (this.state.blockedCommands.size > 0) {
-                if (!isEmptyACL) {
-                    // Add a divider if we're not showing available commands above
+                if (!isEmptyACL && wrapper.children.length > 0) {
                     const divider = document.createElement('div');
                     divider.style.borderTop = '1px solid #555';
                     divider.style.margin = '10px 0';
@@ -493,9 +436,6 @@ const InteractiveACLBuilder = {
                 const grantedViaCategories = await this.getCommandsGrantedByCategories();
                 const grantedViaCategoriesSet = new Set(grantedViaCategories);
                 
-                // Only show commands that are NOT granted individually AND NOT granted via categories
-                // BUT if a command is granted via categories AND explicitly blocked, don't show it here
-                // (it will already be shown in the blocked commands section above)
                 const availableCommands = this.state.allCommands.filter(cmd => 
                     !this.state.grantedCommands.has(cmd) && 
                     !this.state.blockedCommands.has(cmd) &&
@@ -504,7 +444,6 @@ const InteractiveACLBuilder = {
                 
                 if (availableCommands.length > 0) {
                     if (this.state.blockedCommands.size > 0) {
-                        // Add a divider if we have blocked commands above
                         const divider = document.createElement('div');
                         divider.style.borderTop = '1px solid #555';
                         divider.style.margin = '10px 0';
@@ -519,12 +458,8 @@ const InteractiveACLBuilder = {
                 }
             }
             
-            // Calculate the total count to determine if we should show a "no commands" message
-            const totalCommandsToShow = this.state.blockedCommands.size + 
-                (isEmptyACL ? this.state.allCommands.length : availableCommands.length);
-            
             // Show message when there are no individual commands to show at all
-            if (totalCommandsToShow === 0) {
+            if (wrapper.children.length === 0) {
                 const message = document.createElement('div');
                 message.className = 'text-muted';
                 message.style.padding = '10px';
@@ -532,109 +467,27 @@ const InteractiveACLBuilder = {
                 wrapper.appendChild(message);
             }
             
-            wrapper.className = shouldCollapseBlocked ? 'command-buttons-collapsible collapsed' : 'command-buttons-collapsible';
-            
-            // Create preview row that shows even when collapsed
-            const allBlockedAndAvailable = new Set([...this.state.blockedCommands]);
-            
-            if (this.state.allCommands.length > 0) {
-                if (isEmptyACL) {
-                    // Empty ACL = all commands are effectively blocked/available for granting
-                    this.state.allCommands.forEach(cmd => allBlockedAndAvailable.add(cmd));
-                } else {
-                    // Non-empty ACL = show truly available commands (not granted anywhere)
-                    const grantedViaCategories = await this.getCommandsGrantedByCategories();
-                    const grantedViaCategoriesSet = new Set(grantedViaCategories);
-                    const availableCommands = this.state.allCommands.filter(cmd => 
-                        !this.state.grantedCommands.has(cmd) && 
-                        !this.state.blockedCommands.has(cmd) &&
-                        !grantedViaCategoriesSet.has(cmd)
-                    );
-                    availableCommands.forEach(cmd => allBlockedAndAvailable.add(cmd));
-                }
-            }
-            
-            if (allBlockedAndAvailable.size > 0) {
-                const previewRow = document.createElement('div');
-                previewRow.className = shouldCollapseBlocked ? 'command-preview-row' : 'command-preview-row collapsed';
-                
-                // Show first 3 commands as preview
-                const previewCommands = Array.from(allBlockedAndAvailable).sort().slice(0, 3);
-                previewCommands.forEach(command => {
-                    const isBlocked = this.state.blockedCommands.has(command);
-                    const button = this.createCommandButton(command, isBlocked ? 'blocked' : 'available');
-                    button.style.fontSize = '1.0em'; // Same size as regular buttons
-                    previewRow.appendChild(button);
-                });
-                
-                // Add "..." indicator if there are more commands
-                if (allBlockedAndAvailable.size > 3) {
-                    const moreIndicator = document.createElement('span');
-                    moreIndicator.textContent = `+${allBlockedAndAvailable.size - 3} more...`;
-                    moreIndicator.style.color = '#666';
-                    moreIndicator.style.fontSize = '1.0em';
-                    moreIndicator.style.alignSelf = 'center';
-                    moreIndicator.style.cursor = 'pointer';
-                    moreIndicator.style.textDecoration = 'underline';
-                    moreIndicator.title = 'Click to expand and view all commands';
-                    moreIndicator.onclick = () => this.toggleCommandSection('blocked');
-                    previewRow.appendChild(moreIndicator);
-                }
-                
-                this.elements.blockedCommandsButtons.appendChild(previewRow);
-            }
-            
+            wrapper.className = 'command-buttons';
             this.elements.blockedCommandsButtons.appendChild(wrapper);
             
-            // Update the header to be clickable
-            this.updateCommandSectionHeader('blocked', commandCount, shouldCollapseBlocked);
+            // Calculate total command count for header
+            const totalCommandCount = wrapper.children.length === 1 && wrapper.children[0].className === 'text-muted' ? 0 : wrapper.children.length;
+            this.updateCommandSectionHeader('blocked', totalCommandCount);
         }
     },
 
     /**
-     * Update command section header to be clickable
+     * Update command section header with count
      */
-    updateCommandSectionHeader(type, count, isCollapsed) {
+    updateCommandSectionHeader(type, count) {
         const sectionId = type === 'granted' ? 'grantedCommands' : 'blockedCommands';
         const section = document.getElementById(sectionId);
         const header = section?.querySelector('h3');
         
         if (header) {
-            const text = type === 'granted' ? 'Individual Commands' : 'Individual Commands';
-            
-            // Only show collapse/expand controls if there are more than 3 commands
-            if (count > 3) {
-                const arrow = isCollapsed ? '+' : '−';
-                header.innerHTML = `${text} ${count > 0 ? `(${count})` : ''} <span style="float: right; font-size: 1.2em; font-weight: bold;">${arrow}</span>`;
-                header.style.cursor = 'pointer';
-                header.style.userSelect = 'none';
-                header.onclick = () => this.toggleCommandSection(type);
-            } else {
-                // No collapse/expand controls for small lists
-                header.innerHTML = `${text} ${count > 0 ? `(${count})` : ''}`;
-                header.style.cursor = 'default';
-                header.style.userSelect = 'auto';
-                header.onclick = null;
-            }
+            const text = 'Individual Commands';
+            header.textContent = `${text}${count > 0 ? ` (${count})` : ''}`;
         }
-    },
-
-    /**
-     * Toggle command section visibility
-     */
-    async toggleCommandSection(type) {
-        const isGranted = type === 'granted';
-        const currentState = isGranted ? this.state.grantedCommandsCollapsed : this.state.blockedCommandsCollapsed;
-        const newState = !currentState;
-        
-        if (isGranted) {
-            this.state.grantedCommandsCollapsed = newState;
-        } else {
-            this.state.blockedCommandsCollapsed = newState;
-        }
-        
-        // Re-render to update display
-        await this.renderCommandButtons();
     },
 
     /**
@@ -946,6 +799,11 @@ const InteractiveACLBuilder = {
     showSubmitButton() {
         if (this.elements.submitChangesBtn) {
             this.elements.submitChangesBtn.style.display = 'block';
+            // Add CSS class to enable dynamic panel growth
+            const layout = document.querySelector('.three-column-layout');
+            if (layout) {
+                layout.classList.add('submit-button-visible');
+            }
         }
     },
 
@@ -955,6 +813,17 @@ const InteractiveACLBuilder = {
     hideSubmitButton() {
         if (this.elements.submitChangesBtn) {
             this.elements.submitChangesBtn.style.display = 'none';
+            
+            // Only shrink panels if textarea is empty or matches generated rule
+            const currentText = this.elements.aclRuleInput?.value.trim() || '';
+            const shouldShrink = !currentText || currentText === this.state.lastGeneratedRule;
+            
+            if (shouldShrink) {
+                const layout = document.querySelector('.three-column-layout');
+                if (layout) {
+                    layout.classList.remove('submit-button-visible');
+                }
+            }
         }
     }
 };

@@ -114,18 +114,28 @@
 /* Submit button with enhanced states */
 #submitChangesBtn {
   background: var(--info-color);
+  border: 2px solid var(--info-color) !important; /* Blue border */
   transform: translateY(0);
   transition: all var(--transition-normal);
 }
 
 #submitChangesBtn:hover {
-  background: var(--info-color);
+  background: #1976D2; /* Blue hover */
+  border-color: #1976D2 !important; /* Blue border */
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
 #submitChangesBtn:active {
+  background: #1565C0; /* Blue active */
+  border-color: #1565C0 !important; /* Blue border */
   transform: translateY(0);
+}
+
+#submitChangesBtn:focus {
+  outline: none !important; /* Remove any default browser outline */
+  border-color: #1976D2 !important; /* Blue focus border */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 0 0 3px rgba(33, 150, 243, 0.3) !important;
 }
 
 /* Version toggle enhanced interactions */
@@ -239,15 +249,7 @@
   box-shadow: 0 6px 20px rgba(0,0,0,0.4);
 }
 
-/* Special effects for empty states */
-.command-buttons:empty::after,
-.category-buttons:empty::after {
-  content: 'No items to display';
-  display: block;
-  text-align: center;
-  color: var(--text-muted);
-  padding: var(--spacing-lg);
-}
+/* Empty state styling removed - handled by JavaScript with specific messages */
 
 /* Interactive micro-animations for better UX */
 .category-button,

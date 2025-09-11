@@ -205,15 +205,18 @@ h5 {
 /* Header */
 header {
   text-align: center;
-  margin-bottom: var(--spacing-xxl);
+  margin-bottom: var(--spacing-md);
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
 .header-main {
@@ -221,22 +224,27 @@ header {
 }
 
 .header-nav {
-  margin-top: var(--spacing-sm);
+  margin-top: 0; /* Align with top of header content */
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
 }
 
 .info-link {
   background: linear-gradient(135deg, var(--info-color), #1565C0);
   color: white;
   text-decoration: none;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 0;
   border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
+  font-size: 18px;
   font-weight: 600;
   transition: all var(--transition-normal);
-  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  justify-content: center;
+  width: 44px; /* Match theme toggle button width */
+  height: 36px; /* Match theme toggle button height */
 }
 
 .info-link:hover {
@@ -249,6 +257,72 @@ header {
 .info-link:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+}
+
+.theme-toggle {
+  border: none;
+  padding: 0;
+  border-radius: var(--radius-md);
+  font-size: 18px;
+  font-weight: 600;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 44px;
+  height: 36px;
+  position: relative;
+}
+
+.theme-toggle::before {
+  content: attr(data-emoji);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-48%, -50%); /* Optimal centering across zoom levels */
+  font-size: 25px; /* Bigger emoji */
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Default state (dark mode active) - show light appearance to switch to light */
+.theme-toggle {
+  background: linear-gradient(135deg, #ffffff, #f1f3f4);
+  color: #495057;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme-toggle:hover {
+  background: linear-gradient(135deg, #e9ecef, #dee2e6);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.theme-toggle:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Light mode active - show dark appearance to switch to dark */
+[data-theme="light"] .theme-toggle {
+  background: linear-gradient(135deg, #343a40, #212529);
+  color: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] .theme-toggle:hover {
+  background: linear-gradient(135deg, #495057, #343a40);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Dark mode header */
+@media (prefers-color-scheme: dark) {
+  header {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
 }
 
 /* Responsive header */

@@ -173,7 +173,7 @@ class ACLParser:
         Test if a specific command is allowed by the ACL rule.
         
         Args:
-            command: Command name to test
+            command: Command name to test (can use spaces like "acl cat")
             parsed_rule: Output from parse_acl_rule()
             
         Returns:
@@ -185,13 +185,22 @@ class ACLParser:
         granted, explanations = self.evaluate_command_permissions(parsed_rule)
         
         command_lower = command.lower()
-        is_granted = command_lower in granted
+        # Convert space notation to pipe notation for internal lookup (e.g., "acl cat" -> "acl|cat")
+        command_internal = command_lower.replace(' ', '|')
+        
+        # Check both formats in case command exists in either form
+        is_granted = command_internal in granted or command_lower in granted
         categories = self.get_command_categories(command)
         
-        if command_lower in explanations:
+        # Look for explanation in both formats
+        explanation = None
+        if command_internal in explanations:
+            explanation = explanations[command_internal]
+        elif command_lower in explanations:
             explanation = explanations[command_lower]
         else:
-            if command_lower in self.data['commands']:
+            # Check if command exists in either format
+            if command_internal in self.data['commands'] or command_lower in self.data['commands']:
                 explanation = "Command exists but not granted by current ACL rule"
             else:
                 explanation = f"Command '{command}' not found in {self.redis_version.upper()}"
@@ -203,13 +212,21 @@ class ACLParser:
         Get categories that a command belongs to.
         
         Args:
-            command: Command name
+            command: Command name (can use spaces like "acl cat")
             
         Returns:
             List of category names this command belongs to
         """
         command_lower = command.lower()
-        return self.data['commands'].get(command_lower, [])
+        # Convert space notation to pipe notation for internal lookup (e.g., "acl cat" -> "acl|cat")
+        command_internal = command_lower.replace(' ', '|')
+        
+        # Check both formats
+        categories = self.data['commands'].get(command_internal, [])
+        if not categories:
+            categories = self.data['commands'].get(command_lower, [])
+        
+        return categories
     
     def validate_rule_syntax(self, rule: str) -> Tuple[bool, List[str]]:
         """

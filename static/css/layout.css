@@ -4,15 +4,20 @@
 .three-column-layout {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-xxl);
+  gap: var(--spacing-md);
   align-items: start;
 }
 
 /* Make all panels in three-column layout uniform */
 .three-column-layout > .panel {
-  height: 850px;
+  height: 720px; /* Further increased for comfortable spacing */
   min-width: 0;
+  transition: height var(--transition-normal); /* Smooth height transitions */
+}
+
+/* Dynamic panel growth when Submit Changes button is visible */
+.three-column-layout.submit-button-visible > .panel {
+  height: 780px; /* Extra height when Submit Changes button is shown */
 }
 
 /* Legacy main-content for backwards compatibility */
@@ -20,13 +25,14 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--spacing-xxl);
-  margin-bottom: var(--spacing-xxl);
 }
 
 /* Test Section - standalone panel */
 .test-section {
-  margin-top: var(--spacing-lg);
-  margin-bottom: var(--spacing-lg);
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  border: 1px solid var(--border-light);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 /* Column-specific panel styling */
@@ -107,8 +113,12 @@
   background: rgba(0,0,0,0.02);
 }
 
-/* Dark mode for command categories container */
+/* Dark mode for test section and command categories container */
 @media (prefers-color-scheme: dark) {
+  .test-section {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  
   .command-categories-container,
   .acl-config-panel .command-categories-container,
   .granted-commands-panel .command-categories-container,
@@ -255,11 +265,16 @@
   }
   
   .three-column-layout > .panel {
-    height: 650px;
+    height: 450px; /* Further reduced to match new proportions */
+  }
+  
+  /* Dynamic growth for responsive layout too */
+  .three-column-layout.submit-button-visible > .panel {
+    height: 510px; /* Extra height when Submit Changes button is shown */
   }
   
   .command-categories-container {
-    max-height: 450px;
+    max-height: 250px; /* Further reduced to match new proportions */
   }
 }
 
