@@ -235,11 +235,12 @@
   position: relative;
   animation: fadeIn var(--transition-normal) ease-out;
   transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+  margin: var(--spacing-md) 0; /* Add spacing above and below result */
 }
 
 .test-result.dismissing {
   opacity: 0;
-  transform: translateY(-15px) scale(0.95);
+  transform: translateY(15px) scale(0.95);
 }
 
 .test-result-close {
