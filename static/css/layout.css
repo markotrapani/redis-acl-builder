@@ -20,6 +20,55 @@
   height: 780px; /* Extra height when Submit Changes button is shown */
 }
 
+/* ACL Rule Configuration panel - enable scrolling when content overflows */
+.three-column-layout > .acl-config-panel {
+  overflow-y: auto; /* Enable vertical scrolling when needed */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  /* Maintain smooth scrolling experience */
+  scroll-behavior: smooth;
+  /* Custom scrollbar styling for better appearance */
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-400) var(--gray-100);
+}
+
+/* Webkit scrollbar styling for Chromium browsers */
+.three-column-layout > .acl-config-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.three-column-layout > .acl-config-panel::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: var(--radius-sm);
+}
+
+.three-column-layout > .acl-config-panel::-webkit-scrollbar-thumb {
+  background: var(--gray-400);
+  border-radius: var(--radius-sm);
+}
+
+.three-column-layout > .acl-config-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
+/* Dark mode scrollbar styling */
+@media (prefers-color-scheme: dark) {
+  .three-column-layout > .acl-config-panel {
+    scrollbar-color: var(--gray-600) var(--gray-300);
+  }
+  
+  .three-column-layout > .acl-config-panel::-webkit-scrollbar-track {
+    background: var(--gray-300);
+  }
+  
+  .three-column-layout > .acl-config-panel::-webkit-scrollbar-thumb {
+    background: var(--gray-600);
+  }
+  
+  .three-column-layout > .acl-config-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-700);
+  }
+}
+
 /* Legacy main-content for backwards compatibility */
 .main-content {
   display: grid;
