@@ -38,7 +38,6 @@ const InteractiveACLBuilder = {
      * Initialize the interactive ACL builder
      */
     async init() {
-        console.log('🔧 Initializing Interactive ACL Builder...');
         
         // Initialize DOM elements
         this.elements.grantedCategoriesButtons = document.querySelector('#grantedCategories .category-buttons');

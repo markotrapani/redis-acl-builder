@@ -26,7 +26,7 @@ header {
 }
 
 h1 {
-    color: #d82c2c;
+    color: var(--primary-color);
     font-size: 2.5em;
     margin-bottom: 10px;
 }
@@ -52,15 +52,9 @@ h1 {
     margin-bottom: 30px;
 }
 
-.panel {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 25px;
-}
 
 .panel h2 {
-    color: #d82c2c;
+    color: var(--primary-color);
     margin-bottom: 20px;
     font-size: 1.4em;
 }
@@ -236,8 +230,8 @@ h1 {
 
 .rule-input:focus {
     outline: none;
-    border-color: #d82c2c;
-    background: white;
+    border-color: var(--primary-color);
+    background: var(--surface);
 }
 
 /* Rule Optimization Warnings */
@@ -1099,9 +1093,6 @@ h1 {
 .granted-commands-panel .command-categories-container,
 .blocked-commands-panel .command-categories-container,
 .acl-config-panel,
-.panel {
-    transition: opacity 0.2s ease;
-}
 
 /* Preview rows for collapsed sections */
 .command-preview-row {

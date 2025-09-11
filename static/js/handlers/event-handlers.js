@@ -37,7 +37,6 @@ const EventHandlers = {
             
             if (isNearBottomRight) {
                 isResizing = true;
-                console.log('Resize operation detected, disabling input processing');
             }
         });
         
@@ -45,7 +44,6 @@ const EventHandlers = {
         document.addEventListener('mouseup', function() {
             if (isResizing) {
                 isResizing = false;
-                console.log('Resize operation ended, re-enabling input processing');
             }
         });
         
@@ -370,16 +368,13 @@ const EventHandlers = {
             // Content definitely overflows - expand to exactly what's needed
             const newHeight = Math.min(requiredHeight, maxHeight);
             textarea.style.setProperty('height', newHeight + 'px', 'important');
-            console.log('Expanded to:', newHeight + 'px', '(required:', requiredHeight + 'px, current:', currentHeight + 'px)');
         } else if (significantUnderflow) {
             // Content is much smaller - shrink
             const newHeight = Math.max(requiredHeight, minHeight);
             if (newHeight <= minHeight) {
                 textarea.style.removeProperty('height');
-                console.log('Shrunk to CSS default');
             } else {
                 textarea.style.setProperty('height', newHeight + 'px', 'important');
-                console.log('Shrunk to:', newHeight + 'px');
             }
         }
         // Else: no significant change needed - don't modify height

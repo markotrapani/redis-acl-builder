@@ -49,11 +49,9 @@ const RuleManager = {
         
         // Validate ACL rule syntax first
         const validation = await Utils.validateACLRule(rule);
-        console.log('ACL Validation:', rule, validation); // Debug log
         if (!validation.valid) {
             // Show first error in notification
             const firstError = validation.errors[0];
-            console.log('Showing notification for:', firstError); // Debug log
             Utils.showNotification(firstError, 'error', 5000);
             
             // Still show in command results for detailed feedback
@@ -98,7 +96,6 @@ const RuleManager = {
         // Analyze for redundancy after successful parsing (skip during version changes)
         if (!skipRedundancyAnalysis) {
             try {
-                console.log('Starting redundancy analysis for rule:', DOMElements.aclRuleInput.value);
                 this.analyzeRedundancy();
             } catch (error) {
                 console.error('Error starting redundancy analysis:', error);
@@ -114,7 +111,6 @@ const RuleManager = {
      */
     async analyzeRedundancy() {
         const rule = Utils.normalizeACLRule(DOMElements.aclRuleInput.value.trim());
-        console.log('Analyzing rule for redundancy:', rule);
         
         // Skip analysis for empty rules only
         if (!rule || rule.trim() === '') {
