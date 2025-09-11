@@ -23,9 +23,43 @@ const EventHandlers = {
         
         // Hide optimization suggestions and expand panels when user starts typing manually
         let inputTimeout;
+        let isResizing = false;
+        let resizeTimeout;
+        
+        // Detect resize operations to temporarily disable input processing
+        DOMElements.aclRuleInput.addEventListener('mousedown', function(e) {
+            // Check if clicking on resize handle (bottom-right corner)
+            const rect = this.getBoundingClientRect();
+            const isNearBottomRight = (
+                e.clientX > rect.right - 20 && 
+                e.clientY > rect.bottom - 20
+            );
+            
+            if (isNearBottomRight) {
+                isResizing = true;
+                console.log('Resize operation detected, disabling input processing');
+            }
+        });
+        
+        // Re-enable input processing after resize
+        document.addEventListener('mouseup', function() {
+            if (isResizing) {
+                isResizing = false;
+                console.log('Resize operation ended, re-enabling input processing');
+            }
+        });
+        
         DOMElements.aclRuleInput.addEventListener('input', function(e) {
-            // Always hide redundancy warnings immediately for responsive feedback
-            RuleManager.hideRedundancyWarnings();
+            // Update character counter
+            EventHandlers.updateCharacterCounter(this);
+            
+            // Auto-expand textarea based on content (unless manually resized)
+            EventHandlers.autoExpandTextarea(this);
+            
+            // Skip ALL processing during resize operations
+            if (isResizing) {
+                return;
+            }
             
             // Skip panel expansion if this is a programmatic change
             if (this.dataset.programmaticUpdate === 'true') {
@@ -33,23 +67,28 @@ const EventHandlers = {
                 return;
             }
             
-            // Debounce expensive operations to improve performance during rapid input events
+            // Hide redundancy warnings immediately for responsive feedback
+            RuleManager.hideRedundancyWarnings();
+            
+            // Debounce expensive operations
             clearTimeout(inputTimeout);
             inputTimeout = setTimeout(() => {
                 // Only expand panels if there's actual content in the textarea and it's a manual change
                 const hasContent = this.value.trim().length > 0;
                 const layout = document.querySelector('.three-column-layout');
                 
+                if (!layout) return; // Early exit if layout not found
+                
                 // Check if current text matches the last generated rule (no manual changes)
                 const currentText = this.value.trim();
                 const lastGeneratedRule = InteractiveACLBuilder.state?.lastGeneratedRule || '';
                 const isRevertedToGenerated = currentText === lastGeneratedRule;
                 
-                if (hasContent && !isRevertedToGenerated && layout && !layout.classList.contains('submit-button-visible')) {
+                if (hasContent && !isRevertedToGenerated && !layout.classList.contains('submit-button-visible')) {
                     layout.classList.add('submit-button-visible');
                 } else if (!hasContent || isRevertedToGenerated) {
                     // Auto-sync when content becomes empty or reverted to generated rule
-                    if (!hasContent && InteractiveACLBuilder.state.isInitialized) {
+                    if (!hasContent && InteractiveACLBuilder.state?.isInitialized) {
                         // Auto-sync empty content without showing submit button
                         InteractiveACLBuilder.syncFromRuleText();
                     }
@@ -61,15 +100,13 @@ const EventHandlers = {
                         
                         // Allow time for content to shift up before shrinking panels
                         setTimeout(() => {
-                            if (layout) {
-                                layout.classList.remove('submit-button-visible');
-                            }
+                            layout.classList.remove('submit-button-visible');
                         }, 100); // Small delay for smooth transition
-                    } else if (layout) {
+                    } else {
                         layout.classList.remove('submit-button-visible');
                     }
                 }
-            }, 100); // Debounce expensive operations to reduce lag during rapid events
+            }, 150); // Reduced debounce since we're not processing during resize
         });
         
         // Version toggle
@@ -190,6 +227,12 @@ const EventHandlers = {
         
         // Theme toggle functionality
         this.initThemeToggle();
+        
+        // Initialize character counter
+        this.initCharacterCounter();
+        
+        // Initialize auto-expanding textarea
+        this.initAutoExpandTextarea();
     },
     
     /**
@@ -243,6 +286,114 @@ const EventHandlers = {
                 themeToggle.setAttribute('data-emoji', '🌙');
                 themeToggle.title = 'Switch to dark mode';
             }
+        }
+    },
+    
+    /**
+     * Initialize character counter functionality
+     */
+    initCharacterCounter() {
+        const textarea = DOMElements.aclRuleInput;
+        if (textarea) {
+            this.updateCharacterCounter(textarea);
+        }
+    },
+    
+    /**
+     * Update character counter display
+     */
+    updateCharacterCounter(textarea) {
+        const counter = document.getElementById('characterCounter');
+        if (!counter) return;
+        
+        const currentLength = textarea.value.length;
+        const maxLength = parseInt(textarea.getAttribute('maxlength')) || 500;
+        
+        counter.textContent = `${currentLength}/${maxLength}`;
+        
+        // Remove previous state classes
+        counter.classList.remove('near-limit', 'at-limit');
+        
+        // Add appropriate state class
+        if (currentLength >= maxLength) {
+            counter.classList.add('at-limit');
+        } else if (currentLength >= maxLength * 0.9) { // 90% of limit
+            counter.classList.add('near-limit');
+        }
+    },
+    
+    /**
+     * Initialize auto-expanding textarea functionality
+     */
+    initAutoExpandTextarea() {
+        const textarea = DOMElements.aclRuleInput;
+        if (!textarea) return;
+        
+        // Reset any inline height to use CSS defaults
+        textarea.style.height = '';
+        
+        // Only auto-expand if there's existing content
+        if (textarea.value.trim().length > 0) {
+            this.autoExpandTextarea(textarea);
+        }
+    },
+    
+    /**
+     * Auto-expand textarea when content overflows
+     */
+    autoExpandTextarea(textarea) {
+        // If textarea is empty, reset to CSS default
+        if (textarea.value.trim().length === 0) {
+            textarea.style.height = '';
+            return;
+        }
+        
+        // Get current height before any changes
+        const currentHeight = textarea.offsetHeight;
+        
+        // Temporarily measure content height
+        const originalHeight = textarea.style.height;
+        textarea.style.height = '1px';
+        const scrollHeight = textarea.scrollHeight;
+        textarea.style.height = originalHeight; // Restore immediately
+        
+        const minHeight = 120; // From CSS min-height  
+        const maxHeight = 540; // From CSS max-height
+        const requiredHeight = scrollHeight + 4;
+        
+        // Only change height if there's a significant difference (prevent jumping)
+        const threshold = 10; // pixels
+        const significantOverflow = requiredHeight > currentHeight + threshold;
+        const significantUnderflow = requiredHeight < currentHeight - threshold && currentHeight > minHeight;
+        
+        if (significantOverflow) {
+            // Content definitely overflows - expand to exactly what's needed
+            const newHeight = Math.min(requiredHeight, maxHeight);
+            textarea.style.setProperty('height', newHeight + 'px', 'important');
+            console.log('Expanded to:', newHeight + 'px', '(required:', requiredHeight + 'px, current:', currentHeight + 'px)');
+        } else if (significantUnderflow) {
+            // Content is much smaller - shrink
+            const newHeight = Math.max(requiredHeight, minHeight);
+            if (newHeight <= minHeight) {
+                textarea.style.removeProperty('height');
+                console.log('Shrunk to CSS default');
+            } else {
+                textarea.style.setProperty('height', newHeight + 'px', 'important');
+                console.log('Shrunk to:', newHeight + 'px');
+            }
+        }
+        // Else: no significant change needed - don't modify height
+    },
+    
+    /**
+     * Update character counter programmatically (for use when other code modifies textarea)
+     */
+    updateCharacterCounterProgrammatically(textarea) {
+        if (!textarea) {
+            textarea = DOMElements.aclRuleInput;
+        }
+        if (textarea) {
+            this.updateCharacterCounter(textarea);
         }
     }
 };

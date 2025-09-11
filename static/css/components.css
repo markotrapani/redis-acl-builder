@@ -215,7 +215,7 @@
   background: var(--gray-50);
   resize: vertical;
   min-height: 100px;
-  transition: all var(--transition-normal);
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal), background-color var(--transition-normal);
 }
 
 .rule-input:focus,
@@ -232,12 +232,43 @@
 /* Enhanced rule input for interactive mode */
 .acl-config-panel .rule-input {
   min-height: 120px;
+  max-height: 540px;
   resize: vertical;
 }
 
 /* Compact rule input with better height for preview text */
 .rule-input-compact {
   min-height: 80px !important; /* Increased from 60px to prevent text cutoff */
+}
+
+/* Textarea container for positioning overlay */
+.textarea-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+/* Character counter styling - floating inside textarea */
+.character-counter {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  background: transparent;
+  pointer-events: none; /* Prevent interference with textarea */
+  user-select: none; /* Prevent text selection */
+  z-index: 10;
+}
+
+.character-counter.near-limit {
+  color: var(--warning-color);
+}
+
+.character-counter.at-limit {
+  color: var(--error-color);
+  font-weight: 600;
 }
 
 /* Version selector back to standard layout */

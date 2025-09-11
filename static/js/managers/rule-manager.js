@@ -16,6 +16,12 @@ const RuleManager = {
         // Mark as programmatic update to prevent panel expansion
         DOMElements.aclRuleInput.dataset.programmaticUpdate = 'true';
         DOMElements.aclRuleInput.value = rule;
+        
+        // Update character counter
+        import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
+            EventHandlers.updateCharacterCounterProgrammatically(DOMElements.aclRuleInput);
+        });
+        
         this.parseRule();
     },
 
@@ -34,6 +40,11 @@ const RuleManager = {
             // Mark as programmatic update to prevent panel expansion
             DOMElements.aclRuleInput.dataset.programmaticUpdate = 'true';
             DOMElements.aclRuleInput.value = rule;
+            
+            // Update character counter
+            import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
+                EventHandlers.updateCharacterCounterProgrammatically(DOMElements.aclRuleInput);
+            });
         }
         
         // Validate ACL rule syntax first
@@ -181,6 +192,12 @@ const RuleManager = {
                             } else {
                                 DOMElements.aclRuleInput.value = simplifiedRule;
                             }
+                            
+                            // Update character counter
+                            import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
+                                EventHandlers.updateCharacterCounterProgrammatically(DOMElements.aclRuleInput);
+                            });
+                            
                             this.parseRule(); // Re-parse with simplified rule
                         };
                     }

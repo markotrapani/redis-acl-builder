@@ -82,13 +82,19 @@
                     </div>
                 </div>
                 
-                <textarea 
-                    id="aclRule" 
-                    class="rule-input rule-input-compact" 
-                    placeholder="Click commands/categories in the surrounding panels to build your ACL rule interactively, or type manually..."
-                    aria-label="ACL Rule Input"
-                    spellcheck="false"
-                ></textarea>
+                <div class="textarea-container">
+                    <textarea 
+                        id="aclRule" 
+                        class="rule-input rule-input-compact" 
+                        placeholder="Click commands/categories in the surrounding panels to build your ACL rule interactively, or type manually..."
+                        aria-label="ACL Rule Input"
+                        spellcheck="false"
+                        maxlength="500"
+                    ></textarea>
+                    
+                    <!-- Character Counter Overlay -->
+                    <div class="character-counter" id="characterCounter">0/500</div>
+                </div>
                 
                 <!-- Rule Optimization Warnings -->
                 <div id="redundancyWarnings" class="redundancy-warnings" style="display: none;">

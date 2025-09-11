@@ -98,7 +98,7 @@
 
 /* Enhanced rule input with better interaction */
 .rule-input {
-  transition: all var(--transition-normal);
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
   position: relative;
 }
 

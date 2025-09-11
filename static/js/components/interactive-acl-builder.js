@@ -573,6 +573,11 @@ const InteractiveACLBuilder = {
         this.elements.aclRuleInput.dataset.programmaticUpdate = 'true';
         this.elements.aclRuleInput.value = rule;
         
+        // Update character counter
+        import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
+            EventHandlers.updateCharacterCounterProgrammatically(this.elements.aclRuleInput);
+        });
+        
         // Track the rule we just generated
         this.state.lastGeneratedRule = rule;
         this.state.hasManualChanges = false;
@@ -702,6 +707,11 @@ const InteractiveACLBuilder = {
             // Mark as programmatic update to prevent panel expansion
             this.elements.aclRuleInput.dataset.programmaticUpdate = 'true';
             this.elements.aclRuleInput.value = ruleText;
+            
+            // Update character counter
+            import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
+                EventHandlers.updateCharacterCounterProgrammatically(this.elements.aclRuleInput);
+            });
         }
         
         console.log('🔄 Syncing rule text to interactive display:', ruleText);

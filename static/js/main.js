@@ -119,6 +119,16 @@ window.clearACLRule = () => {
         aclRuleTextarea.value = '';
         aclRuleTextarea.focus();
         
+        // Auto-shrink textarea back to default height
+        aclRuleTextarea.style.height = '';
+        
+        // Reset character counter to 0/500
+        const characterCounter = document.getElementById('characterCounter');
+        if (characterCounter) {
+            characterCounter.textContent = '0/500';
+            characterCounter.classList.remove('near-limit', 'at-limit');
+        }
+        
         // Hide redundancy warnings
         RuleManager.hideRedundancyWarnings();
         
