@@ -17,9 +17,10 @@ const RuleManager = {
         DOMElements.aclRuleInput.dataset.programmaticUpdate = 'true';
         DOMElements.aclRuleInput.value = rule;
         
-        // Update character counter
+        // Update character counter and button states
         import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
             EventHandlers.updateCharacterCounterProgrammatically(DOMElements.aclRuleInput);
+            EventHandlers.updateActionButtonStates(rule);
         });
         
         this.parseRule();
