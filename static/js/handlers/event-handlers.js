@@ -59,10 +59,10 @@ const EventHandlers = {
                 return;
             }
             
-            // Skip panel expansion if this is a programmatic change
-            if (this.dataset.programmaticUpdate === 'true') {
+            // Track if this is a programmatic change
+            const isProgrammaticUpdate = this.dataset.programmaticUpdate === 'true';
+            if (isProgrammaticUpdate) {
                 delete this.dataset.programmaticUpdate;
-                return;
             }
             
             // Hide redundancy warnings immediately for responsive feedback
@@ -82,7 +82,7 @@ const EventHandlers = {
                 const lastGeneratedRule = InteractiveACLBuilder.state?.lastGeneratedRule || '';
                 const isRevertedToGenerated = currentText === lastGeneratedRule;
                 
-                if (hasContent && !isRevertedToGenerated && !layout.classList.contains('submit-button-visible')) {
+                if (hasContent && !isRevertedToGenerated && !isProgrammaticUpdate && !layout.classList.contains('submit-button-visible')) {
                     layout.classList.add('submit-button-visible');
                 } else if (!hasContent || isRevertedToGenerated) {
                     // Auto-sync when content becomes empty or reverted to generated rule
@@ -103,6 +103,12 @@ const EventHandlers = {
                     } else {
                         layout.classList.remove('submit-button-visible');
                     }
+                }
+                
+                // Always trigger rule parsing and redundancy analysis for any content changes
+                // This ensures optimization suggestions appear for interactive button clicks
+                if (hasContent) {
+                    RuleManager.parseRule();
                 }
             }, 150); // Reduced debounce since we're not processing during resize
         });
