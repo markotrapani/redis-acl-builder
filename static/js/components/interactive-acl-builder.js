@@ -799,11 +799,7 @@ const InteractiveACLBuilder = {
     showSubmitButton() {
         if (this.elements.submitChangesBtn) {
             this.elements.submitChangesBtn.style.display = 'block';
-            // Add CSS class to enable dynamic panel growth
-            const layout = document.querySelector('.three-column-layout');
-            if (layout) {
-                layout.classList.add('submit-button-visible');
-            }
+            // Panel expansion is only controlled by manual textarea input in event-handlers.js
         }
     },
 
@@ -813,17 +809,7 @@ const InteractiveACLBuilder = {
     hideSubmitButton() {
         if (this.elements.submitChangesBtn) {
             this.elements.submitChangesBtn.style.display = 'none';
-            
-            // Only shrink panels if textarea is empty or matches generated rule
-            const currentText = this.elements.aclRuleInput?.value.trim() || '';
-            const shouldShrink = !currentText || currentText === this.state.lastGeneratedRule;
-            
-            if (shouldShrink) {
-                const layout = document.querySelector('.three-column-layout');
-                if (layout) {
-                    layout.classList.remove('submit-button-visible');
-                }
-            }
+            // Panel expansion is only controlled by manual textarea input in event-handlers.js
         }
     }
 };
