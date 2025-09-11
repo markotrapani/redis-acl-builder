@@ -13,6 +13,8 @@ const RuleManager = {
      * Set rule in textarea and trigger parsing
      */
     setRule(rule) {
+        // Mark as programmatic update to prevent panel expansion
+        DOMElements.aclRuleInput.dataset.programmaticUpdate = 'true';
         DOMElements.aclRuleInput.value = rule;
         this.parseRule();
     },
@@ -29,6 +31,8 @@ const RuleManager = {
         
         // Update the textarea with normalized rule if it changed
         if (rule !== rawRule) {
+            // Mark as programmatic update to prevent panel expansion
+            DOMElements.aclRuleInput.dataset.programmaticUpdate = 'true';
             DOMElements.aclRuleInput.value = rule;
         }
         

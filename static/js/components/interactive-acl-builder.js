@@ -569,6 +569,8 @@ const InteractiveACLBuilder = {
         if (!this.elements.aclRuleInput) return;
 
         const rule = await this.generateOptimizedRule();
+        // Mark as programmatic update to prevent panel expansion
+        this.elements.aclRuleInput.dataset.programmaticUpdate = 'true';
         this.elements.aclRuleInput.value = rule;
         
         // Track the rule we just generated
@@ -697,6 +699,8 @@ const InteractiveACLBuilder = {
         
         // Update the textarea with normalized rule if it changed
         if (ruleText !== rawRuleText) {
+            // Mark as programmatic update to prevent panel expansion
+            this.elements.aclRuleInput.dataset.programmaticUpdate = 'true';
             this.elements.aclRuleInput.value = ruleText;
         }
         

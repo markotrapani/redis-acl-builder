@@ -21,11 +21,17 @@ const EventHandlers = {
         //     Utils.debounce(() => RuleManager.parseRule(), 300)
         // );
         
-        // Hide optimization suggestions and expand panels when user starts typing
-        DOMElements.aclRuleInput.addEventListener('input', function() {
+        // Hide optimization suggestions and expand panels when user starts typing manually
+        DOMElements.aclRuleInput.addEventListener('input', function(e) {
             RuleManager.hideRedundancyWarnings();
             
-            // Only expand panels if there's actual content in the textarea
+            // Skip panel expansion if this is a programmatic change
+            if (this.dataset.programmaticUpdate === 'true') {
+                delete this.dataset.programmaticUpdate;
+                return;
+            }
+            
+            // Only expand panels if there's actual content in the textarea and it's a manual change
             const hasContent = this.value.trim().length > 0;
             const layout = document.querySelector('.three-column-layout');
             
@@ -71,6 +77,8 @@ const EventHandlers = {
                                     () => {
                                         // User confirmed - clean the rule and proceed
                                         const cleanedRule = Utils.cleanRedis8ContentFromRule(currentRule);
+                                        // Mark as programmatic update to prevent panel expansion
+                                        DOMElements.aclRuleInput.dataset.programmaticUpdate = 'true';
                                         DOMElements.aclRuleInput.value = cleanedRule;
                                         
                                         // Proceed with version change
