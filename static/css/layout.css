@@ -10,14 +10,14 @@
 
 /* Make all panels in three-column layout uniform */
 .three-column-layout > .panel {
-  height: 720px; /* Further increased for comfortable spacing */
+  height: 700px; /* Adjusted height for comfortable fit */
   min-width: 0;
   transition: height var(--transition-normal); /* Smooth height transitions */
 }
 
 /* Dynamic panel growth when Submit Changes button is visible */
 .three-column-layout.submit-button-visible > .panel {
-  height: 780px; /* Extra height when Submit Changes button is shown */
+  height: 740px; /* Adjusted extra height when Submit Changes button is shown */
 }
 
 /* ACL Rule Configuration panel - clip overflow but don't scroll */
@@ -39,6 +39,9 @@
   margin-bottom: var(--spacing-md);
   border: 1px solid var(--border-light);
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  height: auto;
+  min-height: 190px; /* Fixed minimum height */
+  max-height: 190px; /* Prevent expansion beyond this */
 }
 
 /* Column-specific panel styling */
@@ -317,5 +320,68 @@
   
   .container {
     padding: 10px;
+  }
+}
+
+/* Dual Testing Interface Layout */
+.testing-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.test-section {
+  margin: 0; /* Remove default margin since grid handles spacing */
+  overflow: visible; /* Allow result divs to overflow without expanding section */
+  position: relative; /* Establish positioning context for absolutely positioned results */
+  height: 190px; /* Fixed height to prevent expansion */
+  padding: var(--panel-padding); /* Ensure proper padding is applied */
+}
+
+/* Test result areas - positioned to overflow naturally */
+#testResult,
+#testKeyspaceResult {
+  position: relative;
+  z-index: 10; /* Ensure results appear above other content */
+  box-shadow: var(--shadow-md);
+}
+
+.command-test-section h2 {
+  color: var(--primary-color); /* Red for commands */
+}
+
+.keyspace-test-section h2 {
+  color: #4CAF50; /* Green for keyspace */
+}
+
+/* Fixed width for test buttons in testing sections only */
+.testing-container .test-button {
+  width: 140px !important; /* Fixed width regardless of text content */
+  min-width: 140px !important;
+}
+
+/* Green styling for keyspace test button - only override colors, keep all other styling identical */
+.keyspace-test-button {
+  background: var(--green-gradient) !important;
+  box-shadow: var(--green-shadow) !important;
+  border-color: #4CAF50 !important; /* Keep border width same as base, just change color */
+}
+
+.keyspace-test-button:hover {
+  box-shadow: var(--green-hover-shadow) !important;
+  transform: translateY(-1px);
+  border-color: #388E3C !important; /* Darker green border on hover */
+}
+
+.keyspace-test-button:active {
+  border-color: #2E7D32 !important; /* Even darker green when pressed */
+}
+
+/* Responsive: Stack vertically on smaller screens */
+@media (max-width: 768px) {
+  .testing-container {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
   }
 }
