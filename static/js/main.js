@@ -9,6 +9,7 @@ import Utils from './core/utils.js';
 import RuleManager from './managers/rule-manager.js';
 import CategoryManager from './managers/category-manager.js';
 import CommandTester from './components/command-tester.js';
+import KeyspaceTester from './components/keyspace-tester.js';
 import InteractiveACLBuilder from './components/interactive-acl-builder.js';
 import EventHandlers from './handlers/event-handlers.js';
 
@@ -54,6 +55,7 @@ window.setRuleAndParse = (rule) => {
     }
 };
 window.testCommand = () => CommandTester.testCommand();
+window.testKeyspace = () => KeyspaceTester.testKeyspace();
 window.CategoryManager = CategoryManager; // Make available for HTML onclick
 window.syncRuleToInteractive = () => InteractiveACLBuilder.syncFromRuleText();
 window.copyACLRule = () => {
@@ -129,6 +131,11 @@ window.clearACLRule = () => {
             characterCounter.classList.remove('near-limit', 'at-limit');
         }
         
+        // Update button states (should be disabled when empty)
+        import('./handlers/event-handlers.js').then(({ default: EventHandlers }) => {
+            EventHandlers.updateActionButtonStates('');
+        });
+        
         // Hide redundancy warnings
         RuleManager.hideRedundancyWarnings();
         
@@ -140,7 +147,7 @@ window.clearACLRule = () => {
             InteractiveACLBuilder.syncFromRuleText();
         }
         
-        Utils.showNotification('ACL rule cleared and command lists updated! 🗑️', 'success');
+        Utils.showNotification('ACL rule cleared and command lists updated! 💣', 'success');
     } catch (error) {
         console.error('Error clearing ACL rule:', error);
         Utils.showNotification('Error occurred while clearing ACL rule! ❌', 'error');

@@ -73,7 +73,7 @@
                         <span class="version-detail" id="versionDetail">Redis 7 (21 categories, 311 commands)</span>
                         <div class="inline-action-buttons">
                             <button type="button" id="clearRuleBtn" class="inline-action-button clear-button" onclick="clearACLRule()" title="Clear ACL Rule text area">
-                                🗑️
+                                💣
                             </button>
                             <button type="button" id="copyRuleBtn" class="inline-action-button copy-button" onclick="copyACLRule()" title="Copy ACL Rule to clipboard">
                                 📋
@@ -103,7 +103,7 @@
                     <div id="suggestionsList"></div>
                 </div>
                 
-                <button type="button" id="submitChangesBtn" class="test-button" onclick="syncRuleToInteractive()" style="margin-top: 10px; width: 100%; display: none;">
+                <button type="button" id="submitChangesBtn" class="test-button" onclick="syncRuleToInteractive()" style="margin-bottom: 10px; width: 100%; display: none;">
                     Submit Changes
                 </button>
                 
@@ -165,28 +165,54 @@
             </section>
         </div>
         
-        <!-- Command Tester -->
-        <section class="panel test-section">
-            <h2>📋 Command Tester</h2>
-            <p class="text-muted mb-2">Test if a specific command is allowed by your current ACL rule:</p>
-            
-            <div class="test-input-group">
-                <input 
-                    type="text" 
-                    id="testCommand" 
-                    class="test-command-input" 
-                    placeholder="Enter command to test (e.g., GET, SET, FLUSHDB)"
-                    aria-label="Command to test"
-                    autocomplete="off"
-                    spellcheck="false"
-                >
-                <button type="button" class="test-button" onclick="testCommand()" aria-label="Test the entered command">
-                    TEST COMMAND
-                </button>
-            </div>
-            
-            <div id="testResult" role="region" aria-label="Test results" aria-live="polite"></div>
-        </section>
+        <!-- Dual Testing Interface -->
+        <div class="testing-container">
+            <!-- Command Tester -->
+            <section class="panel test-section command-test-section">
+                <h2>📋 Command Tester</h2>
+                <p class="text-muted mb-2">Test if a specific command is allowed by your current ACL rule:</p>
+                
+                <div class="test-input-group">
+                    <input 
+                        type="text" 
+                        id="testCommand" 
+                        class="test-command-input" 
+                        placeholder="Enter command to test (eg. GET, SET, FLUSHDB)"
+                        aria-label="Command to test"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <button type="button" class="test-button" onclick="testCommand()" aria-label="Test the entered command">
+                        CHECK COMMAND
+                    </button>
+                </div>
+                
+                <div id="testResult" role="region" aria-label="Test results" aria-live="polite"></div>
+            </section>
+
+            <!-- Keyspace Tester -->
+            <section class="panel test-section keyspace-test-section">
+                <h2>🔑 Keyspace Tester</h2>
+                <p class="text-muted mb-2">Test if a specific key name is allowed by your current ACL rule:</p>
+                
+                <div class="test-input-group">
+                    <input 
+                        type="text" 
+                        id="testKeyspace" 
+                        class="test-command-input" 
+                        placeholder="Enter key name to test (eg. user:123, cache:*)"
+                        aria-label="Key pattern to test"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <button type="button" class="test-button keyspace-test-button" onclick="testKeyspace()" aria-label="Test the entered key name">
+                        CHECK<br>KEY NAME
+                    </button>
+                </div>
+                
+                <div id="testKeyspaceResult" role="region" aria-label="Keyspace test results" aria-live="polite"></div>
+            </section>
+        </div>
     </div>
 
     <!-- Notification Container -->

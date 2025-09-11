@@ -12,6 +12,42 @@ import InteractiveACLBuilder from '../components/interactive-acl-builder.js';
 
 const EventHandlers = {
     /**
+     * Update the state of action buttons based on ACL rule content
+     */
+    updateActionButtonStates(aclRuleText = '') {
+        const hasContent = aclRuleText.trim().length > 0;
+        const clearBtn = document.getElementById('clearRuleBtn');
+        const copyBtn = document.getElementById('copyRuleBtn');
+        
+        if (clearBtn) {
+            clearBtn.disabled = !hasContent;
+        }
+        if (copyBtn) {
+            copyBtn.disabled = !hasContent;
+        }
+    },
+
+    /**
+     * Update the state of test buttons based on input content
+     */
+    updateTestButtonStates() {
+        const commandInput = document.getElementById('testCommand');
+        const keyspaceInput = document.getElementById('testKeyspace');
+        const commandButton = document.querySelector('.command-test-section .test-button');
+        const keyspaceButton = document.querySelector('.keyspace-test-section .test-button');
+        
+        if (commandInput && commandButton) {
+            const hasCommandContent = commandInput.value.trim().length > 0;
+            commandButton.disabled = !hasCommandContent;
+        }
+        
+        if (keyspaceInput && keyspaceButton) {
+            const hasKeyspaceContent = keyspaceInput.value.trim().length > 0;
+            keyspaceButton.disabled = !hasKeyspaceContent;
+        }
+    },
+
+    /**
      * Initialize all event listeners
      */
     init() {
@@ -73,6 +109,10 @@ const EventHandlers = {
             inputTimeout = setTimeout(() => {
                 // Only expand panels if there's actual content in the textarea and it's a manual change
                 const hasContent = this.value.trim().length > 0;
+                
+                // Update action button states immediately
+                EventHandlers.updateActionButtonStates(this.value);
+                
                 const layout = document.querySelector('.three-column-layout');
                 
                 if (!layout) return; // Early exit if layout not found
@@ -82,7 +122,7 @@ const EventHandlers = {
                 const lastGeneratedRule = InteractiveACLBuilder.state?.lastGeneratedRule || '';
                 const isRevertedToGenerated = currentText === lastGeneratedRule;
                 
-                if (hasContent && !isRevertedToGenerated && !isProgrammaticUpdate && !layout.classList.contains('submit-button-visible')) {
+                if (hasContent && !isRevertedToGenerated && !layout.classList.contains('submit-button-visible')) {
                     layout.classList.add('submit-button-visible');
                 } else if (!hasContent || isRevertedToGenerated) {
                     // Auto-sync when content becomes empty or reverted to generated rule
@@ -105,10 +145,10 @@ const EventHandlers = {
                     }
                 }
                 
-                // Always trigger rule parsing and redundancy analysis for any content changes
-                // This ensures optimization suggestions appear for interactive button clicks
+                // Silently trigger rule parsing and redundancy analysis for real-time feedback
+                // This ensures optimization suggestions appear without annoying error popups
                 if (hasContent) {
-                    RuleManager.parseRule();
+                    RuleManager.parseRuleSilent();
                 }
             }, 150); // Reduced debounce since we're not processing during resize
         });
@@ -191,6 +231,24 @@ const EventHandlers = {
             }
         });
         
+        // Test keyspace input
+        const testKeyspaceInput = document.getElementById('testKeyspace');
+        if (testKeyspaceInput) {
+            testKeyspaceInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    // Import KeyspaceTester dynamically to avoid circular dependencies
+                    import('../components/keyspace-tester.js').then(({ default: KeyspaceTester }) => {
+                        KeyspaceTester.testKeyspace();
+                    });
+                }
+            });
+            
+            // Update button states on input
+            testKeyspaceInput.addEventListener('input', function() {
+                EventHandlers.updateTestButtonStates();
+            });
+        }
+        
         // Auto-complete for test command input (basic implementation)
         DOMElements.testCommandInput.addEventListener('input', function() {
             const value = this.value.toLowerCase();
@@ -198,6 +256,9 @@ const EventHandlers = {
                 // Future: Add autocomplete functionality
                 this.title = `Type a Redis command like: GET, SET, HGET, ZADD, etc.`;
             }
+            
+            // Update test button states
+            EventHandlers.updateTestButtonStates();
         });
         
         // Keyboard navigation for category headers
@@ -237,6 +298,12 @@ const EventHandlers = {
         
         // Initialize auto-expanding textarea
         this.initAutoExpandTextarea();
+        
+        // Initialize action button states
+        this.updateActionButtonStates(DOMElements.aclRuleInput?.value || '');
+        
+        // Initialize test button states (should start disabled)
+        this.updateTestButtonStates();
     },
     
     /**
