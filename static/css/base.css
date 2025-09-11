@@ -99,7 +99,7 @@
   
   /* Layout */
   --container-max-width: 1400px;
-  --panel-padding: var(--spacing-xl);
+  --panel-padding: var(--spacing-md);
 }
 
 /* Dark mode variables */
