@@ -233,9 +233,10 @@
 /* Test result close button */
 .test-result {
   position: absolute;
-  top: 0;
+  bottom: 100%; /* Position above the container */
   left: 0;
   right: 0;
+  margin-bottom: var(--spacing-sm); /* Small gap above the form */
   z-index: 10;
   animation: fadeIn var(--transition-normal) ease-out;
   transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
@@ -601,6 +602,7 @@
   display: flex;
   gap: 10px;
   margin-bottom: var(--spacing-lg);
+  position: relative; /* Enable absolute positioning for result popups */
 }
 
 /* Responsive form adjustments */
