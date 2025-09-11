@@ -233,17 +233,13 @@
 /* Test result close button */
 .test-result {
   position: absolute;
-  bottom: 100%; /* Position above the container */
-  left: 0;
-  right: 0;
-  width: 100%; /* Ensure full width */
-  margin-bottom: var(--spacing-sm); /* Small gap above the form */
+  bottom: 8px; /* Closer to the input group */
+  left: var(--panel-padding);
+  right: var(--panel-padding);
+  width: calc(100% - 2 * var(--panel-padding)); /* Match exact width of form area */
   z-index: 10;
   animation: fadeIn var(--transition-normal) ease-out;
   transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
-  /* Override flex behavior */
-  flex: none;
-  box-sizing: border-box;
 }
 
 .test-result.dismissing {
