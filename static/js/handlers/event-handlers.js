@@ -22,7 +22,9 @@ const EventHandlers = {
         // );
         
         // Hide optimization suggestions and expand panels when user starts typing manually
+        let inputTimeout;
         DOMElements.aclRuleInput.addEventListener('input', function(e) {
+            // Always hide redundancy warnings immediately for responsive feedback
             RuleManager.hideRedundancyWarnings();
             
             // Skip panel expansion if this is a programmatic change
@@ -31,41 +33,43 @@ const EventHandlers = {
                 return;
             }
             
-            // Only expand panels if there's actual content in the textarea and it's a manual change
-            const hasContent = this.value.trim().length > 0;
-            const layout = document.querySelector('.three-column-layout');
-            
-            // Check if current text matches the last generated rule (no manual changes)
-            const currentText = this.value.trim();
-            const lastGeneratedRule = InteractiveACLBuilder.state?.lastGeneratedRule || '';
-            const isRevertedToGenerated = currentText === lastGeneratedRule;
-            
-            if (hasContent && !isRevertedToGenerated && layout && !layout.classList.contains('submit-button-visible')) {
-                layout.classList.add('submit-button-visible');
-            } else if (!hasContent || isRevertedToGenerated) {
-                // Auto-sync when content becomes empty or reverted to generated rule
-                if (!hasContent && InteractiveACLBuilder.state.isInitialized) {
-                    // Auto-sync empty content without showing submit button
-                    setTimeout(() => {
-                        InteractiveACLBuilder.syncFromRuleText();
-                    }, 50); // Small delay to ensure the input event completes
-                }
+            // Debounce expensive operations to improve performance during rapid input events
+            clearTimeout(inputTimeout);
+            inputTimeout = setTimeout(() => {
+                // Only expand panels if there's actual content in the textarea and it's a manual change
+                const hasContent = this.value.trim().length > 0;
+                const layout = document.querySelector('.three-column-layout');
                 
-                // Hide submit button first, then shrink panels after content shifts up
-                const submitBtn = document.getElementById('submitChangesBtn');
-                if (submitBtn && submitBtn.style.display !== 'none') {
-                    submitBtn.style.display = 'none';
+                // Check if current text matches the last generated rule (no manual changes)
+                const currentText = this.value.trim();
+                const lastGeneratedRule = InteractiveACLBuilder.state?.lastGeneratedRule || '';
+                const isRevertedToGenerated = currentText === lastGeneratedRule;
+                
+                if (hasContent && !isRevertedToGenerated && layout && !layout.classList.contains('submit-button-visible')) {
+                    layout.classList.add('submit-button-visible');
+                } else if (!hasContent || isRevertedToGenerated) {
+                    // Auto-sync when content becomes empty or reverted to generated rule
+                    if (!hasContent && InteractiveACLBuilder.state.isInitialized) {
+                        // Auto-sync empty content without showing submit button
+                        InteractiveACLBuilder.syncFromRuleText();
+                    }
                     
-                    // Allow time for content to shift up before shrinking panels
-                    setTimeout(() => {
-                        if (layout) {
-                            layout.classList.remove('submit-button-visible');
-                        }
-                    }, 100); // Small delay for smooth transition
-                } else if (layout) {
-                    layout.classList.remove('submit-button-visible');
+                    // Hide submit button first, then shrink panels after content shifts up
+                    const submitBtn = document.getElementById('submitChangesBtn');
+                    if (submitBtn && submitBtn.style.display !== 'none') {
+                        submitBtn.style.display = 'none';
+                        
+                        // Allow time for content to shift up before shrinking panels
+                        setTimeout(() => {
+                            if (layout) {
+                                layout.classList.remove('submit-button-visible');
+                            }
+                        }, 100); // Small delay for smooth transition
+                    } else if (layout) {
+                        layout.classList.remove('submit-button-visible');
+                    }
                 }
-            }
+            }, 100); // Debounce expensive operations to reduce lag during rapid events
         });
         
         // Version toggle
