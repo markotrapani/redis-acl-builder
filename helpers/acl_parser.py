@@ -203,7 +203,9 @@ class ACLParser:
             if command_internal in self.data['commands'] or command_lower in self.data['commands']:
                 explanation = "Command exists but not granted by current ACL rule"
             else:
-                explanation = f"Command '{command}' not found in {self.redis_version.upper()}"
+                # Format version number nicely (e.g., "redis7" -> "Redis 7")
+                version_display = self.redis_version.replace('redis', 'Redis ') if 'redis' in self.redis_version else self.redis_version
+                explanation = f"Command '{command}' not found in {version_display}. Please check the command spelling."
         
         return is_granted, explanation, categories
     
