@@ -404,6 +404,52 @@ Do you want to continue and automatically clean the rule?`;
         } else {
             onCancel();
         }
+    },
+
+    /**
+     * Show a dismissible test result with auto-dismiss and manual close
+     * @param {HTMLElement} container - Container to show result in
+     * @param {string} html - HTML content for the result
+     * @param {string} resultClass - CSS class for styling (granted/denied)
+     * @param {number} autoDismissMs - Auto-dismiss timeout in milliseconds (default: 5000)
+     */
+    showDismissibleTestResult(container, html, resultClass, autoDismissMs = 5000) {
+        if (!container) return;
+
+        // Create result with close button
+        const resultHtml = `
+            <div class="test-result ${resultClass}">
+                <button class="test-result-close" type="button" aria-label="Close result">×</button>
+                ${html}
+            </div>
+        `;
+        
+        container.innerHTML = resultHtml;
+        const resultDiv = container.querySelector('.test-result');
+        
+        // Function to smoothly dismiss the result
+        const dismissResult = () => {
+            if (resultDiv && !resultDiv.classList.contains('dismissing')) {
+                resultDiv.classList.add('dismissing');
+                // Wait for animation to complete before removing
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 400); // Match 0.4s transition duration
+            }
+        };
+        
+        // Add click handler for close button
+        const closeBtn = container.querySelector('.test-result-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', dismissResult);
+        }
+        
+        // Auto-dismiss after specified time
+        if (autoDismissMs > 0) {
+            setTimeout(() => {
+                dismissResult();
+            }, autoDismissMs);
+        }
     }
 };
 

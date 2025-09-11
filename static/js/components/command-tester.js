@@ -17,7 +17,11 @@ const CommandTester = {
         const rule = DOMElements.aclRuleInput.value.trim();
         
         if (!command) {
-            Utils.showMessage(DOMElements.testResult, 'Please enter a command to test', 'warning');
+            const html = `
+                <strong>❌ Error</strong><br>
+                Please enter a command to test!
+            `;
+            Utils.showDismissibleTestResult(DOMElements.testResult, html, 'denied', 5000);
             DOMElements.testCommandInput.focus();
             return;
         }
@@ -32,7 +36,21 @@ const CommandTester = {
             this.displayTestResult(data);
             
         } catch (error) {
-            Utils.showMessage(DOMElements.testResult, `Error testing command: ${error.message}`, 'error');
+            // Clean up error messages to be more user-friendly
+            let errorMessage = error.message;
+            
+            // Handle "Command 'X' not found in REDIS8" type errors
+            if (errorMessage.includes('not found in REDIS')) {
+                const commandMatch = errorMessage.match(/Command '([^']+)'/);
+                const versionMatch = errorMessage.match(/REDIS(\d+)/);
+                const commandName = commandMatch ? commandMatch[1] : 'command';
+                const version = versionMatch ? versionMatch[1] : '8';
+                errorMessage = `❌ Command '${commandName}' not found in Redis ${version}. Please check the command spelling.`;
+            } else {
+                errorMessage = `Error testing command: ${errorMessage}`;
+            }
+            
+            Utils.showDismissibleTestResult(DOMElements.testResult, errorMessage, 'denied', 5000);
         } finally {
             Utils.hideLoading(DOMElements.testResult);
         }
@@ -46,9 +64,8 @@ const CommandTester = {
         const statusIcon = data.is_granted ? '✅' : '❌';
         
         let html = `
-            <div class="test-result ${resultClass}">
-                <strong>${statusIcon} Command: ${Utils.escapeHtml(data.command)}</strong><br>
-                ${Utils.escapeHtml(data.explanation)}
+            <strong>${statusIcon} Command: ${Utils.escapeHtml(data.command)}</strong><br>
+            ${Utils.escapeHtml(data.explanation)}
         `;
         
         if (data.categories && data.categories.length > 0) {
@@ -64,8 +81,8 @@ const CommandTester = {
             `;
         }
         
-        html += '</div>';
-        DOMElements.testResult.innerHTML = html;
+        // Use dismissible result with 5-second auto-dismiss
+        Utils.showDismissibleTestResult(DOMElements.testResult, html, resultClass, 5000);
     }
 };
 
