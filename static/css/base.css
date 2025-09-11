@@ -214,17 +214,20 @@ header {
 }
 
 .header-content {
+  position: relative;
   display: flex;
-  justify-content: space-between;
+  justify-content: center; /* Center the main content */
   align-items: flex-start;
 }
 
 .header-main {
-  flex: 1;
+  text-align: center; /* Center text within the main area */
 }
 
 .header-nav {
-  margin-top: 0; /* Align with top of header content */
+  position: absolute;
+  top: 0;
+  right: 0;
   display: flex;
   gap: var(--spacing-sm);
   align-items: center;
