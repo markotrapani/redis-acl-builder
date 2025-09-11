@@ -24,15 +24,35 @@
                 </div>
                 <nav class="header-nav">
                     <a href="/info" class="info-link" title="Learn more about this application">
-                        ℹ️ Info
+                        ℹ️
                     </a>
+                    <button type="button" id="themeToggle" class="theme-toggle" data-emoji="☀️" title="Switch to light mode">
+                    </button>
                 </nav>
             </div>
         </header>
         
         <!-- Three Column Layout -->
         <div class="three-column-layout">
-            <!-- Left Column: ACL Rule Configuration -->
+            <!-- Left Column: Blocked Commands -->
+            <section class="panel blocked-commands-panel">
+                <h2>❌ Blocked Commands</h2>
+                <p class="panel-description">Click any item below to <strong>grant</strong> access and move it to granted commands</p>
+                
+                <div class="command-categories-container">
+                    <div id="blockedCategories" class="categories-section">
+                        <h3>Categories</h3>
+                        <div class="category-buttons" role="group" aria-label="Blocked categories"></div>
+                    </div>
+                    
+                    <div id="blockedCommands" class="commands-section">
+                        <h3>Individual Commands</h3>
+                        <div class="command-buttons" role="group" aria-label="Blocked commands"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Center Column: ACL Rule Configuration -->
             <section class="panel acl-config-panel">
                 <h2>📝 ACL Rule Configuration</h2>
                 
@@ -50,14 +70,22 @@
                         </div>
                     </div>
                     <div class="version-info">
-                        <span class="version-detail" id="versionDetail">Redis 7 (311 commands)</span>
+                        <span class="version-detail" id="versionDetail">Redis 7 (21 categories, 311 commands)</span>
+                        <div class="inline-action-buttons">
+                            <button type="button" id="clearRuleBtn" class="inline-action-button clear-button" onclick="clearACLRule()" title="Clear ACL Rule text area">
+                                🗑️
+                            </button>
+                            <button type="button" id="copyRuleBtn" class="inline-action-button copy-button" onclick="copyACLRule()" title="Copy ACL Rule to clipboard">
+                                📋
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
                 <textarea 
                     id="aclRule" 
-                    class="rule-input" 
-                    placeholder="Click commands/categories in the panels to the right to build your ACL rule interactively, or type manually..."
+                    class="rule-input rule-input-compact" 
+                    placeholder="Click commands/categories in the surrounding panels to build your ACL rule interactively, or type manually..."
                     aria-label="ACL Rule Input"
                     spellcheck="false"
                 ></textarea>
@@ -73,18 +101,8 @@
                     Submit Changes
                 </button>
                 
-                <!-- Copy and Clear buttons for ACL Rule -->
-                <div class="rule-actions">
-                    <button type="button" id="copyRuleBtn" class="action-button copy-button" onclick="copyACLRule()" title="Copy ACL Rule to clipboard">
-                        📋 Copy Rule
-                    </button>
-                    <button type="button" id="clearRuleBtn" class="action-button clear-button" onclick="clearACLRule()" title="Clear ACL Rule text area">
-                        🗑️ Clear Rule
-                    </button>
-                </div>
-                
                 <div class="rule-examples">
-                    <h4>Quick Examples:</h4>
+                    <h4>Quick Examples</h4>
                     
                     <div class="example-group">
                         <h5 class="example-category">Full Access</h5>
@@ -122,7 +140,7 @@
                 </div>
             </section>
             
-            <!-- Center Column: Granted Commands -->
+            <!-- Right Column: Granted Commands -->
             <section class="panel granted-commands-panel">
                 <h2>✅ Granted Commands</h2>
                 <p class="panel-description">Click any item below to <strong>revoke</strong> access and move it to blocked commands</p>
@@ -136,24 +154,6 @@
                     <div id="grantedCommands" class="commands-section">
                         <h3>Individual Commands</h3>
                         <div class="command-buttons" role="group" aria-label="Granted commands"></div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Right Column: Blocked Commands -->
-            <section class="panel blocked-commands-panel">
-                <h2>❌ Blocked Commands</h2>
-                <p class="panel-description">Click any item below to <strong>grant</strong> access and move it to granted commands</p>
-                
-                <div class="command-categories-container">
-                    <div id="blockedCategories" class="categories-section">
-                        <h3>Categories</h3>
-                        <div class="category-buttons" role="group" aria-label="Blocked categories"></div>
-                    </div>
-                    
-                    <div id="blockedCommands" class="commands-section">
-                        <h3>Individual Commands</h3>
-                        <div class="command-buttons" role="group" aria-label="Blocked commands"></div>
                     </div>
                 </div>
             </section>
