@@ -35,9 +35,14 @@ const EventHandlers = {
             const hasContent = this.value.trim().length > 0;
             const layout = document.querySelector('.three-column-layout');
             
-            if (hasContent && layout && !layout.classList.contains('submit-button-visible')) {
+            // Check if current text matches the last generated rule (no manual changes)
+            const currentText = this.value.trim();
+            const lastGeneratedRule = window.InteractiveACLBuilder?.state?.lastGeneratedRule || '';
+            const isRevertedToGenerated = currentText === lastGeneratedRule;
+            
+            if (hasContent && !isRevertedToGenerated && layout && !layout.classList.contains('submit-button-visible')) {
                 layout.classList.add('submit-button-visible');
-            } else if (!hasContent) {
+            } else if (!hasContent || isRevertedToGenerated) {
                 // Hide submit button first, then shrink panels after content shifts up
                 const submitBtn = document.getElementById('submitChangesBtn');
                 if (submitBtn && submitBtn.style.display !== 'none') {
