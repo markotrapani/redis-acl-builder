@@ -22,6 +22,8 @@
 
 /* ACL Rule Configuration panel - clip overflow but don't scroll */
 .three-column-layout > .acl-config-panel {
+  display: flex;
+  flex-direction: column;
   overflow: hidden; /* Clip content that exceeds panel bounds */
 }
 

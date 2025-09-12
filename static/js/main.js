@@ -156,82 +156,8 @@ window.clearACLRule = () => {
     }
 };
 
-// Quick Examples toggle functionality
-window.toggleQuickExamples = () => {
-    const header = document.querySelector('.examples-header');
-    const content = document.getElementById('quickExamplesContent');
-    
-    if (!header || !content) return;
-    
-    const isExpanded = header.getAttribute('aria-expanded') === 'true';
-    const newState = !isExpanded;
-    
-    // Update aria-expanded attribute
-    header.setAttribute('aria-expanded', newState);
-    
-    // Toggle collapsed class
-    if (newState) {
-        content.classList.remove('collapsed');
-    } else {
-        content.classList.add('collapsed');
-    }
-    
-    // Store preference in localStorage
-    localStorage.setItem('quickExamplesExpanded', newState);
-};
-
-// Auto-collapse Quick Examples when pushed beyond container floor
-const checkQuickExamplesPosition = () => {
-    const examplesContainer = document.querySelector('.rule-examples');
-    const aclConfigPanel = document.querySelector('.acl-config-panel');
-    
-    if (!examplesContainer || !aclConfigPanel) return;
-    
-    const panelRect = aclConfigPanel.getBoundingClientRect();
-    const examplesRect = examplesContainer.getBoundingClientRect();
-    const content = document.getElementById('quickExamplesContent');
-    const header = document.querySelector('.examples-header');
-    
-    if (!content || !header) return;
-    
-    // Calculate if examples would be pushed beyond the panel's bottom
-    const isExpanded = header.getAttribute('aria-expanded') === 'true';
-    const panelBottom = panelRect.bottom;
-    const examplesBottom = examplesRect.bottom;
-    
-    // If expanded and the examples extend beyond the panel, auto-collapse
-    if (isExpanded && examplesBottom > panelBottom - 20) { // 20px buffer
-        header.setAttribute('aria-expanded', 'false');
-        content.classList.add('collapsed');
-        localStorage.setItem('quickExamplesExpanded', 'false');
-    }
-};
-
-// Initialize Quick Examples state and monitoring
-const initQuickExamples = () => {
-    const header = document.querySelector('.examples-header');
-    const content = document.getElementById('quickExamplesContent');
-    
-    if (header && content) {
-        // Start with expanded state always (ignore any old saved state for now)
-        console.log('Initializing Quick Examples as expanded');
-        header.setAttribute('aria-expanded', 'true');
-        content.classList.remove('collapsed');
-        
-        // Clear any old state and set to expanded
-        localStorage.setItem('quickExamplesExpanded', 'true');
-    }
-    
-    // TODO: Re-enable auto-collapse feature after fixing overflow detection
-    // For now, disabled to ensure basic expand/collapse works correctly
-    console.log('Auto-collapse monitoring temporarily disabled');
-};
-
 // Auto-initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    App.init();
-    initQuickExamples();
-});
+document.addEventListener('DOMContentLoaded', App.init);
 
 // Export for potential module usage
 if (typeof module !== 'undefined' && module.exports) {

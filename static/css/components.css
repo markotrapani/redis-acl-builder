@@ -836,20 +836,42 @@
 /* Rule Examples */
 .rule-examples {
   font-size: 1.2em; /* Larger font for entire examples section */
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Fill remaining space in panel */
+  min-height: 0; /* Allow flexbox to shrink below content size */
 }
 
 .rule-examples h4 {
   color: var(--text-secondary);
   margin-bottom: var(--spacing-sm);
-  text-decoration: none; /* Remove underline from h4 */
+  text-decoration: underline; /* Only underline the main title */
+  flex-shrink: 0; /* Keep title visible */
 }
 
-.rule-examples h4 .examples-title {
-  text-decoration: underline; /* Only underline the title text */
+.rule-examples-content {
+  overflow-y: auto;
+  flex: 1;
+  /* Remove padding to prevent premature scrollbar */
 }
 
-.rule-examples h4 .expand-indicator {
-  text-decoration: none; /* No underline on arrow */
+/* Styled scrollbar for examples content */
+.rule-examples-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rule-examples-content::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: 3px;
+}
+
+.rule-examples-content::-webkit-scrollbar-thumb {
+  background: var(--gray-400);
+  border-radius: 3px;
+}
+
+.rule-examples-content::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
 }
 
 .example-group {
@@ -881,76 +903,6 @@
   }
 }
 
-/* Collapsible Quick Examples */
-.examples-header {
-  cursor: pointer;
-  user-select: none;
-  padding: var(--spacing-xs) 0;
-  border-radius: var(--radius-sm);
-  transition: background-color var(--transition-normal);
-}
-
-.examples-header:hover {
-  background-color: var(--gray-100);
-}
-
-.examples-header h4 {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.expand-indicator {
-  font-size: 0.7em;
-  transition: transform var(--transition-normal);
-  color: var(--text-secondary);
-  display: inline-block;
-}
-
-/* Collapsed state: arrow points right */
-.examples-header[aria-expanded="false"] .expand-indicator {
-  transform: rotate(-90deg);
-}
-
-/* Expanded state: arrow points down (default) */
-.examples-header[aria-expanded="true"] .expand-indicator {
-  transform: rotate(0deg);
-}
-
-.examples-content {
-  overflow: hidden;
-  transition: max-height var(--transition-normal) ease-out, 
-              opacity var(--transition-normal) ease-out;
-  /* Default to expanded state */
-  max-height: 500px;
-  opacity: 1;
-}
-
-.examples-content.collapsed {
-  max-height: 0;
-  opacity: 0;
-}
-
-.examples-content:not(.collapsed) {
-  max-height: 500px; /* Generous height for all examples */
-  opacity: 1;
-}
-
-/* Theme-specific hover styles */
-[data-theme="light"] .examples-header:hover {
-  background-color: #f8f9fa;
-}
-
-[data-theme="dark"] .examples-header:hover {
-  background-color: var(--gray-100);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .examples-header:hover {
-    background-color: var(--gray-100);
-  }
-}
 
 /* Rule Actions (Copy/Clear buttons) - Legacy layout (hidden by default) */
 .rule-actions {
