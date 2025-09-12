@@ -80,9 +80,15 @@ const Utils = {
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         
-        // Create message content
+        // Create message content with token truncation
         const messageContent = document.createElement('span');
-        messageContent.textContent = message;
+        
+        // Truncate long tokens in error messages (tokens in quotes over 13 characters)
+        let processedMessage = message.replace(/"([^"]{14,})"/g, (match, token) => {
+            return `"${token.substring(0, 10)}..."`;
+        });
+        
+        messageContent.textContent = processedMessage;
         
         // Create close button
         const closeBtn = document.createElement('button');
@@ -181,13 +187,13 @@ const Utils = {
                 // Command/category rule: +@category, +command, -@category, -command
                 const content = token.slice(1);
                 if (content === '') {
-                    errors.push(`Invalid operator token: "${token}"\nMissing content after operator`);
+                    errors.push(`Invalid operator token: "${token}" - Missing content after operator`);
                     continue;
                 }
                 
                 // Check for spaces within the token (should not happen after split, but safety check)
                 if (content.includes(' ')) {
-                    errors.push(`Invalid rule syntax: "${token}"\nNo spaces allowed within operator terms`);
+                    errors.push(`Invalid rule syntax: "${token}" - No spaces allowed within operator terms`);
                     continue;
                 }
                 
@@ -195,44 +201,44 @@ const Utils = {
                 if (content.startsWith('@')) {
                     const categoryName = content.slice(1);
                     if (categoryName === '') {
-                        errors.push(`Invalid category syntax: "${token}"\nMissing category name after @`);
+                        errors.push(`Invalid category syntax: "${token}"- Missing category name after @`);
                     } else if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(categoryName)) {
-                        errors.push(`Invalid category syntax: "${token}"\nCategory name must be alphanumeric`);
+                        errors.push(`Invalid category syntax: "${token}"- Category name must be alphanumeric`);
                     } else if (validCategories.size > 0 && categoryName !== 'all' && !validCategories.has(categoryName)) {
-                        errors.push(`Invalid category: "${token}"\nCategory "${categoryName}" does not exist in ${this.formatVersionName(AppState.currentVersion)}`);
+                        errors.push(`Invalid category: "${token}"- Category "${categoryName}" does not exist in ${this.formatVersionName(AppState.currentVersion)}`);
                     }
                 }
                 // Validate command syntax (alphanumeric with special chars for Redis commands)
                 else if (!/^[a-zA-Z][a-zA-Z0-9._|-]*$/.test(content)) {
-                    errors.push(`Invalid command syntax: "${token}"\nCommand name contains invalid characters`);
+                    errors.push(`Invalid command syntax: "${token}" - Command name contains invalid characters`);
                 }
                 // Check if command exists in Redis (if we have the commands list)
                 else if (validCommands.size > 0 && !validCommands.has(content.toLowerCase())) {
-                    errors.push(`Invalid command: "${token}"\nCommand "${content}" does not exist in ${this.formatVersionName(AppState.currentVersion)}`);
+                    errors.push(`Invalid command: "${token}" - Command "${content}" does not exist in ${this.formatVersionName(AppState.currentVersion)}`);
                 }
             }
             else if (token.startsWith('~')) {
                 // Keyspace rule: ~pattern
                 const pattern = token.slice(1);
                 if (pattern === '') {
-                    errors.push(`Invalid keyspace token: "${token}"\nMissing pattern after ~`);
+                    errors.push(`Invalid keyspace syntax: "${token}" - Missing pattern after ~`);
                     continue;
                 }
                 
                 // Check for spaces within the pattern
                 if (pattern.includes(' ')) {
-                    errors.push(`Invalid keyspace syntax: "${token}"\nNo spaces allowed in keyspace patterns`);
+                    errors.push(`Invalid keyspace syntax: "${token}" - No spaces allowed in keyspace patterns`);
                     continue;
                 }
                 
                 // Basic pattern validation (allow alphanumeric, wildcards, colons, etc.)
                 if (!/^[a-zA-Z0-9:*?[\]{}._-]+$/.test(pattern)) {
-                    errors.push(`Invalid keyspace pattern: "${token}"\nPattern contains invalid characters`);
+                    errors.push(`Invalid keyspace pattern: "${token}" - Pattern contains invalid characters`);
                 }
             }
             else {
                 // Invalid token - doesn't start with +, -, or ~
-                errors.push(`Invalid rule syntax: "${token}"\nTerms must start with +, -, or ~ operators`);
+                errors.push(`Invalid rule syntax: "${token}" - Terms must start with +, -, or ~ operators`);
             }
         }
 

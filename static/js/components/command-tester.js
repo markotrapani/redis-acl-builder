@@ -74,8 +74,7 @@ const CommandTester = {
         const statusIcon = data.is_granted ? '✅' : '❌';
         
         let html = `
-            <strong>${statusIcon} Command: ${Utils.escapeHtml(data.command)}</strong><br>
-            ${Utils.escapeHtml(data.explanation)}
+            <strong>${statusIcon} Command: ${Utils.escapeHtml(data.command).toLowerCase()} -> ${Utils.escapeHtml(data.explanation)}</strong><br>
         `;
         
         if (data.categories && data.categories.length > 0) {

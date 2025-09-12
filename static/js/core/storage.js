@@ -7,8 +7,6 @@ const Storage = {
     // Storage keys
     keys: {
         ACL_RULE: 'redis-acl-builder-rule',
-        COMMAND_TEST: 'redis-acl-builder-command-test',
-        KEYSPACE_TEST: 'redis-acl-builder-keyspace-test',
         REDIS_VERSION: 'redis-acl-builder-version'
     },
 
@@ -88,6 +86,21 @@ const Storage = {
         }
     },
 
+    /**
+     * Clean up deprecated storage keys (one-time cleanup)
+     */
+    cleanupDeprecatedKeys() {
+        if (!this.isAvailable()) return;
+        
+        try {
+            // Remove deprecated test input persistence
+            localStorage.removeItem('redis-acl-builder-command-test');
+            localStorage.removeItem('redis-acl-builder-keyspace-test');
+        } catch (e) {
+            console.warn('Failed to cleanup deprecated keys:', e);
+        }
+    },
+
     // Convenience methods for specific data
     
     /**
@@ -106,37 +119,6 @@ const Storage = {
         return this.load(this.keys.ACL_RULE);
     },
 
-    /**
-     * Save command test input
-     * @param {string} command - Command test text
-     */
-    saveCommandTest(command) {
-        this.save(this.keys.COMMAND_TEST, command);
-    },
-
-    /**
-     * Load command test input
-     * @returns {string} Saved command test or empty string
-     */
-    loadCommandTest() {
-        return this.load(this.keys.COMMAND_TEST);
-    },
-
-    /**
-     * Save keyspace test input
-     * @param {string} keyspace - Keyspace test text
-     */
-    saveKeyspaceTest(keyspace) {
-        this.save(this.keys.KEYSPACE_TEST, keyspace);
-    },
-
-    /**
-     * Load keyspace test input
-     * @returns {string} Saved keyspace test or empty string
-     */
-    loadKeyspaceTest() {
-        return this.load(this.keys.KEYSPACE_TEST);
-    },
 
     /**
      * Save Redis version

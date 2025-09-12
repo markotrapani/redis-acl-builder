@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redis Enterprise ACL Builder</title>
+    
+    <!-- Prevent theme flash by setting theme before CSS loads -->
+    <script>
+        (function() {
+            // Load saved theme or default to system preference
+            const savedTheme = localStorage.getItem('theme');
+            const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (systemDark ? 'dark' : 'light');
+            
+            // Set theme immediately to prevent flash
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    
     <!-- Modular CSS Architecture -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
@@ -62,7 +76,7 @@
                 
                 <div class="version-selector">
                     <div class="toggle-switch-container">
-                        <label class="version-label">Redis Version:</label>
+                        <div class="version-label">Redis Version:</div>
                         <div class="toggle-switch">
                             <input type="checkbox" id="versionToggle" class="toggle-input">
                             <label for="versionToggle" class="toggle-label">

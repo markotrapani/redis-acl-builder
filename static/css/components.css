@@ -797,6 +797,47 @@ button.test-button[disabled] {
   opacity: 0;
 }
 
+/* Light mode loading covers (explicit) */
+[data-theme="light"] .command-categories-container.loading::before {
+  background: #f8d7da; /* Light red for blocked commands */
+}
+
+[data-theme="light"] .granted-commands-panel .command-categories-container.loading::before {
+  background: #d4edda; /* Light green for granted commands */
+}
+
+[data-theme="light"] .blocked-commands-panel .command-categories-container.loading::before {
+  background: #f8d7da; /* Light red for blocked commands */
+}
+
+/* Dark mode loading covers (explicit - keep existing dark colors) */
+[data-theme="dark"] .command-categories-container.loading::before {
+  background: #2B2020; /* Dark red for blocked commands */
+}
+
+[data-theme="dark"] .granted-commands-panel .command-categories-container.loading::before {
+  background: #1F2B1F; /* Dark green for granted commands */
+}
+
+[data-theme="dark"] .blocked-commands-panel .command-categories-container.loading::before {
+  background: #2B2020; /* Dark red for blocked commands */
+}
+
+/* System preference fallback for loading covers */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .command-categories-container.loading::before {
+    background: #2B2020; /* Dark red for blocked commands */
+  }
+
+  :root:not([data-theme]) .granted-commands-panel .command-categories-container.loading::before {
+    background: #1F2B1F; /* Dark green for granted commands */
+  }
+
+  :root:not([data-theme]) .blocked-commands-panel .command-categories-container.loading::before {
+    background: #2B2020; /* Dark red for blocked commands */
+  }
+}
+
 
 /* Input groups */
 .test-input-group {

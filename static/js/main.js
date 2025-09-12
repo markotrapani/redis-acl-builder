@@ -24,6 +24,9 @@ const App = {
             // Initialize DOM references
             DOMElements.init();
             
+            // Clean up deprecated localStorage keys
+            Storage.cleanupDeprecatedKeys();
+            
             // Restore saved user data from localStorage
             this.restoreUserData();
             
@@ -34,14 +37,10 @@ const App = {
             // Note: InteractiveACLBuilder.init() will handle parsing restored rules
             await InteractiveACLBuilder.init();
             
-            // If we have a saved rule from localStorage, sync it to the interactive builder now
+            // Clean up saved rule reference (already handled by init)
             if (this.savedRuleToSync) {
-                console.log('Syncing saved rule to interactive builder:', this.savedRuleToSync);
-                await InteractiveACLBuilder.syncFromRuleText(true); // true = isRestoration
-                delete this.savedRuleToSync; // Clean up
+                delete this.savedRuleToSync;
             }
-            
-            console.log('Redis Enterprise ACL Builder initialized successfully');
         } catch (error) {
             console.error('Failed to initialize application:', error);
             // Show user-friendly error message
@@ -70,17 +69,6 @@ const App = {
                 this.savedRuleToSync = savedRule;
             }
 
-            // Restore command test input
-            const savedCommand = Storage.loadCommandTest();
-            if (savedCommand && DOMElements.testCommandInput) {
-                DOMElements.testCommandInput.value = savedCommand;
-            }
-
-            // Restore keyspace test input
-            const savedKeyspace = Storage.loadKeyspaceTest();
-            if (savedKeyspace && DOMElements.testKeyspaceInput) {
-                DOMElements.testKeyspaceInput.value = savedKeyspace;
-            }
             
             // Update test button states for both inputs
             EventHandlers.updateTestButtonStates();
@@ -96,7 +84,6 @@ const App = {
                 }
             }
 
-            console.log('User data restored from localStorage');
         } catch (error) {
             console.warn('Failed to restore user data:', error);
         }
@@ -227,21 +214,13 @@ function checkQuickExamplesScroll() {
         return;
     }
     
-    console.log('Checking scroll need:', {
-        scrollHeight: content.scrollHeight,
-        clientHeight: content.clientHeight,
-        needsScroll: content.scrollHeight > content.clientHeight
-    });
-    
     // Check if content height exceeds container height with tolerance
     const heightDiff = content.scrollHeight - content.clientHeight;
     const tolerance = 12; // Only show scrollbar if difference is > 12px
     
     if (heightDiff > tolerance) {
-        console.log('Adding needs-scroll class - height difference:', heightDiff);
         content.classList.add('needs-scroll');
     } else {
-        console.log('Removing needs-scroll class - height difference too small:', heightDiff);
         content.classList.remove('needs-scroll');
     }
 }

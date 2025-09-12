@@ -246,18 +246,12 @@ const EventHandlers = {
             
             // Update button states on input
             testKeyspaceInput.addEventListener('input', function() {
-                // Save to localStorage
-                Storage.saveKeyspaceTest(this.value);
-                
                 EventHandlers.updateTestButtonStates();
             });
         }
         
         // Auto-complete for test command input (basic implementation)
         DOMElements.testCommandInput.addEventListener('input', function() {
-            // Save to localStorage
-            Storage.saveCommandTest(this.value);
-            
             const value = this.value.toLowerCase();
             if (value.length > 2) {
                 // Future: Add autocomplete functionality
@@ -320,13 +314,11 @@ const EventHandlers = {
         const themeToggle = document.getElementById('themeToggle');
         if (!themeToggle) return;
         
-        // Load saved theme or default to system preference
-        const savedTheme = localStorage.getItem('theme');
-        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const currentTheme = savedTheme || (systemDark ? 'dark' : 'light');
+        // Get current theme (already set by inline script in HTML head)
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
         
-        // Apply initial theme
-        this.applyTheme(currentTheme);
+        // Just update the toggle button appearance (theme already applied by inline script)
+        this.updateThemeToggleAppearance(currentTheme);
         
         // Add click handler
         themeToggle.addEventListener('click', () => {
@@ -351,8 +343,13 @@ const EventHandlers = {
      */
     applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
-        
-        // Update toggle button appearance - show what it will switch TO
+        this.updateThemeToggleAppearance(theme);
+    },
+    
+    /**
+     * Update theme toggle button appearance
+     */
+    updateThemeToggleAppearance(theme) {
         const themeToggle = document.getElementById('themeToggle');
         if (themeToggle) {
             if (theme === 'dark') {

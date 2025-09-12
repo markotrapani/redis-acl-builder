@@ -58,28 +58,19 @@ const InteractiveACLBuilder = {
 
         // Check if we have the three-column layout
         if (!this.elements.grantedCategoriesButtons) {
-            console.log('❌ Three-column layout not found, skipping interactive initialization');
             return;
         }
 
         try {
-            console.log('📡 Loading categories data...');
             await this.loadAllData();
-            console.log('✅ Categories loaded:', this.state.allCategories.length);
-            
-            console.log('🔧 Initializing default state...');
             this.initializeDefaultState();
-            
-            console.log('🎨 Rendering columns...');
             await this.renderColumns();
             
             // Check if there's existing content in textarea (from localStorage restoration)
             const existingRule = this.elements.aclRuleInput.value.trim();
             if (existingRule) {
-                console.log('📖 Found existing rule from localStorage, syncing from textarea...');
                 await this.syncFromRuleText(true); // Pass true to indicate this is restoration
             } else {
-                console.log('📝 No existing rule, generating default...');
                 await this.updateRuleText();
             }
             
@@ -87,7 +78,12 @@ const InteractiveACLBuilder = {
             this.setupEventListeners();
             
             this.state.isInitialized = true;
-            console.log('✅ Interactive ACL Builder initialized successfully');
+            
+            // Final check for Submit Changes button visibility after initialization
+            // This handles cases where restoration failed but button should still be shown
+            setTimeout(() => {
+                this.checkForManualChanges();
+            }, 100);
         } catch (error) {
             console.error('❌ Failed to initialize Interactive ACL Builder:', error);
             // Show error in the UI
@@ -99,27 +95,21 @@ const InteractiveACLBuilder = {
      */
     async loadAllData() {
         try {
-            console.log('📡 Calling API.getCategories for version:', AppState.currentVersion);
             const response = await API.getCategories(AppState.currentVersion);
-            console.log('📡 API response:', response);
             
             if (response && response.categories) {
                 this.state.allCategories = response.categories.sort();
-                console.log('✅ Loaded categories:', this.state.allCategories);
             } else {
                 throw new Error('No categories in response');
             }
 
             // Also load all commands
-            console.log('📡 Loading all available commands...');
             this.state.allCommands = await API.getAllCommands(AppState.currentVersion);
-            console.log('✅ Loaded all commands:', this.state.allCommands.length);
         } catch (error) {
             console.error('❌ Failed to load categories data:', error);
             // Fallback: use some default categories
             this.state.allCategories = ['read', 'write', 'admin', 'dangerous', 'fast', 'slow', 'keyspace', 'string', 'list', 'hash', 'set', 'sortedset'];
             this.state.allCommands = ['get', 'set', 'del', 'exists', 'keys', 'hget', 'hset', 'lpush', 'sadd', 'zadd', 'flushdb', 'ping'];
-            console.log('🔄 Using fallback categories and commands');
         }
     },
 
@@ -826,15 +816,6 @@ const InteractiveACLBuilder = {
         button.className = 'command-button granted';
         button.textContent = command;
         
-        // Debug logging to understand the visual difference
-        if (command === 'get' || command === 'set') {
-            console.log(`Creating button for ${command}:`, {
-                className: button.className,
-                isViaCategory,
-                isIndividual,
-                hasAllCategory: this.state.grantedCategories.has('all')
-            });
-        }
         
         // Determine the behavior based on how the command is granted
         if (isIndividual) {
@@ -1005,7 +986,6 @@ const InteractiveACLBuilder = {
      */
     async syncFromRuleText(isRestoration = false) {
         if (!this.elements.aclRuleInput || !this.state.isInitialized) {
-            console.log('❌ Cannot sync: not initialized or no rule input');
             return;
         }
 
@@ -1032,8 +1012,17 @@ const InteractiveACLBuilder = {
             const validation = await Utils.validateACLRule(ruleText);
             if (!validation.valid) {
                 const firstError = validation.errors[0];
-                Utils.showNotification(firstError, 'error', 5000);
-                console.log('InteractiveACLBuilder sync validation failed:', firstError);
+                
+                // During restoration, don't show error notifications but show Submit Changes button
+                if (isRestoration) {
+                    // Show submit button since there's a mismatch between textarea and interactive builder
+                    this.showSubmitButton();
+                } else {
+                    // Normal operation - show error notification
+                    Utils.showNotification(firstError, 'error', 5000);
+                    // Also show submit button since there's still a mismatch
+                    this.showSubmitButton();
+                }
                 return;
             }
             
@@ -1086,7 +1075,6 @@ const InteractiveACLBuilder = {
             if (isRestoration) {
                 // During restoration, don't update lastGeneratedRule to match the restored rule
                 // This allows the submit button to appear if the restored rule differs from what would be generated
-                console.log('📍 Restoration mode: keeping existing lastGeneratedRule for comparison');
                 
                 // Generate what the rule should be based on current interactive state to compare
                 const generatedRule = await this.generateOptimizedRule();
@@ -1112,11 +1100,9 @@ const InteractiveACLBuilder = {
                 }
             }
             
-            console.log('✅ Rule synced successfully');
             
             // Analyze for redundancy after successful sync
             try {
-                console.log('Starting redundancy analysis after sync');
                 RuleManager.analyzeRedundancy();
             } catch (error) {
                 console.error('Error during post-sync redundancy analysis:', error);
@@ -1125,7 +1111,13 @@ const InteractiveACLBuilder = {
         } catch (error) {
             console.error('❌ Error syncing rule:', error);
             
-            console.log('Error details:', error);
+            // Show submit button since sync failed and there's likely a mismatch
+            this.showSubmitButton();
+            
+            // During restoration, don't show error notifications
+            if (!isRestoration) {
+                Utils.showNotification('Error syncing rule changes. Please try again.', 'error', 5000);
+            }
         }
     },
 
