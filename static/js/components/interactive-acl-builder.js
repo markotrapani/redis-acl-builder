@@ -11,16 +11,22 @@ import RuleManager from '../managers/rule-manager.js';
 const InteractiveACLBuilder = {
     // State management
     state: {
+        // Legacy Sets - kept for backward compatibility with existing UI logic
         grantedCommands: new Set(),
         grantedCategories: new Set(),
         blockedCommands: new Set(),
         blockedCategories: new Set(),
         keyPatterns: new Set(),          // Store key patterns like ~*, ~user:*, etc.
+        
+        // New ordered structure for rule generation
+        orderedTerms: [],                // Array of {type: 'category|command|keypattern', operation: 'grant|block', value: string}
+        
         allCategories: [],
         allCommands: [],
         isInitialized: false,
         lastGeneratedRule: '',           // Track the last rule we generated
-        hasManualChanges: false          // Track if user made manual changes
+        hasManualChanges: false,         // Track if user made manual changes
+        lastValidRule: ''                // Track the last valid rule for testing purposes
     },
 
     // DOM elements for three-column layout
@@ -66,7 +72,16 @@ const InteractiveACLBuilder = {
             
             console.log('🎨 Rendering columns...');
             await this.renderColumns();
-            await this.updateRuleText();
+            
+            // Check if there's existing content in textarea (from localStorage restoration)
+            const existingRule = this.elements.aclRuleInput.value.trim();
+            if (existingRule) {
+                console.log('📖 Found existing rule from localStorage, syncing from textarea...');
+                await this.syncFromRuleText(true); // Pass true to indicate this is restoration
+            } else {
+                console.log('📝 No existing rule, generating default...');
+                await this.updateRuleText();
+            }
             
             // Add event listeners
             this.setupEventListeners();
@@ -126,6 +141,28 @@ const InteractiveACLBuilder = {
         this.state.grantedCategories.add(category);
         this.state.blockedCategories.delete(category);
         
+        // Update ordered terms - remove any existing entries for this category and add new grant
+        this.state.orderedTerms = this.state.orderedTerms.filter(term => 
+            !(term.type === 'category' && term.value === category)
+        );
+        this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
+        
+        this.scheduleRender();
+    },
+
+    /**
+     * Block a category (add to blocked)
+     */
+    async blockCategory(category) {
+        this.state.blockedCategories.add(category);
+        this.state.grantedCategories.delete(category);
+        
+        // Update ordered terms - remove any existing entries for this category and add new block
+        this.state.orderedTerms = this.state.orderedTerms.filter(term => 
+            !(term.type === 'category' && term.value === category)
+        );
+        this.state.orderedTerms.push({ type: 'category', operation: 'block', value: category });
+        
         this.scheduleRender();
     },
 
@@ -133,16 +170,39 @@ const InteractiveACLBuilder = {
      * Toggle a category between granted and blocked
      */
     async toggleCategory(category) {
-        const wasGranted = this.state.grantedCategories.has(category);
+        const wasExplicitlyGranted = this.state.grantedCategories.has(category);
+        const wasBlocked = this.state.blockedCategories.has(category);
         
-        if (wasGranted) {
-            // Move from granted to available (remove from granted)
+        // Check if category would be granted via @all (ignoring current blocks)
+        const hasAllGrant = this.state.grantedCategories.has('all');
+        const isGrantedViaAll = hasAllGrant && !wasExplicitlyGranted;
+        
+        // Remove any existing entries for this category first
+        this.state.orderedTerms = this.state.orderedTerms.filter(term => 
+            !(term.type === 'category' && term.value === category)
+        );
+        
+        if (wasExplicitlyGranted) {
+            // Move from explicitly granted to available (remove from granted)
             this.state.grantedCategories.delete(category);
             this.state.blockedCategories.delete(category);
+            // Don't add to orderedTerms when removing
+        } else if (wasBlocked) {
+            // Category was blocked - remove the block
+            this.state.blockedCategories.delete(category);
+            // If it was originally granted via @all, don't add explicit grant
+            if (!isGrantedViaAll) {
+                // Only add explicit grant if it wouldn't be granted by @all anyway
+                this.state.grantedCategories.add(category);
+                this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
+            }
+            // If it was granted via @all, just removing the block is enough
         } else {
-            // Move from blocked to granted
+            // Move from available to granted
             this.state.blockedCategories.delete(category);
             this.state.grantedCategories.add(category);
+            // Add to orderedTerms
+            this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
         }
 
         this.scheduleRender();
@@ -155,6 +215,12 @@ const InteractiveACLBuilder = {
         this.state.grantedCommands.add(command);
         this.state.blockedCommands.delete(command);
         
+        // Update ordered terms - remove any existing entries for this command and add new grant
+        this.state.orderedTerms = this.state.orderedTerms.filter(term => 
+            !(term.type === 'command' && term.value === command)
+        );
+        this.state.orderedTerms.push({ type: 'command', operation: 'grant', value: command });
+        
         this.scheduleRender();
     },
 
@@ -162,16 +228,39 @@ const InteractiveACLBuilder = {
      * Toggle a command between granted and blocked
      */
     async toggleCommand(command) {
-        const wasGranted = this.state.grantedCommands.has(command);
+        const wasExplicitlyGranted = this.state.grantedCommands.has(command);
+        const wasBlocked = this.state.blockedCommands.has(command);
         
-        if (wasGranted) {
-            // Move from granted to available (remove from granted)
+        // Check if command is granted via categories (like @all)
+        const grantedViaCategories = await this.getCommandsGrantedByCategories();
+        const isGrantedViaCategory = grantedViaCategories.includes(command);
+        
+        // Remove any existing entries for this command first
+        this.state.orderedTerms = this.state.orderedTerms.filter(term => 
+            !(term.type === 'command' && term.value === command)
+        );
+        
+        if (wasExplicitlyGranted) {
+            // Move from explicitly granted to available (remove from granted)
             this.state.grantedCommands.delete(command);
             this.state.blockedCommands.delete(command);
+            // Don't add to orderedTerms when removing
+        } else if (wasBlocked) {
+            // Command was blocked - remove the block
+            this.state.blockedCommands.delete(command);
+            // If it was originally granted via category (like @all), don't add explicit grant
+            if (!isGrantedViaCategory) {
+                // Only add explicit grant if it wouldn't be granted by categories anyway
+                this.state.grantedCommands.add(command);
+                this.state.orderedTerms.push({ type: 'command', operation: 'grant', value: command });
+            }
+            // If it was granted via category, just removing the block is enough
         } else {
-            // Move from blocked to granted
+            // Move from available to granted
             this.state.blockedCommands.delete(command);
             this.state.grantedCommands.add(command);
+            // Add to orderedTerms
+            this.state.orderedTerms.push({ type: 'command', operation: 'grant', value: command });
         }
 
         this.scheduleRender();
@@ -181,8 +270,36 @@ const InteractiveACLBuilder = {
      * Render the interactive columns
      */
     async renderColumns() {
+        // Note: Loading class is already in HTML to prevent initial flash
+        
         this.renderCategoryButtons();
         await this.renderCommandButtons();
+        
+        // Remove loading cover after content is rendered (only on initial load)
+        if (!this.state.isInitialized) {
+            // Short delay to ensure content is fully rendered
+            setTimeout(() => {
+                this.removeLoadingAnimation();
+            }, 120);
+        }
+    },
+
+    /**
+     * Remove loading covers after content is rendered (covers start in HTML)
+     */
+    removeLoadingAnimation() {
+        const containers = document.querySelectorAll('.command-categories-container.loading');
+        if (containers.length === 0) return; // Already removed or not found
+        
+        containers.forEach(container => {
+            // Add fade-out class to trigger smooth opacity transition
+            container.classList.add('loading-fadeout');
+            
+            // Remove both classes after fade animation completes
+            setTimeout(() => {
+                container.classList.remove('loading', 'loading-fadeout');
+            }, 150); // Match CSS transition duration
+        });
     },
 
     /**
@@ -245,63 +362,241 @@ const InteractiveACLBuilder = {
      * Render category buttons in both columns
      */
     renderCategoryButtons() {
+        const hasAllCategory = this.state.grantedCategories.has('all');
+        
+        // Determine effective status of all categories based on ACL rule precedence
+        const effectiveCategoryStatus = this.getEffectiveCategoryStatus();
+        
         // Render granted categories
         if (this.elements.grantedCategoriesButtons) {
+            // Clear any existing content (including initial placeholders from HTML)
             this.elements.grantedCategoriesButtons.innerHTML = '';
-            if (this.state.grantedCategories.size === 0) {
+            
+            const effectivelyGrantedCategories = [];
+            
+            if (hasAllCategory) {
+                // When @all is granted, show the @all category itself first
+                effectivelyGrantedCategories.push('all');
+                
+                // Then show all other categories that are effectively granted
+                this.state.allCategories.forEach(category => {
+                    if (effectiveCategoryStatus[category] === 'granted') {
+                        effectivelyGrantedCategories.push(category);
+                    }
+                });
+            } else {
+                // Normal case - only show explicitly granted categories
+                effectivelyGrantedCategories.push(...Array.from(this.state.grantedCategories));
+            }
+            
+            if (effectivelyGrantedCategories.length === 0) {
                 const message = document.createElement('div');
                 message.className = 'text-muted';
                 message.style.padding = '10px';
                 message.textContent = 'No categories granted';
                 this.elements.grantedCategoriesButtons.appendChild(message);
             } else {
-                Array.from(this.state.grantedCategories).sort().forEach(category => {
+                // Sort categories, but keep @all at the front if present
+                const hasAllInGrantedList = effectivelyGrantedCategories.includes('all');
+                let sortedCategories;
+                
+                if (hasAllInGrantedList) {
+                    // Remove @all from the list, sort the rest, then add @all back at the front
+                    const withoutAll = effectivelyGrantedCategories.filter(cat => cat !== 'all').sort();
+                    sortedCategories = ['all', ...withoutAll];
+                } else {
+                    // Normal sorting when @all is not in the list
+                    sortedCategories = effectivelyGrantedCategories.sort();
+                }
+                
+                sortedCategories.forEach(category => {
                     const button = this.createCategoryButton(category, 'granted');
+                    
+                    // Special handling for @all case
+                    if (hasAllCategory && !this.state.grantedCategories.has(category)) {
+                        // This category is granted via @all, clicking should block it
+                        button.style.opacity = '0.7';
+                        button.title = `@${category} category (granted via @all) - Click to block`;
+                        button.onclick = () => this.blockCategory(category);
+                    } else if (hasAllCategory && this.state.grantedCategories.has(category)) {
+                        // This category is explicitly granted in addition to @all
+                        button.title = `@${category} category (explicitly granted) - Click to toggle`;
+                        // Keep default toggleCategory behavior
+                    }
+                    
                     this.elements.grantedCategoriesButtons.appendChild(button);
                 });
             }
             
             // Update the granted categories header
-            this.updateCategorySectionHeader('granted', this.state.grantedCategories.size);
+            this.updateCategorySectionHeader('granted', effectivelyGrantedCategories.length);
         }
 
         // Render available categories as clickable buttons
         if (this.elements.blockedCategoriesButtons) {
+            // Clear any existing content (including initial placeholders from HTML)
             this.elements.blockedCategoriesButtons.innerHTML = '';
             
-            // Show all available categories as clickable buttons to grant
-            const availableCategories = this.state.allCategories.filter(cat => 
-                !this.state.grantedCategories.has(cat) && !this.state.blockedCategories.has(cat)
-            );
+            const effectivelyBlockedCategories = [];
+            const availableCategories = [];
             
+            if (hasAllCategory) {
+                // When @all is granted, separate categories by their effective status
+                this.state.allCategories.forEach(category => {
+                    if (effectiveCategoryStatus[category] === 'blocked') {
+                        effectivelyBlockedCategories.push(category);
+                    } else if (effectiveCategoryStatus[category] === 'available') {
+                        availableCategories.push(category);
+                    }
+                });
+            } else {
+                // Normal case - show available categories (not granted, not blocked)
+                availableCategories.push(...this.state.allCategories.filter(cat => 
+                    !this.state.grantedCategories.has(cat) && !this.state.blockedCategories.has(cat)
+                ));
+                
+                // Always show @all category as available when it's not granted and not blocked
+                if (!this.state.grantedCategories.has('all') && !this.state.blockedCategories.has('all')) {
+                    availableCategories.unshift('all'); // Add @all at the beginning
+                }
+                
+                // Show explicitly blocked categories
+                effectivelyBlockedCategories.push(...Array.from(this.state.blockedCategories));
+            }
+            
+            // Show available categories first
             if (availableCategories.length > 0) {
-                availableCategories.sort().forEach(category => {
-                    const button = this.createCategoryButton(category, 'available');
-                    button.title = `Click to grant @${category} category`;
-                    this.elements.blockedCategoriesButtons.appendChild(button);
-                });
+                // Sort categories, but keep @all at the front if present
+                const sortedCategories = [...availableCategories];
+                const hasAllInList = sortedCategories.includes('all');
+                
+                if (hasAllInList) {
+                    // Remove @all from the list, sort the rest, then add @all back at the front
+                    const withoutAll = sortedCategories.filter(cat => cat !== 'all').sort();
+                    const finalOrder = ['all', ...withoutAll];
+                    
+                    finalOrder.forEach(category => {
+                        const button = this.createCategoryButton(category, 'available');
+                        button.title = `Click to grant @${category} category`;
+                        
+                        // Special styling for @all when it's implicitly blocked (empty rule scenario)
+                        if (category === 'all') {
+                            const isEmptyRule = this.state.grantedCategories.size === 0 && 
+                                               this.state.grantedCommands.size === 0 && 
+                                               this.state.blockedCategories.size === 0 && 
+                                               this.state.blockedCommands.size === 0;
+                            
+                            if (isEmptyRule) {
+                                button.style.opacity = '0.7';
+                                button.title = `@${category} category (implicitly blocked - empty rule) - Click to grant`;
+                            }
+                        }
+                        
+                        this.elements.blockedCategoriesButtons.appendChild(button);
+                    });
+                } else {
+                    // Normal sorting when @all is not in the list
+                    sortedCategories.sort().forEach(category => {
+                        const button = this.createCategoryButton(category, 'available');
+                        button.title = `Click to grant @${category} category`;
+                        
+                        // Special styling for @all when it's implicitly blocked (empty rule scenario)
+                        if (category === 'all') {
+                            const isEmptyRule = this.state.grantedCategories.size === 0 && 
+                                               this.state.grantedCommands.size === 0 && 
+                                               this.state.blockedCategories.size === 0 && 
+                                               this.state.blockedCommands.size === 0;
+                            
+                            if (isEmptyRule) {
+                                button.style.opacity = '0.7';
+                                button.title = `@${category} category (implicitly blocked - empty rule) - Click to grant`;
+                            }
+                        }
+                        
+                        this.elements.blockedCategoriesButtons.appendChild(button);
+                    });
+                }
             }
             
-            // Also show explicitly blocked categories
-            if (this.state.blockedCategories.size > 0) {
-                Array.from(this.state.blockedCategories).sort().forEach(category => {
+            // Show blocked categories
+            if (effectivelyBlockedCategories.length > 0) {
+                // Sort blocked categories, but keep @all at the front if present
+                const hasAllInBlockedList = effectivelyBlockedCategories.includes('all');
+                let sortedBlockedCategories;
+                
+                if (hasAllInBlockedList) {
+                    // Remove @all from the list, sort the rest, then add @all back at the front
+                    const withoutAll = effectivelyBlockedCategories.filter(cat => cat !== 'all').sort();
+                    sortedBlockedCategories = ['all', ...withoutAll];
+                } else {
+                    // Normal sorting when @all is not in the list
+                    sortedBlockedCategories = effectivelyBlockedCategories.sort();
+                }
+                
+                sortedBlockedCategories.forEach(category => {
                     const button = this.createCategoryButton(category, 'blocked');
+                    
+                    // Special handling for @all case
+                    if (hasAllCategory && !this.state.blockedCategories.has(category)) {
+                        // This category would be granted by @all but we're in the blocked column
+                        button.style.opacity = '0.7';
+                        button.title = `@${category} category (would be granted by @all) - Click to grant`;
+                        button.onclick = () => this.grantCategory(category);
+                    } else if (hasAllCategory && this.state.blockedCategories.has(category)) {
+                        // This category is explicitly blocked despite @all
+                        button.title = `@${category} category (explicitly blocked) - Click to toggle`;
+                        // Keep default toggleCategory behavior
+                    }
+                    
                     this.elements.blockedCategoriesButtons.appendChild(button);
                 });
             }
             
-            if (availableCategories.length === 0 && this.state.blockedCategories.size === 0) {
+            if (availableCategories.length === 0 && effectivelyBlockedCategories.length === 0) {
                 const message = document.createElement('div');
                 message.className = 'text-muted';
                 message.style.padding = '10px';
-                message.textContent = 'Click categories below to grant access';
+                message.textContent = 'No categories available';
                 this.elements.blockedCategoriesButtons.appendChild(message);
             }
             
             // Update the blocked categories header
-            const categoryCount = this.state.blockedCategories.size + availableCategories.length;
+            const categoryCount = effectivelyBlockedCategories.length + availableCategories.length;
             this.updateCategorySectionHeader('blocked', categoryCount);
         }
+    },
+
+    /**
+     * Determine effective status of all categories based on ACL rule precedence
+     * This handles the @all category properly according to rule order
+     */
+    getEffectiveCategoryStatus() {
+        const status = {};
+        
+        // Initialize all categories as available
+        this.state.allCategories.forEach(category => {
+            status[category] = 'available';
+        });
+        
+        // Process ordered terms to determine final status based on precedence (later rules override earlier ones)
+        this.state.orderedTerms.forEach(term => {
+            if (term.type === 'category') {
+                if (term.value === 'all') {
+                    // @all affects all categories
+                    this.state.allCategories.forEach(category => {
+                        if (category !== 'all') { // Don't affect @all itself
+                            status[category] = term.operation === 'grant' ? 'granted' : 'blocked';
+                        }
+                    });
+                    status['all'] = term.operation === 'grant' ? 'granted' : 'blocked';
+                } else {
+                    // Individual category
+                    status[term.value] = term.operation === 'grant' ? 'granted' : 'blocked';
+                }
+            }
+        });
+        
+        return status;
     },
 
     /**
@@ -353,6 +648,7 @@ const InteractiveACLBuilder = {
     async renderCommandButtons() {
         // Render granted commands
         if (this.elements.grantedCommandsButtons) {
+            // Clear any existing content (including initial placeholders from HTML)
             this.elements.grantedCommandsButtons.innerHTML = '';
             
             // Create collapsible wrapper
@@ -389,6 +685,7 @@ const InteractiveACLBuilder = {
 
         // Render blocked/available commands
         if (this.elements.blockedCommandsButtons) {
+            // Clear any existing content (including initial placeholders from HTML)
             this.elements.blockedCommandsButtons.innerHTML = '';
             
             const wrapper = document.createElement('div');
@@ -529,6 +826,16 @@ const InteractiveACLBuilder = {
         button.className = 'command-button granted';
         button.textContent = command;
         
+        // Debug logging to understand the visual difference
+        if (command === 'get' || command === 'set') {
+            console.log(`Creating button for ${command}:`, {
+                className: button.className,
+                isViaCategory,
+                isIndividual,
+                hasAllCategory: this.state.grantedCategories.has('all')
+            });
+        }
+        
         // Determine the behavior based on how the command is granted
         if (isIndividual) {
             // If granted individually (even if also via category), use normal toggle
@@ -552,6 +859,12 @@ const InteractiveACLBuilder = {
         // Make sure it's not in granted commands
         this.state.grantedCommands.delete(command);
         
+        // Update ordered terms - remove any existing entries for this command and add new block
+        this.state.orderedTerms = this.state.orderedTerms.filter(term => 
+            !(term.type === 'command' && term.value === command)
+        );
+        this.state.orderedTerms.push({ type: 'command', operation: 'block', value: command });
+        
         this.scheduleRender();
     },
 
@@ -574,6 +887,7 @@ const InteractiveACLBuilder = {
         
         // Track the rule we just generated
         this.state.lastGeneratedRule = rule;
+        this.state.lastValidRule = rule;     // This is a valid rule for testing
         this.state.hasManualChanges = false;
         this.hideSubmitButton();
         
@@ -589,43 +903,39 @@ const InteractiveACLBuilder = {
     async generateOptimizedRule() {
         const parts = [];
 
-        // Group 1: Inclusion terms (granted categories and commands)
-        // Preserve insertion order by converting to arrays without sorting
-        Array.from(this.state.grantedCategories).forEach(category => {
-            parts.push(`+@${category}`);
-        });
-
-        Array.from(this.state.grantedCommands).forEach(command => {
-            parts.push(`+${command}`);
-        });
-
-        // Group 2: Exclusion terms (blocked categories and commands)
-        // Check if we have any inclusion terms (granted categories or commands)
+        // Check if we have any inclusion terms for optimization logic
         const hasInclusions = this.state.grantedCategories.size > 0 || this.state.grantedCommands.size > 0;
-
-        // Only add exclusions if we have inclusions, and only meaningful exclusions
+        let grantedCommands = null;
+        
         if (hasInclusions) {
             // Get all commands that would be granted by the inclusion terms
-            const grantedCommands = await this.getCommandsGrantedByInclusions();
-
-            // Add blocked categories only if they would actually exclude granted commands
-            // Preserve insertion order
-            Array.from(this.state.blockedCategories).forEach(category => {
-                if (this.categoryOverlapsWithGranted(category, grantedCommands)) {
-                    parts.push(`-@${category}`);
-                }
-            });
-
-            // Add blocked individual commands only if they would be granted by inclusions
-            // Preserve insertion order
-            Array.from(this.state.blockedCommands).forEach(command => {
-                if (grantedCommands.has(command)) {
-                    parts.push(`-${command}`);
-                }
-            });
+            grantedCommands = await this.getCommandsGrantedByInclusions();
         }
 
-        // Group 3: Key patterns (~) - these should always come last
+        // Process terms in the exact order they were added/modified
+        this.state.orderedTerms.forEach(term => {
+            if (term.type === 'category') {
+                if (term.operation === 'grant') {
+                    parts.push(`+@${term.value}`);
+                } else if (term.operation === 'block' && hasInclusions) {
+                    // Only add blocked categories if they would actually exclude granted commands
+                    if (this.categoryOverlapsWithGranted(term.value, grantedCommands)) {
+                        parts.push(`-@${term.value}`);
+                    }
+                }
+            } else if (term.type === 'command') {
+                if (term.operation === 'grant') {
+                    parts.push(`+${term.value}`);
+                } else if (term.operation === 'block' && hasInclusions) {
+                    // Only add blocked commands if they would be granted by inclusions
+                    if (grantedCommands && grantedCommands.has(term.value)) {
+                        parts.push(`-${term.value}`);
+                    }
+                }
+            }
+        });
+
+        // Key patterns (~) - these should always come last
         if (this.state.keyPatterns) {
             Array.from(this.state.keyPatterns).forEach(pattern => {
                 parts.push(pattern);
@@ -691,8 +1001,9 @@ const InteractiveACLBuilder = {
 
     /**
      * Sync manual rule text changes to the interactive display
+     * @param {boolean} isRestoration - True if this is called during localStorage restoration
      */
-    async syncFromRuleText() {
+    async syncFromRuleText(isRestoration = false) {
         if (!this.elements.aclRuleInput || !this.state.isInitialized) {
             console.log('❌ Cannot sync: not initialized or no rule input');
             return;
@@ -733,6 +1044,7 @@ const InteractiveACLBuilder = {
             this.state.blockedCommands.clear();
             
             this.state.keyPatterns.clear();
+            this.state.orderedTerms = []; // Reset ordered terms
 
             // Parse the rule text to extract categories and commands
             if (ruleText) {
@@ -743,21 +1055,26 @@ const InteractiveACLBuilder = {
                         // Granted category
                         const category = token.substring(2);
                         this.state.grantedCategories.add(category);
+                        this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
                     } else if (token.startsWith('-@')) {
                         // Blocked category  
                         const category = token.substring(2);
                         this.state.blockedCategories.add(category);
+                        this.state.orderedTerms.push({ type: 'category', operation: 'block', value: category });
                     } else if (token.startsWith('+')) {
                         // Granted command (normalize to lowercase)
                         const command = token.substring(1).toLowerCase();
                         this.state.grantedCommands.add(command);
+                        this.state.orderedTerms.push({ type: 'command', operation: 'grant', value: command });
                     } else if (token.startsWith('-')) {
                         // Blocked command (normalize to lowercase)
                         const command = token.substring(1).toLowerCase();
                         this.state.blockedCommands.add(command);
+                        this.state.orderedTerms.push({ type: 'command', operation: 'block', value: command });
                     } else if (token.startsWith('~')) {
                         // Key pattern
                         this.state.keyPatterns.add(token);
+                        // Note: Key patterns are handled separately and always come last
                     }
                 }
             }
@@ -765,15 +1082,34 @@ const InteractiveACLBuilder = {
             // Re-render the interactive display
             await this.renderColumns();
             
-            // Update tracking state
-            this.state.lastGeneratedRule = ruleText;
-            this.state.hasManualChanges = false;
-            this.hideSubmitButton();
-            
-            // Shrink panels after successful sync since no manual changes remain
-            const layout = document.querySelector('.three-column-layout');
-            if (layout && layout.classList.contains('submit-button-visible')) {
-                layout.classList.remove('submit-button-visible');
+            // Update tracking state differently for restoration vs manual sync
+            if (isRestoration) {
+                // During restoration, don't update lastGeneratedRule to match the restored rule
+                // This allows the submit button to appear if the restored rule differs from what would be generated
+                console.log('📍 Restoration mode: keeping existing lastGeneratedRule for comparison');
+                
+                // Generate what the rule should be based on current interactive state to compare
+                const generatedRule = await this.generateOptimizedRule();
+                const hasChanges = ruleText !== generatedRule;
+                this.state.hasManualChanges = hasChanges;
+                
+                if (hasChanges) {
+                    this.showSubmitButton();
+                } else {
+                    this.hideSubmitButton();
+                }
+            } else {
+                // Normal sync operation - user clicked "Submit Changes"
+                this.state.lastGeneratedRule = ruleText;
+                this.state.lastValidRule = ruleText;  // User successfully submitted this rule
+                this.state.hasManualChanges = false;
+                this.hideSubmitButton();
+                
+                // Shrink panels after successful sync since no manual changes remain
+                const layout = document.querySelector('.three-column-layout');
+                if (layout && layout.classList.contains('submit-button-visible')) {
+                    layout.classList.remove('submit-button-visible');
+                }
             }
             
             console.log('✅ Rule synced successfully');
@@ -831,6 +1167,14 @@ const InteractiveACLBuilder = {
             this.elements.submitChangesBtn.style.display = 'none';
             // Panel expansion is only controlled by manual textarea input in event-handlers.js
         }
+    },
+
+    /**
+     * Get the last valid ACL rule for testing purposes
+     * @returns {string} The last valid ACL rule that was successfully processed
+     */
+    getLastValidRule() {
+        return this.state.lastValidRule || '';
     }
 };
 

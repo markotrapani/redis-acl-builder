@@ -39,15 +39,19 @@
                 <h2>❌ Blocked Commands</h2>
                 <p class="panel-description">Click any item below to <strong>grant</strong> access and move it to granted commands</p>
                 
-                <div class="command-categories-container">
+                <div class="command-categories-container loading">
                     <div id="blockedCategories" class="categories-section">
                         <h3>Categories</h3>
-                        <div class="category-buttons" role="group" aria-label="Blocked categories"></div>
+                        <div class="category-buttons" role="group" aria-label="Blocked categories">
+                            <div class="text-muted" style="padding: 10px;">No categories blocked</div>
+                        </div>
                     </div>
                     
                     <div id="blockedCommands" class="commands-section">
                         <h3>Individual Commands</h3>
-                        <div class="command-buttons" role="group" aria-label="Blocked commands"></div>
+                        <div class="command-buttons" role="group" aria-label="Blocked commands">
+                            <div class="text-muted" style="padding: 10px;">No individual commands blocked</div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -96,9 +100,9 @@
                     <div class="character-counter" id="characterCounter">0/500</div>
                 </div>
                 
-                <!-- Rule Optimization Warnings -->
+                <!-- Rule Redundancy Warnings -->
                 <div id="redundancyWarnings" class="redundancy-warnings" style="display: none;">
-                    <h4>⚠️ Rule Optimization Suggestions:</h4>
+                    <h4>⚠️ Redundant Terms Detected:</h4>
                     <div id="warningsList"></div>
                     <div id="suggestionsList"></div>
                 </div>
@@ -152,15 +156,19 @@
                 <h2>✅ Granted Commands</h2>
                 <p class="panel-description">Click any item below to <strong>revoke</strong> access and move it to blocked commands</p>
                 
-                <div class="command-categories-container">
+                <div class="command-categories-container loading">
                     <div id="grantedCategories" class="categories-section">
                         <h3>Categories</h3>
-                        <div class="category-buttons" role="group" aria-label="Granted categories"></div>
+                        <div class="category-buttons" role="group" aria-label="Granted categories">
+                            <div class="text-muted" style="padding: 10px;">No categories granted</div>
+                        </div>
                     </div>
                     
                     <div id="grantedCommands" class="commands-section">
                         <h3>Individual Commands</h3>
-                        <div class="command-buttons" role="group" aria-label="Granted commands"></div>
+                        <div class="command-buttons" role="group" aria-label="Granted commands">
+                            <div class="text-muted" style="padding: 10px;">No individual commands granted</div>
+                        </div>
                     </div>
                 </div>
             </section>

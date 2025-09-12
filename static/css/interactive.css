@@ -168,37 +168,6 @@
 
 /* Removed color stripe as it was unwanted */
 
-/* Interactive loading states */
-.panel.loading-content {
-  position: relative;
-  overflow: hidden;
-}
-
-.panel.loading-content::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-
 /* Enhanced hover effects for interactive elements */
 .test-button,
 .example {

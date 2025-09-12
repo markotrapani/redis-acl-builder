@@ -5,6 +5,7 @@
 
 import AppState from '../core/app-state.js';
 import DOMElements from '../core/dom-elements.js';
+import Storage from '../core/storage.js';
 import Utils from '../core/utils.js';
 import API from '../api/api-client.js';
 
@@ -16,6 +17,9 @@ const RuleManager = {
         // Mark as programmatic update to prevent panel expansion
         DOMElements.aclRuleInput.dataset.programmaticUpdate = 'true';
         DOMElements.aclRuleInput.value = rule;
+        
+        // Save to localStorage
+        Storage.saveAclRule(rule);
         
         // Update character counter and button states
         import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
@@ -213,6 +217,13 @@ const RuleManager = {
                             });
                             
                             this.parseRule(); // Re-parse with simplified rule
+                            
+                            // Sync to interactive builder (same as clicking Submit Changes)
+                            import('../components/interactive-acl-builder.js').then(({ default: InteractiveACLBuilder }) => {
+                                if (InteractiveACLBuilder.state.isInitialized) {
+                                    InteractiveACLBuilder.syncFromRuleText();
+                                }
+                            });
                         };
                     }
                 } else {

@@ -12,13 +12,8 @@
 .three-column-layout > .panel {
   height: 700px; /* Adjusted height for comfortable fit */
   min-width: 0;
-  transition: height var(--transition-normal); /* Smooth height transitions */
 }
 
-/* Dynamic panel growth when Submit Changes button is visible */
-.three-column-layout.submit-button-visible > .panel {
-  height: 740px; /* Adjusted extra height when Submit Changes button is shown */
-}
 
 /* ACL Rule Configuration panel - clip overflow but don't scroll */
 .three-column-layout > .acl-config-panel {
@@ -427,10 +422,6 @@
     height: 450px; /* Further reduced to match new proportions */
   }
   
-  /* Dynamic growth for responsive layout too */
-  .three-column-layout.submit-button-visible > .panel {
-    height: 510px; /* Extra height when Submit Changes button is shown */
-  }
   
   .command-categories-container {
     max-height: 250px; /* Further reduced to match new proportions */
@@ -535,10 +526,3 @@
     gap: var(--spacing-md);
   }
 }
-
-/* Shimmer wash animation for smooth button loading */
-.command-categories-container.updating {
-  position: relative;
-  overflow: hidden;
-}
-

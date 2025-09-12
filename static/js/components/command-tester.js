@@ -7,6 +7,7 @@ import AppState from '../core/app-state.js';
 import DOMElements from '../core/dom-elements.js';
 import Utils from '../core/utils.js';
 import API from '../api/api-client.js';
+import InteractiveACLBuilder from './interactive-acl-builder.js';
 
 const CommandTester = {
     /**
@@ -14,7 +15,7 @@ const CommandTester = {
      */
     async testCommand() {
         const command = DOMElements.testCommandInput.value.trim();
-        const rule = DOMElements.aclRuleInput.value.trim();
+        const rule = InteractiveACLBuilder.getLastValidRule();
         
         if (!command) {
             const html = `
@@ -23,6 +24,15 @@ const CommandTester = {
             `;
             Utils.showDismissibleTestResult(DOMElements.testResult, html, 'denied', 5000);
             DOMElements.testCommandInput.focus();
+            return;
+        }
+        
+        if (!rule) {
+            const html = `
+                <strong>❌ No Valid Rule</strong><br>
+                Please create or submit an ACL rule first before testing commands.
+            `;
+            Utils.showDismissibleTestResult(DOMElements.testResult, html, 'denied', 5000);
             return;
         }
         

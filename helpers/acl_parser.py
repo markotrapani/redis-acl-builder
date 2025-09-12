@@ -419,9 +419,6 @@ class ACLParser:
                         'type': 'inclusion',
                         'reason': 'All commands already granted by earlier rules'
                     })
-                elif already_granted:
-                    # Some commands already granted - partially redundant
-                    warnings.append(f"Partially redundant inclusion: '{original_token}'\n{len(already_granted)}/{len(rule_commands)} commands already granted")
                 
                 # Update cumulative granted set
                 cumulative_granted.update(rule_commands)
@@ -441,9 +438,6 @@ class ACLParser:
                         'type': 'exclusion',
                         'reason': 'Commands were not granted by earlier rules'
                     })
-                elif already_denied:
-                    # Some commands already explicitly denied - partially redundant
-                    warnings.append(f"Partially redundant exclusion: '{original_token}'\n{len(already_denied)}/{len(rule_commands)} commands already denied")
                 
                 # Update cumulative sets
                 cumulative_granted.difference_update(rule_commands)

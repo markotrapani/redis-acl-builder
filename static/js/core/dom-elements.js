@@ -8,6 +8,7 @@ const DOMElements = {
     resultsSummary: null,
     commandResults: null,
     testCommandInput: null,
+    testKeyspaceInput: null,
     testResult: null,
     versionToggle: null,
     versionDetail: null,
@@ -18,6 +19,7 @@ const DOMElements = {
         this.resultsSummary = document.getElementById('resultsSummary');
         this.commandResults = document.getElementById('commandResults');
         this.testCommandInput = document.getElementById('testCommand');
+        this.testKeyspaceInput = document.getElementById('testKeyspace');
         this.testResult = document.getElementById('testResult');
         this.versionToggle = document.getElementById('versionToggle');
         this.versionDetail = document.getElementById('versionDetail');

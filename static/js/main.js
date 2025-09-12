@@ -6,6 +6,7 @@
 // Import all modules
 import DOMElements from './core/dom-elements.js';
 import Utils from './core/utils.js';
+import Storage from './core/storage.js';
 import RuleManager from './managers/rule-manager.js';
 import CategoryManager from './managers/category-manager.js';
 import CommandTester from './components/command-tester.js';
@@ -23,14 +24,22 @@ const App = {
             // Initialize DOM references
             DOMElements.init();
             
-            // Set up event handlers
+            // Restore saved user data from localStorage
+            this.restoreUserData();
+            
+            // Set up event handlers (including storage persistence)
             EventHandlers.init();
             
-            // Parse initial rule (empty) - skip redundancy analysis on startup
-            await RuleManager.parseRule(true);
-            
             // Initialize interactive ACL builder (three-column layout)
+            // Note: InteractiveACLBuilder.init() will handle parsing restored rules
             await InteractiveACLBuilder.init();
+            
+            // If we have a saved rule from localStorage, sync it to the interactive builder now
+            if (this.savedRuleToSync) {
+                console.log('Syncing saved rule to interactive builder:', this.savedRuleToSync);
+                await InteractiveACLBuilder.syncFromRuleText(true); // true = isRestoration
+                delete this.savedRuleToSync; // Clean up
+            }
             
             console.log('Redis Enterprise ACL Builder initialized successfully');
         } catch (error) {
@@ -40,6 +49,56 @@ const App = {
                 Utils.showMessage(DOMElements.commandResults, 
                     'Failed to initialize application. Please refresh the page.', 'error');
             }
+        }
+    },
+
+    /**
+     * Restore user data from localStorage
+     */
+    restoreUserData() {
+        try {
+            // Restore ACL rule text
+            const savedRule = Storage.loadAclRule();
+            if (savedRule && DOMElements.aclRuleInput) {
+                DOMElements.aclRuleInput.value = savedRule;
+                
+                // Update character counter and button states
+                EventHandlers.updateCharacterCounterProgrammatically(DOMElements.aclRuleInput);
+                EventHandlers.updateActionButtonStates(savedRule);
+                
+                // Store the saved rule for later sync after InteractiveACLBuilder is initialized
+                this.savedRuleToSync = savedRule;
+            }
+
+            // Restore command test input
+            const savedCommand = Storage.loadCommandTest();
+            if (savedCommand && DOMElements.testCommandInput) {
+                DOMElements.testCommandInput.value = savedCommand;
+            }
+
+            // Restore keyspace test input
+            const savedKeyspace = Storage.loadKeyspaceTest();
+            if (savedKeyspace && DOMElements.testKeyspaceInput) {
+                DOMElements.testKeyspaceInput.value = savedKeyspace;
+            }
+            
+            // Update test button states for both inputs
+            EventHandlers.updateTestButtonStates();
+
+            // Restore Redis version if different from default
+            const savedVersion = Storage.loadRedisVersion();
+            if (savedVersion === 'redis8') {
+                const versionToggle = document.getElementById('versionToggle');
+                if (versionToggle && !versionToggle.checked) {
+                    versionToggle.checked = true;
+                    // Trigger version change event
+                    versionToggle.dispatchEvent(new Event('change'));
+                }
+            }
+
+            console.log('User data restored from localStorage');
+        } catch (error) {
+            console.warn('Failed to restore user data:', error);
         }
     }
 };
@@ -119,6 +178,10 @@ window.clearACLRule = () => {
     try {
         // Clear the rule
         aclRuleTextarea.value = '';
+        
+        // Clear from localStorage
+        Storage.saveAclRule('');
+        
         aclRuleTextarea.focus();
         
         // Auto-shrink textarea back to default height
@@ -172,7 +235,7 @@ function checkQuickExamplesScroll() {
     
     // Check if content height exceeds container height with tolerance
     const heightDiff = content.scrollHeight - content.clientHeight;
-    const tolerance = 15; // Only show scrollbar if difference is > 15px
+    const tolerance = 12; // Only show scrollbar if difference is > 12px
     
     if (heightDiff > tolerance) {
         console.log('Adding needs-scroll class - height difference:', heightDiff);

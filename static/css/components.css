@@ -1,5 +1,19 @@
 /* Redis Enterprise ACL Builder - Component Styles */
 
+/* FOUC Prevention: Test button disabled state - keep original background, fix text color */
+.test-button:disabled,
+.test-button[disabled],
+button.test-button:disabled,
+button.test-button[disabled] {
+  background: var(--gray-300) !important; /* Keep original background */
+  color: #9ca3af !important; /* Hardcoded text color to prevent flash */  
+  border-color: var(--gray-300) !important; /* Keep original border */
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+  opacity: 0.6 !important; /* Keep original opacity */
+}
+
 
 /* Version Selector */
 .version-selector {
@@ -214,22 +228,11 @@
   cursor: not-allowed !important;
 }
 
-/* Disabled state for test buttons - prevent FOUC with immediate disabled styling */
-.test-button:disabled,
-.test-button[disabled] {
-  background: var(--gray-300) !important;
-  color: var(--gray-500) !important;
-  border-color: var(--gray-300) !important;
-  cursor: not-allowed !important;
-  transform: none !important;
-  box-shadow: none !important;
-  opacity: 0.6;
-}
-
+/* Disabled hover state for test buttons */
 .test-button:disabled:hover,
 .test-button[disabled]:hover {
   background: var(--gray-300) !important;
-  color: var(--gray-500) !important;
+  color: #9ca3af !important; /* Match main disabled text color */
   transform: none !important;
   box-shadow: none !important;
 }
@@ -748,6 +751,50 @@
   transition: opacity var(--transition-fast);
   word-wrap: break-word;
   overflow-wrap: break-word;
+}
+
+/* Command-categories container loading cover */
+.command-categories-container {
+  position: relative;
+}
+
+.command-categories-container.loading {
+  overflow: hidden;
+  opacity: 1; /* Override default loading styles */
+  pointer-events: auto;
+}
+
+/* Remove default spinner and add solid color cover */
+.command-categories-container.loading::after {
+  display: none; /* Hide default loading spinner */
+}
+
+.command-categories-container.loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #2B2020; /* Dark red for blocked commands */
+  transition: opacity 0.15s ease-out;
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* Dark green cover for granted commands panel */
+.granted-commands-panel .command-categories-container.loading::before {
+  background: #1F2B1F; /* Dark green */
+}
+
+/* Dark red cover for blocked commands panel */
+.blocked-commands-panel .command-categories-container.loading::before {
+  background: #2B2020; /* Dark red */
+}
+
+/* Fade out animation when removing loading class */
+.command-categories-container.loading-fadeout::before {
+  opacity: 0;
 }
 
 

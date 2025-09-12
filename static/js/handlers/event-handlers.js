@@ -5,6 +5,7 @@
 
 import AppState from '../core/app-state.js';
 import DOMElements from '../core/dom-elements.js';
+import Storage from '../core/storage.js';
 import RuleManager from '../managers/rule-manager.js';
 import CategoryManager from '../managers/category-manager.js';
 import CommandTester from '../components/command-tester.js';
@@ -87,6 +88,9 @@ const EventHandlers = {
             // Update character counter
             EventHandlers.updateCharacterCounter(this);
             
+            // Save to localStorage
+            Storage.saveAclRule(this.value);
+            
             // Auto-expand textarea based on content (unless manually resized)
             EventHandlers.autoExpandTextarea(this);
             
@@ -131,18 +135,12 @@ const EventHandlers = {
                         InteractiveACLBuilder.syncFromRuleText();
                     }
                     
-                    // Hide submit button first, then shrink panels after content shifts up
+                    // Hide submit button and update state
                     const submitBtn = document.getElementById('submitChangesBtn');
                     if (submitBtn && submitBtn.style.display !== 'none') {
                         submitBtn.style.display = 'none';
-                        
-                        // Allow time for content to shift up before shrinking panels
-                        setTimeout(() => {
-                            layout.classList.remove('submit-button-visible');
-                        }, 100); // Small delay for smooth transition
-                    } else {
-                        layout.classList.remove('submit-button-visible');
                     }
+                    layout.classList.remove('submit-button-visible');
                 }
                 
                 // Silently trigger rule parsing and redundancy analysis for real-time feedback
@@ -210,6 +208,9 @@ const EventHandlers = {
         DOMElements.versionToggle.performVersionSwitch = function(newVersion) {
             AppState.currentVersion = newVersion;
             
+            // Save version preference to localStorage
+            Storage.saveRedisVersion(newVersion);
+            
             // Update version detail text
             const categoryCount = newVersion === 'redis8' ? '29' : '21';
             const commandCount = newVersion === 'redis8' ? '446' : '311';
@@ -245,12 +246,18 @@ const EventHandlers = {
             
             // Update button states on input
             testKeyspaceInput.addEventListener('input', function() {
+                // Save to localStorage
+                Storage.saveKeyspaceTest(this.value);
+                
                 EventHandlers.updateTestButtonStates();
             });
         }
         
         // Auto-complete for test command input (basic implementation)
         DOMElements.testCommandInput.addEventListener('input', function() {
+            // Save to localStorage
+            Storage.saveCommandTest(this.value);
+            
             const value = this.value.toLowerCase();
             if (value.length > 2) {
                 // Future: Add autocomplete functionality

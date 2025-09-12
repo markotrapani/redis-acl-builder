@@ -6,6 +6,7 @@
 import DOMElements from '../core/dom-elements.js';
 import Utils from '../core/utils.js';
 import API from '../api/api-client.js';
+import InteractiveACLBuilder from './interactive-acl-builder.js';
 
 const KeyspaceTester = {
     /**
@@ -21,7 +22,7 @@ const KeyspaceTester = {
         }
         
         const keyPattern = keyspaceInput.value.trim();
-        const aclRule = DOMElements.aclRuleInput?.value.trim() || '';
+        const aclRule = InteractiveACLBuilder.getLastValidRule();
         
         if (!keyPattern) {
             const html = `
@@ -34,8 +35,8 @@ const KeyspaceTester = {
         
         if (!aclRule) {
             const html = `
-                <strong>❌ Key: ${Utils.escapeHtml(keyPattern)}</strong><br>
-                No ACL rule specified - all keys are blocked by default
+                <strong>❌ No Valid Rule</strong><br>
+                Please create or submit an ACL rule first before testing keyspace patterns.
             `;
             Utils.showDismissibleTestResult(resultDiv, html, 'denied', 5000);
             return;
