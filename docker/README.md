@@ -10,7 +10,7 @@ This folder contains all Docker-related files for the Redis ACL Builder v1.7.0-b
 - `deploy-beta.sh` - Automated deployment script
 - `BETA-README.md` - Complete beta testing documentation
 - `DISTRIBUTION-README.md` - Distribution package instructions
-- **Note**: Docker image files (*.tar, *.tar.gz) are built locally (not stored in git due to 100MB+ size)
+- **Note**: Docker image files (*.tar) are built locally (not stored in git due to 100MB+ size)
 
 ## 🚀 Quick Start
 
@@ -30,7 +30,7 @@ docker-compose up -d
 # Build image
 docker build -t redis-acl-builder:v1.7.0-beta -f Dockerfile ..
 
-# Export image (if needed for distribution)
+# Export image (if needed for distribution) - uncompressed for simplicity
 docker save redis-acl-builder:v1.7.0-beta > redis-acl-builder-v1.7.0-beta.tar
 
 # Run

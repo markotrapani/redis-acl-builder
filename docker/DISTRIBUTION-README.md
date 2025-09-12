@@ -9,7 +9,7 @@ This distribution package contains:
 - `deploy-beta.sh` - Automated deployment script
 - `docker-compose.yml` - Docker Compose configuration
 - Source code and configuration files
-- **Note**: Docker image files (*.tar, *.tar.gz) are generated locally due to GitHub's 100MB file size limit
+- **Note**: Docker image files (*.tar) are generated locally due to GitHub's 100MB file size limit
 
 ## 🚀 Quick Start Options
 
@@ -25,6 +25,7 @@ chmod +x deploy-beta.sh
 ```
 
 This script will:
+
 - Check Docker installation
 - Verify port 8000 availability
 - Build and deploy the application
@@ -85,6 +86,7 @@ Expected response: HTTP 200 with the Redis ACL Builder interface.
 ## 🔧 Configuration
 
 The application runs with production settings:
+
 - **Port**: 8000
 - **Workers**: 4 Gunicorn workers
 - **Environment**: Production mode
@@ -98,6 +100,7 @@ See `BETA-README.md` for complete feature documentation, API reference, and test
 ## 🆘 Troubleshooting
 
 ### Port Already in Use
+
 ```bash
 # Check what's using port 8000
 lsof -i :8000
@@ -107,6 +110,7 @@ docker run -d -p 8080:8000 --name redis-acl-builder redis-acl-builder:v1.7.0-bet
 ```
 
 ### Container Won't Start
+
 ```bash
 # Check container logs
 docker logs redis-acl-builder
@@ -117,6 +121,7 @@ docker stop redis-acl-builder && docker rm redis-acl-builder
 ```
 
 ### Docker Permission Issues (Linux)
+
 ```bash
 # Add user to docker group
 sudo usermod -aG docker $USER
