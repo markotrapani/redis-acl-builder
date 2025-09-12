@@ -443,6 +443,58 @@
                 </div>
             </section>
 
+            <!-- Docker Deployment -->
+            <section class="info-section">
+                <h2>🐳 Docker Deployment</h2>
+                
+                <h3>🚀 Quick Start with Docker</h3>
+                <p>The easiest way to run Redis ACL Builder is using the pre-built Docker image available on Docker Hub:</p>
+                
+                <div class="syntax-example">
+# Pull and run the latest version
+docker run -d -p 7380:8000 markotrapani608/redis-acl-builder:latest
+
+# Access the application at http://localhost:7380
+                </div>
+                
+                <h3>📦 Available Tags</h3>
+                <ul>
+                    <li><strong>latest:</strong> <code>markotrapani608/redis-acl-builder:latest</code> - Always the most recent stable release</li>
+                    <li><strong>v1.7.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.7.0-beta</code> - Current production-ready version</li>
+                </ul>
+                
+                <h3>🛠️ Container Management</h3>
+                <div class="syntax-example">
+# Run with custom container name
+docker run -d -p 7380:8000 --name redis-acl-builder markotrapani608/redis-acl-builder:latest
+
+# Check container status
+docker ps
+
+# View application logs
+docker logs redis-acl-builder
+
+# Stop the container
+docker stop redis-acl-builder
+
+# Remove the container
+docker rm redis-acl-builder
+                </div>
+                
+                <h3>🌐 Production Deployment Options</h3>
+                <ul>
+                    <li><strong>Docker Hub:</strong> Public image ready for immediate use</li>
+                    <li><strong>Local Build:</strong> Clone repository and use <code>./docker/deploy-beta.sh</code></li>
+                    <li><strong>Docker Compose:</strong> Use <code>docker-compose.yml</code> for stack deployment</li>
+                    <li><strong>Kubernetes:</strong> Compatible with container orchestration platforms</li>
+                </ul>
+                
+                <div class="use-case">
+                    <h4>🏢 Enterprise Deployment</h4>
+                    <p>For production environments, consider running behind a reverse proxy (nginx/Apache) with SSL termination and additional security headers.</p>
+                </div>
+            </section>
+            
             <!-- Technical Details -->
             <section class="info-section">
                 <h2>⚙️ Technical Details</h2>
@@ -460,7 +512,7 @@
                 <div class="syntax-example">
 POST /api/parse              # Parse ACL rule and return permissions
 POST /api/test-command       # Test specific command access
-POST /api/test-keyspace      # Test key pattern matching (NEW)
+POST /api/test-keyspace      # Test key pattern matching with glob support
 POST /api/validate-rule      # Validate ACL syntax
 GET /api/categories          # Get available command categories
 POST /api/search-commands    # Search commands with patterns
@@ -471,7 +523,7 @@ GET /health                  # Application health check
                 <ul>
                     <li><strong>Frontend:</strong> Modular ES6 JavaScript (8 modules) + Optimized CSS (5 modules)</li>
                     <li><strong>Backend:</strong> Flask with comprehensive Redis ACL parsing engine</li>
-                    <li><strong>Testing:</strong> 35 automated tests with 79% code coverage</li>
+                    <li><strong>Testing:</strong> 29 automated tests with 82% code coverage</li>
                     <li><strong>Theming:</strong> Explicit light/dark mode support with CSS custom properties</li>
                     <li><strong>Performance:</strong> Debounced rendering, optimized command previews, smooth transitions</li>
                     <li><strong>UX:</strong> Dismissible results, smart button states, auto-expanding textareas</li>

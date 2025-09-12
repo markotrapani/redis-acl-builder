@@ -1035,36 +1035,49 @@ const InteractiveACLBuilder = {
             this.state.keyPatterns.clear();
             this.state.orderedTerms = []; // Reset ordered terms
 
-            // Parse the rule text to extract categories and commands
+            // Parse the rule using actual ACL logic to get real granted/blocked commands
             if (ruleText) {
-                const tokens = ruleText.split(/\s+/).filter(token => token.length > 0);
-                
-                for (const token of tokens) {
-                    if (token.startsWith('+@')) {
-                        // Granted category
-                        const category = token.substring(2);
-                        this.state.grantedCategories.add(category);
-                        this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
-                    } else if (token.startsWith('-@')) {
-                        // Blocked category  
-                        const category = token.substring(2);
-                        this.state.blockedCategories.add(category);
-                        this.state.orderedTerms.push({ type: 'category', operation: 'block', value: category });
-                    } else if (token.startsWith('+')) {
-                        // Granted command (normalize to lowercase)
-                        const command = token.substring(1).toLowerCase();
-                        this.state.grantedCommands.add(command);
-                        this.state.orderedTerms.push({ type: 'command', operation: 'grant', value: command });
-                    } else if (token.startsWith('-')) {
-                        // Blocked command (normalize to lowercase)
-                        const command = token.substring(1).toLowerCase();
-                        this.state.blockedCommands.add(command);
-                        this.state.orderedTerms.push({ type: 'command', operation: 'block', value: command });
-                    } else if (token.startsWith('~')) {
-                        // Key pattern
-                        this.state.keyPatterns.add(token);
-                        // Note: Key patterns are handled separately and always come last
+                try {
+                    // Use the same API call that RuleManager uses for accurate parsing
+                    const data = await API.parseRule(ruleText, AppState.currentVersion);
+                    
+                    if (data && data.success) {
+                        // Use actual parsing results to determine what's granted
+                        const grantedCommands = new Set(data.granted_commands || []);
+                        const groupedCommands = data.grouped_commands || {};
+                        
+                        // Determine granted categories based on actual results
+                        const grantedCategories = new Set(Object.keys(groupedCommands));
+                        
+                        // Get all available commands/categories
+                        const allCategories = new Set(this.state.allCategories);
+                        const allCommands = new Set(this.state.allCommands);
+                        
+                        // Update state based on actual ACL evaluation results
+                        this.state.grantedCategories = grantedCategories;
+                        this.state.grantedCommands = grantedCommands;
+                        
+                        // Everything else is blocked
+                        this.state.blockedCategories = new Set([...allCategories].filter(cat => !grantedCategories.has(cat)));
+                        this.state.blockedCommands = new Set([...allCommands].filter(cmd => !grantedCommands.has(cmd)));
+                        
+                        // Parse key patterns from original rule text
+                        const tokens = ruleText.split(/\s+/).filter(token => token.length > 0);
+                        this.state.keyPatterns.clear();
+                        this.state.orderedTerms = []; // Simplified - could be enhanced later
+                        
+                        for (const token of tokens) {
+                            if (token.startsWith('~')) {
+                                this.state.keyPatterns.add(token);
+                            }
+                        }
+                    } else {
+                        // Fallback to simple text parsing if API fails
+                        this.fallbackTextParsing(ruleText);
                     }
+                } catch (error) {
+                    console.error('Error parsing rule with API, falling back to text parsing:', error);
+                    this.fallbackTextParsing(ruleText);
                 }
             }
 
@@ -1117,6 +1130,40 @@ const InteractiveACLBuilder = {
             // During restoration, don't show error notifications
             if (!isRestoration) {
                 Utils.showNotification('Error syncing rule changes. Please try again.', 'error', 5000);
+            }
+        }
+    },
+
+    /**
+     * Fallback text parsing when API is unavailable
+     */
+    fallbackTextParsing(ruleText) {
+        const tokens = ruleText.split(/\s+/).filter(token => token.length > 0);
+        
+        for (const token of tokens) {
+            if (token.startsWith('+@')) {
+                // Granted category
+                const category = token.substring(2);
+                this.state.grantedCategories.add(category);
+                this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
+            } else if (token.startsWith('-@')) {
+                // Blocked category  
+                const category = token.substring(2);
+                this.state.blockedCategories.add(category);
+                this.state.orderedTerms.push({ type: 'category', operation: 'block', value: category });
+            } else if (token.startsWith('+')) {
+                // Granted command (normalize to lowercase)
+                const command = token.substring(1).toLowerCase();
+                this.state.grantedCommands.add(command);
+                this.state.orderedTerms.push({ type: 'command', operation: 'grant', value: command });
+            } else if (token.startsWith('-')) {
+                // Blocked command (normalize to lowercase)
+                const command = token.substring(1).toLowerCase();
+                this.state.blockedCommands.add(command);
+                this.state.orderedTerms.push({ type: 'command', operation: 'block', value: command });
+            } else if (token.startsWith('~')) {
+                // Key pattern
+                this.state.keyPatterns.add(token);
             }
         }
     },

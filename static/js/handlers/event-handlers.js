@@ -216,7 +216,7 @@ const EventHandlers = {
             const commandCount = newVersion === 'redis8' ? '446' : '311';
             DOMElements.versionDetail.textContent = `Redis ${newVersion.slice(-1)} (${categoryCount} categories, ${commandCount} commands)`;
             
-            RuleManager.parseRule(true); // Skip redundancy analysis during version changes
+            RuleManager.parseRuleSilent(true); // Skip redundancy analysis and error notifications during version changes
             // Also update interactive builder if initialized
             if (InteractiveACLBuilder.state.isInitialized) {
                 InteractiveACLBuilder.loadAllData().then(async () => {

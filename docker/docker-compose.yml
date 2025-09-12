@@ -5,7 +5,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     ports:
-      - "8000:8000"
+      - "7380:8000"
     environment:
       - FLASK_ENV=production
       - FLASK_DEBUG=False

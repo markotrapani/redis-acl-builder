@@ -445,6 +445,179 @@ class ACLParser:
             
             i += 1
         
+        # Priority-based optimization: Check for -@all first (highest priority)
+        tokens = parsed['raw_rule'].strip().split()
+        all_deny_index = -1
+        optimization_applied = False
+        
+        # Find the position of the LAST -@all in the token list (rightmost takes precedence)
+        for idx, token in enumerate(tokens):
+            if token == '-@all':
+                all_deny_index = idx  # Keep updating to find the last occurrence
+        
+        # If -@all is found, it takes priority over other optimizations
+        if all_deny_index >= 0:
+            optimization_applied = True
+            preceding_tokens = tokens[:all_deny_index]
+            # Consider all command/category tokens (both + and - since -@all overrides everything)
+            preceding_cmd_tokens = [t for t in preceding_tokens if t.startswith(('+', '-')) and not t.startswith('~')]
+            
+            if preceding_cmd_tokens:
+                warnings.append(f"Inefficient rule structure: '-@all' blocks all commands, making all preceding command terms meaningless\nPreceding terms made meaningless: {', '.join(preceding_cmd_tokens)}")
+                
+                # Mark each preceding command token as redundant
+                for token in preceding_cmd_tokens:
+                    redundant_terms.append({
+                        'term': token,
+                        'position': tokens.index(token),
+                        'type': 'meaningless',
+                        'reason': f"Made meaningless by '-@all' which blocks all commands"
+                    })
+            
+            # Check if we should also remove -@all itself based on what follows
+            following_tokens = tokens[all_deny_index + 1:]
+            key_tokens = [t for t in following_tokens if t.startswith('~')]
+            following_cmd_tokens = [t for t in following_tokens if t.startswith(('+', '-')) and not t.startswith('~')]
+            
+            if not key_tokens and not following_cmd_tokens:
+                # No key patterns or commands after -@all, so -@all results in empty rule (Redis default)
+                warnings.append("Rule results in no permissions (Redis default behavior)")
+                redundant_terms.append({
+                    'term': '-@all',
+                    'position': all_deny_index,
+                    'type': 'results_in_default',
+                    'reason': "Results in empty rule which is Redis default (no permissions)"
+                })
+                # Don't add separate suggestion - let simplified rule section handle this
+            elif following_cmd_tokens:
+                # There are command terms after -@all
+                # The -@all becomes redundant because subsequent inclusions will override it
+                # Final result is just the following commands + any key patterns
+                warnings.append("The '-@all' term is redundant when followed by inclusion commands")
+                redundant_terms.append({
+                    'term': '-@all',
+                    'position': all_deny_index,
+                    'type': 'overridden',
+                    'reason': "Made redundant by subsequent inclusion commands which override the denial"
+                })
+            elif not following_cmd_tokens and key_tokens:
+                # Only key patterns after -@all
+                # Since -@all blocks all commands and only key patterns remain, 
+                # the -@all itself becomes redundant (no commands to block)
+                redundant_terms.append({
+                    'term': '-@all',
+                    'position': all_deny_index,
+                    'type': 'meaningless_with_keys_only',
+                    'reason': "Blocking all commands is redundant when only key patterns remain"
+                })
+        
+        # Only run other optimizations if -@all optimization wasn't applied
+        if not optimization_applied:
+            # Check for inclusion superset patterns
+            cumulative_granted_by_position = []
+            temp_cumulative = set()
+            
+            # Build cumulative granted sets for each position
+            for idx, token in enumerate(tokens):
+                if token.startswith('+') and not token.startswith('~'):
+                    if token == '+@all':
+                        all_commands = set()
+                        for cat_commands in self.data['categories'].values():
+                            all_commands.update(cat_commands)
+                        temp_cumulative.update(all_commands)
+                    elif token.startswith('+@'):
+                        category = token[2:].lower()
+                        if category in self.data['categories']:
+                            temp_cumulative.update(self.data['categories'][category])
+                    elif token.startswith('+'):
+                        command = token[1:].lower()
+                        if command in self.data['commands']:
+                            temp_cumulative.add(command)
+                
+                cumulative_granted_by_position.append(temp_cumulative.copy())
+            
+            # Look for inclusion superset patterns
+            for idx, token in enumerate(tokens):
+                if token.startswith('+') and not token.startswith('~') and idx > 0:
+                    current_commands = set()
+                    
+                    if token == '+@all':
+                        for cat_commands in self.data['categories'].values():
+                            current_commands.update(cat_commands)
+                    elif token.startswith('+@'):
+                        category = token[2:].lower()
+                        if category in self.data['categories']:
+                            current_commands.update(self.data['categories'][category])
+                    elif token.startswith('+'):
+                        command = token[1:].lower()
+                        if command in self.data['commands']:
+                            current_commands.add(command)
+                    
+                    if not current_commands:
+                        continue
+                    
+                    preceding_granted = cumulative_granted_by_position[idx - 1] if idx > 0 else set()
+                    preceding_inclusion_tokens = [tokens[i] for i in range(idx) if tokens[i].startswith('+') and not tokens[i].startswith('~')]
+                    
+                    if preceding_inclusion_tokens and preceding_granted.issubset(current_commands):
+                        warnings.append(f"Inefficient rule structure: '{token}' grants all commands from preceding inclusion terms\nPreceding terms made redundant: {', '.join(preceding_inclusion_tokens)}")
+                        
+                        for redundant_token in preceding_inclusion_tokens:
+                            redundant_terms.append({
+                                'term': redundant_token,
+                                'position': tokens.index(redundant_token),
+                                'type': 'superseded',
+                                'reason': f"Made redundant by '{token}' which grants a superset of commands"
+                            })
+                        optimization_applied = True
+                        break
+            
+            # Look for exclusion superset patterns (only if no inclusion superset found)
+            if not optimization_applied:
+                for idx, token in enumerate(tokens):
+                    if token.startswith('-') and not token.startswith('~') and idx > 0 and token != '-@all':
+                        current_blocked = set()
+                        
+                        if token.startswith('-@'):
+                            category = token[2:].lower()
+                            if category in self.data['categories']:
+                                current_blocked.update(self.data['categories'][category])
+                        elif token.startswith('-'):
+                            command = token[1:].lower()
+                            if command in self.data['commands']:
+                                current_blocked.add(command)
+                        
+                        if not current_blocked:
+                            continue
+                        
+                        preceding_exclusion_tokens = []
+                        preceding_blocked = set()
+                        
+                        for i in range(idx):
+                            if tokens[i].startswith('-') and not tokens[i].startswith('~') and tokens[i] != '-@all':
+                                preceding_exclusion_tokens.append(tokens[i])
+                                
+                                if tokens[i].startswith('-@'):
+                                    category = tokens[i][2:].lower()
+                                    if category in self.data['categories']:
+                                        preceding_blocked.update(self.data['categories'][category])
+                                elif tokens[i].startswith('-'):
+                                    command = tokens[i][1:].lower()
+                                    if command in self.data['commands']:
+                                        preceding_blocked.add(command)
+                        
+                        if preceding_exclusion_tokens and preceding_blocked.issubset(current_blocked):
+                            warnings.append(f"Inefficient rule structure: '{token}' blocks all commands from preceding exclusion terms\nPreceding exclusion terms made redundant: {', '.join(preceding_exclusion_tokens)}")
+                            
+                            for redundant_token in preceding_exclusion_tokens:
+                                redundant_terms.append({
+                                    'term': redundant_token,
+                                    'position': tokens.index(redundant_token),
+                                    'type': 'superseded_exclusion',
+                                    'reason': f"Made redundant by '{token}' which blocks a superset of commands"
+                                })
+                            break
+        
         # Generate simplification suggestions
         if redundant_terms:
             # Extract original tokens from the input rule string, preserving order
@@ -464,6 +637,8 @@ class ACLParser:
                 # All terms are redundant - suggest empty rule
                 suggestions.append("Simplified rule: (empty rule)")
             
+        # All optimizations are now handled by the simplified rule section below
+        
         return {
             'warnings': warnings,
             'suggestions': suggestions,

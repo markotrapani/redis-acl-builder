@@ -363,7 +363,7 @@ export FLASK_DEBUG=False
 
 # Run with Gunicorn
 pip install gunicorn
-gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
+gunicorn --bind 0.0.0.0:7380 --workers 4 app:app
 ```
 
 ### Docker Deployment

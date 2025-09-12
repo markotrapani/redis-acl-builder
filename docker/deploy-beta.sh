@@ -15,15 +15,15 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-# Check if port 8000 is available
-if lsof -Pi :8000 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo "⚠️  Port 8000 is already in use. Please stop the service using port 8000 or choose a different port."
-    echo "   You can check what's using the port with: lsof -i :8000"
+# Check if port 7380 is available
+if lsof -Pi :7380 -sTCP:LISTEN -t >/dev/null 2>&1; then
+    echo "⚠️  Port 7380 is already in use. Please stop the service using port 7380 or choose a different port."
+    echo "   You can check what's using the port with: lsof -i :7380"
     exit 1
 fi
 
 echo "✅ Docker is available"
-echo "✅ Port 8000 is free"
+echo "✅ Port 7380 is free"
 
 # Stop and remove existing container if it exists
 if docker ps -a --format 'table {{.Names}}' | grep -q "redis-acl-builder"; then
@@ -40,7 +40,7 @@ docker build -t redis-acl-builder:v1.7.0-beta -f Dockerfile ..
 echo "🐳 Starting Redis ACL Builder container..."
 docker run -d \
     --name redis-acl-builder \
-    -p 8000:8000 \
+    -p 7380:8000 \
     --restart unless-stopped \
     redis-acl-builder:v1.7.0-beta
 
@@ -53,11 +53,11 @@ if docker ps --format 'table {{.Names}}' | grep -q "redis-acl-builder"; then
     echo "✅ Container is running successfully!"
     
     # Test the application
-    if curl -f -s http://localhost:8000/ > /dev/null; then
+    if curl -f -s http://localhost:7380/ > /dev/null; then
         echo "✅ Application is responding correctly!"
         echo ""
         echo "🎉 SUCCESS! Redis ACL Builder is now running at:"
-        echo "   http://localhost:8000"
+        echo "   http://localhost:7380"
         echo ""
         echo "📊 Container Status:"
         docker ps --filter name=redis-acl-builder --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
