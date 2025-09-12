@@ -124,21 +124,57 @@
             padding-left: var(--spacing-lg);
         }
         
-        /* Dark mode adjustments */
+        /* Light mode (explicit) */
+        [data-theme="light"] .feature-card {
+            background: var(--gray-50);
+            border-color: var(--border-light);
+            color: var(--text-primary);
+        }
+        
+        [data-theme="light"] .syntax-example {
+            background: var(--gray-100);
+            border-color: var(--border);
+            color: var(--text-primary);
+        }
+        
+        [data-theme="light"] .use-case {
+            background: rgba(33, 150, 243, 0.05);
+            color: var(--text-primary);
+        }
+        
+        /* Dark mode (explicit) */
+        [data-theme="dark"] .feature-card {
+            background: var(--gray-100);
+            border-color: var(--border);
+            color: var(--text-primary);
+        }
+        
+        [data-theme="dark"] .syntax-example {
+            background: var(--gray-200);
+            border-color: var(--border);
+            color: var(--text-primary);
+        }
+        
+        [data-theme="dark"] .use-case {
+            background: rgba(33, 150, 243, 0.1);
+            color: var(--text-primary);
+        }
+        
+        /* System preference fallback */
         @media (prefers-color-scheme: dark) {
-            .feature-card {
+            :root:not([data-theme]) .feature-card {
                 background: var(--gray-100);
                 border-color: var(--border);
                 color: var(--text-primary);
             }
             
-            .syntax-example {
+            :root:not([data-theme]) .syntax-example {
                 background: var(--gray-200);
                 border-color: var(--border);
                 color: var(--text-primary);
             }
             
-            .use-case {
+            :root:not([data-theme]) .use-case {
                 background: rgba(33, 150, 243, 0.1);
                 color: var(--text-primary);
             }
@@ -155,8 +191,15 @@
             
             <!-- Page Header -->
             <header>
-                <h1>🔐 Redis Enterprise ACL Builder</h1>
-                <p class="subtitle">Complete Guide & Documentation</p>
+                <div class="header-content">
+                    <div class="header-main">
+                        <h1>🔐 Redis Enterprise ACL Builder</h1>
+                        <p class="subtitle">Complete Guide & Documentation</p>
+                    </div>
+                    <div class="header-nav">
+                        <button id="themeToggle" class="theme-toggle" data-emoji="☀️" title="Switch to light mode" aria-label="Toggle theme"></button>
+                    </div>
+                </div>
             </header>
             
             <!-- What is Redis Enterprise ACL Builder? -->
@@ -194,6 +237,8 @@
                     <li>Start with restrictive rules and gradually add permissions as needed</li>
                     <li>Use the redundancy analysis to optimize complex rules</li>
                     <li>Test with real application commands using the Command Tester</li>
+                    <li>Validate key patterns with the Keyspace Tester using glob patterns (*, ?, [abc], [a-z])</li>
+                    <li>Use dismissible test results with auto-timeout for efficient testing workflow</li>
                     <li>Save frequently used ACL patterns for quick reuse</li>
                 </ul>
             </section>
@@ -212,16 +257,30 @@
                         </ul>
                     </li>
                     <li><strong>Real-time Preview</strong> - See granted and blocked commands instantly</li>
-                    <li><strong>Test Commands</strong> - Use the command tester to verify specific command permissions</li>
+                    <li><strong>Test Commands & Keys</strong> - Use the dual testing interface:
+                        <ul>
+                            <li><strong>Command Tester</strong> - Verify specific Redis command permissions</li>
+                            <li><strong>Keyspace Tester</strong> - Test key pattern matching with glob support</li>
+                        </ul>
+                    </li>
                     <li><strong>Copy & Deploy</strong> - Copy the validated ACL rule for production use</li>
                 </ol>
                 
                 <h3>🎛️ Interface Layout</h3>
                 <ul>
-                    <li><strong>Left Panel (📝)</strong> - ACL Rule Configuration with syntax examples and validation</li>
-                    <li><strong>Center Panel (✅)</strong> - Granted Commands (click to revoke)</li>
-                    <li><strong>Right Panel (❌)</strong> - Blocked Commands (click to grant)</li>
-                    <li><strong>Bottom Panel (📋)</strong> - Command Tester for validation</li>
+                    <li><strong>Left Panel (❌)</strong> - Blocked Commands (click to grant access)</li>
+                    <li><strong>Center Panel (📝)</strong> - ACL Rule Configuration with syntax examples and validation</li>
+                    <li><strong>Right Panel (✅)</strong> - Granted Commands (click to revoke access)</li>
+                    <li><strong>Bottom Panels (📋🔑)</strong> - Dual Testing Interface: Command Tester and Keyspace Tester</li>
+                </ul>
+                
+                <h3>🎨 Theme Support</h3>
+                <ul>
+                    <li><strong>Light Mode:</strong> Clean, professional light theme with high contrast</li>
+                    <li><strong>Dark Mode:</strong> Modern dark theme optimized for low-light environments</li>
+                    <li><strong>Auto-Detection:</strong> Respects system theme preferences by default</li>
+                    <li><strong>Manual Override:</strong> Theme toggle button for explicit user choice</li>
+                    <li><strong>Persistence:</strong> Theme preference saved in browser localStorage</li>
                 </ul>
             </section>
 
@@ -253,7 +312,12 @@
 ~*               # Access to all keys
 ~user:*          # Access to keys matching pattern
 ~cache:* ~sess:* # Multiple key patterns
+~temp:[0-9]*     # Numbered temporary keys
+~data:?          # Single character wildcard
+~log:[a-z]*      # Character range matching
                 </div>
+                
+                <p><strong>💡 Tip:</strong> Use the Keyspace Tester to validate complex patterns like <code>user:[0-9]*:session</code> against actual key names before deployment.</p>
                 
                 <h4>Complete Rule Examples</h4>
                 <div class="syntax-example">
@@ -328,8 +392,10 @@
                 
                 <h3>🔍 Testing & Validation</h3>
                 <ul>
-                    <li>Use the Command Tester to verify permissions before deployment</li>
-                    <li>Test edge cases and boundary conditions</li>
+                    <li>Use the <strong>Command Tester</strong> to verify Redis command permissions before deployment</li>
+                    <li>Use the <strong>Keyspace Tester</strong> to validate key pattern matching with actual key names</li>
+                    <li>Test glob patterns thoroughly: <code>*</code>, <code>?</code>, <code>[abc]</code>, <code>[a-z]</code>, <code>[^abc]</code></li>
+                    <li>Test edge cases and boundary conditions for both commands and key patterns</li>
                     <li>Validate ACL rules in staging environments first</li>
                     <li>Document ACL rules and their intended use cases</li>
                 </ul>
@@ -346,13 +412,23 @@
                     </div>
                     
                     <div class="feature-card">
+                        <h4>🎨 Light & Dark Mode</h4>
+                        <p>Seamless theme switching with localStorage persistence. Supports both explicit theme selection and system preferences.</p>
+                    </div>
+                    
+                    <div class="feature-card">
                         <h4>🔄 Real-time Validation</h4>
                         <p>Instant syntax checking with detailed error messages and auto-correction suggestions.</p>
                     </div>
                     
                     <div class="feature-card">
-                        <h4>🧪 Command Testing</h4>
-                        <p>Test specific Redis commands against your ACL rules to verify permissions work as expected.</p>
+                        <h4>🧪 Dual Command Testing</h4>
+                        <p>Test both Redis commands and keyspace patterns against your ACL rules with comprehensive validation.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🔑 Advanced Key Pattern Testing</h4>
+                        <p>Test complex glob patterns including wildcards (*, ?), character classes ([abc], [a-z]), and escaped characters with real-time validation.</p>
                     </div>
                     
                     <div class="feature-card">
@@ -389,6 +465,7 @@
                 <div class="syntax-example">
 POST /api/parse              # Parse ACL rule and return permissions
 POST /api/test-command       # Test specific command access
+POST /api/test-keyspace      # Test key pattern matching (NEW)
 POST /api/validate-rule      # Validate ACL syntax
 GET /api/categories          # Get available command categories
 POST /api/search-commands    # Search commands with patterns
@@ -397,10 +474,12 @@ GET /health                  # Application health check
                 
                 <h3>🏗️ Architecture</h3>
                 <ul>
-                    <li><strong>Frontend:</strong> Modular ES6 JavaScript + Responsive CSS</li>
-                    <li><strong>Backend:</strong> Flask with comprehensive Redis ACL parsing</li>
-                    <li><strong>Testing:</strong> 29 automated tests with 82% code coverage</li>
-                    <li><strong>Performance:</strong> Debounced rendering, optimized command previews</li>
+                    <li><strong>Frontend:</strong> Modular ES6 JavaScript (8 modules) + Optimized CSS (5 modules)</li>
+                    <li><strong>Backend:</strong> Flask with comprehensive Redis ACL parsing engine</li>
+                    <li><strong>Testing:</strong> 35 automated tests with 79% code coverage</li>
+                    <li><strong>Theming:</strong> Explicit light/dark mode support with CSS custom properties</li>
+                    <li><strong>Performance:</strong> Debounced rendering, optimized command previews, smooth transitions</li>
+                    <li><strong>UX:</strong> Dismissible results, smart button states, auto-expanding textareas</li>
                 </ul>
             </section>
 
@@ -414,5 +493,54 @@ GET /health                  # Application health check
             </div>
         </div>
     </div>
+
+    <!-- Theme toggle functionality -->
+    <script>
+        // Theme toggle functionality for info page
+        (function() {
+            const themeToggle = document.getElementById('themeToggle');
+            if (!themeToggle) return;
+            
+            // Load saved theme or default to system preference
+            const savedTheme = localStorage.getItem('theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const currentTheme = savedTheme || (systemDark ? 'dark' : 'light');
+            
+            // Apply initial theme
+            applyTheme(currentTheme);
+            
+            // Add click handler
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                applyTheme(newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+            
+            // Listen for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('theme')) {
+                    // Only follow system if user hasn't set a preference
+                    applyTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+            
+            function applyTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                
+                // Update toggle button appearance - show what it will switch TO
+                if (theme === 'dark') {
+                    // Currently dark, show light appearance to switch to light
+                    themeToggle.setAttribute('data-emoji', '☀️');
+                    themeToggle.title = 'Switch to light mode';
+                } else {
+                    // Currently light, show dark appearance to switch to dark
+                    themeToggle.setAttribute('data-emoji', '🌙');
+                    themeToggle.title = 'Switch to dark mode';
+                }
+            }
+        })();
+    </script>
 </body>
 </html>
