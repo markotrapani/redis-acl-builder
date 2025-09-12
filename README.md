@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version 1.4.0** - Production-ready with Enhanced UI Polish and Perfect Responsive Design
+**Version 1.7.0** - Production-ready with Complete Light Mode and Dual Testing Interface
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis.
 
@@ -11,7 +11,7 @@ The application features modern, modular frontend and backend architectures:
 - **Frontend**: Modular ES6 JavaScript (8 modules) + Optimized Modular CSS (5 modules) with clean separation of concerns
 - **Backend**: Flask with comprehensive Redis ACL parsing and API layer  
 - **Database**: Hardcoded Redis command databases for Redis 7 (311 commands) and Redis 8 (446 commands)
-- **Testing**: 29 automated tests with 82% code coverage
+- **Testing**: 35 automated tests with 79% code coverage (33 passing, 2 failing UI tests)
 - **UI/UX**: Perfect responsive design with enhanced interactive elements and consistent visual styling
 
 ## Overview
@@ -19,7 +19,8 @@ The application features modern, modular frontend and backend architectures:
 Redis ACL Builder is a powerful tool that helps developers and system administrators understand and test Redis ACL configurations before deploying them to production. The application provides an intuitive web interface to:
 
 - **Parse ACL Rules**: Validate and analyze Redis ACL rule syntax
-- **Test Commands**: Check if specific Redis commands are allowed by your ACL rules
+- **Dual Testing Interface**: Test both Redis commands and keyspace patterns with comprehensive validation
+- **Light/Dark Mode**: Complete theme system with localStorage persistence and system preference detection
 - **Visualize Permissions**: See exactly which commands are granted or denied
 - **Compare Versions**: Support for both Redis 7 and Redis 8 with their respective command sets
 - **Real-time Analysis**: Instant feedback as you modify ACL rules
@@ -27,7 +28,9 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 ### Key Features
 
 - **Complete Command Database**: Pre-loaded with 311 Redis 7 commands and 446 Redis 8 commands
-- **Perfect Responsive Design**: Equal-width three-column layout (ACL Config 📝, Granted Commands ✅, Blocked Commands ❌) across all screen sizes
+- **Perfect Responsive Design**: Equal-width three-column layout (Blocked Commands ❌, ACL Config 📝, Granted Commands ✅) across all screen sizes
+- **Complete Theme System**: Light/Dark mode with explicit CSS selectors, theme toggle button, and localStorage persistence
+- **Dual Testing Interface**: Command Tester for Redis commands + Keyspace Tester for glob pattern validation
 - **Enhanced Test Command Button**: Modern gradient styling with hover animations, uppercase text, and mobile optimization
 - **Real-time Validation**: Live parsing with smooth pop-up notifications for invalid syntax
 - **Optimized Command Preview**: Intelligent 3-command threshold for compact, manageable displays
@@ -39,8 +42,12 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Enhanced Error Handling**: Comprehensive validation with user-friendly error recovery
 - **Smooth Animations**: Eliminated screen flashing with optimized rendering
 - **Redis Enterprise Compliance**: Full validation against Redis ACL specifications
+- **Advanced Keyspace Testing**: Full glob pattern support (*, ?, [abc], [a-z], [^abc]) with real-time validation
+- **Dismissible Test Results**: Auto-timeout after 5 seconds with manual close buttons and smooth fade animations
+- **Smart Button States**: Intelligent disabled states for empty inputs with visual feedback
 - **Version Switching**: Seamless switching between Redis 7/8 with full UI updates
-- **Comprehensive Testing**: 29 automated tests with 82% code coverage
+- **Theme Persistence**: User theme choice saved in localStorage with system preference fallback
+- **Comprehensive Testing**: 35 automated tests with 79% code coverage
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
