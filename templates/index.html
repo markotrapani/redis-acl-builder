@@ -108,40 +108,44 @@
                 </button>
                 
                 <div class="rule-examples">
-                    <h4>Quick Examples</h4>
-                    
-                    <div class="example-group">
-                        <h5 class="example-category">Full Access</h5>
-                        <button type="button" class="example" onclick="setRuleAndParse('+@all ~*')" title="Full access to all commands and keys">
-                            +@all ~*
-                        </button>
+                    <div class="examples-header" onclick="toggleQuickExamples()" role="button" tabindex="0" aria-expanded="true">
+                        <h4><span class="examples-title">Quick Examples</span> <span class="expand-indicator">▼</span></h4>
                     </div>
                     
-                    <div class="example-group">
-                        <h5 class="example-category">Read-Write</h5>
-                        <button type="button" class="example" onclick="setRuleAndParse('+@read +@write -@dangerous ~*')" title="Read and write access excluding dangerous commands">
-                            +@read +@write -@dangerous ~*
-                        </button>
-                    </div>
-                    
-                    <div class="example-group">
-                        <h5 class="example-category">Read-Only</h5>
-                        <button type="button" class="example" onclick="setRuleAndParse('+@read ~*')" title="Read-only access to all keys">
-                            +@read ~*
-                        </button>
-                    </div>
-                    
-                    <div class="example-group">
-                        <h5 class="example-category">Other Access</h5>
-                        <button type="button" class="example" onclick="setRuleAndParse('+@read ~user:* ~session:*')" title="Read-only access to user and session keys">
-                            +@read ~user:* ~session:*
-                        </button>
-                        <button type="button" class="example" onclick="setRuleAndParse('+get +set +del +exists ~*')" title="Basic key operations only">
-                            +get +set +del +exists ~*
-                        </button>
-                        <button type="button" class="example" onclick="setRuleAndParse('+@all -@scripting -@dangerous ~*')" title="Application user access without scripting or dangerous commands">
-                            +@all -@scripting -@dangerous ~*
-                        </button>
+                    <div id="quickExamplesContent" class="examples-content">
+                        <div class="example-group">
+                            <h5 class="example-category">Full Access</h5>
+                            <button type="button" class="example" onclick="setRuleAndParse('+@all ~*')" title="Full access to all commands and keys">
+                                +@all ~*
+                            </button>
+                        </div>
+                        
+                        <div class="example-group">
+                            <h5 class="example-category">Read-Write</h5>
+                            <button type="button" class="example" onclick="setRuleAndParse('+@read +@write -@dangerous ~*')" title="Read and write access excluding dangerous commands">
+                                +@read +@write -@dangerous ~*
+                            </button>
+                        </div>
+                        
+                        <div class="example-group">
+                            <h5 class="example-category">Read-Only</h5>
+                            <button type="button" class="example" onclick="setRuleAndParse('+@read ~*')" title="Read-only access to all keys">
+                                +@read ~*
+                            </button>
+                        </div>
+                        
+                        <div class="example-group">
+                            <h5 class="example-category">Other Access</h5>
+                            <button type="button" class="example" onclick="setRuleAndParse('+@read ~user:* ~session:*')" title="Read-only access to user and session keys">
+                                +@read ~user:* ~session:*
+                            </button>
+                            <button type="button" class="example" onclick="setRuleAndParse('+get +set +del +exists ~*')" title="Basic key operations only">
+                                +get +set +del +exists ~*
+                            </button>
+                            <button type="button" class="example" onclick="setRuleAndParse('+@all -@scripting -@dangerous ~*')" title="Application user access without scripting or dangerous commands">
+                                +@all -@scripting -@dangerous ~*
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
