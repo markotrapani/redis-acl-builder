@@ -34,11 +34,11 @@ RUN useradd --create-home --shell /bin/bash app && \
 USER app
 
 # Expose port
-EXPOSE 8000
+EXPOSE 7380
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
+    CMD curl -f http://localhost:7380/ || exit 1
 
 # Start command using gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:7380", "--workers", "4", "--timeout", "120", "app:app"]

@@ -40,7 +40,7 @@ docker build -t redis-acl-builder:v1.7.0-beta -f Dockerfile ..
 echo "🐳 Starting Redis ACL Builder container..."
 docker run -d \
     --name redis-acl-builder \
-    -p 7380:8000 \
+    -p 7380:7380 \
     --restart unless-stopped \
     redis-acl-builder:v1.7.0-beta
 
