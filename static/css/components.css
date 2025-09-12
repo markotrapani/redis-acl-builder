@@ -275,14 +275,35 @@
   transform: scale(0.95);
 }
 
-/* Dark mode close button */
+/* Light mode close button (explicit) */
+[data-theme="light"] .test-result-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .inline-action-button:disabled:hover {
+  background: #e8e8e8 !important; /* More subtle hover effect in light mode */
+  color: #888888 !important; /* More subtle text lightening */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important; /* Even more subtle shadow */
+}
+
+/* Dark mode close button (explicit) */
+[data-theme="dark"] .test-result-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .inline-action-button:disabled:hover {
+  background: #606060 !important; /* More subtle hover effect in dark mode */
+  color: #aaaaaa !important; /* More subtle text lightening */
+  box-shadow: 0 1px 2px rgba(255,255,255,0.02) !important; /* Very subtle shadow */
+}
+
+/* System preference fallback */
 @media (prefers-color-scheme: dark) {
-  .test-result-close:hover {
+  :root:not([data-theme]) .test-result-close:hover {
     background: rgba(255, 255, 255, 0.1);
   }
   
-  /* Dark mode disabled button hover */
-  .inline-action-button:disabled:hover {
+  :root:not([data-theme]) .inline-action-button:disabled:hover {
     background: #606060 !important; /* More subtle hover effect in dark mode */
     color: #aaaaaa !important; /* More subtle text lightening */
     box-shadow: 0 1px 2px rgba(255,255,255,0.02) !important; /* Very subtle shadow */
@@ -404,22 +425,58 @@
   }
 }
 
-/* Dark mode form elements */
+/* Light mode form elements (explicit) */
+[data-theme="light"] .rule-input,
+[data-theme="light"] .test-command-input {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  color: #212529;
+}
+
+[data-theme="light"] .rule-input:focus,
+[data-theme="light"] .test-command-input:focus {
+  background: #ffffff;
+  border-color: var(--primary-color);
+}
+
+[data-theme="light"] .version-detail {
+  color: #6c757d;
+}
+
+/* Dark mode form elements (explicit) */
+[data-theme="dark"] .rule-input,
+[data-theme="dark"] .test-command-input {
+  background: var(--gray-100);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .rule-input:focus,
+[data-theme="dark"] .test-command-input:focus {
+  background: var(--gray-50);
+  border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .version-detail {
+  color: var(--text-secondary);
+}
+
+/* System preference fallback */
 @media (prefers-color-scheme: dark) {
-  .rule-input,
-  .test-command-input {
+  :root:not([data-theme]) .rule-input,
+  :root:not([data-theme]) .test-command-input {
     background: var(--gray-100);
     border-color: var(--border);
     color: var(--text-primary);
   }
   
-  .rule-input:focus,
-  .test-command-input:focus {
+  :root:not([data-theme]) .rule-input:focus,
+  :root:not([data-theme]) .test-command-input:focus {
     background: var(--gray-50);
     border-color: var(--primary-color);
   }
   
-  .version-detail {
+  :root:not([data-theme]) .version-detail {
     color: var(--text-secondary);
   }
 }
@@ -538,48 +595,138 @@
   transition: transform 0.1s ease;
 }
 
-/* Dark mode button styling */
+/* Light mode button styling (explicit) */
+[data-theme="light"] .category-button,
+[data-theme="light"] .command-button {
+  background: #ffffff;
+  border-color: #dee2e6;
+  color: #212529;
+}
+
+[data-theme="light"] .category-button.granted {
+  background: #d4edda;
+  border-color: #4caf50;
+  color: #155724;
+}
+
+[data-theme="light"] .category-button.blocked {
+  background: #f8d7da;
+  border-color: #f44336;
+  color: #721c24;
+}
+
+[data-theme="light"] .command-button.granted {
+  background: #d4edda;
+  border-color: #4caf50;
+  color: #155724;
+}
+
+[data-theme="light"] .command-button.blocked {
+  background: #f8d7da;
+  border-color: #f44336;
+  color: #721c24;
+}
+
+/* Light mode hover effects */
+[data-theme="light"] .category-button.granted:hover,
+[data-theme="light"] .command-button.granted:hover {
+  background: #c3e6cb;
+  border-color: #388e3c;
+}
+
+[data-theme="light"] .category-button.blocked:hover,
+[data-theme="light"] .command-button.blocked:hover {
+  background: #f5c6cb;
+  border-color: #d32f2f;
+}
+
+/* Dark mode button styling (explicit) */
+[data-theme="dark"] .category-button,
+[data-theme="dark"] .command-button {
+  background: var(--gray-100);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .category-button.granted {
+  background: #1a2e1a;
+  border-color: var(--success-color);
+  color: #a5d6a7;
+}
+
+[data-theme="dark"] .category-button.blocked {
+  background: #2e1a1a;
+  border-color: var(--error-color);
+  color: #ffab91;
+}
+
+[data-theme="dark"] .command-button.granted {
+  background: #1a2e1a;
+  border-color: var(--success-border);
+  color: #a5d6a7;
+}
+
+[data-theme="dark"] .command-button.blocked {
+  background: #2e1a1a;
+  border-color: var(--error-color);
+  color: #ffab91;
+}
+
+/* Dark mode hover effects */
+[data-theme="dark"] .category-button.granted:hover,
+[data-theme="dark"] .command-button.granted:hover {
+  background: #2e4a2e;
+  border-color: var(--success-border);
+}
+
+[data-theme="dark"] .category-button.blocked:hover,
+[data-theme="dark"] .command-button.blocked:hover {
+  background: #4a2e2e;
+  border-color: #ff5252;
+}
+
+/* System preference fallback */
 @media (prefers-color-scheme: dark) {
-  .category-button, 
-  .command-button {
+  :root:not([data-theme]) .category-button,
+  :root:not([data-theme]) .command-button {
     background: var(--gray-100);
     border-color: var(--border);
     color: var(--text-primary);
   }
   
-  .category-button.granted {
+  :root:not([data-theme]) .category-button.granted {
     background: #1a2e1a;
     border-color: var(--success-color);
     color: #a5d6a7;
   }
   
-  .category-button.blocked {
+  :root:not([data-theme]) .category-button.blocked {
     background: #2e1a1a;
     border-color: var(--error-color);
     color: #ffab91;
   }
   
-  .command-button.granted {
+  :root:not([data-theme]) .command-button.granted {
     background: #1a2e1a;
     border-color: var(--success-border);
     color: #a5d6a7;
   }
   
-  .command-button.blocked {
+  :root:not([data-theme]) .command-button.blocked {
     background: #2e1a1a;
     border-color: var(--error-color);
     color: #ffab91;
   }
   
   /* Dark mode hover effects */
-  .category-button.granted:hover, 
-  .command-button.granted:hover {
+  :root:not([data-theme]) .category-button.granted:hover,
+  :root:not([data-theme]) .command-button.granted:hover {
     background: #2e4a2e;
     border-color: var(--success-border);
   }
   
-  .category-button.blocked:hover, 
-  .command-button.blocked:hover {
+  :root:not([data-theme]) .category-button.blocked:hover,
+  :root:not([data-theme]) .command-button.blocked:hover {
     background: #4a2e2e;
     border-color: #ff5252;
   }
@@ -647,14 +794,34 @@
   outline-offset: 2px;
 }
 
-/* Dark mode example buttons */
+/* Light mode example buttons (explicit) */
+[data-theme="light"] .example {
+  background: #e9ecef;
+  color: #212529;
+}
+
+[data-theme="light"] .example:hover {
+  background: #dee2e6;
+}
+
+/* Dark mode example buttons (explicit) */
+[data-theme="dark"] .example {
+  background: var(--gray-100);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .example:hover {
+  background: var(--gray-300);
+}
+
+/* System preference fallback */
 @media (prefers-color-scheme: dark) {
-  .example {
+  :root:not([data-theme]) .example {
     background: var(--gray-100);
     color: var(--text-primary);
   }
   
-  .example:hover {
+  :root:not([data-theme]) .example:hover {
     background: var(--gray-300);
   }
 }
@@ -682,9 +849,19 @@
   letter-spacing: 0.5px;
 }
 
-/* Dark mode example categories */
+/* Light mode example categories (explicit) */
+[data-theme="light"] .example-category {
+  color: #212529;
+}
+
+/* Dark mode example categories (explicit) */
+[data-theme="dark"] .example-category {
+  color: var(--text-secondary);
+}
+
+/* System preference fallback */
 @media (prefers-color-scheme: dark) {
-  .example-category {
+  :root:not([data-theme]) .example-category {
     color: var(--text-secondary);
   }
 }

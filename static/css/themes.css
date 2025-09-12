@@ -127,30 +127,84 @@
   display: inline-block;
 }
 
-/* Dark mode warnings */
+/* Light mode warnings (explicit) */
+[data-theme="light"] .redundancy-warnings {
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+}
+
+[data-theme="light"] .redundancy-warnings h4 {
+  color: #856404;
+}
+
+[data-theme="light"] .warning-item {
+  background: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+[data-theme="light"] .suggestion-item {
+  background: #d1ecf1;
+  border-color: #b8daff;
+  color: #0c5460;
+}
+
+[data-theme="light"] .suggestion-item .simplified-rule {
+  background: #e2e3e5;
+  color: #495057;
+}
+
+/* Dark mode warnings (explicit) */
+[data-theme="dark"] .redundancy-warnings {
+  background: #332a00;
+  border-color: #ffcc02;
+}
+
+[data-theme="dark"] .redundancy-warnings h4 {
+  color: var(--warning-border);
+}
+
+[data-theme="dark"] .warning-item {
+  background: #2d1b1e;
+  border-color: #842029;
+  color: #ea868f;
+}
+
+[data-theme="dark"] .suggestion-item {
+  background: #1b2631;
+  border-color: #0a58ca;
+  color: #6ea8fe;
+}
+
+[data-theme="dark"] .suggestion-item .simplified-rule {
+  background: #495057;
+  color: #e9ecef;
+}
+
+/* System preference fallback for warnings */
 @media (prefers-color-scheme: dark) {
-  .redundancy-warnings {
+  :root:not([data-theme]) .redundancy-warnings {
     background: #332a00;
     border-color: #ffcc02;
   }
   
-  .redundancy-warnings h4 {
+  :root:not([data-theme]) .redundancy-warnings h4 {
     color: var(--warning-border);
   }
   
-  .warning-item {
+  :root:not([data-theme]) .warning-item {
     background: #2d1b1e;
     border-color: #842029;
     color: #ea868f;
   }
   
-  .suggestion-item {
+  :root:not([data-theme]) .suggestion-item {
     background: #1b2631;
     border-color: #0a58ca;
     color: #6ea8fe;
   }
   
-  .suggestion-item .simplified-rule {
+  :root:not([data-theme]) .suggestion-item .simplified-rule {
     background: #495057;
     color: #e9ecef;
   }
@@ -233,11 +287,59 @@
   border-left: 4px solid var(--primary-color);
 }
 
-/* Dark mode results */
+/* Light mode results (explicit) */
+[data-theme="light"] .results-summary {
+  background: var(--gray-50);
+  border-left-color: var(--primary-color);
+}
+
+[data-theme="light"] .test-result.granted {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+[data-theme="light"] .test-result.denied {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+/* Dark mode results (explicit) */
+[data-theme="dark"] .results-summary {
+  background: var(--gray-200);
+  border-left-color: var(--primary-color);
+}
+
+[data-theme="dark"] .test-result.granted {
+  background: #1a3d1a;
+  border: 1px solid #2d5a2d;
+  color: #81c784;
+}
+
+[data-theme="dark"] .test-result.denied {
+  background: #3d1a1a;
+  border: 1px solid #5a2d2d;
+  color: #f28b82;
+}
+
+/* System preference fallback for results */
 @media (prefers-color-scheme: dark) {
-  .results-summary {
+  :root:not([data-theme]) .results-summary {
     background: var(--gray-200);
     border-left-color: var(--primary-color);
+  }
+  
+  :root:not([data-theme]) .test-result.granted {
+    background: #1a3d1a;
+    border: 1px solid #2d5a2d;
+    color: #81c784;
+  }
+  
+  :root:not([data-theme]) .test-result.denied {
+    background: #3d1a1a;
+    border: 1px solid #5a2d2d;
+    color: #f28b82;
   }
 }
 
@@ -260,9 +362,23 @@
   border: 1px solid #d1ecf1;
 }
 
-/* Dark mode command items */
+/* Light mode command items (explicit) */
+[data-theme="light"] .command-item {
+  background: #e8f4f8;
+  border-color: #d1ecf1;
+  color: var(--text-primary);
+}
+
+/* Dark mode command items (explicit) */
+[data-theme="dark"] .command-item {
+  background: var(--gray-50);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+/* System preference fallback for command items */
 @media (prefers-color-scheme: dark) {
-  .command-item {
+  :root:not([data-theme]) .command-item {
     background: var(--gray-50);
     border-color: var(--border);
     color: var(--text-primary);
@@ -351,9 +467,21 @@
   font-size: var(--font-size-base);
 }
 
-/* Dark mode for preview rows */
+/* Light mode for preview rows (explicit) */
+[data-theme="light"] .command-preview-row {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: transparent;
+}
+
+/* Dark mode for preview rows (explicit) */
+[data-theme="dark"] .command-preview-row {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: transparent;
+}
+
+/* System preference fallback for preview rows */
 @media (prefers-color-scheme: dark) {
-  .command-preview-row {
+  :root:not([data-theme]) .command-preview-row {
     border-color: rgba(255, 255, 255, 0.1);
     background: transparent;
   }

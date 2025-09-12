@@ -23,11 +23,25 @@
   border-radius: var(--radius-sm);
 }
 
-/* Dark mode panel descriptions */
+/* Light mode panel descriptions (explicit) */
+[data-theme="light"] .acl-config-panel .panel-description,
+[data-theme="light"] .granted-commands-panel .panel-description,
+[data-theme="light"] .blocked-commands-panel .panel-description {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Dark mode panel descriptions (explicit) */
+[data-theme="dark"] .acl-config-panel .panel-description,
+[data-theme="dark"] .granted-commands-panel .panel-description,
+[data-theme="dark"] .blocked-commands-panel .panel-description {
+  background: rgba(255,255,255,0.05);
+}
+
+/* System preference fallback */
 @media (prefers-color-scheme: dark) {
-  .acl-config-panel .panel-description,
-  .granted-commands-panel .panel-description,
-  .blocked-commands-panel .panel-description {
+  :root:not([data-theme]) .acl-config-panel .panel-description,
+  :root:not([data-theme]) .granted-commands-panel .panel-description,
+  :root:not([data-theme]) .blocked-commands-panel .panel-description {
     background: rgba(255,255,255,0.05);
   }
 }

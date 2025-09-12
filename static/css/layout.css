@@ -64,41 +64,121 @@
   flex-direction: column;
 }
 
-/* Dark mode panel styling */
+/* Light mode panel styling (explicit) */
+[data-theme="light"] .acl-config-panel {
+  color: var(--text-primary);
+  background: linear-gradient(135deg, #f8f9fa 0%, var(--surface) 100%);
+}
+
+[data-theme="light"] .acl-config-panel h2 {
+  color: var(--info-color) !important;
+}
+
+[data-theme="light"] .acl-config-panel .text-muted {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .granted-commands-panel {
+  color: var(--text-primary);
+  background: linear-gradient(135deg, #f1f8e9 0%, var(--surface) 100%);
+}
+
+[data-theme="light"] .granted-commands-panel h2 {
+  color: var(--success-color) !important;
+}
+
+[data-theme="light"] .granted-commands-panel .panel-description {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .blocked-commands-panel {
+  color: var(--text-primary);
+  background: linear-gradient(135deg, #fff3e0 0%, var(--surface) 100%);
+}
+
+[data-theme="light"] .blocked-commands-panel h2 {
+  color: var(--error-color) !important;
+}
+
+[data-theme="light"] .blocked-commands-panel .panel-description {
+  color: var(--text-secondary) !important;
+}
+
+/* Dark mode panel styling (explicit) */
+[data-theme="dark"] .acl-config-panel {
+  color: var(--text-primary);
+  background: linear-gradient(135deg, #1e1f2b 0%, var(--surface) 100%);
+}
+
+[data-theme="dark"] .acl-config-panel h2 {
+  color: var(--info-light) !important;
+}
+
+[data-theme="dark"] .acl-config-panel .text-muted {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .granted-commands-panel {
+  color: var(--text-primary);
+  background: linear-gradient(135deg, #1e2b1e 0%, var(--surface) 100%);
+}
+
+[data-theme="dark"] .granted-commands-panel h2 {
+  color: var(--success-light) !important;
+}
+
+[data-theme="dark"] .granted-commands-panel .panel-description {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .blocked-commands-panel {
+  color: var(--text-primary);
+  background: linear-gradient(135deg, #2b1e1e 0%, var(--surface) 100%);
+}
+
+[data-theme="dark"] .blocked-commands-panel h2 {
+  color: var(--error-light) !important;
+}
+
+[data-theme="dark"] .blocked-commands-panel .panel-description {
+  color: var(--text-secondary) !important;
+}
+
+/* System preference fallback for panels */
 @media (prefers-color-scheme: dark) {
-  .acl-config-panel {
+  :root:not([data-theme]) .acl-config-panel {
     color: var(--text-primary);
   }
   
-  .acl-config-panel h2 {
+  :root:not([data-theme]) .acl-config-panel h2 {
     color: var(--info-light) !important;
   }
   
-  .acl-config-panel .text-muted {
+  :root:not([data-theme]) .acl-config-panel .text-muted {
     color: var(--text-secondary) !important;
   }
   
-  .granted-commands-panel {
+  :root:not([data-theme]) .granted-commands-panel {
     color: var(--text-primary);
   }
   
-  .granted-commands-panel h2 {
+  :root:not([data-theme]) .granted-commands-panel h2 {
     color: var(--success-light) !important;
   }
   
-  .granted-commands-panel .panel-description {
+  :root:not([data-theme]) .granted-commands-panel .panel-description {
     color: var(--text-secondary) !important;
   }
   
-  .blocked-commands-panel {
+  :root:not([data-theme]) .blocked-commands-panel {
     color: var(--text-primary);
   }
   
-  .blocked-commands-panel h2 {
+  :root:not([data-theme]) .blocked-commands-panel h2 {
     color: var(--error-light) !important;
   }
   
-  .blocked-commands-panel .panel-description {
+  :root:not([data-theme]) .blocked-commands-panel .panel-description {
     color: var(--text-secondary) !important;
   }
 }
@@ -122,24 +202,66 @@
   background: rgba(0,0,0,0.02);
 }
 
-/* Dark mode for test section and command categories container */
+/* Light mode for test section and command categories container (explicit) */
+[data-theme="light"] .test-section {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+[data-theme="light"] .command-categories-container,
+[data-theme="light"] .acl-config-panel .command-categories-container,
+[data-theme="light"] .granted-commands-panel .command-categories-container,
+[data-theme="light"] .blocked-commands-panel .command-categories-container {
+  background: rgba(0,0,0,0.02);
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .acl-config-panel .command-categories-container h3,
+[data-theme="light"] .granted-commands-panel .command-categories-container h3,
+[data-theme="light"] .blocked-commands-panel .command-categories-container h3 {
+  color: var(--text-secondary) !important;
+  border-bottom-color: var(--border-light);
+}
+
+/* Dark mode for test section and command categories container (explicit) */
+[data-theme="dark"] .test-section {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+[data-theme="dark"] .command-categories-container,
+[data-theme="dark"] .acl-config-panel .command-categories-container,
+[data-theme="dark"] .granted-commands-panel .command-categories-container,
+[data-theme="dark"] .blocked-commands-panel .command-categories-container {
+  background: rgba(0,0,0,0.3);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .acl-config-panel .command-categories-container h3,
+[data-theme="dark"] .granted-commands-panel .command-categories-container h3,
+[data-theme="dark"] .blocked-commands-panel .command-categories-container h3 {
+  color: var(--text-secondary) !important;
+  border-bottom-color: var(--border);
+}
+
+/* System preference fallback for test section and containers */
 @media (prefers-color-scheme: dark) {
-  .test-section {
+  :root:not([data-theme]) .test-section {
     box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   }
   
-  .command-categories-container,
-  .acl-config-panel .command-categories-container,
-  .granted-commands-panel .command-categories-container,
-  .blocked-commands-panel .command-categories-container {
+  :root:not([data-theme]) .command-categories-container,
+  :root:not([data-theme]) .acl-config-panel .command-categories-container,
+  :root:not([data-theme]) .granted-commands-panel .command-categories-container,
+  :root:not([data-theme]) .blocked-commands-panel .command-categories-container {
     background: rgba(0,0,0,0.3);
     border-color: var(--border);
     color: var(--text-primary);
   }
   
-  .acl-config-panel .command-categories-container h3,
-  .granted-commands-panel .command-categories-container h3,
-  .blocked-commands-panel .command-categories-container h3 {
+  :root:not([data-theme]) .acl-config-panel .command-categories-container h3,
+  :root:not([data-theme]) .granted-commands-panel .command-categories-container h3,
+  :root:not([data-theme]) .blocked-commands-panel .command-categories-container h3 {
     color: var(--text-secondary) !important;
     border-bottom-color: var(--border);
   }
@@ -164,17 +286,43 @@
   text-align: center;
 }
 
-/* Dark mode rule stats */
+/* Light mode rule stats (explicit) */
+[data-theme="light"] .rule-stats,
+[data-theme="light"] .acl-config-panel .rule-stats {
+  background: var(--gray-50);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .rule-stats .text-muted,
+[data-theme="light"] .acl-config-panel .rule-stats .text-muted {
+  color: var(--text-secondary) !important;
+}
+
+/* Dark mode rule stats (explicit) */
+[data-theme="dark"] .rule-stats,
+[data-theme="dark"] .acl-config-panel .rule-stats {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .rule-stats .text-muted,
+[data-theme="dark"] .acl-config-panel .rule-stats .text-muted {
+  color: var(--text-secondary) !important;
+}
+
+/* System preference fallback for rule stats */
 @media (prefers-color-scheme: dark) {
-  .rule-stats,
-  .acl-config-panel .rule-stats {
+  :root:not([data-theme]) .rule-stats,
+  :root:not([data-theme]) .acl-config-panel .rule-stats {
     background: rgba(0,0,0,0.3);
     border: 1px solid var(--border);
     color: var(--text-primary);
   }
   
-  .rule-stats .text-muted,
-  .acl-config-panel .rule-stats .text-muted {
+  :root:not([data-theme]) .rule-stats .text-muted,
+  :root:not([data-theme]) .acl-config-panel .rule-stats .text-muted {
     color: var(--text-secondary) !important;
   }
 }
