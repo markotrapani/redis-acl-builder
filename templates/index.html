@@ -72,10 +72,10 @@
                     <div class="version-info">
                         <span class="version-detail" id="versionDetail">Redis 7 (21 categories, 311 commands)</span>
                         <div class="inline-action-buttons">
-                            <button type="button" id="clearRuleBtn" class="inline-action-button clear-button" onclick="clearACLRule()" title="Clear ACL Rule text area">
+                            <button type="button" id="clearRuleBtn" class="inline-action-button clear-button" onclick="clearACLRule()" title="Clear ACL Rule text area" disabled>
                                 💣
                             </button>
-                            <button type="button" id="copyRuleBtn" class="inline-action-button copy-button" onclick="copyACLRule()" title="Copy ACL Rule to clipboard">
+                            <button type="button" id="copyRuleBtn" class="inline-action-button copy-button" onclick="copyACLRule()" title="Copy ACL Rule to clipboard" disabled>
                                 📋
                             </button>
                         </div>
@@ -184,7 +184,7 @@
                         autocomplete="off"
                         spellcheck="false"
                     >
-                    <button type="button" class="test-button" onclick="testCommand()" aria-label="Test the entered command">
+                    <button type="button" class="test-button" onclick="testCommand()" aria-label="Test the entered command" disabled>
                         CHECK COMMAND
                     </button>
                 </div>
@@ -207,7 +207,7 @@
                         autocomplete="off"
                         spellcheck="false"
                     >
-                    <button type="button" class="test-button keyspace-test-button" onclick="testKeyspace()" aria-label="Test the entered key name">
+                    <button type="button" class="test-button keyspace-test-button" onclick="testKeyspace()" aria-label="Test the entered key name" disabled>
                         CHECK<br>KEY NAME
                     </button>
                 </div>
