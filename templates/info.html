@@ -295,44 +295,38 @@
                 
                 <h4>Command Permissions</h4>
                 <div class="syntax-example">
-<strong>Grant Commands:</strong>
-+@read           # Grant all read commands
-+@write          # Grant all write commands  
-+@all            # Grant all commands
-+get +set        # Grant specific commands
-
-<strong>Deny Commands:</strong>
--@dangerous      # Deny dangerous commands
--@admin          # Deny administrative commands
--flushdb         # Deny specific commands
++@read           # Grant all read commands<br>
++@write          # Grant all write commands<br>
++@all            # Grant all commands<br>
++get +set        # Grant specific commands<br>
+<br>
+-@dangerous      # Deny dangerous commands<br>
+-@admin          # Deny administrative commands<br>
+-flushdb         # Deny specific commands<br>
                 </div>
                 
                 <h4>Key Patterns</h4>
                 <div class="syntax-example">
-~*               # Access to all keys
-~user:*          # Access to keys matching pattern
-~cache:* ~sess:* # Multiple key patterns
+~*               # Access to all keys<br>
+~user:*          # Access to keys matching pattern<br>
+~cache:* ~sess:* # Multiple key patterns<br>
 
-~temp:[0-9]*     # Numbered temporary keys
-~data:?          # Single character wildcard
-~log:[a-z]*      # Character range matching
+~temp:[0-9]*     # Numbered temporary keys<br>
+~data:?          # Single character wildcard<br>
+~log:[a-z]*      # Character range matching<br>
                 </div>
                 
-                <p><strong>💡 Tip:</strong> Use the Keyspace Tester to validate complex patterns like <code>user:[0-9]*:session</code> against actual key names before deployment.</p>
+                <p><strong>💡 TIP:</strong> Use the Keyspace Tester to validate complex patterns like <code>user:[0-9]*:session</code> against actual key names before deployment.</p>
                 
                 <h4>Complete Rule Examples</h4>
                 <div class="syntax-example">
-<strong>Read-only user:</strong>
-+@read ~*
++@read ~* # Read-only user<br>
 
-<strong>Application user:</strong>
-+@read +@write -@dangerous ~app:* ~session:*
++@read +@write -@dangerous ~app:* ~session:* # Application user w/ limited keyspace access<br>
 
-<strong>Monitoring user:</strong>
-+@read +info +ping +client
++@read +info +ping +client # Monitoring user<br>
 
-<strong>Developer access:</strong>
-+@all -flushdb -flushall -shutdown
++@all -flushdb -flushall -shutdown # Developer access<br>
                 </div>
             </section>
 
