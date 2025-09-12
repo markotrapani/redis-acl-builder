@@ -396,6 +396,59 @@
                 </ul>
             </section>
 
+            <!-- Docker Deployment -->
+            <section class="info-section">
+                <h2>🐳 Docker Deployment</h2>
+                
+                <h3>🚀 Quick Start with Docker</h3>
+                <p>The easiest way to run Redis ACL Builder is using the pre-built Docker image available on Docker Hub:</p>
+                
+                <div class="syntax-example">
+# Pull and run the latest version<br>
+docker run -d -p 7380:7380 markotrapani608/redis-acl-builder:latest 
+<br><br>
+# Access the application at http://localhost:7380
+                </div>
+                
+                <h3>📦 Available Tags</h3>
+                <ul>
+                    <li><strong>latest:</strong> <code>markotrapani608/redis-acl-builder:latest</code> - Always the most recent stable release</li>
+                    <li><strong>v1.7.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.7.0-beta</code> - Current beta version with latest features</li>
+                </ul>
+                
+                <h3>🛠️ Container Management</h3>
+                <div class="syntax-example">
+# Run with custom container name
+<br>
+docker run -d -p 7380:7380 --name redis-acl-builder markotrapani608/redis-acl-builder:latest
+<br><br>
+# Check container status<br>
+docker ps
+<br><br>
+# View application logs<br>
+docker logs redis-acl-builder
+<br><br>
+# Stop the container<br>
+docker stop redis-acl-builder
+<br><br>
+# Remove the container<br>
+docker rm redis-acl-builder
+                </div>
+                
+                <h3>🌐 Deployment Options</h3>
+                <ul>
+                    <li><strong>Docker Hub:</strong> Public image ready for immediate use</li>
+                    <li><strong>Local Build:</strong> Clone repository and use <code>./docker/deploy-beta.sh</code></li>
+                    <li><strong>Docker Compose:</strong> Use <code>docker-compose.yml</code> for stack deployment</li>
+                    <li><strong>Kubernetes:</strong> Compatible with container orchestration platforms</li>
+                </ul>
+                
+                <div class="use-case">
+                    <h4>🏢 Enterprise Deployment</h4>
+                    <p>For enterprise environments, consider running behind a reverse proxy (nginx/Apache) with SSL termination and additional security headers.</p>
+                </div>
+            </section>
+
             <!-- Key Features -->
             <section class="info-section">
                 <h2>✨ Key Features</h2>
@@ -440,58 +493,6 @@
                         <h4>🔍 Rule Analysis</h4>
                         <p>Automatic detection of redundant rules with optimization suggestions to simplify ACL configurations.</p>
                     </div>
-                </div>
-            </section>
-
-            <!-- Docker Deployment -->
-            <section class="info-section">
-                <h2>🐳 Docker Deployment</h2>
-                
-                <h3>🚀 Quick Start with Docker</h3>
-                <p>The easiest way to run Redis ACL Builder is using the pre-built Docker image available on Docker Hub:</p>
-                
-                <div class="syntax-example">
-# Pull and run the latest version
-docker run -d -p 7380:7380 markotrapani608/redis-acl-builder:latest
-
-# Access the application at http://localhost:7380
-                </div>
-                
-                <h3>📦 Available Tags</h3>
-                <ul>
-                    <li><strong>latest:</strong> <code>markotrapani608/redis-acl-builder:latest</code> - Always the most recent stable release</li>
-                    <li><strong>v1.7.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.7.0-beta</code> - Current production-ready version</li>
-                </ul>
-                
-                <h3>🛠️ Container Management</h3>
-                <div class="syntax-example">
-# Run with custom container name
-docker run -d -p 7380:7380 --name redis-acl-builder markotrapani608/redis-acl-builder:latest
-
-# Check container status
-docker ps
-
-# View application logs
-docker logs redis-acl-builder
-
-# Stop the container
-docker stop redis-acl-builder
-
-# Remove the container
-docker rm redis-acl-builder
-                </div>
-                
-                <h3>🌐 Production Deployment Options</h3>
-                <ul>
-                    <li><strong>Docker Hub:</strong> Public image ready for immediate use</li>
-                    <li><strong>Local Build:</strong> Clone repository and use <code>./docker/deploy-beta.sh</code></li>
-                    <li><strong>Docker Compose:</strong> Use <code>docker-compose.yml</code> for stack deployment</li>
-                    <li><strong>Kubernetes:</strong> Compatible with container orchestration platforms</li>
-                </ul>
-                
-                <div class="use-case">
-                    <h4>🏢 Enterprise Deployment</h4>
-                    <p>For production environments, consider running behind a reverse proxy (nginx/Apache) with SSL termination and additional security headers.</p>
                 </div>
             </section>
             
