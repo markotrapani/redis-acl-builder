@@ -452,7 +452,7 @@
                 
                 <div class="syntax-example">
 # Pull and run the latest version
-docker run -d -p 7380:8000 markotrapani608/redis-acl-builder:latest
+docker run -d -p 7380:7380 markotrapani608/redis-acl-builder:latest
 
 # Access the application at http://localhost:7380
                 </div>
@@ -466,7 +466,7 @@ docker run -d -p 7380:8000 markotrapani608/redis-acl-builder:latest
                 <h3>🛠️ Container Management</h3>
                 <div class="syntax-example">
 # Run with custom container name
-docker run -d -p 7380:8000 --name redis-acl-builder markotrapani608/redis-acl-builder:latest
+docker run -d -p 7380:7380 --name redis-acl-builder markotrapani608/redis-acl-builder:latest
 
 # Check container status
 docker ps
