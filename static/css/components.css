@@ -356,7 +356,7 @@
 /* Enhanced rule input for interactive mode */
 .acl-config-panel .rule-input {
   min-height: 120px;
-  max-height: 540px;
+  max-height: 256px;
   resize: vertical;
 }
 
@@ -850,24 +850,27 @@
 }
 
 .rule-examples-content {
-  overflow-y: auto;
+  overflow-y: hidden;
   flex: 1;
-  /* Remove padding to prevent premature scrollbar */
 }
 
-/* Styled scrollbar for examples content */
+/* Only show scrollbar when content actually overflows */
+.rule-examples-content.needs-scroll {
+  overflow-y: auto;
+}
+
+/* Minimal scrollbar styling - let it overlap content */
 .rule-examples-content::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .rule-examples-content::-webkit-scrollbar-track {
-  background: var(--gray-100);
-  border-radius: 3px;
+  background: transparent;
 }
 
 .rule-examples-content::-webkit-scrollbar-thumb {
   background: var(--gray-400);
-  border-radius: 3px;
+  border-radius: 6px;
 }
 
 .rule-examples-content::-webkit-scrollbar-thumb:hover {

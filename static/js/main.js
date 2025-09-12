@@ -156,8 +156,75 @@ window.clearACLRule = () => {
     }
 };
 
+// Function to check if Quick Examples need scrolling
+function checkQuickExamplesScroll() {
+    const content = document.querySelector('.rule-examples-content');
+    if (!content) {
+        console.warn('Quick Examples content not found');
+        return;
+    }
+    
+    console.log('Checking scroll need:', {
+        scrollHeight: content.scrollHeight,
+        clientHeight: content.clientHeight,
+        needsScroll: content.scrollHeight > content.clientHeight
+    });
+    
+    // Check if content height exceeds container height with tolerance
+    const heightDiff = content.scrollHeight - content.clientHeight;
+    const tolerance = 15; // Only show scrollbar if difference is > 15px
+    
+    if (heightDiff > tolerance) {
+        console.log('Adding needs-scroll class - height difference:', heightDiff);
+        content.classList.add('needs-scroll');
+    } else {
+        console.log('Removing needs-scroll class - height difference too small:', heightDiff);
+        content.classList.remove('needs-scroll');
+    }
+}
+
 // Auto-initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', App.init);
+document.addEventListener('DOMContentLoaded', () => {
+    App.init();
+    // Check scroll need after layout settles
+    setTimeout(checkQuickExamplesScroll, 100);
+    
+    // Monitor for layout changes that might affect scrolling
+    const observer = new ResizeObserver(checkQuickExamplesScroll);
+    const aclPanel = document.querySelector('.acl-config-panel');
+    if (aclPanel) {
+        observer.observe(aclPanel);
+    }
+    
+    // Monitor textarea changes (resizing or content changes)
+    const textarea = document.getElementById('aclRule');
+    if (textarea) {
+        textarea.addEventListener('input', checkQuickExamplesScroll);
+        textarea.addEventListener('mouseup', checkQuickExamplesScroll); // Manual resize
+        // Also observe the textarea itself for size changes
+        observer.observe(textarea);
+    }
+    
+    // Monitor submit changes button visibility
+    const submitBtn = document.getElementById('submitChangesBtn');
+    if (submitBtn) {
+        // Watch for style changes (display: none/block)
+        const submitObserver = new MutationObserver(checkQuickExamplesScroll);
+        submitObserver.observe(submitBtn, { attributes: true, attributeFilter: ['style'] });
+    }
+    
+    // Monitor redundancy warnings visibility
+    const redundancyWarnings = document.getElementById('redundancyWarnings');
+    if (redundancyWarnings) {
+        const warningsObserver = new MutationObserver(checkQuickExamplesScroll);
+        warningsObserver.observe(redundancyWarnings, { 
+            attributes: true, 
+            attributeFilter: ['style'],
+            childList: true,
+            subtree: true
+        });
+    }
+});
 
 // Export for potential module usage
 if (typeof module !== 'undefined' && module.exports) {
