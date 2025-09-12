@@ -193,8 +193,9 @@
   box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 
-/* Disabled state for inline action buttons */
-.inline-action-button:disabled {
+/* Disabled state for inline action buttons - prevent FOUC with immediate disabled styling */
+.inline-action-button:disabled,
+.inline-action-button[disabled] {
   background: var(--gray-300) !important;
   color: var(--gray-500) !important;
   border-color: var(--gray-300) !important;
@@ -204,7 +205,8 @@
   opacity: 0.6;
 }
 
-.inline-action-button:disabled:hover {
+.inline-action-button:disabled:hover,
+.inline-action-button[disabled]:hover {
   background: #e8e8e8 !important; /* More subtle hover effect - between gray-200 and gray-300 */
   color: #888888 !important; /* More subtle text lightening - between gray-400 and gray-500 */
   transform: none !important;
@@ -212,8 +214,9 @@
   cursor: not-allowed !important;
 }
 
-/* Disabled state for test buttons */
-.test-button:disabled {
+/* Disabled state for test buttons - prevent FOUC with immediate disabled styling */
+.test-button:disabled,
+.test-button[disabled] {
   background: var(--gray-300) !important;
   color: var(--gray-500) !important;
   border-color: var(--gray-300) !important;
@@ -223,7 +226,8 @@
   opacity: 0.6;
 }
 
-.test-button:disabled:hover {
+.test-button:disabled:hover,
+.test-button[disabled]:hover {
   background: var(--gray-300) !important;
   color: var(--gray-500) !important;
   transform: none !important;
@@ -280,7 +284,8 @@
   background: rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="light"] .inline-action-button:disabled:hover {
+[data-theme="light"] .inline-action-button:disabled:hover,
+[data-theme="light"] .inline-action-button[disabled]:hover {
   background: #e8e8e8 !important; /* More subtle hover effect in light mode */
   color: #888888 !important; /* More subtle text lightening */
   box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important; /* Even more subtle shadow */
@@ -291,7 +296,8 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-[data-theme="dark"] .inline-action-button:disabled:hover {
+[data-theme="dark"] .inline-action-button:disabled:hover,
+[data-theme="dark"] .inline-action-button[disabled]:hover {
   background: #606060 !important; /* More subtle hover effect in dark mode */
   color: #aaaaaa !important; /* More subtle text lightening */
   box-shadow: 0 1px 2px rgba(255,255,255,0.02) !important; /* Very subtle shadow */
@@ -303,7 +309,8 @@
     background: rgba(255, 255, 255, 0.1);
   }
   
-  :root:not([data-theme]) .inline-action-button:disabled:hover {
+  :root:not([data-theme]) .inline-action-button:disabled:hover,
+  :root:not([data-theme]) .inline-action-button[disabled]:hover {
     background: #606060 !important; /* More subtle hover effect in dark mode */
     color: #aaaaaa !important; /* More subtle text lightening */
     box-shadow: 0 1px 2px rgba(255,255,255,0.02) !important; /* Very subtle shadow */
