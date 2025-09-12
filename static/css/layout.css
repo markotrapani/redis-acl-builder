@@ -533,3 +533,10 @@
     gap: var(--spacing-md);
   }
 }
+
+/* Shimmer wash animation for smooth button loading */
+.command-categories-container.updating {
+  position: relative;
+  overflow: hidden;
+}
+
