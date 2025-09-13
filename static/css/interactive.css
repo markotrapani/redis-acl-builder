@@ -37,14 +37,15 @@
   background: rgba(255,255,255,0.05);
 }
 
-/* System preference fallback */
+/* System preference fallback (only when no theme set) */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .acl-config-panel .panel-description,
-  :root:not([data-theme]) .granted-commands-panel .panel-description,
-  :root:not([data-theme]) .blocked-commands-panel .panel-description {
+  html:not([data-theme]) .acl-config-panel .panel-description,
+  html:not([data-theme]) .granted-commands-panel .panel-description,
+  html:not([data-theme]) .blocked-commands-panel .panel-description {
     background: rgba(255,255,255,0.05);
   }
 }
+
 
 /* Interactive state management */
 .category-buttons.updating,

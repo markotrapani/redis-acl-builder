@@ -7,7 +7,8 @@ const Storage = {
     // Storage keys
     keys: {
         ACL_RULE: 'redis-acl-builder-rule',
-        REDIS_VERSION: 'redis-acl-builder-version'
+        REDIS_VERSION: 'redis-acl-builder-version',
+        LAST_GENERATED_RULE: 'redis-acl-builder-last-generated'
     },
 
     /**
@@ -134,6 +135,22 @@ const Storage = {
      */
     loadRedisVersion() {
         return this.load(this.keys.REDIS_VERSION, 'redis7');
+    },
+    
+    /**
+     * Save last generated rule (for detecting manual changes after reload)
+     * @param {string} rule - Last generated rule text
+     */
+    saveLastGeneratedRule(rule) {
+        this.save(this.keys.LAST_GENERATED_RULE, rule);
+    },
+
+    /**
+     * Load last generated rule
+     * @returns {string} Saved last generated rule or empty string
+     */
+    loadLastGeneratedRule() {
+        return this.load(this.keys.LAST_GENERATED_RULE);
     }
 };
 

@@ -8,13 +8,44 @@
     <!-- Prevent theme flash by setting theme before CSS loads -->
     <script>
         (function() {
-            // Load saved theme or default to system preference
-            const savedTheme = localStorage.getItem('theme');
-            const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = savedTheme || (systemDark ? 'dark' : 'light');
-            
-            // Set theme immediately to prevent flash
-            document.documentElement.setAttribute('data-theme', theme);
+            try {
+                // More robust theme detection with fallbacks
+                let savedTheme = null;
+                let systemDark = false;
+                
+                try {
+                    savedTheme = localStorage.getItem('theme');
+                } catch (e) {
+                    // localStorage might be blocked in some environments
+                    console.warn('localStorage access failed:', e);
+                }
+                
+                try {
+                    systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                } catch (e) {
+                    // matchMedia might not be available
+                    console.warn('matchMedia access failed:', e);
+                }
+                
+                // Default to light mode with explicit fallback for Docker/production
+                const theme = savedTheme || (systemDark ? 'dark' : 'light');
+                
+                // Set theme immediately to prevent flash
+                document.documentElement.setAttribute('data-theme', theme);
+                
+                // Debug logging for Docker troubleshooting
+                console.log('Theme initialization:', {
+                    savedTheme: savedTheme,
+                    systemDark: systemDark,
+                    appliedTheme: theme,
+                    userAgent: navigator.userAgent.substring(0, 100)
+                });
+                
+            } catch (e) {
+                // Ultimate fallback - force light mode
+                console.error('Theme initialization failed, forcing light mode:', e);
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
         })();
     </script>
     

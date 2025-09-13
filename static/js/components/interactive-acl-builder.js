@@ -7,6 +7,7 @@ import AppState from '../core/app-state.js';
 import Utils from '../core/utils.js';
 import API from '../api/api-client.js';
 import RuleManager from '../managers/rule-manager.js';
+import Storage from '../core/storage.js';
 
 const InteractiveACLBuilder = {
     // State management
@@ -68,7 +69,17 @@ const InteractiveACLBuilder = {
             
             // Check if there's existing content in textarea (from localStorage restoration)
             const existingRule = this.elements.aclRuleInput.value.trim();
+            
+            // Set initialized to true before restoration so syncFromRuleText works
+            this.state.isInitialized = true;
+            
             if (existingRule) {
+                // Restore lastGeneratedRule BEFORE restoration for proper change detection
+                const savedLastGenerated = Storage.loadLastGeneratedRule();
+                if (savedLastGenerated) {
+                    this.state.lastGeneratedRule = savedLastGenerated;
+                }
+                
                 await this.syncFromRuleText(true); // Pass true to indicate this is restoration
             } else {
                 await this.updateRuleText();
@@ -76,8 +87,6 @@ const InteractiveACLBuilder = {
             
             // Add event listeners
             this.setupEventListeners();
-            
-            this.state.isInitialized = true;
             
             // Final check for Submit Changes button visibility after initialization
             // This handles cases where restoration failed but button should still be shown
@@ -262,7 +271,7 @@ const InteractiveACLBuilder = {
     async renderColumns() {
         // Note: Loading class is already in HTML to prevent initial flash
         
-        this.renderCategoryButtons();
+        await this.renderCategoryButtons();
         await this.renderCommandButtons();
         
         // Remove loading cover after content is rendered (only on initial load)
@@ -331,8 +340,26 @@ const InteractiveACLBuilder = {
 
         // Wait for fade, then render
         setTimeout(async () => {
-            await this.renderColumns();
+            // First update the rule text to get the current rule string
             await this.updateRuleText();
+            
+            // Then refresh API response data for partial category detection
+            const currentRule = this.elements.aclRuleInput.value.trim();
+            if (currentRule) {
+                try {
+                    console.log('PARTIAL DEBUG: Refreshing API response for current rule:', currentRule);
+                    const response = await API.parseRule(currentRule, AppState.currentVersion);
+                    if (response && response.success) {
+                        this.lastApiResponse = response;
+                        console.log('PARTIAL DEBUG: Updated lastApiResponse with', response.granted_commands?.length || 0, 'granted commands');
+                    }
+                } catch (error) {
+                    console.error('PARTIAL DEBUG: Error refreshing API response:', error);
+                }
+            }
+            
+            // Now render with fresh API data
+            await this.renderColumns();
 
             // Fade back in and clean up inline styles
             requestAnimationFrame(() => {
@@ -351,7 +378,9 @@ const InteractiveACLBuilder = {
     /**
      * Render category buttons in both columns
      */
-    renderCategoryButtons() {
+    async renderCategoryButtons() {
+        // For now, let's simplify and not use the three-state analysis to fix the loading issue
+        // We can re-enable it once we debug the problem
         const hasAllCategory = this.state.grantedCategories.has('all');
         
         // Determine effective status of all categories based on ACL rule precedence
@@ -399,8 +428,22 @@ const InteractiveACLBuilder = {
                     sortedCategories = effectivelyGrantedCategories.sort();
                 }
                 
-                sortedCategories.forEach(category => {
-                    const button = this.createCategoryButton(category, 'granted');
+                // First, we need to detect which granted categories are partial (have blocked subcommands)
+                console.log('PARTIAL DEBUG: Starting analysis for granted categories:', sortedCategories);
+                const categoryAnalysisPromises = sortedCategories.map(async (category) => {
+                    console.log(`PARTIAL DEBUG: Analyzing category ${category}`);
+                    const categoryAnalysis = await this.detectPartialCategory(category);
+                    console.log(`PARTIAL DEBUG: Analysis result for ${category}:`, categoryAnalysis);
+                    return { category, categoryAnalysis };
+                });
+                
+                // Wait for all analyses to complete
+                const analyses = await Promise.all(categoryAnalysisPromises);
+                console.log('PARTIAL DEBUG: All analyses completed:', analyses);
+                
+                analyses.forEach(({ category, categoryAnalysis }) => {
+                    console.log(`PARTIAL DEBUG: Creating button for ${category} with analysis:`, categoryAnalysis);
+                    const button = this.createCategoryButton(category, 'granted', categoryAnalysis);
                     
                     // Special handling for @all case
                     if (hasAllCategory && !this.state.grantedCategories.has(category)) {
@@ -771,20 +814,184 @@ const InteractiveACLBuilder = {
     },
 
     /**
+     * Analyze category states based on granted commands
+     * Returns object with category states: 'blocked', 'partial', 'fully-granted'
+     */
+    async analyzeCategoryStates() {
+        const categoryStates = {};
+        
+        // Process categories in parallel for better performance
+        const categoryAnalysisPromises = this.state.allCategories.map(async (category) => {
+            // Get commands for this category from backend
+            const categoryCommands = await this.getCategoryCommandsCached(category);
+            if (!categoryCommands || categoryCommands.length === 0) {
+                return { category, state: 'blocked' };
+            }
+            
+            const categoryCommandSet = new Set(categoryCommands);
+            
+            // Count how many of this category's commands are granted
+            const grantedInCategory = Array.from(categoryCommandSet).filter(cmd => 
+                this.state.grantedCommands.has(cmd)
+            ).length;
+            
+            const totalInCategory = categoryCommandSet.size;
+            
+            let state;
+            if (grantedInCategory === 0) {
+                state = 'blocked';
+            } else if (grantedInCategory === totalInCategory) {
+                state = 'fully-granted';
+            } else {
+                state = 'partial';
+            }
+            
+            return { category, state };
+        });
+        
+        // Wait for all analyses to complete
+        const analyses = await Promise.all(categoryAnalysisPromises);
+        
+        // Convert to object format
+        analyses.forEach(({ category, state }) => {
+            categoryStates[category] = state;
+        });
+        
+        return categoryStates;
+    },
+
+    /**
+     * Get commands for a specific category
+     */
+    async getCategoryCommands(category) {
+        try {
+            // Use the API to parse a rule with just this category to get its commands
+            const result = await API.parseRule(`+@${category}`, AppState.currentVersion);
+            return result.granted_commands || [];
+        } catch (error) {
+            console.error(`Error getting commands for category ${category}:`, error);
+            return [];
+        }
+    },
+    
+    /**
+     * Detect if a granted category is partial (has blocked subcommands)
+     * Returns analysis object for use with createCategoryButton
+     */
+    async detectPartialCategory(category) {
+        try {
+            // Get all commands in this category
+            const categoryCommands = await this.getCategoryCommandsCached(category);
+            if (!categoryCommands || categoryCommands.length === 0) {
+                return { [category]: 'blocked' };
+            }
+            
+            // Get all commands that are currently granted by the ACL rule (from API response)
+            const allGrantedCommands = new Set();
+            console.log(`PARTIAL DEBUG: lastApiResponse for ${category}:`, this.lastApiResponse);
+            if (this.lastApiResponse && this.lastApiResponse.granted_commands) {
+                this.lastApiResponse.granted_commands.forEach(cmd => allGrantedCommands.add(cmd));
+                console.log(`PARTIAL DEBUG: All granted commands (${allGrantedCommands.size}):`, Array.from(allGrantedCommands));
+            } else {
+                console.log(`PARTIAL DEBUG: No lastApiResponse or granted_commands for ${category}`);
+            }
+            
+            // Check how many commands in this category are granted
+            const categoryCommandSet = new Set(categoryCommands);
+            const grantedInCategory = Array.from(categoryCommandSet).filter(cmd => 
+                allGrantedCommands.has(cmd)
+            ).length;
+            
+            const totalInCategory = categoryCommandSet.size;
+            
+            // Determine the category state
+            let state;
+            if (grantedInCategory === 0) {
+                state = 'blocked';
+            } else if (grantedInCategory === totalInCategory) {
+                state = 'fully-granted';
+            } else {
+                state = 'partial';
+            }
+            
+            // Debug logging for partial category detection
+            console.log(`PARTIAL DETECTION: Category ${category}: ${grantedInCategory}/${totalInCategory} commands granted -> ${state}`);
+            
+            return { [category]: state };
+        } catch (error) {
+            console.error(`Error detecting partial category ${category}:`, error);
+            return { [category]: 'fully-granted' }; // Default to fully-granted on error
+        }
+    },
+    
+    /**
+     * Cache for category commands to avoid repeated API calls
+     */
+    _categoryCommandsCache: new Map(),
+    
+    /**
+     * Get commands for a specific category with caching
+     */
+    async getCategoryCommandsCached(category) {
+        const cacheKey = `${AppState.currentVersion}:${category}`;
+        
+        if (this._categoryCommandsCache.has(cacheKey)) {
+            return this._categoryCommandsCache.get(cacheKey);
+        }
+        
+        const commands = await this.getCategoryCommands(category);
+        this._categoryCommandsCache.set(cacheKey, commands);
+        return commands;
+    },
+
+    /**
      * Create a category button element
      */
-    createCategoryButton(category, state) {
+    createCategoryButton(category, state, categoryAnalysis = null) {
         const button = document.createElement('button');
-        button.className = `category-button ${state === 'available' ? 'blocked' : state}`;
-        button.textContent = `@${category}`;
         
-        if (state === 'available') {
-            button.title = `Click to grant @${category} category`;
-            button.onclick = () => this.grantCategory(category);
+        // Determine visual state and styling
+        let buttonClass, tooltipText, clickHandler;
+        
+        if (state === 'granted') {
+            const analysisState = categoryAnalysis?.[category];
+            console.log(`BUTTON DEBUG: Creating button for ${category}, state=${state}, analysisState=${analysisState}, categoryAnalysis=`, categoryAnalysis);
+            
+            if (analysisState === 'partial') {
+                buttonClass = `category-button granted partial`;
+                tooltipText = `@${category} category (partially granted) - Some commands in this category are excluded - Click to revoke`;
+                clickHandler = () => this.toggleCategory(category);
+                console.log(`BUTTON DEBUG: Applied PARTIAL styling to ${category}`);
+            } else if (analysisState === 'fully-granted' && !this.state.grantedCategories.has(category)) {
+                // Implicitly granted (all commands granted individually)
+                buttonClass = `category-button granted implicit`;
+                tooltipText = `@${category} category (implicitly granted) - All commands granted individually - Click to add category rule`;
+                clickHandler = () => this.grantCategory(category);
+            } else {
+                // Explicitly granted
+                buttonClass = `category-button granted explicit`;
+                tooltipText = `@${category} category (explicitly granted) - Click to revoke`;
+                clickHandler = () => this.toggleCategory(category);
+            }
+        } else if (state === 'available') {
+            buttonClass = `category-button blocked`;
+            tooltipText = `Click to grant @${category} category`;
+            clickHandler = () => this.grantCategory(category);
         } else {
-            button.title = `Click to ${state === 'granted' ? 'revoke' : 'grant'} @${category} category`;
-            button.onclick = () => this.toggleCategory(category);
+            buttonClass = `category-button ${state}`;
+            tooltipText = `Click to ${state === 'granted' ? 'revoke' : 'grant'} @${category} category`;
+            clickHandler = () => this.toggleCategory(category);
         }
+        
+        button.className = buttonClass;
+        // Add visual debug indicator for partial categories
+        if (buttonClass.includes('partial')) {
+            button.textContent = `@${category} ⚠`;
+        } else {
+            button.textContent = `@${category}`;
+        }
+        button.title = tooltipText;
+        button.onclick = clickHandler;
         
         return button;
     },
@@ -820,11 +1027,12 @@ const InteractiveACLBuilder = {
         // Determine the behavior based on how the command is granted
         if (isIndividual) {
             // If granted individually (even if also via category), use normal toggle
-            button.title = `${command} - Click to revoke`;
+            button.title = `${command} - EXPLICITLY GRANTED\nThis command was directly added to your ACL rule.\nClick to revoke.`;
             button.onclick = () => this.toggleCommand(command);
         } else if (isViaCategory) {
             // If only granted via category, use exclusion behavior
-            button.title = `${command} - Click to exclude (granted via category)`;
+            button.classList.add('implicit');
+            button.title = `${command} - IMPLICITLY GRANTED\nThis command is granted through a category (e.g., @read, @write).\nClick to explicitly exclude it from the category.`;
             button.onclick = () => this.blockCommandFromCategory(command);
         }
         
@@ -871,6 +1079,9 @@ const InteractiveACLBuilder = {
         this.state.lastValidRule = rule;     // This is a valid rule for testing
         this.state.hasManualChanges = false;
         this.hideSubmitButton();
+        
+        // Save to localStorage for proper restoration
+        Storage.saveLastGeneratedRule(rule);
         
         // Trigger change event to update other parts of the app
         this.elements.aclRuleInput.dispatchEvent(new Event('input'));
@@ -1042,35 +1253,68 @@ const InteractiveACLBuilder = {
                     const data = await API.parseRule(ruleText, AppState.currentVersion);
                     
                     if (data && data.success) {
+                        // Store the API response for partial category detection
+                        this.lastApiResponse = data;
                         // Use actual parsing results to determine what's granted
                         const grantedCommands = new Set(data.granted_commands || []);
                         const groupedCommands = data.grouped_commands || {};
                         
-                        // Determine granted categories based on actual results
-                        const grantedCategories = new Set(Object.keys(groupedCommands));
-                        
-                        // Get all available commands/categories
-                        const allCategories = new Set(this.state.allCategories);
-                        const allCommands = new Set(this.state.allCommands);
-                        
-                        // Update state based on actual ACL evaluation results
-                        this.state.grantedCategories = grantedCategories;
-                        this.state.grantedCommands = grantedCommands;
-                        
-                        // Everything else is blocked
-                        this.state.blockedCategories = new Set([...allCategories].filter(cat => !grantedCategories.has(cat)));
-                        this.state.blockedCommands = new Set([...allCommands].filter(cmd => !grantedCommands.has(cmd)));
-                        
-                        // Parse key patterns from original rule text
+                        // Parse rule tokens to determine what was explicitly granted
                         const tokens = ruleText.split(/\s+/).filter(token => token.length > 0);
-                        this.state.keyPatterns.clear();
-                        this.state.orderedTerms = []; // Simplified - could be enhanced later
+                        const grantedCategories = new Set();
+                        const blockedCategories = new Set();
+                        const explicitlyGrantedCommands = new Set();
+                        const orderedTerms = [];
                         
+                        // Parse the rule to find explicitly granted/blocked categories and commands
+                        // and build orderedTerms to preserve the rule structure
+                        for (const token of tokens) {
+                            if (token.startsWith('+@')) {
+                                // Granted category
+                                const category = token.substring(2);
+                                grantedCategories.add(category);
+                                orderedTerms.push({ type: 'category', operation: 'grant', value: category });
+                            } else if (token.startsWith('-@')) {
+                                // Blocked category
+                                const category = token.substring(2);
+                                blockedCategories.add(category);
+                                orderedTerms.push({ type: 'category', operation: 'block', value: category });
+                            } else if (token.startsWith('+') && !token.startsWith('+@')) {
+                                // Granted command
+                                const command = token.substring(1);
+                                explicitlyGrantedCommands.add(command);
+                                orderedTerms.push({ type: 'command', operation: 'grant', value: command });
+                            } else if (token.startsWith('-') && !token.startsWith('-@')) {
+                                // Blocked command
+                                const command = token.substring(1);
+                                orderedTerms.push({ type: 'command', operation: 'block', value: command });
+                            }
+                        }
+                        
+                        // Parse key patterns
+                        this.state.keyPatterns.clear();
                         for (const token of tokens) {
                             if (token.startsWith('~')) {
                                 this.state.keyPatterns.add(token);
                             }
                         }
+                        
+                        // Get all available commands/categories
+                        const allCategories = new Set(this.state.allCategories);
+                        const allCommands = new Set(this.state.allCommands);
+                        
+                        // Update state based on actual rule parsing and API results
+                        this.state.grantedCategories = grantedCategories;
+                        this.state.grantedCommands = explicitlyGrantedCommands;
+                        
+                        // Determine blocked categories: explicitly blocked or not granted
+                        this.state.blockedCategories = new Set([...allCategories].filter(cat => 
+                            blockedCategories.has(cat) || !grantedCategories.has(cat)
+                        ));
+                        this.state.blockedCommands = new Set([...allCommands].filter(cmd => !grantedCommands.has(cmd)));
+                        
+                        // Preserve the ordered terms from the original rule
+                        this.state.orderedTerms = orderedTerms;
                     } else {
                         // Fallback to simple text parsing if API fails
                         this.fallbackTextParsing(ruleText);
@@ -1086,13 +1330,10 @@ const InteractiveACLBuilder = {
             
             // Update tracking state differently for restoration vs manual sync
             if (isRestoration) {
-                // During restoration, don't update lastGeneratedRule to match the restored rule
-                // This allows the submit button to appear if the restored rule differs from what would be generated
-                
-                // Generate what the rule should be based on current interactive state to compare
-                const generatedRule = await this.generateOptimizedRule();
-                const hasChanges = ruleText !== generatedRule;
+                // During restoration, compare against the saved lastGeneratedRule for proper change detection
+                const hasChanges = ruleText !== this.state.lastGeneratedRule;
                 this.state.hasManualChanges = hasChanges;
+                this.state.lastValidRule = ruleText;
                 
                 if (hasChanges) {
                     this.showSubmitButton();
@@ -1105,6 +1346,9 @@ const InteractiveACLBuilder = {
                 this.state.lastValidRule = ruleText;  // User successfully submitted this rule
                 this.state.hasManualChanges = false;
                 this.hideSubmitButton();
+                
+                // Save lastGeneratedRule to localStorage for proper restoration
+                Storage.saveLastGeneratedRule(ruleText);
                 
                 // Shrink panels after successful sync since no manual changes remain
                 const layout = document.querySelector('.three-column-layout');

@@ -308,12 +308,12 @@ button.test-button[disabled] {
 
 /* System preference fallback */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .test-result-close:hover {
+  html:not([data-theme]) .test-result-close:hover {
     background: rgba(255, 255, 255, 0.1);
   }
   
-  :root:not([data-theme]) .inline-action-button:disabled:hover,
-  :root:not([data-theme]) .inline-action-button[disabled]:hover {
+  html:not([data-theme]) .inline-action-button:disabled:hover,
+  html:not([data-theme]) .inline-action-button[disabled]:hover {
     background: #606060 !important; /* More subtle hover effect in dark mode */
     color: #aaaaaa !important; /* More subtle text lightening */
     box-shadow: 0 1px 2px rgba(255,255,255,0.02) !important; /* Very subtle shadow */
@@ -473,20 +473,20 @@ button.test-button[disabled] {
 
 /* System preference fallback */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .rule-input,
-  :root:not([data-theme]) .test-command-input {
+  html:not([data-theme]) .rule-input,
+  html:not([data-theme]) .test-command-input {
     background: var(--gray-100);
     border-color: var(--border);
     color: var(--text-primary);
   }
   
-  :root:not([data-theme]) .rule-input:focus,
-  :root:not([data-theme]) .test-command-input:focus {
+  html:not([data-theme]) .rule-input:focus,
+  html:not([data-theme]) .test-command-input:focus {
     background: var(--gray-50);
     border-color: var(--primary-color);
   }
   
-  :root:not([data-theme]) .version-detail {
+  html:not([data-theme]) .version-detail {
     color: var(--text-secondary);
   }
 }
@@ -560,6 +560,32 @@ button.test-button[disabled] {
   color: #a5d6a7;
 }
 
+/* Three-state category system */
+.category-button.granted.partial {
+  background: rgba(255, 193, 7, 0.3) !important;
+  border-color: rgba(255, 193, 7, 0.8) !important;
+  color: #ff8f00 !important;
+  position: relative;
+  font-weight: bold !important;
+}
+
+/* Warning icon is now added directly to button text in JavaScript */
+
+.category-button.granted.implicit {
+  background: var(--success-bg);
+  border-color: var(--success-color);
+  color: #a5d6a7;
+  opacity: 0.75;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+.category-button.granted.explicit {
+  background: var(--success-bg);
+  border-color: var(--success-color);
+  color: #a5d6a7;
+}
+
 .category-button.blocked {
   background: var(--error-bg);
   border-color: var(--error-color);
@@ -571,6 +597,13 @@ button.test-button[disabled] {
   background: var(--success-bg);
   border-color: var(--success-color);
   color: #a5d6a7;
+}
+
+/* Implicitly granted commands (via categories or @all) */
+.command-button.granted.implicit {
+  opacity: 0.75;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
 }
 
 .command-button.blocked {
@@ -598,6 +631,21 @@ button.test-button[disabled] {
   border-color: var(--error-border);
 }
 
+/* Partial category hover */
+.category-button.granted.partial:hover {
+  background: rgba(255, 193, 7, 0.4);
+  border-color: rgba(255, 193, 7, 0.9);
+  color: #e68900;
+}
+
+/* Implicit state hover */
+.category-button.granted.implicit:hover,
+.command-button.granted.implicit:hover {
+  background: var(--success-hover);
+  border-color: var(--success-border);
+  opacity: 0.9;
+}
+
 /* Active/Click effects */
 .category-button:active, 
 .command-button:active {
@@ -610,7 +658,7 @@ button.test-button[disabled] {
 [data-theme="light"] .command-button {
   background: #ffffff;
   border-color: #dee2e6;
-  color: #212529;
+  color: #333;
 }
 
 [data-theme="light"] .category-button.granted {
@@ -695,52 +743,53 @@ button.test-button[disabled] {
   border-color: #ff5252;
 }
 
-/* System preference fallback */
+/* System preference fallback (ONLY when no explicit theme is set) */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .category-button,
-  :root:not([data-theme]) .command-button {
+  html:not([data-theme]) .category-button,
+  html:not([data-theme]) .command-button {
     background: var(--gray-100);
     border-color: var(--border);
     color: var(--text-primary);
   }
   
-  :root:not([data-theme]) .category-button.granted {
+  html:not([data-theme]) .category-button.granted {
     background: #1a2e1a;
     border-color: var(--success-color);
     color: #a5d6a7;
   }
   
-  :root:not([data-theme]) .category-button.blocked {
+  html:not([data-theme]) .category-button.blocked {
     background: #2e1a1a;
     border-color: var(--error-color);
     color: #ffab91;
   }
   
-  :root:not([data-theme]) .command-button.granted {
+  html:not([data-theme]) .command-button.granted {
     background: #1a2e1a;
     border-color: var(--success-border);
     color: #a5d6a7;
   }
   
-  :root:not([data-theme]) .command-button.blocked {
+  html:not([data-theme]) .command-button.blocked {
     background: #2e1a1a;
     border-color: var(--error-color);
     color: #ffab91;
   }
   
-  /* Dark mode hover effects */
-  :root:not([data-theme]) .category-button.granted:hover,
-  :root:not([data-theme]) .command-button.granted:hover {
+  /* Dark mode hover effects (only when no theme set) */
+  html:not([data-theme]) .category-button.granted:hover,
+  html:not([data-theme]) .command-button.granted:hover {
     background: #2e4a2e;
     border-color: var(--success-border);
   }
   
-  :root:not([data-theme]) .category-button.blocked:hover,
-  :root:not([data-theme]) .command-button.blocked:hover {
+  html:not([data-theme]) .category-button.blocked:hover,
+  html:not([data-theme]) .command-button.blocked:hover {
     background: #4a2e2e;
     border-color: #ff5252;
   }
 }
+
 
 /* Button containers */
 .category-buttons, 
@@ -825,15 +874,15 @@ button.test-button[disabled] {
 
 /* System preference fallback for loading covers */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .command-categories-container.loading::before {
+  html:not([data-theme]) .command-categories-container.loading::before {
     background: #2B2020; /* Dark red for blocked commands */
   }
 
-  :root:not([data-theme]) .granted-commands-panel .command-categories-container.loading::before {
+  html:not([data-theme]) .granted-commands-panel .command-categories-container.loading::before {
     background: #1F2B1F; /* Dark green for granted commands */
   }
 
-  :root:not([data-theme]) .blocked-commands-panel .command-categories-container.loading::before {
+  html:not([data-theme]) .blocked-commands-panel .command-categories-container.loading::before {
     background: #2B2020; /* Dark red for blocked commands */
   }
 }
@@ -911,12 +960,12 @@ button.test-button[disabled] {
 
 /* System preference fallback */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .example {
+  html:not([data-theme]) .example {
     background: var(--gray-100);
     color: var(--text-primary);
   }
   
-  :root:not([data-theme]) .example:hover {
+  html:not([data-theme]) .example:hover {
     background: var(--gray-300);
   }
 }
@@ -989,7 +1038,7 @@ button.test-button[disabled] {
 
 /* System preference fallback */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .example-category {
+  html:not([data-theme]) .example-category {
     color: var(--text-secondary);
   }
 }

@@ -168,6 +168,7 @@ window.clearACLRule = () => {
         
         // Clear from localStorage
         Storage.saveAclRule('');
+        Storage.saveLastGeneratedRule('');
         
         aclRuleTextarea.focus();
         
