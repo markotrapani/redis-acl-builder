@@ -375,6 +375,47 @@ button.test-button[disabled] {
   width: 100%;
 }
 
+/* ACL Rule Textarea Loading Cover */
+.textarea-container.loading::after {
+  display: none; /* Hide default loading spinner */
+}
+
+.textarea-container.loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #2c3e50; /* Blue-gray cover for ACL config panel */
+  border-radius: var(--radius-md); /* Match textarea border-radius */
+  z-index: 100;
+  pointer-events: none;
+  transition: opacity var(--transition-normal);
+}
+
+/* Fade out animation when removing loading class */
+.textarea-container.loading-fadeout::before {
+  opacity: 0;
+}
+
+/* Light mode loading cover for textarea (explicit) */
+[data-theme="light"] .textarea-container.loading::before {
+  background: #e3f2fd; /* Light blue for ACL config panel */
+}
+
+/* Dark mode loading cover for textarea (explicit) */
+[data-theme="dark"] .textarea-container.loading::before {
+  background: #2c3e50; /* Blue-gray for ACL config panel */
+}
+
+/* System preference fallback for textarea loading cover */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .textarea-container.loading::before {
+    background: #2c3e50; /* Blue-gray for ACL config panel */
+  }
+}
+
 /* Character counter styling - floating inside textarea */
 .character-counter {
   position: absolute;

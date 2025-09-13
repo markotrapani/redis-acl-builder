@@ -88,6 +88,12 @@ const InteractiveACLBuilder = {
             // Add event listeners
             this.setupEventListeners();
             
+            // Remove ALL loading covers after initialization and content updates are complete
+            setTimeout(() => {
+                this.removeTextareaLoadingCover();
+                this.removeLoadingAnimation();
+            }, 150); // Small delay to ensure all async operations complete
+            
             // Final check for Submit Changes button visibility after initialization
             // This handles cases where restoration failed but button should still be shown
             setTimeout(() => {
@@ -274,13 +280,7 @@ const InteractiveACLBuilder = {
         await this.renderCategoryButtons();
         await this.renderCommandButtons();
         
-        // Remove loading cover after content is rendered (only on initial load)
-        if (!this.state.isInitialized) {
-            // Short delay to ensure content is fully rendered
-            setTimeout(() => {
-                this.removeLoadingAnimation();
-            }, 120);
-        }
+        // Note: Loading covers are removed after init completes in init() method
     },
 
     /**
@@ -297,8 +297,26 @@ const InteractiveACLBuilder = {
             // Remove both classes after fade animation completes
             setTimeout(() => {
                 container.classList.remove('loading', 'loading-fadeout');
-            }, 150); // Match CSS transition duration
+            }, 200); // Match CSS transition duration
         });
+    },
+
+    /**
+     * Remove textarea loading cover with smooth fade animation
+     */
+    removeTextareaLoadingCover() {
+        const textareaContainer = document.querySelector('.textarea-container');
+        if (!textareaContainer || !textareaContainer.classList.contains('loading')) {
+            return; // No loading cover to remove
+        }
+
+        // Add fade-out class to trigger smooth opacity transition
+        textareaContainer.classList.add('loading-fadeout');
+        
+        // Remove both classes after fade animation completes
+        setTimeout(() => {
+            textareaContainer.classList.remove('loading', 'loading-fadeout');
+        }, 150); // Match CSS transition duration
     },
 
     /**
@@ -739,6 +757,30 @@ const InteractiveACLBuilder = {
                 }
             }
             
+            // Show commands blocked by excluded categories (e.g., +@all -@dangerous)
+            const commandsBlockedByCategories = await this.getCommandsBlockedByCategories();
+            const categoryBlockedSet = new Set(commandsBlockedByCategories);
+            
+            // Filter out commands that are explicitly granted (individual commands override category blocks)
+            const effectivelyBlockedByCategories = commandsBlockedByCategories.filter(cmd => 
+                !this.state.grantedCommands.has(cmd)
+            );
+            
+            if (effectivelyBlockedByCategories.length > 0) {
+                if (!isEmptyACL && wrapper.children.length > 0) {
+                    const divider = document.createElement('div');
+                    divider.style.borderTop = '1px solid #555';
+                    divider.style.margin = '10px 0';
+                    wrapper.appendChild(divider);
+                }
+                
+                effectivelyBlockedByCategories.sort().forEach(command => {
+                    const button = this.createCommandButton(command, 'blocked');
+                    button.title = `${command} - BLOCKED BY CATEGORY\nThis command is blocked by an excluded category (e.g., -@dangerous).\nClick to explicitly grant it.`;
+                    wrapper.appendChild(button);
+                });
+            }
+            
             // Always show explicitly blocked commands
             if (this.state.blockedCommands.size > 0) {
                 if (!isEmptyACL && wrapper.children.length > 0) {
@@ -749,12 +791,16 @@ const InteractiveACLBuilder = {
                 }
                 
                 Array.from(this.state.blockedCommands).sort().forEach(command => {
-                    const button = this.createCommandButton(command, 'blocked');
-                    wrapper.appendChild(button);
+                    // Don't show commands that are already shown as blocked by categories
+                    if (!categoryBlockedSet.has(command)) {
+                        const button = this.createCommandButton(command, 'blocked');
+                        button.title = `${command} - EXPLICITLY BLOCKED\nThis command was individually blocked.\nClick to make it available.`;
+                        wrapper.appendChild(button);
+                    }
                 });
             }
             
-            // Show available commands (truly available - not granted anywhere)
+            // Show available commands (truly available - not granted anywhere and not blocked by categories)
             if (this.state.allCommands.length > 0 && !isEmptyACL) {
                 const grantedViaCategories = await this.getCommandsGrantedByCategories();
                 const grantedViaCategoriesSet = new Set(grantedViaCategories);
@@ -762,11 +808,13 @@ const InteractiveACLBuilder = {
                 const availableCommands = this.state.allCommands.filter(cmd => 
                     !this.state.grantedCommands.has(cmd) && 
                     !this.state.blockedCommands.has(cmd) &&
-                    !grantedViaCategoriesSet.has(cmd)
+                    !grantedViaCategoriesSet.has(cmd) &&
+                    !categoryBlockedSet.has(cmd) // Exclude commands blocked by categories
                 );
                 
                 if (availableCommands.length > 0) {
-                    if (this.state.blockedCommands.size > 0) {
+                    // Add divider if we have any blocked commands (either by category or explicitly)
+                    if (effectivelyBlockedByCategories.length > 0 || this.state.blockedCommands.size > 0) {
                         const divider = document.createElement('div');
                         divider.style.borderTop = '1px solid #555';
                         divider.style.margin = '10px 0';
@@ -793,9 +841,10 @@ const InteractiveACLBuilder = {
             wrapper.className = 'command-buttons';
             this.elements.blockedCommandsButtons.appendChild(wrapper);
             
-            // Calculate total command count for header
-            const totalCommandCount = wrapper.children.length === 1 && wrapper.children[0].className === 'text-muted' ? 0 : wrapper.children.length;
-            this.updateCommandSectionHeader('blocked', totalCommandCount);
+            // Calculate total blocked command count for header (category blocked + explicitly blocked, avoiding duplicates)
+            const explicitlyBlockedCount = Array.from(this.state.blockedCommands).filter(cmd => !categoryBlockedSet.has(cmd)).length;
+            const totalBlockedCount = effectivelyBlockedByCategories.length + explicitlyBlockedCount;
+            this.updateCommandSectionHeader('blocked', totalBlockedCount);
         }
     },
 
@@ -1165,6 +1214,32 @@ const InteractiveACLBuilder = {
     },
 
     /**
+     * Get all commands that are blocked by excluded categories
+     * For example, with +@all -@dangerous, this would return all @dangerous commands
+     */
+    async getCommandsBlockedByCategories() {
+        if (this.state.blockedCategories.size === 0) {
+            return [];
+        }
+        
+        const blockedCommands = new Set();
+        
+        for (const category of this.state.blockedCategories) {
+            try {
+                // Use the same pattern as getCommandsGrantedByCategories
+                const result = await API.parseRule(`+@${category}`, AppState.currentVersion);
+                if (result && result.success && result.granted_commands) {
+                    result.granted_commands.forEach(cmd => blockedCommands.add(cmd));
+                }
+            } catch (error) {
+                console.error(`Error getting commands for blocked category ${category}:`, error);
+            }
+        }
+        
+        return Array.from(blockedCommands);
+    },
+
+    /**
      * Check if a blocked category would actually exclude any granted commands
      * For now, always return true to be safe - we can optimize this later
      */
@@ -1257,7 +1332,6 @@ const InteractiveACLBuilder = {
                         this.lastApiResponse = data;
                         // Use actual parsing results to determine what's granted
                         const grantedCommands = new Set(data.granted_commands || []);
-                        const groupedCommands = data.grouped_commands || {};
                         
                         // Parse rule tokens to determine what was explicitly granted
                         const tokens = ruleText.split(/\s+/).filter(token => token.length > 0);
@@ -1299,18 +1373,15 @@ const InteractiveACLBuilder = {
                             }
                         }
                         
-                        // Get all available commands/categories
-                        const allCategories = new Set(this.state.allCategories);
+                        // Get all available commands
                         const allCommands = new Set(this.state.allCommands);
                         
                         // Update state based on actual rule parsing and API results
                         this.state.grantedCategories = grantedCategories;
                         this.state.grantedCommands = explicitlyGrantedCommands;
                         
-                        // Determine blocked categories: explicitly blocked or not granted
-                        this.state.blockedCategories = new Set([...allCategories].filter(cat => 
-                            blockedCategories.has(cat) || !grantedCategories.has(cat)
-                        ));
+                        // Determine blocked categories: only explicitly blocked ones
+                        this.state.blockedCategories = blockedCategories;
                         this.state.blockedCommands = new Set([...allCommands].filter(cmd => !grantedCommands.has(cmd)));
                         
                         // Preserve the ordered terms from the original rule
