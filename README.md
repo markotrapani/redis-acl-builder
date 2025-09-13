@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version 1.7.0-beta** - Production-ready with Docker Deployment and Enhanced UX
+**Version 1.8.0-beta** - Enhanced Loading Animations & Critical Bug Fixes
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis.
 

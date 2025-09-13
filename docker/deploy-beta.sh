@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Redis ACL Builder Beta Deployment Script
-# Version 1.7.0-beta
+# Version 1.8.0-beta-beta
 
 set -e
 
-echo "🚀 Redis ACL Builder Beta v1.7.0 - Deployment Script"
+echo "🚀 Redis ACL Builder Beta v1.8.0-beta-beta - Deployment Script"
 echo "=================================================="
 
 # Check if Docker is installed
@@ -34,7 +34,7 @@ fi
 
 # Build the Docker image
 echo "🔨 Building Docker image..."
-docker build -t redis-acl-builder:v1.7.0-beta -f Dockerfile ..
+docker build -t redis-acl-builder:v1.8.0-beta-beta -f Dockerfile ..
 
 # Run the container
 echo "🐳 Starting Redis ACL Builder container..."
@@ -42,7 +42,7 @@ docker run -d \
     --name redis-acl-builder \
     -p 7380:7380 \
     --restart unless-stopped \
-    redis-acl-builder:v1.7.0-beta
+    redis-acl-builder:v1.8.0-beta-beta
 
 # Wait for container to be healthy
 echo "⏳ Waiting for application to start..."

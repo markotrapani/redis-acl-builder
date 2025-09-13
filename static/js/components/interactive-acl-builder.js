@@ -365,14 +365,12 @@ const InteractiveACLBuilder = {
             const currentRule = this.elements.aclRuleInput.value.trim();
             if (currentRule) {
                 try {
-                    console.log('PARTIAL DEBUG: Refreshing API response for current rule:', currentRule);
                     const response = await API.parseRule(currentRule, AppState.currentVersion);
                     if (response && response.success) {
                         this.lastApiResponse = response;
-                        console.log('PARTIAL DEBUG: Updated lastApiResponse with', response.granted_commands?.length || 0, 'granted commands');
                     }
                 } catch (error) {
-                    console.error('PARTIAL DEBUG: Error refreshing API response:', error);
+                    console.error('Error refreshing API response:', error);
                 }
             }
             
@@ -447,20 +445,15 @@ const InteractiveACLBuilder = {
                 }
                 
                 // First, we need to detect which granted categories are partial (have blocked subcommands)
-                console.log('PARTIAL DEBUG: Starting analysis for granted categories:', sortedCategories);
                 const categoryAnalysisPromises = sortedCategories.map(async (category) => {
-                    console.log(`PARTIAL DEBUG: Analyzing category ${category}`);
                     const categoryAnalysis = await this.detectPartialCategory(category);
-                    console.log(`PARTIAL DEBUG: Analysis result for ${category}:`, categoryAnalysis);
                     return { category, categoryAnalysis };
                 });
                 
                 // Wait for all analyses to complete
                 const analyses = await Promise.all(categoryAnalysisPromises);
-                console.log('PARTIAL DEBUG: All analyses completed:', analyses);
                 
                 analyses.forEach(({ category, categoryAnalysis }) => {
-                    console.log(`PARTIAL DEBUG: Creating button for ${category} with analysis:`, categoryAnalysis);
                     const button = this.createCategoryButton(category, 'granted', categoryAnalysis);
                     
                     // Special handling for @all case
@@ -937,12 +930,9 @@ const InteractiveACLBuilder = {
             
             // Get all commands that are currently granted by the ACL rule (from API response)
             const allGrantedCommands = new Set();
-            console.log(`PARTIAL DEBUG: lastApiResponse for ${category}:`, this.lastApiResponse);
             if (this.lastApiResponse && this.lastApiResponse.granted_commands) {
                 this.lastApiResponse.granted_commands.forEach(cmd => allGrantedCommands.add(cmd));
-                console.log(`PARTIAL DEBUG: All granted commands (${allGrantedCommands.size}):`, Array.from(allGrantedCommands));
             } else {
-                console.log(`PARTIAL DEBUG: No lastApiResponse or granted_commands for ${category}`);
             }
             
             // Check how many commands in this category are granted
@@ -964,7 +954,6 @@ const InteractiveACLBuilder = {
             }
             
             // Debug logging for partial category detection
-            console.log(`PARTIAL DETECTION: Category ${category}: ${grantedInCategory}/${totalInCategory} commands granted -> ${state}`);
             
             return { [category]: state };
         } catch (error) {
@@ -1004,13 +993,11 @@ const InteractiveACLBuilder = {
         
         if (state === 'granted') {
             const analysisState = categoryAnalysis?.[category];
-            console.log(`BUTTON DEBUG: Creating button for ${category}, state=${state}, analysisState=${analysisState}, categoryAnalysis=`, categoryAnalysis);
             
             if (analysisState === 'partial') {
                 buttonClass = `category-button granted partial`;
                 tooltipText = `@${category} category (partially granted) - Some commands in this category are excluded - Click to revoke`;
                 clickHandler = () => this.toggleCategory(category);
-                console.log(`BUTTON DEBUG: Applied PARTIAL styling to ${category}`);
             } else if (analysisState === 'fully-granted' && !this.state.grantedCategories.has(category)) {
                 // Implicitly granted (all commands granted individually)
                 buttonClass = `category-button granted implicit`;
