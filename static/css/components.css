@@ -613,24 +613,43 @@ button.test-button[disabled] {
 /* Warning icon is now added directly to button text in JavaScript */
 
 .category-button.granted.implicit {
-  background: var(--success-bg);
-  border-color: var(--success-color);
-  color: #a5d6a7;
+  background: #1a4a1a; /* Darker muted green for implicit grants */
+  border-color: #4a7c59;
+  color: #cccccc;
   opacity: 0.75;
-  font-weight: 600;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+  font-weight: 400;
 }
 
 .category-button.granted.explicit {
-  background: var(--success-bg);
-  border-color: var(--success-color);
-  color: #a5d6a7;
+  background: #006600; /* Bright green for explicit grants */
+  border-color: #00cc00;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px rgba(0,204,0,0.3), 0 2px 4px rgba(0,102,0,0.4);
 }
 
 .category-button.blocked {
   background: var(--error-bg);
   border-color: var(--error-color);
   color: #ffab91;
+}
+
+/* Explicitly blocked categories (dark red, very prominent) */
+.category-button.blocked.explicit {
+  background: #cc0000; /* Brighter dark red for explicit blocking */
+  border-color: #ff6666;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px rgba(255,102,102,0.3), 0 2px 4px rgba(204,0,0,0.4);
+}
+
+/* Implicitly blocked categories (muted, less prominent) */
+.category-button.blocked.implicit {
+  background: #333333; /* Much darker gray for implicit blocking */
+  border-color: #666666;
+  color: #cccccc;
+  opacity: 0.7;
+  font-weight: 400;
 }
 
 /* Command button styling - match category buttons */
@@ -640,17 +659,46 @@ button.test-button[disabled] {
   color: #a5d6a7;
 }
 
-/* Implicitly granted commands (via categories or @all) */
+/* Explicitly granted commands (bright green, very prominent) */
+.command-button.granted.explicit {
+  background: #006600; /* Bright green for explicit grants */
+  border-color: #00cc00;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px rgba(0,204,0,0.3), 0 2px 4px rgba(0,102,0,0.4);
+}
+
+/* Implicitly granted commands (muted green, less prominent) */
 .command-button.granted.implicit {
+  background: #1a4a1a; /* Darker muted green for implicit grants */
+  border-color: #4a7c59;
+  color: #cccccc;
   opacity: 0.75;
-  font-weight: 600;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+  font-weight: 400;
 }
 
 .command-button.blocked {
   background: var(--error-bg);
   border-color: var(--error-color);
   color: #ffab91;
+}
+
+/* Explicitly blocked commands (dark red, very prominent) */
+.command-button.blocked.explicit {
+  background: #cc0000; /* Brighter dark red for explicit blocking */
+  border-color: #ff6666;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px rgba(255,102,102,0.3), 0 2px 4px rgba(204,0,0,0.4);
+}
+
+/* Implicitly blocked commands (muted, less prominent) */
+.command-button.blocked.implicit {
+  background: #333333; /* Much darker gray for implicit blocking */
+  border-color: #666666;
+  color: #cccccc;
+  opacity: 0.7;
+  font-weight: 400;
 }
 
 /* Hover effects */
@@ -666,10 +714,42 @@ button.test-button[disabled] {
   border-color: var(--success-border);
 }
 
+/* Explicit granted hover effects */
+.category-button.granted.explicit:hover,
+.command-button.granted.explicit:hover {
+  background: #00aa00; /* Brighter green on hover */
+  border-color: #00ff00;
+  box-shadow: inset 0 0 0 2px rgba(0,255,0,0.4), 0 3px 6px rgba(0,170,0,0.5);
+}
+
+/* Implicit granted hover effects */
+.category-button.granted.implicit:hover,
+.command-button.granted.implicit:hover {
+  background: #2a5a2a; /* Slightly lighter green on hover */
+  border-color: #5a8a69;
+  opacity: 0.9;
+}
+
 .category-button.blocked:hover, 
 .command-button.blocked:hover {
   background: var(--error-hover);
   border-color: var(--error-border);
+}
+
+/* Explicit blocked hover effects */
+.category-button.blocked.explicit:hover,
+.command-button.blocked.explicit:hover {
+  background: #ee0000; /* Brighter red on hover */
+  border-color: #ff8888;
+  box-shadow: inset 0 0 0 2px rgba(255,136,136,0.4), 0 3px 6px rgba(238,0,0,0.5);
+}
+
+/* Implicit blocked hover effects */
+.category-button.blocked.implicit:hover,
+.command-button.blocked.implicit:hover {
+  background: #444444; /* Slightly lighter gray on hover */
+  border-color: #888888;
+  opacity: 0.9;
 }
 
 /* Partial category hover */

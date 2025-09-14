@@ -456,10 +456,10 @@ const InteractiveACLBuilder = {
                 analyses.forEach(({ category, categoryAnalysis }) => {
                     const button = this.createCategoryButton(category, 'granted', categoryAnalysis);
                     
-                    // Special handling for @all case
+                    // Special handling for @all case - adjust tooltips and click behavior only
+                    // (Visual styling is now handled by CSS classes in createCategoryButton)
                     if (hasAllCategory && !this.state.grantedCategories.has(category)) {
                         // This category is granted via @all, clicking should block it
-                        button.style.opacity = '0.7';
                         button.title = `@${category} category (granted via @all) - Click to block`;
                         button.onclick = () => this.blockCategory(category);
                     } else if (hasAllCategory && this.state.grantedCategories.has(category)) {
@@ -562,36 +562,38 @@ const InteractiveACLBuilder = {
                 }
             }
             
-            // Show blocked categories
+            // Show blocked categories: EXPLICITLY blocked first, then implicitly blocked
             if (effectivelyBlockedCategories.length > 0) {
-                // Sort blocked categories, but keep @all at the front if present
-                const hasAllInBlockedList = effectivelyBlockedCategories.includes('all');
-                let sortedBlockedCategories;
+                // Collect all blocked categories with their types for smart sorting
+                const blockedCategories = [];
                 
-                if (hasAllInBlockedList) {
-                    // Remove @all from the list, sort the rest, then add @all back at the front
-                    const withoutAll = effectivelyBlockedCategories.filter(cat => cat !== 'all').sort();
-                    sortedBlockedCategories = ['all', ...withoutAll];
-                } else {
-                    // Normal sorting when @all is not in the list
-                    sortedBlockedCategories = effectivelyBlockedCategories.sort();
-                }
+                effectivelyBlockedCategories.forEach(category => {
+                    if (this.state.blockedCategories.has(category)) {
+                        // Explicitly blocked category (e.g., -@dangerous)
+                        blockedCategories.push({ category, type: 'explicit', priority: 1 });
+                    } else {
+                        // Implicitly blocked category (available but not granted)
+                        blockedCategories.push({ category, type: 'implicit', priority: 2 });
+                    }
+                });
                 
-                sortedBlockedCategories.forEach(category => {
-                    const button = this.createCategoryButton(category, 'blocked');
+                // Sort by priority first (explicit first), then alphabetically, but keep @all at front
+                blockedCategories.sort((a, b) => {
+                    // Always put @all first
+                    if (a.category === 'all') return -1;
+                    if (b.category === 'all') return 1;
                     
-                    // Special handling for @all case
-                    if (hasAllCategory && !this.state.blockedCategories.has(category)) {
-                        // This category would be granted by @all but we're in the blocked column
-                        button.style.opacity = '0.7';
-                        button.title = `@${category} category (would be granted by @all) - Click to grant`;
-                        button.onclick = () => this.grantCategory(category);
-                    } else if (hasAllCategory && this.state.blockedCategories.has(category)) {
-                        // This category is explicitly blocked despite @all
-                        button.title = `@${category} category (explicitly blocked) - Click to toggle`;
-                        // Keep default toggleCategory behavior
+                    // Then sort by priority (explicit first)
+                    if (a.priority !== b.priority) {
+                        return a.priority - b.priority;
                     }
                     
+                    // Finally alphabetically
+                    return a.category.localeCompare(b.category);
+                });
+                
+                blockedCategories.forEach(({ category, type }) => {
+                    const button = this.createCategoryButton(category, 'blocked', null, type);
                     this.elements.blockedCategoriesButtons.appendChild(button);
                 });
             }
@@ -750,7 +752,7 @@ const InteractiveACLBuilder = {
                 }
             }
             
-            // Show commands blocked by excluded categories (e.g., +@all -@dangerous)
+            // Show blocked commands: EXPLICITLY blocked first, then implicitly blocked by categories
             const commandsBlockedByCategories = await this.getCommandsBlockedByCategories();
             const categoryBlockedSet = new Set(commandsBlockedByCategories);
             
@@ -759,37 +761,34 @@ const InteractiveACLBuilder = {
                 !this.state.grantedCommands.has(cmd)
             );
             
-            if (effectivelyBlockedByCategories.length > 0) {
-                if (!isEmptyACL && wrapper.children.length > 0) {
-                    const divider = document.createElement('div');
-                    divider.style.borderTop = '1px solid #555';
-                    divider.style.margin = '10px 0';
-                    wrapper.appendChild(divider);
-                }
-                
-                effectivelyBlockedByCategories.sort().forEach(command => {
-                    const button = this.createCommandButton(command, 'blocked');
-                    button.title = `${command} - BLOCKED BY CATEGORY\nThis command is blocked by an excluded category (e.g., -@dangerous).\nClick to explicitly grant it.`;
-                    wrapper.appendChild(button);
-                });
-            }
+            // Collect all blocked commands with their types for smart sorting
+            const blockedCommands = [];
             
-            // Always show explicitly blocked commands
-            if (this.state.blockedCommands.size > 0) {
-                if (!isEmptyACL && wrapper.children.length > 0) {
-                    const divider = document.createElement('div');
-                    divider.style.borderTop = '1px solid #555';
-                    divider.style.margin = '10px 0';
-                    wrapper.appendChild(divider);
+            // Add explicitly blocked commands (higher priority)
+            Array.from(this.state.blockedCommands).forEach(command => {
+                if (!categoryBlockedSet.has(command)) {
+                    blockedCommands.push({ command, type: 'explicit', priority: 1 });
                 }
-                
-                Array.from(this.state.blockedCommands).sort().forEach(command => {
-                    // Don't show commands that are already shown as blocked by categories
-                    if (!categoryBlockedSet.has(command)) {
-                        const button = this.createCommandButton(command, 'blocked');
-                        button.title = `${command} - EXPLICITLY BLOCKED\nThis command was individually blocked.\nClick to make it available.`;
-                        wrapper.appendChild(button);
+            });
+            
+            // Add commands blocked by categories (lower priority)
+            effectivelyBlockedByCategories.forEach(command => {
+                blockedCommands.push({ command, type: 'category', priority: 2 });
+            });
+            
+            if (blockedCommands.length > 0) {
+                console.log('DEBUG: blockedCommands array:', blockedCommands.map(c => c.command));
+                // Sort by priority first (explicit first), then alphabetically
+                blockedCommands.sort((a, b) => {
+                    if (a.priority !== b.priority) {
+                        return a.priority - b.priority; // Lower priority number = higher precedence
                     }
+                    return a.command.localeCompare(b.command);
+                });
+                
+                blockedCommands.forEach(({ command, type }) => {
+                    const button = this.createCommandButton(command, 'blocked', type);
+                    wrapper.appendChild(button);
                 });
             }
             
@@ -806,8 +805,9 @@ const InteractiveACLBuilder = {
                 );
                 
                 if (availableCommands.length > 0) {
-                    // Add divider if we have any blocked commands (either by category or explicitly)
-                    if (effectivelyBlockedByCategories.length > 0 || this.state.blockedCommands.size > 0) {
+                    // Add divider only if we have blocked commands AND we're about to add available commands
+                    if (blockedCommands.length > 0) {
+                        console.log('DEBUG: Creating divider - blockedCommands.length:', blockedCommands.length, 'availableCommands.length:', availableCommands.length);
                         const divider = document.createElement('div');
                         divider.style.borderTop = '1px solid #555';
                         divider.style.margin = '10px 0';
@@ -834,10 +834,8 @@ const InteractiveACLBuilder = {
             wrapper.className = 'command-buttons';
             this.elements.blockedCommandsButtons.appendChild(wrapper);
             
-            // Calculate total blocked command count for header (category blocked + explicitly blocked, avoiding duplicates)
-            const explicitlyBlockedCount = Array.from(this.state.blockedCommands).filter(cmd => !categoryBlockedSet.has(cmd)).length;
-            const totalBlockedCount = effectivelyBlockedByCategories.length + explicitlyBlockedCount;
-            this.updateCommandSectionHeader('blocked', totalBlockedCount);
+            // Calculate total blocked command count for header
+            this.updateCommandSectionHeader('blocked', blockedCommands.length);
         }
     },
 
@@ -985,7 +983,7 @@ const InteractiveACLBuilder = {
     /**
      * Create a category button element
      */
-    createCategoryButton(category, state, categoryAnalysis = null) {
+    createCategoryButton(category, state, categoryAnalysis = null, blockType = null) {
         const button = document.createElement('button');
         
         // Determine visual state and styling
@@ -1010,9 +1008,19 @@ const InteractiveACLBuilder = {
                 clickHandler = () => this.toggleCategory(category);
             }
         } else if (state === 'available') {
-            buttonClass = `category-button blocked`;
+            buttonClass = `category-button blocked implicit`; // Available = implicitly blocked (not granted)
             tooltipText = `Click to grant @${category} category`;
             clickHandler = () => this.grantCategory(category);
+        } else if (state === 'blocked') {
+            // Determine if explicitly or implicitly blocked
+            if (blockType === 'explicit' || this.state.blockedCategories.has(category)) {
+                buttonClass = `category-button blocked explicit`;
+                tooltipText = `@${category} category (explicitly blocked) - Click to toggle`;
+            } else {
+                buttonClass = `category-button blocked implicit`;
+                tooltipText = `@${category} category (implicitly blocked) - Click to grant`;
+            }
+            clickHandler = () => this.toggleCategory(category);
         } else {
             buttonClass = `category-button ${state}`;
             tooltipText = `Click to ${state === 'granted' ? 'revoke' : 'grant'} @${category} category`;
@@ -1035,19 +1043,30 @@ const InteractiveACLBuilder = {
     /**
      * Create a command button element
      */
-    createCommandButton(command, state) {
+    createCommandButton(command, state, blockType = null) {
         const button = document.createElement('button');
-        button.className = `command-button ${state === 'available' ? 'blocked' : state}`;
-        button.textContent = command;
         
         if (state === 'available') {
+            button.className = `command-button blocked implicit`; // Available = implicitly blocked
             button.title = `Click to grant ${command} command`;
             button.onclick = () => this.grantCommand(command);
+        } else if (state === 'blocked') {
+            // Determine if explicitly or implicitly blocked
+            if (blockType === 'explicit' || this.state.blockedCommands.has(command)) {
+                button.className = `command-button blocked explicit`;
+                button.title = `${command} - EXPLICITLY BLOCKED\nThis command was individually blocked.\nClick to make it available.`;
+            } else {
+                button.className = `command-button blocked implicit`;
+                button.title = `${command} - BLOCKED BY CATEGORY\nThis command is blocked by an excluded category.\nClick to explicitly grant it.`;
+            }
+            button.onclick = () => this.toggleCommand(command);
         } else {
+            button.className = `command-button ${state}`;
             button.title = `Click to ${state === 'granted' ? 'revoke' : 'grant'} ${command} command`;
             button.onclick = () => this.toggleCommand(command);
         }
         
+        button.textContent = command;
         return button;
     },
 
@@ -1063,6 +1082,7 @@ const InteractiveACLBuilder = {
         // Determine the behavior based on how the command is granted
         if (isIndividual) {
             // If granted individually (even if also via category), use normal toggle
+            button.classList.add('explicit');
             button.title = `${command} - EXPLICITLY GRANTED\nThis command was directly added to your ACL rule.\nClick to revoke.`;
             button.onclick = () => this.toggleCommand(command);
         } else if (isViaCategory) {
