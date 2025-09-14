@@ -131,8 +131,8 @@ const EventHandlers = {
                 } else if (!hasContent || isRevertedToGenerated) {
                     // Auto-sync when content becomes empty or reverted to generated rule
                     if (!hasContent && InteractiveACLBuilder.state?.isInitialized) {
-                        // Auto-sync empty content without showing submit button
-                        InteractiveACLBuilder.syncFromRuleText();
+                        // Auto-sync empty content without showing submit button (don't run redundancy analysis)
+                        InteractiveACLBuilder.syncFromRuleText(true); // Pass true to skip redundancy analysis
                     }
                     
                     // Hide submit button and update state
@@ -143,10 +143,10 @@ const EventHandlers = {
                     layout.classList.remove('submit-button-visible');
                 }
                 
-                // Silently trigger rule parsing and redundancy analysis for real-time feedback
-                // This ensures optimization suggestions appear without annoying error popups
+                // Silently trigger rule parsing WITHOUT redundancy analysis during typing
+                // Redundancy analysis should only happen when user submits changes
                 if (hasContent) {
-                    RuleManager.parseRuleSilent();
+                    RuleManager.parseRuleSilent(true); // Skip redundancy analysis during manual typing
                 }
             }, 150); // Reduced debounce since we're not processing during resize
         });

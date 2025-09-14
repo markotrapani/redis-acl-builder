@@ -713,10 +713,30 @@ const InteractiveACLBuilder = {
                 message.textContent = 'No individual commands granted';
                 wrapper.appendChild(message);
             } else {
-                // Show all granted commands together (sorted)
-                Array.from(allGrantedCommands).sort().forEach(command => {
-                    const isViaCategory = effectiveGrantedViaCategories.includes(command);
+                // Separate explicitly granted from implicitly granted commands
+                const explicitlyGrantedCommands = [];
+                const implicitlyGrantedCommands = [];
+
+                Array.from(allGrantedCommands).forEach(command => {
                     const isIndividual = this.state.grantedCommands.has(command);
+                    if (isIndividual) {
+                        explicitlyGrantedCommands.push(command);
+                    } else {
+                        implicitlyGrantedCommands.push(command);
+                    }
+                });
+
+                // Show explicitly granted commands first (sorted), then implicitly granted (sorted)
+                explicitlyGrantedCommands.sort().forEach(command => {
+                    const isViaCategory = effectiveGrantedViaCategories.includes(command);
+                    const isIndividual = true; // Always true for this group
+                    const button = this.createGrantedCommandButton(command, isViaCategory, isIndividual);
+                    wrapper.appendChild(button);
+                });
+
+                implicitlyGrantedCommands.sort().forEach(command => {
+                    const isViaCategory = effectiveGrantedViaCategories.includes(command);
+                    const isIndividual = false; // Always false for this group
                     const button = this.createGrantedCommandButton(command, isViaCategory, isIndividual);
                     wrapper.appendChild(button);
                 });
@@ -752,78 +772,67 @@ const InteractiveACLBuilder = {
                 }
             }
             
-            // Show blocked commands: EXPLICITLY blocked first, then implicitly blocked by categories
+            // Get all granted commands from the actual API response (most accurate)
+            let allGrantedCommands = new Set();
+            if (this.lastApiResponse && this.lastApiResponse.granted_commands) {
+                this.lastApiResponse.granted_commands.forEach(cmd => allGrantedCommands.add(cmd));
+            } else {
+                // Fallback: Get granted commands via separate API calls
+                const grantedViaCategories = await this.getCommandsGrantedByCategories();
+                allGrantedCommands = new Set([...this.state.grantedCommands, ...grantedViaCategories]);
+            }
+
+            // Get commands blocked by categories (like -@dangerous commands)
             const commandsBlockedByCategories = await this.getCommandsBlockedByCategories();
             const categoryBlockedSet = new Set(commandsBlockedByCategories);
-            
-            // Filter out commands that are explicitly granted (individual commands override category blocks)
-            const effectivelyBlockedByCategories = commandsBlockedByCategories.filter(cmd => 
-                !this.state.grantedCommands.has(cmd)
-            );
-            
-            // Collect all blocked commands with their types for smart sorting
-            const blockedCommands = [];
-            
-            // Add explicitly blocked commands (higher priority)
+
+            // Classify all commands into proper buckets
+            const commandsToShow = [];
+
+            // 1. EXPLICITLY BLOCKED commands (highlighted) - commands with -command in rule
             Array.from(this.state.blockedCommands).forEach(command => {
-                if (!categoryBlockedSet.has(command)) {
-                    blockedCommands.push({ command, type: 'explicit', priority: 1 });
-                }
+                commandsToShow.push({ command, type: 'explicit', priority: 1, visual: 'highlighted' });
             });
-            
-            // Add commands blocked by categories (lower priority)
+
+            // 2. BLOCKED BY CATEGORIES (highlighted) - commands blocked by -@category rules
+            const effectivelyBlockedByCategories = commandsBlockedByCategories.filter(cmd =>
+                !this.state.grantedCommands.has(cmd) && // Not overridden by explicit grant
+                !this.state.blockedCommands.has(cmd)    // Not already in explicit blocked list
+            );
             effectivelyBlockedByCategories.forEach(command => {
-                blockedCommands.push({ command, type: 'category', priority: 2 });
+                commandsToShow.push({ command, type: 'category', priority: 2, visual: 'highlighted' });
             });
-            
-            if (blockedCommands.length > 0) {
-                console.log('DEBUG: blockedCommands array:', blockedCommands.map(c => c.command));
+
+            // 3. IMPLICITLY BLOCKED commands (darkened) - commands not granted by any rule
+            if (!isEmptyACL) {
+                const implicitlyBlockedCommands = this.state.allCommands.filter(cmd =>
+                    !allGrantedCommands.has(cmd) &&        // Not granted by any rule
+                    !this.state.blockedCommands.has(cmd) && // Not explicitly blocked
+                    !categoryBlockedSet.has(cmd)            // Not blocked by category
+                );
+
+                implicitlyBlockedCommands.forEach(command => {
+                    commandsToShow.push({ command, type: 'implicit', priority: 3, visual: 'darkened' });
+                });
+            }
+
+            if (commandsToShow.length > 0) {
                 // Sort by priority first (explicit first), then alphabetically
-                blockedCommands.sort((a, b) => {
+                commandsToShow.sort((a, b) => {
                     if (a.priority !== b.priority) {
                         return a.priority - b.priority; // Lower priority number = higher precedence
                     }
                     return a.command.localeCompare(b.command);
                 });
-                
-                blockedCommands.forEach(({ command, type }) => {
+
+                commandsToShow.forEach(({ command, type }) => {
                     const button = this.createCommandButton(command, 'blocked', type);
                     wrapper.appendChild(button);
                 });
             }
-            
-            // Show available commands (truly available - not granted anywhere and not blocked by categories)
-            if (this.state.allCommands.length > 0 && !isEmptyACL) {
-                const grantedViaCategories = await this.getCommandsGrantedByCategories();
-                const grantedViaCategoriesSet = new Set(grantedViaCategories);
-                
-                const availableCommands = this.state.allCommands.filter(cmd => 
-                    !this.state.grantedCommands.has(cmd) && 
-                    !this.state.blockedCommands.has(cmd) &&
-                    !grantedViaCategoriesSet.has(cmd) &&
-                    !categoryBlockedSet.has(cmd) // Exclude commands blocked by categories
-                );
-                
-                if (availableCommands.length > 0) {
-                    // Add divider only if we have blocked commands AND we're about to add available commands
-                    if (blockedCommands.length > 0) {
-                        console.log('DEBUG: Creating divider - blockedCommands.length:', blockedCommands.length, 'availableCommands.length:', availableCommands.length);
-                        const divider = document.createElement('div');
-                        divider.style.borderTop = '1px solid #555';
-                        divider.style.margin = '10px 0';
-                        wrapper.appendChild(divider);
-                    }
-                    
-                    availableCommands.sort().forEach(command => {
-                        const button = this.createCommandButton(command, 'available');
-                        button.title = `Click to grant ${command} command`;
-                        wrapper.appendChild(button);
-                    });
-                }
-            }
-            
+
             // Show message when there are no individual commands to show at all
-            if (wrapper.children.length === 0) {
+            if (commandsToShow.length === 0 && wrapper.children.length === 0) {
                 const message = document.createElement('div');
                 message.className = 'text-muted';
                 message.style.padding = '10px';
@@ -835,7 +844,7 @@ const InteractiveACLBuilder = {
             this.elements.blockedCommandsButtons.appendChild(wrapper);
             
             // Calculate total blocked command count for header
-            this.updateCommandSectionHeader('blocked', blockedCommands.length);
+            this.updateCommandSectionHeader('blocked', commandsToShow.length);
         }
     },
 
@@ -1045,27 +1054,46 @@ const InteractiveACLBuilder = {
      */
     createCommandButton(command, state, blockType = null) {
         const button = document.createElement('button');
-        
+
         if (state === 'available') {
             button.className = `command-button blocked implicit`; // Available = implicitly blocked
             button.title = `Click to grant ${command} command`;
             button.onclick = () => this.grantCommand(command);
         } else if (state === 'blocked') {
-            // Determine if explicitly or implicitly blocked
-            if (blockType === 'explicit' || this.state.blockedCommands.has(command)) {
+            // Handle visual differentiation for blocked commands
+            if (blockType === 'explicit') {
+                // Explicitly blocked commands (highlighted - like -acl|deluser)
                 button.className = `command-button blocked explicit`;
                 button.title = `${command} - EXPLICITLY BLOCKED\nThis command was individually blocked.\nClick to make it available.`;
-            } else {
-                button.className = `command-button blocked implicit`;
+                button.onclick = () => this.toggleCommand(command);
+            } else if (blockType === 'category') {
+                // Commands blocked by category exclusions (darkened - like -@admin commands)
+                button.className = `command-button blocked implicit`; // Use implicit styling (darkened)
                 button.title = `${command} - BLOCKED BY CATEGORY\nThis command is blocked by an excluded category.\nClick to explicitly grant it.`;
+                button.onclick = () => this.grantCommand(command);
+            } else if (blockType === 'implicit') {
+                // Implicitly blocked commands (darkened - not granted by any rule)
+                button.className = `command-button blocked implicit`;
+                button.title = `${command} - NOT GRANTED\nThis command is not granted by any rule.\nClick to grant it.`;
+                button.onclick = () => this.grantCommand(command);
+            } else {
+                // Fallback - check if command is in blockedCommands set
+                if (this.state.blockedCommands.has(command)) {
+                    button.className = `command-button blocked explicit`;
+                    button.title = `${command} - EXPLICITLY BLOCKED\nThis command was individually blocked.\nClick to make it available.`;
+                    button.onclick = () => this.toggleCommand(command);
+                } else {
+                    button.className = `command-button blocked implicit`;
+                    button.title = `${command} - BLOCKED BY CATEGORY\nThis command is blocked by an excluded category.\nClick to explicitly grant it.`;
+                    button.onclick = () => this.toggleCommand(command);
+                }
             }
-            button.onclick = () => this.toggleCommand(command);
         } else {
             button.className = `command-button ${state}`;
             button.title = `Click to ${state === 'granted' ? 'revoke' : 'grant'} ${command} command`;
             button.onclick = () => this.toggleCommand(command);
         }
-        
+
         button.textContent = command;
         return button;
     },
@@ -1265,7 +1293,7 @@ const InteractiveACLBuilder = {
 
         // Listen for manual rule text changes
         if (this.elements.aclRuleInput) {
-            this.elements.aclRuleInput.addEventListener('input', 
+            this.elements.aclRuleInput.addEventListener('input',
                 Utils.debounce(() => {
                     this.checkForManualChanges();
                 }, 300)
@@ -1380,16 +1408,21 @@ const InteractiveACLBuilder = {
                             }
                         }
                         
-                        // Get all available commands
-                        const allCommands = new Set(this.state.allCommands);
-                        
                         // Update state based on actual rule parsing and API results
                         this.state.grantedCategories = grantedCategories;
                         this.state.grantedCommands = explicitlyGrantedCommands;
-                        
-                        // Determine blocked categories: only explicitly blocked ones
+
+                        // Only store explicitly blocked categories and commands (from rule tokens)
                         this.state.blockedCategories = blockedCategories;
-                        this.state.blockedCommands = new Set([...allCommands].filter(cmd => !grantedCommands.has(cmd)));
+                        // Parse explicitly blocked commands from rule tokens
+                        const explicitlyBlockedCommands = new Set();
+                        for (const token of tokens) {
+                            if (token.startsWith('-') && !token.startsWith('-@')) {
+                                const command = token.substring(1);
+                                explicitlyBlockedCommands.add(command);
+                            }
+                        }
+                        this.state.blockedCommands = explicitlyBlockedCommands;
                         
                         // Preserve the ordered terms from the original rule
                         this.state.orderedTerms = orderedTerms;
@@ -1434,13 +1467,14 @@ const InteractiveACLBuilder = {
                     layout.classList.remove('submit-button-visible');
                 }
             }
-            
-            
-            // Analyze for redundancy after successful sync
-            try {
-                RuleManager.analyzeRedundancy();
-            } catch (error) {
-                console.error('Error during post-sync redundancy analysis:', error);
+
+            // Only analyze for redundancy when user explicitly submits changes (not during restoration or other sync operations)
+            if (!isRestoration) {
+                try {
+                    RuleManager.analyzeRedundancy();
+                } catch (error) {
+                    console.error('Error during post-sync redundancy analysis:', error);
+                }
             }
             
         } catch (error) {
