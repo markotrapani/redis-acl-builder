@@ -17,7 +17,7 @@
 .acl-config-panel .panel-description,
 .granted-commands-panel .panel-description,
 .blocked-commands-panel .panel-description {
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
   padding: var(--spacing-sm);
   background: rgba(0,0,0,0.05);
   border-radius: var(--radius-sm);

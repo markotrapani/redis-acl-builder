@@ -12,6 +12,7 @@ import CategoryManager from './managers/category-manager.js';
 import CommandTester from './components/command-tester.js';
 import KeyspaceTester from './components/keyspace-tester.js';
 import InteractiveACLBuilder from './components/interactive-acl-builder.js';
+import SearchManager from './components/search-manager.js';
 import EventHandlers from './handlers/event-handlers.js';
 
 // Application main object
@@ -36,6 +37,9 @@ const App = {
             // Initialize interactive ACL builder (three-column layout)
             // Note: InteractiveACLBuilder.init() will handle parsing restored rules
             await InteractiveACLBuilder.init();
+
+            // Initialize search functionality
+            SearchManager.init();
             
             // Clean up saved rule reference (already handled by init)
             if (this.savedRuleToSync) {
