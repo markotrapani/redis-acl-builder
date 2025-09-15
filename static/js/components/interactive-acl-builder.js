@@ -79,8 +79,35 @@ const InteractiveACLBuilder = {
                 if (savedLastGenerated) {
                     this.state.lastGeneratedRule = savedLastGenerated;
                 }
-                
-                await this.syncFromRuleText(true); // Pass true to indicate this is restoration
+
+                // Check if textarea content differs from last generated rule (indicating pending changes)
+                const hasPendingChanges = existingRule !== savedLastGenerated;
+
+                if (hasPendingChanges) {
+                    // Don't auto-sync if there are pending changes, just show Submit Changes button
+                    this.state.hasManualChanges = true;
+                    this.showSubmitButton();
+
+                    // Sync to the last committed state (lastGeneratedRule) to preserve interactive panel state
+                    if (savedLastGenerated) {
+                        // Temporarily set textarea to last generated rule for sync
+                        const currentTextareaValue = this.elements.aclRuleInput.value;
+                        this.elements.aclRuleInput.value = savedLastGenerated;
+
+                        // Sync panels to the committed state (without redundancy analysis since user has pending changes)
+                        await this.syncFromRuleText(true); // Pass true to indicate this is restoration
+
+                        // Restore the actual textarea content (with pending changes)
+                        this.elements.aclRuleInput.value = currentTextareaValue;
+                    } else {
+                        // No committed state, render empty
+                        await this.loadAllData();
+                        await this.renderColumns();
+                    }
+                } else {
+                    // No pending changes, safe to auto-sync
+                    await this.syncFromRuleText(true); // Pass true to indicate this is restoration
+                }
             } else {
                 await this.updateRuleText();
             }
@@ -1116,7 +1143,7 @@ const InteractiveACLBuilder = {
         } else if (isViaCategory) {
             // If only granted via category, use exclusion behavior
             button.classList.add('implicit');
-            button.title = `${command} - IMPLICITLY GRANTED\nThis command is granted through a category (e.g., @read, @write).\nClick to explicitly exclude it from the category.`;
+            button.title = `${command} - IMPLICITLY GRANTED\nThis command is granted through a category.\nClick to explicitly exclude it from the category.`;
             button.onclick = () => this.blockCommandFromCategory(command);
         }
         
@@ -1468,13 +1495,11 @@ const InteractiveACLBuilder = {
                 }
             }
 
-            // Only analyze for redundancy when user explicitly submits changes (not during restoration or other sync operations)
-            if (!isRestoration) {
-                try {
-                    RuleManager.analyzeRedundancy();
-                } catch (error) {
-                    console.error('Error during post-sync redundancy analysis:', error);
-                }
+            // Always analyze for redundancy to show optimization suggestions (including during restoration)
+            try {
+                RuleManager.analyzeRedundancy();
+            } catch (error) {
+                console.error('Error during post-sync redundancy analysis:', error);
             }
             
         } catch (error) {

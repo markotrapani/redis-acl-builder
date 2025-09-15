@@ -126,16 +126,11 @@ const EventHandlers = {
                 const lastGeneratedRule = InteractiveACLBuilder.state?.lastGeneratedRule || '';
                 const isRevertedToGenerated = currentText === lastGeneratedRule;
                 
-                if (hasContent && !isRevertedToGenerated && !layout.classList.contains('submit-button-visible')) {
+                // Show submit button for any change that differs from generated rule (including clearing)
+                if (!isRevertedToGenerated && !layout.classList.contains('submit-button-visible')) {
                     layout.classList.add('submit-button-visible');
-                } else if (!hasContent || isRevertedToGenerated) {
-                    // Auto-sync when content becomes empty or reverted to generated rule
-                    if (!hasContent && InteractiveACLBuilder.state?.isInitialized) {
-                        // Auto-sync empty content without showing submit button (don't run redundancy analysis)
-                        InteractiveACLBuilder.syncFromRuleText(true); // Pass true to skip redundancy analysis
-                    }
-                    
-                    // Hide submit button and update state
+                } else if (isRevertedToGenerated) {
+                    // Only auto-hide submit button when reverted to generated rule
                     const submitBtn = document.getElementById('submitChangesBtn');
                     if (submitBtn && submitBtn.style.display !== 'none') {
                         submitBtn.style.display = 'none';
