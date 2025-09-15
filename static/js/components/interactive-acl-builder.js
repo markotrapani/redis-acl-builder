@@ -341,16 +341,29 @@ const InteractiveACLBuilder = {
     },
 
     /**
+     * Apply loading covers to hide empty state during updates
+     */
+    applyLoadingAnimation() {
+        const containers = document.querySelectorAll('.command-categories-container');
+        containers.forEach(container => {
+            // Remove any existing fade-out state first
+            container.classList.remove('loading-fadeout');
+            // Apply loading cover
+            container.classList.add('loading');
+        });
+    },
+
+    /**
      * Remove loading covers after content is rendered (covers start in HTML)
      */
     removeLoadingAnimation() {
         const containers = document.querySelectorAll('.command-categories-container.loading');
         if (containers.length === 0) return; // Already removed or not found
-        
+
         containers.forEach(container => {
             // Add fade-out class to trigger smooth opacity transition
             container.classList.add('loading-fadeout');
-            
+
             // Remove both classes after fade animation completes
             setTimeout(() => {
                 container.classList.remove('loading', 'loading-fadeout');
@@ -398,23 +411,13 @@ const InteractiveACLBuilder = {
     },
 
     /**
-     * Smooth rendering with fade transitions
+     * Smooth rendering with loading covers to prevent empty state flash
      */
     async smoothRender() {
-        const containers = [
-            this.elements.grantedCategoriesButtons,
-            this.elements.grantedCommandsButtons,
-            this.elements.blockedCategoriesButtons, 
-            this.elements.blockedCommandsButtons
-        ].filter(Boolean);
+        // Apply loading covers instead of opacity fade to prevent empty state flash
+        this.applyLoadingAnimation();
 
-        // Completely hide containers during update to prevent flash
-        containers.forEach(container => {
-            container.style.transition = 'opacity 0.1s ease';
-            container.style.opacity = '0';
-        });
-
-        // Wait for fade, then render
+        // Small delay to ensure loading covers are visible, then render
         setTimeout(async () => {
             // First update the rule text to get the current rule string
             await this.updateRuleText();
@@ -448,15 +451,8 @@ const InteractiveACLBuilder = {
                         // Apply filters one more time to be absolutely sure
                         SearchManager.refreshAllSearches();
 
-                        // Now fade back in
-                        containers.forEach(container => {
-                            container.style.opacity = '1';
-                            // Clean up inline styles to avoid conflicts with CSS classes
-                            setTimeout(() => {
-                                container.style.transition = '';
-                                container.style.opacity = '';
-                            }, 150); // After fade completes
-                        });
+                        // Remove loading covers with smooth fade animation
+                        this.removeLoadingAnimation();
                     });
                 });
             });
