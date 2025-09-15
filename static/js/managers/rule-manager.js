@@ -166,16 +166,16 @@ const RuleManager = {
         const warningsContainer = document.getElementById('redundancyWarnings');
         const warningsList = document.getElementById('warningsList');
         const suggestionsList = document.getElementById('suggestionsList');
-        
+
         if (!analysis.has_redundancy) {
             this.hideRedundancyWarnings();
             return;
         }
-        
+
         // Clear existing content
         warningsList.innerHTML = '';
         suggestionsList.innerHTML = '';
-        
+
         // Add warnings
         if (analysis.warnings && analysis.warnings.length > 0) {
             analysis.warnings.forEach(warning => {
@@ -186,17 +186,17 @@ const RuleManager = {
                 warningsList.appendChild(warningDiv);
             });
         }
-        
+
         // Add suggestions
         if (analysis.suggestions && analysis.suggestions.length > 0) {
             analysis.suggestions.forEach(suggestion => {
                 const suggestionDiv = document.createElement('div');
                 suggestionDiv.className = 'suggestion-item';
-                
+
                 if (suggestion.includes('Simplified rule:')) {
                     const parts = suggestion.split('Simplified rule: ');
                     suggestionDiv.innerHTML = `${parts[0]}Simplified rule: <span class="simplified-rule">${parts[1]}</span>`;
-                    
+
                     // Make simplified rule clickable
                     const ruleSpan = suggestionDiv.querySelector('.simplified-rule');
                     if (ruleSpan) {
@@ -210,14 +210,14 @@ const RuleManager = {
                             } else {
                                 DOMElements.aclRuleInput.value = simplifiedRule;
                             }
-                            
+
                             // Update character counter
                             import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
                                 EventHandlers.updateCharacterCounterProgrammatically(DOMElements.aclRuleInput);
                             });
-                            
+
                             this.parseRule(); // Re-parse with simplified rule
-                            
+
                             // Sync to interactive builder (same as clicking Submit Changes)
                             import('../components/interactive-acl-builder.js').then(({ default: InteractiveACLBuilder }) => {
                                 if (InteractiveACLBuilder.state.isInitialized) {
@@ -229,11 +229,11 @@ const RuleManager = {
                 } else {
                     suggestionDiv.textContent = suggestion;
                 }
-                
+
                 suggestionsList.appendChild(suggestionDiv);
             });
         }
-        
+
         // Show the warnings container
         warningsContainer.style.display = 'block';
     },
