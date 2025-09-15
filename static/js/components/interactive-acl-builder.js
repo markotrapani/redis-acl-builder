@@ -8,6 +8,7 @@ import Utils from '../core/utils.js';
 import API from '../api/api-client.js';
 import RuleManager from '../managers/rule-manager.js';
 import Storage from '../core/storage.js';
+import SearchManager from './search-manager.js';
 
 const InteractiveACLBuilder = {
     // State management
@@ -218,6 +219,35 @@ const InteractiveACLBuilder = {
             // Move from explicitly granted to available (remove from granted)
             this.state.grantedCategories.delete(category);
             this.state.blockedCategories.delete(category);
+
+            // Also remove any individual command exclusions that belong to this category
+            // to prevent them from being "restored" when the category is re-added
+            try {
+                const categoryCommands = await this.getCategoryCommandsCached(category);
+                const categoryCommandSet = new Set(categoryCommands);
+
+                // Track commands that will be removed for debugging
+                const commandsToRemove = [];
+
+                // Remove command exclusions that belong to this category
+                this.state.orderedTerms = this.state.orderedTerms.filter(term => {
+                    if (term.type === 'command' && term.operation === 'block' && categoryCommandSet.has(term.value)) {
+                        commandsToRemove.push(term.value);
+                        // Also remove from blocked commands state
+                        this.state.blockedCommands.delete(term.value);
+                        return false; // Remove this term
+                    }
+                    return true; // Keep other terms
+                });
+
+                // Debug logging to verify cleanup
+                if (commandsToRemove.length > 0) {
+                    console.log(`Cleaned up ${commandsToRemove.length} command exclusions for category ${category}:`, commandsToRemove);
+                }
+            } catch (error) {
+                console.warn('Could not clean up command exclusions for category:', category, error);
+            }
+
             // Don't add to orderedTerms when removing
         } else if (wasBlocked) {
             // Category was blocked - remove the block
@@ -358,10 +388,11 @@ const InteractiveACLBuilder = {
         if (this.debouncedRender) {
             clearTimeout(this.debouncedRender);
         }
-        
+
         this.debouncedRender = setTimeout(() => {
             requestAnimationFrame(async () => {
                 await this.smoothRender();
+                // Note: SearchManager.refreshAllSearches() is now called from within smoothRender after DOM updates
             });
         }, 100); // 100ms debounce for smoother batching
     },
@@ -377,10 +408,10 @@ const InteractiveACLBuilder = {
             this.elements.blockedCommandsButtons
         ].filter(Boolean);
 
-        // Quick fade out only the button containers, not their parents
+        // Completely hide containers during update to prevent flash
         containers.forEach(container => {
             container.style.transition = 'opacity 0.1s ease';
-            container.style.opacity = '0.5';
+            container.style.opacity = '0';
         });
 
         // Wait for fade, then render
@@ -404,15 +435,29 @@ const InteractiveACLBuilder = {
             // Now render with fresh API data
             await this.renderColumns();
 
-            // Fade back in and clean up inline styles
+            // Apply search filters while containers are completely hidden
+            SearchManager.refreshAllSearches();
+
+            // Force a brief delay to ensure DOM updates and filters are fully applied
+            await new Promise(resolve => setTimeout(resolve, 10));
+
+            // Use multiple requestAnimationFrame cycles to ensure all DOM changes are complete
             requestAnimationFrame(() => {
-                containers.forEach(container => {
-                    container.style.opacity = '1';
-                    // Clean up inline styles to avoid conflicts with CSS classes
-                    setTimeout(() => {
-                        container.style.transition = '';
-                        container.style.opacity = '';
-                    }, 150); // After fade completes
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        // Apply filters one more time to be absolutely sure
+                        SearchManager.refreshAllSearches();
+
+                        // Now fade back in
+                        containers.forEach(container => {
+                            container.style.opacity = '1';
+                            // Clean up inline styles to avoid conflicts with CSS classes
+                            setTimeout(() => {
+                                container.style.transition = '';
+                                container.style.opacity = '';
+                            }, 150); // After fade completes
+                        });
+                    });
                 });
             });
         }, 80); // Slightly faster
@@ -487,11 +532,11 @@ const InteractiveACLBuilder = {
                     // (Visual styling is now handled by CSS classes in createCategoryButton)
                     if (hasAllCategory && !this.state.grantedCategories.has(category)) {
                         // This category is granted via @all, clicking should block it
-                        button.title = `@${category} category (granted via @all) - Click to block`;
+                        button.dataset.stateInfo = `@${category} category (granted via @all) - Click to block`;
                         button.onclick = () => this.blockCategory(category);
                     } else if (hasAllCategory && this.state.grantedCategories.has(category)) {
                         // This category is explicitly granted in addition to @all
-                        button.title = `@${category} category (explicitly granted) - Click to toggle`;
+                        button.dataset.stateInfo = `@${category} category (explicitly granted) - Click to toggle`;
                         // Keep default toggleCategory behavior
                     }
                     
@@ -548,18 +593,18 @@ const InteractiveACLBuilder = {
                     
                     finalOrder.forEach(category => {
                         const button = this.createCategoryButton(category, 'available');
-                        button.title = `Click to grant @${category} category`;
-                        
+                        button.dataset.stateInfo = `Click to grant @${category} category`;
+
                         // Special styling for @all when it's implicitly blocked (empty rule scenario)
                         if (category === 'all') {
-                            const isEmptyRule = this.state.grantedCategories.size === 0 && 
-                                               this.state.grantedCommands.size === 0 && 
-                                               this.state.blockedCategories.size === 0 && 
+                            const isEmptyRule = this.state.grantedCategories.size === 0 &&
+                                               this.state.grantedCommands.size === 0 &&
+                                               this.state.blockedCategories.size === 0 &&
                                                this.state.blockedCommands.size === 0;
-                            
+
                             if (isEmptyRule) {
                                 button.style.opacity = '0.7';
-                                button.title = `@${category} category (implicitly blocked - empty rule) - Click to grant`;
+                                button.dataset.stateInfo = `@${category} category (implicitly blocked - empty rule) - Click to grant`;
                             }
                         }
                         
@@ -569,18 +614,18 @@ const InteractiveACLBuilder = {
                     // Normal sorting when @all is not in the list
                     sortedCategories.sort().forEach(category => {
                         const button = this.createCategoryButton(category, 'available');
-                        button.title = `Click to grant @${category} category`;
-                        
+                        button.dataset.stateInfo = `Click to grant @${category} category`;
+
                         // Special styling for @all when it's implicitly blocked (empty rule scenario)
                         if (category === 'all') {
-                            const isEmptyRule = this.state.grantedCategories.size === 0 && 
-                                               this.state.grantedCommands.size === 0 && 
-                                               this.state.blockedCategories.size === 0 && 
+                            const isEmptyRule = this.state.grantedCategories.size === 0 &&
+                                               this.state.grantedCommands.size === 0 &&
+                                               this.state.blockedCategories.size === 0 &&
                                                this.state.blockedCommands.size === 0;
-                            
+
                             if (isEmptyRule) {
                                 button.style.opacity = '0.7';
-                                button.title = `@${category} category (implicitly blocked - empty rule) - Click to grant`;
+                                button.dataset.stateInfo = `@${category} category (implicitly blocked - empty rule) - Click to grant`;
                             }
                         }
                         
@@ -793,7 +838,7 @@ const InteractiveACLBuilder = {
                 if (allAvailableForEmptyACL.length > 0) {
                     allAvailableForEmptyACL.sort().forEach(command => {
                         const button = this.createCommandButton(command, 'available');
-                        button.title = `Click to grant ${command} command`;
+                        button.dataset.stateInfo = `Click to grant ${command} command`;
                         wrapper.appendChild(button);
                     });
                 }
@@ -1017,6 +1062,304 @@ const InteractiveACLBuilder = {
     },
 
     /**
+     * Add enhanced tooltip functionality with relationship information
+     */
+    addEnhancedTooltip(button, type, name) {
+        let tooltipElement = null;
+        let hideTimeout = null;
+        let showTimeout = null;
+
+        const cleanupTooltip = () => {
+            // Clear all timeouts
+            if (hideTimeout) {
+                clearTimeout(hideTimeout);
+                hideTimeout = null;
+            }
+            if (showTimeout) {
+                clearTimeout(showTimeout);
+                showTimeout = null;
+            }
+
+            // Remove tooltip element
+            if (tooltipElement) {
+                tooltipElement.remove();
+                tooltipElement = null;
+            }
+        };
+
+        const showTooltip = async () => {
+
+            // Clear any hide timeouts when mouse enters button
+            if (hideTimeout) {
+                clearTimeout(hideTimeout);
+                hideTimeout = null;
+
+                // If tooltip already exists, don't restart the show process
+                if (tooltipElement) {
+                    return;
+                }
+            }
+
+            // Clear any existing timeouts and tooltips
+            cleanupTooltip();
+
+            // Add 1-second delay before showing tooltip
+            showTimeout = setTimeout(async () => {
+                // Double-check that we should still show tooltip
+                if (!showTimeout) {
+                    return;
+                }
+
+                try {
+                    let content = '';
+
+                    // Get state information from the button
+                    const stateInfo = button.dataset.stateInfo || '';
+
+                    // Determine color based on button location/state (red for blocked, green for granted)
+                    let titleClass = 'tooltip-title';
+
+                    // Check if button is in granted column by looking at its container
+                    const isInGrantedColumn = button.closest('#grantedCategories, #grantedCommands');
+                    const isInBlockedColumn = button.closest('#blockedCategories, #blockedCommands');
+
+
+                    if (isInGrantedColumn) {
+                        titleClass += ' granted'; // Green for granted
+                    } else if (isInBlockedColumn) {
+                        titleClass += ' blocked'; // Red for blocked
+                    }
+
+                    // Build tooltip content with state info and relationships
+                    content = `<div class="${titleClass}">${type === 'category' ? '@' : ''}${name}</div>`;
+
+                    // Add state information if available
+                    if (stateInfo) {
+                        content += `<div class="tooltip-state">${stateInfo.replace(/\n/g, '<br/>')}</div>`;
+                    }
+
+                    // Add relationship information
+                    if (type === 'command') {
+                        // Get categories for this command
+                        const response = await API.getCommandInfo(name, AppState.currentVersion);
+                        if (response.success && response.categories && response.categories.length > 0) {
+                            const categories = response.categories.sort();
+                            const displayCategories = categories.slice(0, 8);
+                            const remaining = categories.length - displayCategories.length;
+
+                            let relationshipContent = `Member of categories:<br/>• @${displayCategories.join('<br/>• @')}`;
+                            if (remaining > 0) {
+                                const linkColorClass = isInGrantedColumn ? 'granted' : (isInBlockedColumn ? 'blocked' : '');
+                                relationshipContent += `<br/>• <span class="expandable-link ${linkColorClass}" data-type="categories" data-full-list="${categories.join(',')}" data-showing="${displayCategories.length}">... and ${remaining} more</span>`;
+                            }
+                            content += `<div class="tooltip-content">${relationshipContent}</div>`;
+                        } else {
+                            content += `<div class="tooltip-content">No category information available</div>`;
+                        }
+                    } else if (type === 'category') {
+                        // Get commands for this category
+                        const commands = await this.getCategoryCommandsCached(name);
+                        if (commands && commands.length > 0) {
+                            const sortedCommands = commands.sort();
+                            const displayCommands = sortedCommands.slice(0, 8);
+                            const remaining = sortedCommands.length - displayCommands.length;
+
+                            let relationshipContent = `Contains ${sortedCommands.length} commands:<br/>• ${displayCommands.join('<br/>• ')}`;
+                            if (remaining > 0) {
+                                const linkColorClass = isInGrantedColumn ? 'granted' : (isInBlockedColumn ? 'blocked' : '');
+                                relationshipContent += `<br/>• <span class="expandable-link ${linkColorClass}" data-type="commands" data-full-list="${sortedCommands.join(',')}" data-showing="${displayCommands.length}">... and ${remaining} more</span>`;
+                            }
+                            content += `<div class="tooltip-content">${relationshipContent}</div>`;
+                        } else {
+                            content += `<div class="tooltip-content">No commands found</div>`;
+                        }
+                    }
+
+                    // Create tooltip element
+                    tooltipElement = document.createElement('div');
+                    tooltipElement.className = 'enhanced-tooltip';
+                    tooltipElement.innerHTML = content;
+
+                    // Get positioning info BEFORE adding to DOM
+                    const rect = button.getBoundingClientRect();
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+                    // Validate positioning values
+                    if (rect.width === 0 || rect.height === 0) {
+                        console.warn('Invalid button rect for tooltip positioning');
+                        cleanupTooltip();
+                        return;
+                    }
+
+                    // Initial positioning (off-screen to measure)
+                    tooltipElement.style.position = 'absolute';
+                    tooltipElement.style.left = '-9999px';
+                    tooltipElement.style.top = '-9999px';
+                    tooltipElement.style.zIndex = '10000';
+                    tooltipElement.style.visibility = 'hidden';
+
+                    document.body.appendChild(tooltipElement);
+
+                    // Get tooltip dimensions
+                    const tooltipRect = tooltipElement.getBoundingClientRect();
+
+                    // Calculate desired position
+                    let left = rect.left + scrollLeft + rect.width / 2 - tooltipRect.width / 2;
+                    let top = rect.bottom + scrollTop + 8;
+
+                    // Adjust horizontal position if tooltip goes off screen
+                    if (left < 10) {
+                        left = 10 + scrollLeft;
+                    } else if (left + tooltipRect.width > window.innerWidth - 10) {
+                        left = window.innerWidth - tooltipRect.width - 10 + scrollLeft;
+                    }
+
+                    // Adjust vertical position if tooltip goes below viewport
+                    if (top + tooltipRect.height > window.innerHeight + scrollTop - 10) {
+                        top = rect.top + scrollTop - tooltipRect.height - 8;
+                    }
+
+                    // Ensure tooltip doesn't go above viewport
+                    if (top < scrollTop + 10) {
+                        top = rect.bottom + scrollTop + 8; // Default to below
+                    }
+
+                    // Apply final positioning
+                    tooltipElement.style.left = `${left}px`;
+                    tooltipElement.style.top = `${top}px`;
+                    tooltipElement.style.visibility = 'visible';
+                    tooltipElement.style.transform = 'none';
+
+                    // Add event listeners to keep tooltip visible when hovering over it
+                    tooltipElement.addEventListener('mouseenter', () => {
+                        // Clear any hide timeouts when mouse enters tooltip
+                        if (hideTimeout) {
+                            clearTimeout(hideTimeout);
+                            hideTimeout = null;
+                        }
+                        // Also clear show timeout to avoid conflicts
+                        if (showTimeout) {
+                            clearTimeout(showTimeout);
+                            showTimeout = null;
+                        }
+                    });
+
+                    tooltipElement.addEventListener('mouseleave', () => {
+                        // Use same delay as button mouseleave for consistency
+                        hideTimeout = setTimeout(() => {
+                            cleanupTooltip();
+                        }, 200);
+                    });
+
+                    // Add click handlers for expandable links
+                    const expandableLinks = tooltipElement.querySelectorAll('.expandable-link');
+                    expandableLinks.forEach(link => {
+                        link.style.cursor = 'pointer';
+                        link.style.color = 'var(--primary-color)';
+                        link.style.textDecoration = 'underline';
+
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            const type = link.dataset.type;
+                            const fullList = link.dataset.fullList.split(',');
+
+                            // Replace the abbreviated list with the full list using multi-column layout for large lists
+                            if (type === 'categories') {
+                                const newContent = this.createMultiColumnContent('Member of categories:', fullList, '@');
+                                link.parentNode.innerHTML = newContent;
+                            } else if (type === 'commands') {
+                                const newContent = this.createMultiColumnContent(`Contains ${fullList.length} commands:`, fullList);
+                                link.parentNode.innerHTML = newContent;
+                            }
+
+                            // Mark tooltip as expanded for larger sizing
+                            tooltipElement.classList.add('expanded');
+                        });
+                    });
+
+                } catch (error) {
+                    console.warn('Failed to load enhanced tooltip:', error);
+                    cleanupTooltip();
+                }
+            }, 1000); // 1-second delay
+        };
+
+        const hideTooltip = () => {
+            // Add a small delay to allow moving mouse to tooltip
+            hideTimeout = setTimeout(() => {
+                cleanupTooltip();
+            }, 200); // 200ms delay
+        };
+
+        // Add event listeners
+        button.addEventListener('mouseenter', showTooltip);
+        button.addEventListener('mouseleave', hideTooltip);
+
+        // CRITICAL: Hide tooltip when button is clicked
+        button.addEventListener('click', cleanupTooltip);
+
+        // Hide tooltip when button loses focus
+        button.addEventListener('blur', cleanupTooltip);
+
+        // Hide tooltip on scroll (prevents positioning issues)
+        window.addEventListener('scroll', cleanupTooltip, { passive: true });
+
+        // Hide tooltip on window resize
+        window.addEventListener('resize', cleanupTooltip, { passive: true });
+    },
+
+    /**
+     * Create multi-column content for large lists in tooltips
+     */
+    createMultiColumnContent(title, items, prefix = '') {
+        const itemCount = items.length;
+
+        // Use single column for small lists
+        if (itemCount <= 12) {
+            const itemsWithPrefix = items.map(item => `${prefix}${item}`);
+            return `${title}<br/>• ${itemsWithPrefix.join('<br/>• ')}`;
+        }
+
+        // Determine number of columns based on item count
+        let columns;
+        if (itemCount <= 30) {
+            columns = 2;
+        } else if (itemCount <= 60) {
+            columns = 3;
+        } else {
+            columns = 4;
+        }
+
+        // Calculate items per column
+        const itemsPerColumn = Math.ceil(itemCount / columns);
+
+        // Split items into columns
+        const columnData = [];
+        for (let i = 0; i < columns; i++) {
+            const start = i * itemsPerColumn;
+            const end = Math.min(start + itemsPerColumn, itemCount);
+            columnData.push(items.slice(start, end));
+        }
+
+        // Build HTML with grid layout
+        let html = `${title}<div class="tooltip-columns cols-${columns}">`;
+
+        columnData.forEach(columnItems => {
+            html += '<div class="tooltip-column"><ul>';
+            columnItems.forEach(item => {
+                html += `<li>${prefix}${item}</li>`;
+            });
+            html += '</ul></div>';
+        });
+
+        html += '</div>';
+        return html;
+    },
+
+    /**
      * Create a category button element
      */
     createCategoryButton(category, state, categoryAnalysis = null, blockType = null) {
@@ -1070,9 +1413,12 @@ const InteractiveACLBuilder = {
         } else {
             button.textContent = `@${category}`;
         }
-        button.title = tooltipText;
+        button.dataset.stateInfo = tooltipText;
         button.onclick = clickHandler;
-        
+
+        // Add enhanced tooltip on hover
+        this.addEnhancedTooltip(button, 'category', category);
+
         return button;
     },
 
@@ -1084,44 +1430,48 @@ const InteractiveACLBuilder = {
 
         if (state === 'available') {
             button.className = `command-button blocked implicit`; // Available = implicitly blocked
-            button.title = `Click to grant ${command} command`;
+            button.dataset.stateInfo = `Click to grant ${command} command`;
             button.onclick = () => this.grantCommand(command);
         } else if (state === 'blocked') {
             // Handle visual differentiation for blocked commands
             if (blockType === 'explicit') {
                 // Explicitly blocked commands (highlighted - like -acl|deluser)
                 button.className = `command-button blocked explicit`;
-                button.title = `${command} - EXPLICITLY BLOCKED\nThis command was individually blocked.\nClick to make it available.`;
+                button.dataset.stateInfo = `${command} - EXPLICITLY BLOCKED\nThis command was individually blocked.\nClick to make it available.`;
                 button.onclick = () => this.toggleCommand(command);
             } else if (blockType === 'category') {
                 // Commands blocked by category exclusions (darkened - like -@admin commands)
                 button.className = `command-button blocked implicit`; // Use implicit styling (darkened)
-                button.title = `${command} - BLOCKED BY CATEGORY\nThis command is blocked by an excluded category.\nClick to explicitly grant it.`;
+                button.dataset.stateInfo = `${command} - BLOCKED BY CATEGORY\nThis command is blocked by an excluded category.\nClick to explicitly grant it.`;
                 button.onclick = () => this.grantCommand(command);
             } else if (blockType === 'implicit') {
                 // Implicitly blocked commands (darkened - not granted by any rule)
                 button.className = `command-button blocked implicit`;
-                button.title = `${command} - NOT GRANTED\nThis command is not granted by any rule.\nClick to grant it.`;
+                button.dataset.stateInfo = `${command} - NOT GRANTED\nThis command is not granted by any rule.\nClick to grant it.`;
                 button.onclick = () => this.grantCommand(command);
             } else {
                 // Fallback - check if command is in blockedCommands set
                 if (this.state.blockedCommands.has(command)) {
                     button.className = `command-button blocked explicit`;
-                    button.title = `${command} - EXPLICITLY BLOCKED\nThis command was individually blocked.\nClick to make it available.`;
+                    button.dataset.stateInfo = `${command} - EXPLICITLY BLOCKED\nThis command was individually blocked.\nClick to make it available.`;
                     button.onclick = () => this.toggleCommand(command);
                 } else {
                     button.className = `command-button blocked implicit`;
-                    button.title = `${command} - BLOCKED BY CATEGORY\nThis command is blocked by an excluded category.\nClick to explicitly grant it.`;
+                    button.dataset.stateInfo = `${command} - BLOCKED BY CATEGORY\nThis command is blocked by an excluded category.\nClick to explicitly grant it.`;
                     button.onclick = () => this.toggleCommand(command);
                 }
             }
         } else {
             button.className = `command-button ${state}`;
-            button.title = `Click to ${state === 'granted' ? 'revoke' : 'grant'} ${command} command`;
+            button.dataset.stateInfo = `Click to ${state === 'granted' ? 'revoke' : 'grant'} ${command} command`;
             button.onclick = () => this.toggleCommand(command);
         }
 
         button.textContent = command;
+
+        // Add enhanced tooltip on hover
+        this.addEnhancedTooltip(button, 'command', command);
+
         return button;
     },
 
@@ -1138,15 +1488,18 @@ const InteractiveACLBuilder = {
         if (isIndividual) {
             // If granted individually (even if also via category), use normal toggle
             button.classList.add('explicit');
-            button.title = `${command} - EXPLICITLY GRANTED\nThis command was directly added to your ACL rule.\nClick to revoke.`;
+            button.dataset.stateInfo = `${command} - EXPLICITLY GRANTED\nThis command was directly added to your ACL rule.\nClick to revoke.`;
             button.onclick = () => this.toggleCommand(command);
         } else if (isViaCategory) {
             // If only granted via category, use exclusion behavior
             button.classList.add('implicit');
-            button.title = `${command} - IMPLICITLY GRANTED\nThis command is granted through a category.\nClick to explicitly exclude it from the category.`;
+            button.dataset.stateInfo = `${command} - IMPLICITLY GRANTED\nThis command is granted through a category.\nClick to explicitly exclude it from the category.`;
             button.onclick = () => this.blockCommandFromCategory(command);
         }
-        
+
+        // Add enhanced tooltip on hover
+        this.addEnhancedTooltip(button, 'command', command);
+
         return button;
     },
 
@@ -1392,8 +1745,6 @@ const InteractiveACLBuilder = {
                     if (data && data.success) {
                         // Store the API response for partial category detection
                         this.lastApiResponse = data;
-                        // Use actual parsing results to determine what's granted
-                        const grantedCommands = new Set(data.granted_commands || []);
                         
                         // Parse rule tokens to determine what was explicitly granted
                         const tokens = ruleText.split(/\s+/).filter(token => token.length > 0);
