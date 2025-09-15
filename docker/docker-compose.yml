@@ -1,6 +1,6 @@
 services:
   redis-acl-builder:
-    image: redis-acl-builder:v1.8.0-beta
+    image: redis-acl-builder:v1.9.0-beta
     build:
       context: ..
       dockerfile: docker/Dockerfile
@@ -16,4 +16,4 @@ services:
       retries: 3
       start_period: 40s
     restart: unless-stopped
-    container_name: redis-acl-builder-v1.8.0-beta
+    container_name: redis-acl-builder-v1.9.0-beta
