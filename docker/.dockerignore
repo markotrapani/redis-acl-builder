@@ -27,6 +27,7 @@ __pycache__/
 # Documentation
 README.md
 CLAUDE.md
+*.md
 
 # Logs
 *.log
@@ -43,3 +44,20 @@ test_*.py
 # Development scripts
 run_tests.sh
 test_imports.py
+
+# Docker files (exclude during build to avoid recursion)
+docker/
+Dockerfile*
+docker-compose*
+
+# Development requirements (use production requirements only)
+requirements.txt
+
+# Backup files
+*.bak
+*.backup
+*-original.*
+
+# IDE files
+.pyproject.toml
+pyproject.toml
