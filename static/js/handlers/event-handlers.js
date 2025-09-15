@@ -214,8 +214,9 @@ const EventHandlers = {
             RuleManager.parseRuleSilent(true); // Skip redundancy analysis and error notifications during version changes
             // Also update interactive builder if initialized
             if (InteractiveACLBuilder.state.isInitialized) {
-                InteractiveACLBuilder.loadAllData().then(async () => {
-                    await InteractiveACLBuilder.renderColumns();
+                // Use the smooth render mechanism to prevent filter flash
+                InteractiveACLBuilder.loadAllData().then(() => {
+                    InteractiveACLBuilder.scheduleRender(); // This uses smoothRender which handles search filters
                 });
             }
         };
