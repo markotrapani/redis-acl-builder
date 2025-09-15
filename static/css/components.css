@@ -1386,6 +1386,21 @@ button.test-button[disabled] {
   margin-bottom: var(--spacing-xs);
 }
 
+/* Left-aligned search containers with search input and toggle on the left */
+.panel-search-container.left-aligned {
+  justify-content: flex-start;
+}
+
+/* Prevent layout shift by reserving space for toggle buttons */
+.panel-search-container {
+  min-height: 30px; /* Ensure consistent height */
+}
+
+/* Ensure smooth appearance of toggle buttons */
+.search-mode-toggle {
+  transition: all var(--transition-normal);
+}
+
 /* Help Icon Tooltips */
 .help-icon {
   display: inline-flex;

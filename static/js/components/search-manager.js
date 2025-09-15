@@ -15,8 +15,12 @@ const SearchManager = {
     /**
      * Initialize search functionality
      */
-    init() {
+    async init() {
         this.setupSearchHandlers();
+
+        // Wait a bit for DOM to be fully stable after InteractiveACLBuilder finishes
+        await new Promise(resolve => setTimeout(resolve, 50));
+
         this.setupToggleButtons();
     },
 
@@ -47,13 +51,35 @@ const SearchManager = {
      * Setup toggle buttons for search mode switching
      */
     setupToggleButtons() {
-        // Create toggle buttons for both search bars
-        this.createToggleButton('blockedSearch');
-        this.createToggleButton('grantedSearch');
+        // Find existing toggle buttons in HTML and set up their event handlers
+        this.setupExistingToggleButton('blocked');
+        this.setupExistingToggleButton('granted');
     },
 
     /**
-     * Create a toggle button next to a search input
+     * Setup existing toggle button from HTML
+     */
+    setupExistingToggleButton(searchType) {
+        // Find the existing toggle button in the HTML
+        const toggleButton = document.querySelector(`[data-search-type="${searchType}"]`);
+        if (!toggleButton) {
+            console.warn(`Toggle button for ${searchType} search not found in HTML`);
+            return;
+        }
+
+        // Set initial appearance based on current mode
+        this.updateToggleButtonAppearance(toggleButton, searchType);
+
+        // Add click handler specific to this search type
+        toggleButton.addEventListener('click', () => {
+            this.toggleSearchMode(searchType);
+            this.updateToggleButtonAppearance(toggleButton, searchType);
+            this.refreshSearch(searchType);
+        });
+    },
+
+    /**
+     * Create a toggle button next to a search input (legacy method - kept for compatibility)
      */
     createToggleButton(inputId) {
         const input = document.getElementById(inputId);
@@ -64,6 +90,12 @@ const SearchManager = {
 
         // Determine which search type this is (blocked or granted)
         const searchType = inputId.includes('blocked') ? 'blocked' : 'granted';
+
+        // Check if toggle button already exists for this search type
+        const existingButton = container.querySelector(`[data-search-type="${searchType}"]`);
+        if (existingButton) {
+            return;
+        }
 
         // Create toggle button
         const toggleButton = document.createElement('button');

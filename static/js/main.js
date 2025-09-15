@@ -38,8 +38,8 @@ const App = {
             // Note: InteractiveACLBuilder.init() will handle parsing restored rules
             await InteractiveACLBuilder.init();
 
-            // Initialize search functionality
-            SearchManager.init();
+            // Initialize search functionality AFTER interactive builder is ready
+            await SearchManager.init();
             
             // Clean up saved rule reference (already handled by init)
             if (this.savedRuleToSync) {

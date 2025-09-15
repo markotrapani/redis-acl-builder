@@ -79,12 +79,112 @@
         
         <!-- Three Column Layout -->
         <div class="three-column-layout">
-            <!-- Left Column: Blocked Commands -->
+            <!-- Left Column: ACL Rule Configuration -->
+            <section class="panel acl-config-panel">
+                <h2>📝 ACL Rule Configuration</h2>
+
+                <div class="version-selector">
+                    <div class="toggle-switch-container">
+                        <div class="version-label">Redis Version:</div>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="versionToggle" class="toggle-input">
+                            <label for="versionToggle" class="toggle-label">
+                                <span class="toggle-slider">
+                                    <span class="toggle-option toggle-option-left">7</span>
+                                    <span class="toggle-option toggle-option-right">8</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="version-info">
+                        <span class="version-detail" id="versionDetail">Redis 7 (21 categories, 311 commands)</span>
+                        <div class="inline-action-buttons">
+                            <button type="button" id="clearRuleBtn" class="inline-action-button clear-button" onclick="clearACLRule()" title="Clear ACL Rule text area" disabled>
+                                💣
+                            </button>
+                            <button type="button" id="copyRuleBtn" class="inline-action-button copy-button" onclick="copyACLRule()" title="Copy ACL Rule to clipboard" disabled>
+                                📋
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="textarea-container loading">
+                    <textarea
+                        id="aclRule"
+                        class="rule-input rule-input-compact"
+                        placeholder="Click commands/categories in the surrounding panels to build your ACL rule interactively, or type manually..."
+                        aria-label="ACL Rule Input"
+                        spellcheck="false"
+                        maxlength="500"
+                    ></textarea>
+
+                    <!-- Character Counter Overlay -->
+                    <div class="character-counter" id="characterCounter">0/500</div>
+                </div>
+
+                <!-- Rule Redundancy Warnings -->
+                <div id="redundancyWarnings" class="redundancy-warnings" style="display: none;">
+                    <h4>⚠️ Redundant Terms Detected:</h4>
+                    <div id="warningsList"></div>
+                    <div id="suggestionsList"></div>
+                </div>
+
+                <button type="button" id="submitChangesBtn" class="test-button" onclick="syncRuleToInteractive()" style="margin-bottom: 10px; width: 100%; display: none;">
+                    Submit Changes
+                </button>
+
+                <div class="rule-examples">
+                    <h4>Quick Examples</h4>
+                    <div class="rule-examples-content">
+                        <div class="example-group">
+                            <h5 class="example-category">Full Access</h5>
+                            <button type="button" class="example" onclick="setRuleAndParse('+@all ~*')" title="Full access to all commands and keys">
+                                +@all ~*
+                            </button>
+                        </div>
+
+                        <div class="example-group">
+                            <h5 class="example-category">Read-Write</h5>
+                            <button type="button" class="example" onclick="setRuleAndParse('+@read +@write -@dangerous ~*')" title="Read and write access excluding dangerous commands">
+                                +@read +@write -@dangerous ~*
+                            </button>
+                        </div>
+
+                        <div class="example-group">
+                            <h5 class="example-category">Read-Only</h5>
+                            <button type="button" class="example" onclick="setRuleAndParse('+@read ~*')" title="Read-only access to all keys">
+                                +@read ~*
+                            </button>
+                        </div>
+
+                        <div class="example-group">
+                            <h5 class="example-category">Other Access</h5>
+                            <button type="button" class="example" onclick="setRuleAndParse('+@read ~user:* ~session:*')" title="Read-only access to user and session keys">
+                                +@read ~user:* ~session:*
+                            </button>
+                            <button type="button" class="example" onclick="setRuleAndParse('+get +set +del +exists ~*')" title="Basic key operations only">
+                                +get +set +del +exists ~*
+                            </button>
+                            <button type="button" class="example" onclick="setRuleAndParse('+@all -@scripting -@dangerous ~*')" title="Application user access without scripting or dangerous commands">
+                                +@all -@scripting -@dangerous ~*
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Center Column: Blocked Commands -->
             <section class="panel blocked-commands-panel">
                 <h2>❌ Blocked Commands <span class="help-icon" title="Click any item below to grant access and move it to granted commands">?</span></h2>
 
-                <!-- Search Bar positioned right below instruction -->
-                <div class="panel-search-container">
+                <!-- Search Bar positioned left side -->
+                <div class="panel-search-container left-aligned">
+                    <button type="button"
+                            class="search-mode-toggle fuzzy-mode"
+                            data-search-type="blocked"
+                            aria-label="Toggle between fuzzy and exact search"
+                            title="Fuzzy search mode - Click to switch to exact search">≈</button>
                     <input
                         type="text"
                         id="blockedSearch"
@@ -112,108 +212,18 @@
                     </div>
                 </div>
             </section>
-            
-            <!-- Center Column: ACL Rule Configuration -->
-            <section class="panel acl-config-panel">
-                <h2>📝 ACL Rule Configuration</h2>
-                
-                <div class="version-selector">
-                    <div class="toggle-switch-container">
-                        <div class="version-label">Redis Version:</div>
-                        <div class="toggle-switch">
-                            <input type="checkbox" id="versionToggle" class="toggle-input">
-                            <label for="versionToggle" class="toggle-label">
-                                <span class="toggle-slider">
-                                    <span class="toggle-option toggle-option-left">7</span>
-                                    <span class="toggle-option toggle-option-right">8</span>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="version-info">
-                        <span class="version-detail" id="versionDetail">Redis 7 (21 categories, 311 commands)</span>
-                        <div class="inline-action-buttons">
-                            <button type="button" id="clearRuleBtn" class="inline-action-button clear-button" onclick="clearACLRule()" title="Clear ACL Rule text area" disabled>
-                                💣
-                            </button>
-                            <button type="button" id="copyRuleBtn" class="inline-action-button copy-button" onclick="copyACLRule()" title="Copy ACL Rule to clipboard" disabled>
-                                📋
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="textarea-container loading">
-                    <textarea 
-                        id="aclRule" 
-                        class="rule-input rule-input-compact" 
-                        placeholder="Click commands/categories in the surrounding panels to build your ACL rule interactively, or type manually..."
-                        aria-label="ACL Rule Input"
-                        spellcheck="false"
-                        maxlength="500"
-                    ></textarea>
-                    
-                    <!-- Character Counter Overlay -->
-                    <div class="character-counter" id="characterCounter">0/500</div>
-                </div>
-                
-                <!-- Rule Redundancy Warnings -->
-                <div id="redundancyWarnings" class="redundancy-warnings" style="display: none;">
-                    <h4>⚠️ Redundant Terms Detected:</h4>
-                    <div id="warningsList"></div>
-                    <div id="suggestionsList"></div>
-                </div>
-                
-                <button type="button" id="submitChangesBtn" class="test-button" onclick="syncRuleToInteractive()" style="margin-bottom: 10px; width: 100%; display: none;">
-                    Submit Changes
-                </button>
-                
-                <div class="rule-examples">
-                    <h4>Quick Examples</h4>
-                    <div class="rule-examples-content">
-                        <div class="example-group">
-                            <h5 class="example-category">Full Access</h5>
-                            <button type="button" class="example" onclick="setRuleAndParse('+@all ~*')" title="Full access to all commands and keys">
-                                +@all ~*
-                            </button>
-                        </div>
-                        
-                        <div class="example-group">
-                            <h5 class="example-category">Read-Write</h5>
-                            <button type="button" class="example" onclick="setRuleAndParse('+@read +@write -@dangerous ~*')" title="Read and write access excluding dangerous commands">
-                                +@read +@write -@dangerous ~*
-                            </button>
-                        </div>
-                        
-                        <div class="example-group">
-                            <h5 class="example-category">Read-Only</h5>
-                            <button type="button" class="example" onclick="setRuleAndParse('+@read ~*')" title="Read-only access to all keys">
-                                +@read ~*
-                            </button>
-                        </div>
-                        
-                        <div class="example-group">
-                            <h5 class="example-category">Other Access</h5>
-                            <button type="button" class="example" onclick="setRuleAndParse('+@read ~user:* ~session:*')" title="Read-only access to user and session keys">
-                                +@read ~user:* ~session:*
-                            </button>
-                            <button type="button" class="example" onclick="setRuleAndParse('+get +set +del +exists ~*')" title="Basic key operations only">
-                                +get +set +del +exists ~*
-                            </button>
-                            <button type="button" class="example" onclick="setRuleAndParse('+@all -@scripting -@dangerous ~*')" title="Application user access without scripting or dangerous commands">
-                                +@all -@scripting -@dangerous ~*
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
+
             <!-- Right Column: Granted Commands -->
             <section class="panel granted-commands-panel">
                 <h2>✅ Granted Commands <span class="help-icon" title="Click any item below to revoke access and move it to blocked commands">?</span></h2>
 
-                <!-- Search Bar positioned right below instruction -->
-                <div class="panel-search-container">
+                <!-- Search Bar positioned left side -->
+                <div class="panel-search-container left-aligned">
+                    <button type="button"
+                            class="search-mode-toggle fuzzy-mode"
+                            data-search-type="granted"
+                            aria-label="Toggle between fuzzy and exact search"
+                            title="Fuzzy search mode - Click to switch to exact search">≈</button>
                     <input
                         type="text"
                         id="grantedSearch"
