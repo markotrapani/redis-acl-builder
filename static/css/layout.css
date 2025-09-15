@@ -502,21 +502,26 @@
   min-width: 140px !important;
 }
 
-/* Green styling for keyspace test button - only override colors, keep all other styling identical */
+/* Green styling for keyspace test button */
 .keyspace-test-button {
-  background: var(--green-gradient) !important;
-  box-shadow: var(--green-shadow) !important;
-  border-color: #4CAF50 !important; /* Keep border width same as base, just change color */
+  background: var(--green-gradient);
+  box-shadow: var(--green-shadow);
+  border-color: #4CAF50;
 }
 
 .keyspace-test-button:hover {
-  box-shadow: var(--green-hover-shadow) !important;
-  transform: translateY(-1px);
-  border-color: #388E3C !important; /* Darker green border on hover */
+  background: linear-gradient(135deg, #388E3C, #2E7D32);
+  box-shadow: var(--green-hover-shadow);
+  border-color: #388E3C;
 }
 
 .keyspace-test-button:active {
-  border-color: #2E7D32 !important; /* Even darker green when pressed */
+  background: #2E7D32;
+  border-color: #2E7D32;
+}
+
+.keyspace-test-button:focus {
+  border-color: #388E3C;
 }
 
 /* Responsive: Stack vertically on smaller screens */

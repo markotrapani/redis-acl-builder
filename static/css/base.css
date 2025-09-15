@@ -35,6 +35,11 @@
   --green-gradient: linear-gradient(135deg, #4CAF50, #388E3C);
   --green-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
   --green-hover-shadow: 0 3px 12px rgba(76, 175, 80, 0.4);
+
+  /* Red gradient theme */
+  --red-gradient: linear-gradient(135deg, #d82c2c, #c02525);
+  --red-shadow: 0 2px 8px rgba(216, 44, 44, 0.3);
+  --red-hover-shadow: 0 3px 12px rgba(216, 44, 44, 0.4);
   
   /* Neutral colors */
   --gray-50: #f9f9f9;
