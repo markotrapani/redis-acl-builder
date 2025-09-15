@@ -1810,8 +1810,8 @@ const InteractiveACLBuilder = {
                 }
             }
 
-            // Re-render the interactive display
-            await this.renderColumns();
+            // Re-render the interactive display with loading animation to prevent visual artifacts
+            await this.smoothRender();
             
             // Update tracking state differently for restoration vs manual sync
             if (isRestoration) {
