@@ -47,13 +47,14 @@ const KeyspaceTester = {
         try {
             // Extract keyspace patterns from ACL rule
             const keyspacePatterns = this.extractKeyspacePatterns(aclRule);
-            
+
+            // If no keyspace patterns are found, Redis default is to allow access to all keys (~*)
             if (keyspacePatterns.length === 0) {
                 const html = `
-                    <strong>❌ Key: ${Utils.escapeHtml(keyPattern)}</strong><br>
-                    No keyspace patterns (~) found in ACL rule
+                    <strong>✅ Key: ${Utils.escapeHtml(keyPattern)}</strong><br>
+                    Key "${Utils.escapeHtml(keyPattern)}" is allowed (Redis default: access to all keys when no ~ patterns specified)
                 `;
-                Utils.showDismissibleTestResult(resultDiv, html, 'denied', 5000);
+                Utils.showDismissibleTestResult(resultDiv, html, 'granted', 5000);
                 return;
             }
             
