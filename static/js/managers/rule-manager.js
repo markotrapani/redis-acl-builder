@@ -14,19 +14,20 @@ const RuleManager = {
      * Set rule in textarea and trigger parsing
      */
     setRule(rule) {
+
         // Mark as programmatic update to prevent panel expansion
         DOMElements.aclRuleInput.dataset.programmaticUpdate = 'true';
         DOMElements.aclRuleInput.value = rule;
-        
-        // Save to localStorage
+
+        // Save to localStorage FIRST
         Storage.saveAclRule(rule);
-        
-        // Update character counter and button states
+
+        // Update character counter and button states AFTER saving
         import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
             EventHandlers.updateCharacterCounterProgrammatically(DOMElements.aclRuleInput);
             EventHandlers.updateActionButtonStates(rule);
         });
-        
+
         this.parseRule();
     },
 

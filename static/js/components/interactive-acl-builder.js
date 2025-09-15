@@ -110,23 +110,27 @@ const InteractiveACLBuilder = {
                     await this.syncFromRuleText(true); // Pass true to indicate this is restoration
                 }
             } else {
-                await this.updateRuleText();
+                // No saved rule - let scheduleRender() handle initial rule generation
+                // to avoid timing conflict with loading cover
+                await this.loadAllData();
+                await this.renderColumns();
             }
             
             // Add event listeners
             this.setupEventListeners();
-            
-            // Remove ALL loading covers after initialization and content updates are complete
+
+            // Ensure initial rendering is complete and remove loading covers
+            this.scheduleRender();
+
+            // Remove textarea loading cover after a brief delay
             setTimeout(() => {
                 this.removeTextareaLoadingCover();
-                this.removeLoadingAnimation();
-            }, 150); // Small delay to ensure all async operations complete
-            
+            }, 100);
+
             // Final check for Submit Changes button visibility after initialization
-            // This handles cases where restoration failed but button should still be shown
             setTimeout(() => {
                 this.checkForManualChanges();
-            }, 100);
+            }, 150);
         } catch (error) {
             console.error('❌ Failed to initialize Interactive ACL Builder:', error);
             // Show error in the UI
@@ -376,17 +380,24 @@ const InteractiveACLBuilder = {
      */
     removeTextareaLoadingCover() {
         const textareaContainer = document.querySelector('.textarea-container');
+
         if (!textareaContainer || !textareaContainer.classList.contains('loading')) {
             return; // No loading cover to remove
         }
 
+        const textarea = textareaContainer.querySelector('textarea');
+
         // Add fade-out class to trigger smooth opacity transition
         textareaContainer.classList.add('loading-fadeout');
-        
+
         // Remove both classes after fade animation completes
         setTimeout(() => {
             textareaContainer.classList.remove('loading', 'loading-fadeout');
-        }, 150); // Match CSS transition duration
+
+            // Log final textarea styles
+            setTimeout(() => {
+            }, 50);
+        }, 200); // Match CSS transition duration
     },
 
     /**
@@ -419,7 +430,7 @@ const InteractiveACLBuilder = {
 
         // Small delay to ensure loading covers are visible, then render
         setTimeout(async () => {
-            // First update the rule text to get the current rule string
+            // Update rule text based on current state
             await this.updateRuleText();
             
             // Then refresh API response data for partial category detection
@@ -1523,15 +1534,16 @@ const InteractiveACLBuilder = {
     async updateRuleText() {
         if (!this.elements.aclRuleInput) return;
 
+
         const rule = await this.generateOptimizedRule();
         // Mark as programmatic update to prevent panel expansion
         this.elements.aclRuleInput.dataset.programmaticUpdate = 'true';
+
         this.elements.aclRuleInput.value = rule;
         
-        // Update character counter and button states
+        // Update character counter (button states will be updated by the input event below)
         import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
             EventHandlers.updateCharacterCounterProgrammatically(this.elements.aclRuleInput);
-            EventHandlers.updateActionButtonStates(rule);
         });
         
         // Track the rule we just generated
@@ -1542,6 +1554,9 @@ const InteractiveACLBuilder = {
         
         // Save to localStorage for proper restoration
         Storage.saveLastGeneratedRule(rule);
+
+        // Also save as the committed ACL rule so button states work correctly
+        Storage.saveAclRule(rule);
         
         // Trigger change event to update other parts of the app
         this.elements.aclRuleInput.dispatchEvent(new Event('input'));

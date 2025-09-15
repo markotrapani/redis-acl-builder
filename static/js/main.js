@@ -7,6 +7,7 @@
 import DOMElements from './core/dom-elements.js';
 import Utils from './core/utils.js';
 import Storage from './core/storage.js';
+import AppState from './core/app-state.js';
 import RuleManager from './managers/rule-manager.js';
 import CategoryManager from './managers/category-manager.js';
 import CommandTester from './components/command-tester.js';
@@ -68,24 +69,37 @@ const App = {
                 // Update character counter and button states
                 EventHandlers.updateCharacterCounterProgrammatically(DOMElements.aclRuleInput);
                 EventHandlers.updateActionButtonStates(savedRule);
-                
+
                 // Store the saved rule for later sync after InteractiveACLBuilder is initialized
                 this.savedRuleToSync = savedRule;
+
+                // Mark that button states were already initialized during restoration
+                this.buttonStatesInitialized = true;
             }
 
             
             // Update test button states for both inputs
             EventHandlers.updateTestButtonStates();
 
-            // Restore Redis version if different from default
+            // Restore Redis version - toggle state already set by inline script
             const savedVersion = Storage.loadRedisVersion();
-            if (savedVersion === 'redis8') {
-                const versionToggle = document.getElementById('versionToggle');
-                if (versionToggle && !versionToggle.checked) {
-                    versionToggle.checked = true;
-                    // Trigger version change event
-                    versionToggle.dispatchEvent(new Event('change'));
+            const versionToggle = document.getElementById('versionToggle');
+
+            if (versionToggle) {
+                const initialVersion = savedVersion || 'redis7';
+
+                // Update AppState to match the saved/default version
+                AppState.currentVersion = initialVersion;
+
+                // Verify toggle state matches (should already be set by inline script)
+                const expectedToggleState = initialVersion === 'redis8';
+                if (versionToggle.checked !== expectedToggleState) {
+                    versionToggle.checked = expectedToggleState;
                 }
+
+                // Trigger change event to update everything else (parse rule, update UI, etc.)
+                // This won't cause visual toggle movement since state is already correct
+                versionToggle.dispatchEvent(new Event('change'));
             }
 
         } catch (error) {
@@ -107,20 +121,42 @@ window.setRuleAndParse = (rule) => {
 window.testCommand = () => CommandTester.testCommand();
 window.testKeyspace = () => KeyspaceTester.testKeyspace();
 window.CategoryManager = CategoryManager; // Make available for HTML onclick
-window.syncRuleToInteractive = () => InteractiveACLBuilder.syncFromRuleText();
+window.syncRuleToInteractive = () => {
+    // Save the current rule to localStorage when user submits changes
+    const aclRuleTextarea = document.getElementById('aclRule');
+    if (aclRuleTextarea) {
+        Storage.saveAclRule(aclRuleTextarea.value);
+    }
+
+    // Sync to interactive builder
+    return InteractiveACLBuilder.syncFromRuleText();
+};
+window.getLastGeneratedRule = () => InteractiveACLBuilder.state?.lastGeneratedRule || '';
+window.updateInteractiveBuilder = () => {
+    if (InteractiveACLBuilder.state.isInitialized) {
+        InteractiveACLBuilder.loadAllData().then(() => {
+            InteractiveACLBuilder.scheduleRender();
+        });
+    }
+};
 window.copyACLRule = () => {
     const aclRuleTextarea = document.getElementById('aclRule');
     if (!aclRuleTextarea) {
         Utils.showNotification('Error: ACL rule text area not found! ❌', 'error');
         return;
     }
-    
-    const ruleText = aclRuleTextarea.value.trim();
-    
-    // Check if rule is empty
+
+    let ruleText = aclRuleTextarea.value.trim();
+
+    // If current text is empty, try to copy the committed rule instead
     if (!ruleText) {
-        Utils.showNotification('Cannot copy empty ACL rule! ⚠️', 'warning');
-        return;
+        const committedRule = Storage.loadAclRule();
+        if (committedRule && committedRule.trim().length > 0) {
+            ruleText = committedRule.trim();
+        } else {
+            Utils.showNotification('Cannot copy empty ACL rule! ⚠️', 'warning');
+            return;
+        }
     }
     
     // Check if rule appears to be invalid (basic validation)
@@ -159,9 +195,10 @@ window.clearACLRule = () => {
     }
     
     const currentRule = aclRuleTextarea.value.trim();
-    
-    // Check if rule is already empty
-    if (!currentRule) {
+    const committedRule = Storage.loadAclRule();
+
+    // Check if both current text and committed rule are empty
+    if (!currentRule && (!committedRule || committedRule.trim().length === 0)) {
         Utils.showNotification('ACL rule is already empty! 📝', 'info');
         return;
     }
@@ -186,10 +223,7 @@ window.clearACLRule = () => {
             characterCounter.classList.remove('near-limit', 'at-limit');
         }
         
-        // Update button states (should be disabled when empty)
-        import('./handlers/event-handlers.js').then(({ default: EventHandlers }) => {
-            EventHandlers.updateActionButtonStates('');
-        });
+        // Button states will be updated by InteractiveACLBuilder.syncFromRuleText() below
         
         // Hide redundancy warnings
         RuleManager.hideRedundancyWarnings();
@@ -202,7 +236,16 @@ window.clearACLRule = () => {
             InteractiveACLBuilder.syncFromRuleText();
         }
         
-        Utils.showNotification('ACL rule cleared and command lists updated! 💣', 'success');
+        // Show appropriate success message based on what was cleared
+        const clearedCurrent = currentRule.length > 0;
+        const clearedCommitted = committedRule && committedRule.trim().length > 0;
+
+        let message = 'ACL rule cleared and command lists updated! 💣';
+        if (!clearedCurrent && clearedCommitted) {
+            message = 'Committed ACL rule cleared and command lists updated! 💣';
+        }
+
+        Utils.showNotification(message, 'success');
     } catch (error) {
         console.error('Error clearing ACL rule:', error);
         Utils.showNotification('Error occurred while clearing ACL rule! ❌', 'error');
@@ -232,6 +275,8 @@ function checkQuickExamplesScroll() {
 
 // Auto-initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    // Make App accessible globally for cross-module communication
+    window.App = App;
     App.init();
     // Check scroll need after layout settles
     setTimeout(checkQuickExamplesScroll, 100);

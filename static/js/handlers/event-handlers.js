@@ -9,22 +9,31 @@ import Storage from '../core/storage.js';
 import RuleManager from '../managers/rule-manager.js';
 import CategoryManager from '../managers/category-manager.js';
 import CommandTester from '../components/command-tester.js';
-import InteractiveACLBuilder from '../components/interactive-acl-builder.js';
+// InteractiveACLBuilder imported dynamically to avoid circular dependency
 
 const EventHandlers = {
     /**
      * Update the state of action buttons based on ACL rule content
      */
     updateActionButtonStates(aclRuleText = '') {
-        const hasContent = aclRuleText.trim().length > 0;
+        const currentText = aclRuleText.trim();
+        const lastCommittedRule = Storage.loadAclRule();
+
+        // Clear/Copy buttons should be enabled if there's a committed rule OR current content
+        // They should stay enabled during manual editing until Submit Changes commits the changes
+        const hasCommittedContent = lastCommittedRule && lastCommittedRule.trim().length > 0;
+        const hasCurrentContent = currentText.length > 0;
+        const shouldEnableButtons = hasCommittedContent || hasCurrentContent;
+
+
         const clearBtn = document.getElementById('clearRuleBtn');
         const copyBtn = document.getElementById('copyRuleBtn');
-        
+
         if (clearBtn) {
-            clearBtn.disabled = !hasContent;
+            clearBtn.disabled = !shouldEnableButtons;
         }
         if (copyBtn) {
-            copyBtn.disabled = !hasContent;
+            copyBtn.disabled = !shouldEnableButtons;
         }
     },
 
@@ -87,9 +96,9 @@ const EventHandlers = {
         DOMElements.aclRuleInput.addEventListener('input', function(e) {
             // Update character counter
             EventHandlers.updateCharacterCounter(this);
-            
-            // Save to localStorage
-            Storage.saveAclRule(this.value);
+
+            // NOTE: We no longer save to localStorage on every keystroke
+            // The rule is only saved when user clicks "Submit Changes"
             
             // Auto-expand textarea based on content (unless manually resized)
             EventHandlers.autoExpandTextarea(this);
@@ -107,37 +116,40 @@ const EventHandlers = {
             
             // Hide redundancy warnings immediately for responsive feedback
             RuleManager.hideRedundancyWarnings();
-            
-            // Debounce expensive operations
-            clearTimeout(inputTimeout);
-            inputTimeout = setTimeout(() => {
-                // Only expand panels if there's actual content in the textarea and it's a manual change
-                const hasContent = this.value.trim().length > 0;
-                
-                // Update action button states immediately
-                EventHandlers.updateActionButtonStates(this.value);
-                
-                const layout = document.querySelector('.three-column-layout');
-                
-                if (!layout) return; // Early exit if layout not found
-                
-                // Check if current text matches the last generated rule (no manual changes)
+
+            // Update action button states immediately (not debounced)
+            EventHandlers.updateActionButtonStates(this.value);
+
+            // Handle Submit Changes button visibility immediately (not debounced)
+            const layout = document.querySelector('.three-column-layout');
+            if (layout) {
                 const currentText = this.value.trim();
-                const lastGeneratedRule = InteractiveACLBuilder.state?.lastGeneratedRule || '';
+                const lastGeneratedRule = window.getLastGeneratedRule ? window.getLastGeneratedRule() : '';
                 const isRevertedToGenerated = currentText === lastGeneratedRule;
-                
-                // Show submit button for any change that differs from generated rule (including clearing)
-                if (!isRevertedToGenerated && !layout.classList.contains('submit-button-visible')) {
+                const submitBtn = document.getElementById('submitChangesBtn');
+
+                if (!isRevertedToGenerated) {
+                    // Text differs from generated rule - ensure button is visible
                     layout.classList.add('submit-button-visible');
-                } else if (isRevertedToGenerated) {
-                    // Only auto-hide submit button when reverted to generated rule
-                    const submitBtn = document.getElementById('submitChangesBtn');
-                    if (submitBtn && submitBtn.style.display !== 'none') {
+                    // Clear any inline display:none that might override CSS
+                    if (submitBtn && submitBtn.style.display === 'none') {
+                        submitBtn.style.display = '';
+                    }
+                } else {
+                    // Text matches generated rule - hide button
+                    if (submitBtn) {
                         submitBtn.style.display = 'none';
                     }
                     layout.classList.remove('submit-button-visible');
                 }
-                
+            }
+
+            // Debounce expensive operations only
+            clearTimeout(inputTimeout);
+            inputTimeout = setTimeout(() => {
+                // Only expand panels if there's actual content in the textarea and it's a manual change
+                const hasContent = this.value.trim().length > 0;
+
                 // Silently trigger rule parsing WITHOUT redundancy analysis during typing
                 // Redundancy analysis should only happen when user submits changes
                 if (hasContent) {
@@ -151,16 +163,17 @@ const EventHandlers = {
             const newVersion = this.checked ? 'redis8' : 'redis7';
             if (AppState.currentVersion !== newVersion) {
                 const oldVersion = AppState.currentVersion;
-                
+                const toggleElement = this; // Store reference to toggle element
+
                 // Check if we're downgrading from Redis 8 to Redis 7
                 if (oldVersion === 'redis8' && newVersion === 'redis7') {
                     const currentRule = DOMElements.aclRuleInput.value.trim();
-                    
+
                     if (currentRule) {
                         // Import Utils dynamically to avoid circular dependencies
                         import('../core/utils.js').then(({ default: Utils }) => {
                             const analysis = Utils.analyzeRedis8Content(currentRule);
-                            
+
                             if (analysis.hasRedis8Content) {
                                 // Show confirmation dialog
                                 Utils.showVersionDowngradeConfirmation(
@@ -171,10 +184,10 @@ const EventHandlers = {
                                         // Mark as programmatic update to prevent panel expansion
                                         DOMElements.aclRuleInput.dataset.programmaticUpdate = 'true';
                                         DOMElements.aclRuleInput.value = cleanedRule;
-                                        
-                                        // Proceed with version change
-                                        this.performVersionSwitch(newVersion);
-                                        
+
+                                        // Proceed with version change - use stored reference
+                                        toggleElement.performVersionSwitch(newVersion);
+
                                         // Show notification about cleaned items
                                         const itemCount = analysis.incompatibleItems.length;
                                         Utils.showNotification(
@@ -185,39 +198,42 @@ const EventHandlers = {
                                     },
                                     () => {
                                         // User cancelled - revert toggle
-                                        this.checked = true; // Stay on Redis 8
+                                        toggleElement.checked = true; // Stay on Redis 8
                                     }
                                 );
                                 return; // Don't proceed with immediate version change
+                            } else {
+                                // No Redis 8 content, proceed with downgrade
+                                toggleElement.performVersionSwitch(newVersion);
                             }
                         });
+                    } else {
+                        // No rule content, proceed with downgrade
+                        this.performVersionSwitch(newVersion);
                     }
+                } else {
+                    // Proceed with normal version change (no Redis 8 content or upgrading to Redis 8)
+                    this.performVersionSwitch(newVersion);
                 }
-                
-                // Proceed with normal version change (no Redis 8 content or upgrading to Redis 8)
-                this.performVersionSwitch(newVersion);
             }
         });
         
         // Helper function to perform the actual version switch
         DOMElements.versionToggle.performVersionSwitch = function(newVersion) {
             AppState.currentVersion = newVersion;
-            
+
             // Save version preference to localStorage
             Storage.saveRedisVersion(newVersion);
-            
+
             // Update version detail text
             const categoryCount = newVersion === 'redis8' ? '29' : '21';
             const commandCount = newVersion === 'redis8' ? '446' : '311';
             DOMElements.versionDetail.textContent = `Redis ${newVersion.slice(-1)} (${categoryCount} categories, ${commandCount} commands)`;
-            
+
             RuleManager.parseRuleSilent(true); // Skip redundancy analysis and error notifications during version changes
             // Also update interactive builder if initialized
-            if (InteractiveACLBuilder.state.isInitialized) {
-                // Use the smooth render mechanism to prevent filter flash
-                InteractiveACLBuilder.loadAllData().then(() => {
-                    InteractiveACLBuilder.scheduleRender(); // This uses smoothRender which handles search filters
-                });
+            if (window.updateInteractiveBuilder) {
+                window.updateInteractiveBuilder();
             }
         };
         
@@ -296,8 +312,10 @@ const EventHandlers = {
         // Initialize auto-expanding textarea
         this.initAutoExpandTextarea();
         
-        // Initialize action button states
-        this.updateActionButtonStates(DOMElements.aclRuleInput?.value || '');
+        // Initialize action button states (skip if already handled during restoration)
+        if (!window.App?.buttonStatesInitialized) {
+            this.updateActionButtonStates(DOMElements.aclRuleInput?.value || '');
+        }
         
         // Initialize test button states (should start disabled)
         this.updateTestButtonStates();

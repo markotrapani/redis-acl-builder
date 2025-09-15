@@ -362,6 +362,44 @@ button.test-button[disabled] {
   min-height: auto;
 }
 
+/* Placeholder text styling */
+.rule-input::placeholder,
+.test-command-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* Light mode placeholder styling (explicit) */
+[data-theme="light"] .rule-input::placeholder,
+[data-theme="light"] .test-command-input::placeholder {
+  color: #aaa;
+  opacity: 0.8;
+}
+
+/* Dark mode placeholder styling (explicit) */
+[data-theme="dark"] .rule-input::placeholder,
+[data-theme="dark"] .test-command-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* System preference fallback */
+@media (prefers-color-scheme: light) {
+  html:not([data-theme]) .rule-input::placeholder,
+  html:not([data-theme]) .test-command-input::placeholder {
+    color: #aaa;
+    opacity: 0.8;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .rule-input::placeholder,
+  html:not([data-theme]) .test-command-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+  }
+}
+
 /* Enhanced rule input for interactive mode */
 .acl-config-panel .rule-input {
   min-height: 120px;
@@ -397,7 +435,7 @@ button.test-button[disabled] {
   border-radius: var(--radius-md); /* Match textarea border-radius */
   z-index: 100;
   pointer-events: none;
-  transition: opacity var(--transition-normal);
+  transition: opacity 0.1s ease-out 0.1s; /* 0.1s delay + 0.1s fade = 0.2s total, but mostly opaque */
 }
 
 /* Fade out animation when removing loading class */
