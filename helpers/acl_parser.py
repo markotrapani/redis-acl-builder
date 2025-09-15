@@ -411,14 +411,19 @@ class ACLParser:
                 # Check if these commands are already granted
                 already_granted = rule_commands.intersection(cumulative_granted)
                 if already_granted == rule_commands:
-                    # All commands in this rule are already granted - completely redundant
-                    warnings.append(f"Redundant inclusion: '{original_token}'\nAll commands already granted by earlier rules")
-                    redundant_terms.append({
-                        'term': original_token,
-                        'position': i,
-                        'type': 'inclusion',
-                        'reason': 'All commands already granted by earlier rules'
-                    })
+                    # Check if this is part of a legitimate security pattern
+                    # Pattern: multiple category grants followed by deny rules (broad access + selective restrictions)
+                    is_security_pattern = self._is_legitimate_security_pattern(command_rules, i, original_token)
+
+                    if not is_security_pattern:
+                        # All commands in this rule are already granted - completely redundant
+                        warnings.append(f"Redundant inclusion: '{original_token}'\nAll commands already granted by earlier rules")
+                        redundant_terms.append({
+                            'term': original_token,
+                            'position': i,
+                            'type': 'inclusion',
+                            'reason': 'All commands already granted by earlier rules'
+                        })
                 
                 # Update cumulative granted set
                 cumulative_granted.update(rule_commands)
@@ -647,6 +652,109 @@ class ACLParser:
             'has_redundancy': len(redundant_terms) > 0 or len(warnings) > 0
         }
 
+    def _is_legitimate_security_pattern(self, command_rules, current_index, current_token):
+        """
+        Detect if the current inclusion rule is part of a legitimate security pattern.
+
+        A legitimate security pattern is one where:
+        1. Multiple category grants are used (e.g., +@read +@write)
+        2. Followed by deny rules that remove dangerous/unwanted commands
+        3. The overlap is intentional for broad access with selective restrictions
+
+        Args:
+            command_rules: List of all command rules
+            current_index: Index of current rule being checked
+            current_token: The token being evaluated (e.g., '+@write')
+
+        Returns:
+            bool: True if this appears to be a legitimate security pattern
+        """
+        if not current_token.startswith('+@'):
+            return False
+
+        # Look for multiple category grants before this position
+        category_grants_before = []
+        deny_rules_after = []
+
+        # Collect category grants that appear before current position
+        for i in range(current_index):
+            rule = command_rules[i]
+            token = rule.get('original_token', '')
+            if (token.startswith('+@') and
+                rule['target'] == 'category' and
+                not rule.get('error')):
+                category_grants_before.append(token)
+
+        # Collect deny rules that appear after current position
+        for i in range(current_index + 1, len(command_rules)):
+            rule = command_rules[i]
+            token = rule.get('original_token', '')
+            if (token.startswith('-@') and
+                rule['target'] == 'category' and
+                not rule.get('error')):
+                deny_rules_after.append(token)
+
+        # Pattern recognition:
+        # 1. Must have at least 1 other category grant before this one
+        # 2. Must have at least 1 deny rule after all grants
+        # 3. The deny rules should target security-sensitive categories
+
+        if len(category_grants_before) >= 1 and len(deny_rules_after) >= 1:
+            # Check if any of the deny rules target security-sensitive categories
+            security_categories = ['dangerous', 'admin', 'keyspace']
+
+            for deny_token in deny_rules_after:
+                deny_category = deny_token[2:].lower()  # Remove '-@' prefix
+                if deny_category in security_categories:
+                    return True
+
+            # Also consider it a security pattern if there are multiple broad grants
+            # (read, write, etc.) followed by any deny - this suggests intentional design
+            broad_categories = ['read', 'write', 'all', 'fast', 'slow']
+            current_category = current_token[2:].lower()  # Remove '+@' prefix
+
+            if current_category in broad_categories:
+                # Check if we have other broad category grants
+                for grant_token in category_grants_before:
+                    grant_category = grant_token[2:].lower()
+                    if grant_category in broad_categories:
+                        return True
+
+        return False
+
+    def _would_category_simplify_rule(self, parsed_rule: Dict[str, Any], category: str) -> bool:
+        """
+        Check if suggesting a category would actually simplify the rule.
+
+        This method determines if there are individual commands from the specified category
+        in the rule that could be replaced by adding the category. It should return False
+        if the category's commands are only granted as side effects of other category grants.
+
+        Args:
+            parsed_rule: Parsed ACL rule structure
+            category: Category to check for simplification potential
+
+        Returns:
+            bool: True if suggesting this category would simplify the rule
+        """
+        if category not in self.data['categories']:
+            return False
+
+        category_commands = set(self.data['categories'][category])
+
+        # Count how many individual commands from this category are explicitly in the rule
+        individual_commands_from_category = 0
+
+        for rule in parsed_rule['command_rules']:
+            if (rule['type'] == 'allow' and
+                rule['target'] == 'command' and
+                rule['value'].lower() in category_commands):
+                individual_commands_from_category += 1
+
+        # Only suggest the category if there are at least 2 individual commands from it
+        # This means replacing multiple individual commands with one category would simplify the rule
+        return individual_commands_from_category >= 2
+
     def _analyze_category_completion(self, parsed_rule: Dict[str, Any], warnings: List[str], suggestions: List[str]):
         """
         Analyze if individual commands granted cover entire categories.
@@ -692,13 +800,19 @@ class ACLParser:
                             break
 
                     if not category_explicitly_granted:
-                        warnings.append(f"Individual commands cover entire @{category} category ({command_count} commands)")
+                        # Check if suggesting this category would actually simplify the rule
+                        # Only suggest if there are individual commands from this category that could be replaced
+                        if self._would_category_simplify_rule(parsed_rule, category):
+                            warnings.append(f"Individual commands cover entire @{category} category ({command_count} commands)")
 
-                        # Generate optimized rule for clickable suggestion
-                        optimized_rule = self._generate_optimized_rule_for_category(parsed_rule, category)
+                            # Generate optimized rule for clickable suggestion
+                            optimized_rule = self._generate_optimized_rule_for_category(parsed_rule, category)
 
-                        # Add suggestion in the existing clickable format
-                        suggestions.append(f"Simplified rule: {optimized_rule}")
+                            # Add suggestion in the existing clickable format
+                            suggestions.append(f"Simplified rule: {optimized_rule}")
+
+            # Check for null categories (category included but all commands excluded)
+            self._analyze_null_categories(parsed_rule, warnings, suggestions)
 
         except Exception as e:
             # Don't let category analysis errors break the main redundancy analysis
@@ -742,6 +856,94 @@ class ACLParser:
             new_tokens.append(f'+@{category}')
 
             return ' '.join(new_tokens)
+
+        except Exception:
+            # If optimization fails, return original rule
+            return parsed_rule['raw_rule']
+
+    def _analyze_null_categories(self, parsed_rule: Dict[str, Any], warnings: List[str], suggestions: List[str]):
+        """
+        Analyze if any categories are included but then all their commands are excluded (null categories).
+
+        Args:
+            parsed_rule: Parsed ACL rule structure
+            warnings: List to append warnings to
+            suggestions: List to append suggestions to
+        """
+        try:
+            # Find categories that are explicitly included
+            included_categories = set()
+            excluded_commands = set()
+
+            for rule in parsed_rule['command_rules']:
+                if rule['type'] == 'allow' and rule['target'] == 'category':
+                    included_categories.add(rule['value'])
+                elif rule['type'] == 'deny' and rule['target'] == 'command':
+                    excluded_commands.add(rule['value'])
+
+            # Check each included category to see if all its commands are excluded
+            null_categories = []
+            for category in included_categories:
+                if category in self.data['categories']:
+                    category_commands = set(self.data['categories'][category])
+
+                    # Check if all commands in this category are explicitly excluded
+                    if category_commands.issubset(excluded_commands):
+                        null_categories.append((category, len(category_commands)))
+
+            # Generate warnings and suggestions for null categories
+            if null_categories:
+                for category, command_count in null_categories:
+                    warnings.append(f"Null category detected: +@{category} is included but all {command_count} commands are then excluded")
+
+                    # Generate optimized rule that removes the null category and its exclusions
+                    optimized_rule = self._generate_optimized_rule_for_null_category(parsed_rule, category)
+                    suggestions.append(f"Simplified rule: {optimized_rule}")
+
+        except Exception as e:
+            # Don't let null category analysis errors break the main redundancy analysis
+            pass
+
+    def _generate_optimized_rule_for_null_category(self, parsed_rule: Dict[str, Any], null_category: str) -> str:
+        """
+        Generate an optimized rule that removes a null category and its exclusions.
+
+        Args:
+            parsed_rule: Parsed ACL rule structure
+            null_category: Category that is null (included but all commands excluded)
+
+        Returns:
+            Optimized rule string
+        """
+        try:
+            # Get original rule tokens
+            original_tokens = parsed_rule['raw_rule'].strip().split()
+
+            # Get commands in the null category
+            category_commands = set(self.data['categories'].get(null_category, []))
+
+            # Build new rule tokens, excluding the null category and its command exclusions
+            new_tokens = []
+
+            for token in original_tokens:
+                # Skip the null category inclusion
+                if token == f'+@{null_category}':
+                    continue
+
+                # Skip exclusions of commands from the null category
+                if token.startswith('-') and not token.startswith('-@'):
+                    command = token[1:].lower()
+                    if command in category_commands:
+                        continue
+
+                # Keep all other tokens
+                new_tokens.append(token)
+
+            # Return the simplified rule (or empty rule if no tokens remain)
+            if new_tokens:
+                return ' '.join(new_tokens)
+            else:
+                return '(empty rule)'
 
         except Exception:
             # If optimization fails, return original rule
