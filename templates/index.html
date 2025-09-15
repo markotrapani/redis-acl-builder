@@ -81,9 +81,21 @@
         <div class="three-column-layout">
             <!-- Left Column: Blocked Commands -->
             <section class="panel blocked-commands-panel">
-                <h2>❌ Blocked Commands</h2>
-                <p class="panel-description">Click any item below to <strong>grant</strong> access and move it to granted commands</p>
-                
+                <h2>❌ Blocked Commands <span class="help-icon" title="Click any item below to grant access and move it to granted commands">?</span></h2>
+
+                <!-- Search Bar positioned right below instruction -->
+                <div class="panel-search-container">
+                    <input
+                        type="text"
+                        id="blockedSearch"
+                        class="test-command-input"
+                        placeholder="Filter by name..."
+                        aria-label="Filter blocked categories and commands"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                </div>
+
                 <div class="command-categories-container loading">
                     <div id="blockedCategories" class="categories-section">
                         <h3>Categories</h3>
@@ -91,7 +103,7 @@
                             <div class="text-muted" style="padding: 10px;">No categories blocked</div>
                         </div>
                     </div>
-                    
+
                     <div id="blockedCommands" class="commands-section">
                         <h3>Individual Commands</h3>
                         <div class="command-buttons" role="group" aria-label="Blocked commands">
@@ -198,9 +210,21 @@
             
             <!-- Right Column: Granted Commands -->
             <section class="panel granted-commands-panel">
-                <h2>✅ Granted Commands</h2>
-                <p class="panel-description">Click any item below to <strong>revoke</strong> access and move it to blocked commands</p>
-                
+                <h2>✅ Granted Commands <span class="help-icon" title="Click any item below to revoke access and move it to blocked commands">?</span></h2>
+
+                <!-- Search Bar positioned right below instruction -->
+                <div class="panel-search-container">
+                    <input
+                        type="text"
+                        id="grantedSearch"
+                        class="test-command-input"
+                        placeholder="Filter by name..."
+                        aria-label="Filter granted categories and commands"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                </div>
+
                 <div class="command-categories-container loading">
                     <div id="grantedCategories" class="categories-section">
                         <h3>Categories</h3>
@@ -208,7 +232,7 @@
                             <div class="text-muted" style="padding: 10px;">No categories granted</div>
                         </div>
                     </div>
-                    
+
                     <div id="grantedCommands" class="commands-section">
                         <h3>Individual Commands</h3>
                         <div class="command-buttons" role="group" aria-label="Granted commands">
@@ -233,7 +257,7 @@
                         type="text" 
                         id="testCommand" 
                         class="test-command-input" 
-                        placeholder="Enter command to test (eg. GET, SET, FLUSHDB)"
+                        placeholder="Enter command to test (eg. GET, SET, FLUSHDB) ..."
                         aria-label="Command to test"
                         autocomplete="off"
                         spellcheck="false"
@@ -256,7 +280,7 @@
                         type="text" 
                         id="testKeyspace" 
                         class="test-command-input" 
-                        placeholder="Enter key name to test (eg. user:123, cache:*)"
+                        placeholder="Enter key name to test (eg. user:123, cache:*) ..."
                         aria-label="Key pattern to test"
                         autocomplete="off"
                         spellcheck="false"
