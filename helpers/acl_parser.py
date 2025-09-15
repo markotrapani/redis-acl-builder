@@ -637,11 +637,112 @@ class ACLParser:
                 # All terms are redundant - suggest empty rule
                 suggestions.append("Simplified rule: (empty rule)")
             
-        # All optimizations are now handled by the simplified rule section below
-        
+        # Category completion analysis - detect when individual commands cover entire categories
+        self._analyze_category_completion(parsed, warnings, suggestions)
+
         return {
             'warnings': warnings,
             'suggestions': suggestions,
             'redundant_terms': redundant_terms,
             'has_redundancy': len(redundant_terms) > 0 or len(warnings) > 0
         }
+
+    def _analyze_category_completion(self, parsed_rule: Dict[str, Any], warnings: List[str], suggestions: List[str]):
+        """
+        Analyze if individual commands granted cover entire categories.
+
+        Args:
+            parsed_rule: Parsed ACL rule structure
+            warnings: List to append warnings to
+            suggestions: List to append suggestions to
+        """
+        try:
+            # Get the actual command permissions from the rule
+            granted_commands, _ = self.evaluate_command_permissions(parsed_rule)
+
+            # Group granted commands by their categories
+            category_coverage = {}
+            for command in granted_commands:
+                categories = self.get_command_categories(command)
+                for category in categories:
+                    if category not in category_coverage:
+                        category_coverage[category] = set()
+                    category_coverage[category].add(command)
+
+            # Check each category for completion
+            completed_categories = []
+            for category, granted_in_category in category_coverage.items():
+                if category in self.data['categories']:
+                    all_commands_in_category = set(self.data['categories'][category])
+
+                    # Check if we have all commands in this category
+                    if granted_in_category == all_commands_in_category:
+                        completed_categories.append((category, len(all_commands_in_category)))
+
+            # Generate suggestions for completed categories
+            if completed_categories:
+                for category, command_count in completed_categories:
+                    # Check if the category is already explicitly granted in the rule
+                    category_explicitly_granted = False
+                    for rule in parsed_rule['command_rules']:
+                        if (rule['type'] == 'allow' and
+                            rule['target'] == 'category' and
+                            rule['value'] == category):
+                            category_explicitly_granted = True
+                            break
+
+                    if not category_explicitly_granted:
+                        warnings.append(f"Individual commands cover entire @{category} category ({command_count} commands)")
+
+                        # Generate optimized rule for clickable suggestion
+                        optimized_rule = self._generate_optimized_rule_for_category(parsed_rule, category)
+
+                        # Add suggestion in the existing clickable format
+                        suggestions.append(f"Simplified rule: {optimized_rule}")
+
+        except Exception as e:
+            # Don't let category analysis errors break the main redundancy analysis
+            pass
+
+    def _generate_optimized_rule_for_category(self, parsed_rule: Dict[str, Any], category: str) -> str:
+        """
+        Generate an optimized rule that replaces individual commands with a category.
+
+        Args:
+            parsed_rule: Parsed ACL rule structure
+            category: Category to consolidate (e.g., 'bitmap')
+
+        Returns:
+            Optimized rule string
+        """
+        try:
+            # Get original rule tokens
+            original_tokens = parsed_rule['raw_rule'].strip().split()
+
+            # Get commands in this category
+            category_commands = set(self.data['categories'].get(category, []))
+
+            # Build new rule tokens
+            new_tokens = []
+            skip_tokens = set()
+
+            # Mark individual commands from this category to be removed
+            for token in original_tokens:
+                if token.startswith('+') and not token.startswith('+@'):
+                    command = token[1:].lower()
+                    if command in category_commands:
+                        skip_tokens.add(token)
+
+            # Add tokens that aren't being replaced
+            for token in original_tokens:
+                if token not in skip_tokens:
+                    new_tokens.append(token)
+
+            # Add the category token
+            new_tokens.append(f'+@{category}')
+
+            return ' '.join(new_tokens)
+
+        except Exception:
+            # If optimization fails, return original rule
+            return parsed_rule['raw_rule']
