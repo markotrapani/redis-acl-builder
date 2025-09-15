@@ -6,11 +6,18 @@
 import Utils from '../core/utils.js';
 
 const SearchManager = {
+    // State for search matching modes (independent for each search bar)
+    searchModes: {
+        blocked: false,  // Default to fuzzy matching for blocked search
+        granted: false   // Default to fuzzy matching for granted search
+    },
+
     /**
      * Initialize search functionality
      */
     init() {
         this.setupSearchHandlers();
+        this.setupToggleButtons();
     },
 
     /**
@@ -34,6 +41,96 @@ const SearchManager = {
             );
             grantedSearch.addEventListener('keydown', (e) => this.handleKeydown(e, 'grantedSearch'));
         }
+    },
+
+    /**
+     * Setup toggle buttons for search mode switching
+     */
+    setupToggleButtons() {
+        // Create toggle buttons for both search bars
+        this.createToggleButton('blockedSearch');
+        this.createToggleButton('grantedSearch');
+    },
+
+    /**
+     * Create a toggle button next to a search input
+     */
+    createToggleButton(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+
+        const container = input.parentElement;
+        if (!container) return;
+
+        // Determine which search type this is (blocked or granted)
+        const searchType = inputId.includes('blocked') ? 'blocked' : 'granted';
+
+        // Create toggle button
+        const toggleButton = document.createElement('button');
+        toggleButton.type = 'button';
+        toggleButton.className = 'search-mode-toggle';
+        toggleButton.setAttribute('aria-label', 'Toggle between fuzzy and exact search');
+        toggleButton.setAttribute('data-search-type', searchType);
+
+        // Set initial text and appearance based on current mode for this search type
+        this.updateToggleButtonAppearance(toggleButton, searchType);
+
+        // Add click handler specific to this search type
+        toggleButton.addEventListener('click', () => {
+            this.toggleSearchMode(searchType);
+            this.updateToggleButtonAppearance(toggleButton, searchType);
+            this.refreshSearch(searchType);
+        });
+
+        // Insert button before the input (left side)
+        container.insertBefore(toggleButton, input);
+    },
+
+    /**
+     * Update toggle button appearance based on current mode for specific search type
+     */
+    updateToggleButtonAppearance(button, searchType) {
+        const isExactMode = this.searchModes[searchType];
+
+        if (isExactMode) {
+            button.textContent = '=';
+            button.title = 'Exact search mode - Click to switch to fuzzy search';
+            button.classList.add('exact-mode');
+            button.classList.remove('fuzzy-mode');
+        } else {
+            button.textContent = '≈';
+            button.title = 'Fuzzy search mode - Click to switch to exact search';
+            button.classList.add('fuzzy-mode');
+            button.classList.remove('exact-mode');
+        }
+    },
+
+    /**
+     * Toggle between search modes for a specific search type
+     */
+    toggleSearchMode(searchType) {
+        this.searchModes[searchType] = !this.searchModes[searchType];
+    },
+
+    /**
+     * Refresh search for a specific search type
+     */
+    refreshSearch(searchType) {
+        const inputId = searchType === 'blocked' ? 'blockedSearch' : 'grantedSearch';
+        const searchInput = document.getElementById(inputId);
+
+        if (searchInput) {
+            // Always apply filtering, even with empty search (to reset display)
+            this.filterAll(searchType, searchInput.value);
+        }
+    },
+
+    /**
+     * Refresh all active searches with new mode
+     */
+    refreshAllSearches() {
+        this.refreshSearch('blocked');
+        this.refreshSearch('granted');
     },
 
     /**
@@ -70,7 +167,7 @@ const SearchManager = {
 
         categoryButtons.forEach(button => {
             const categoryName = button.textContent.toLowerCase().trim();
-            const matches = !searchTermLower || this.fuzzyMatch(categoryName, searchTermLower);
+            const matches = !searchTermLower || this.performSearch(categoryName, searchTermLower, type);
 
             button.style.display = matches ? '' : 'none';
             if (matches) visibleCount++;
@@ -96,7 +193,7 @@ const SearchManager = {
 
         commandButtons.forEach(button => {
             const commandName = button.textContent.toLowerCase().trim();
-            const matches = !searchTermLower || this.fuzzyMatch(commandName, searchTermLower);
+            const matches = !searchTermLower || this.performSearch(commandName, searchTermLower, type);
 
             button.style.display = matches ? '' : 'none';
             if (matches) visibleCount++;
@@ -160,6 +257,26 @@ const SearchManager = {
         searchInputs.forEach(inputId => {
             this.clearSearch(inputId);
         });
+    },
+
+    /**
+     * Perform search based on current mode for specific search type
+     */
+    performSearch(target, searchTerm, searchType) {
+        const isExactMode = this.searchModes[searchType];
+
+        if (isExactMode) {
+            return this.exactMatch(target, searchTerm);
+        } else {
+            return this.fuzzyMatch(target, searchTerm);
+        }
+    },
+
+    /**
+     * Exact matching - only substring matching
+     */
+    exactMatch(target, searchTerm) {
+        return target.includes(searchTerm);
     },
 
     /**
