@@ -540,9 +540,7 @@ button.test-button[disabled] {
 
 /* Buttons */
 .test-button {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
   color: white;
-  border: 2px solid var(--primary-color);
   padding: 12px var(--spacing-lg);
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -551,34 +549,45 @@ button.test-button[disabled] {
   letter-spacing: 0.5px;
   text-transform: uppercase;
   transition: all var(--transition-normal);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   position: relative;
   overflow: hidden;
+  border: 2px solid transparent;
 }
 
-.test-button:hover {
+/* Command Test Button - Red Theme */
+.command-test-button {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  border-color: var(--primary-color);
+  box-shadow: var(--red-shadow);
+}
+
+.command-test-button:hover {
   background: linear-gradient(135deg, var(--primary-hover), var(--primary-active));
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border-color: var(--primary-hover);
+  box-shadow: var(--red-hover-shadow);
+}
+
+.command-test-button:active {
+  background: var(--primary-active);
+  border-color: var(--primary-active);
+}
+
+.command-test-button:focus {
   border-color: var(--primary-hover);
 }
 
+.test-button:hover {
+  transform: translateY(-1px);
+}
+
 .test-button:active {
-  background: var(--primary-active);
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  transition: all 0.1s ease;
 }
 
 .test-button:focus {
   outline: none; /* Remove default browser outline */
-  border-color: var(--primary-hover);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 0 0 3px rgba(33, 150, 243, 0.3);
 }
 
-.test-button:focus:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2), 0 0 0 3px rgba(33, 150, 243, 0.3);
-}
 
 /* Interactive buttons for categories and commands */
 .category-button, 
@@ -1235,6 +1244,148 @@ button.test-button[disabled] {
   max-width: 250px;
 }
 
+/* Search Mode Toggle Button */
+.search-mode-toggle {
+  background: var(--gray-200);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
+  height: 26px; /* Match input height: 2px padding + 2px border + ~20px content */
+  width: 26px;
+  margin-right: var(--spacing-xs); /* Right margin since it's on the left side */
+  padding: 0;
+  transition: all var(--transition-normal);
+  user-select: none;
+  vertical-align: top;
+  flex-shrink: 0; /* Prevent button from shrinking in flex container */
+}
+
+.search-mode-toggle:hover {
+  background: var(--gray-300);
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.search-mode-toggle:active {
+  background: var(--gray-400);
+  transform: translateY(0);
+}
+
+.search-mode-toggle.fuzzy-mode {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border-color: var(--info-color);
+  color: var(--info-color);
+}
+
+.search-mode-toggle.exact-mode {
+  background: linear-gradient(135deg, #fff3e0, #ffcc02);
+  border-color: #ff9800;
+  color: #e65100; /* Darker orange for better contrast */
+  font-weight: 900; /* Bolder text for better visibility */
+}
+
+.search-mode-toggle.fuzzy-mode:hover {
+  background: linear-gradient(135deg, #bbdefb, #90caf9);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.search-mode-toggle.exact-mode:hover {
+  background: linear-gradient(135deg, #ffcc02, #ffb300);
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
+}
+
+/* Light mode search toggle (explicit) */
+[data-theme="light"] .search-mode-toggle {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  color: #495057;
+}
+
+[data-theme="light"] .search-mode-toggle:hover {
+  background: #e9ecef;
+  border-color: var(--primary-color);
+}
+
+[data-theme="light"] .search-mode-toggle.fuzzy-mode {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border-color: var(--info-color);
+  color: var(--info-color);
+}
+
+[data-theme="light"] .search-mode-toggle.exact-mode {
+  background: linear-gradient(135deg, #fff3e0, #ffcc02);
+  border-color: #ff9800;
+  color: #e65100; /* Darker orange for better contrast */
+  font-weight: 900; /* Bolder text for better visibility */
+}
+
+/* Dark mode search toggle (explicit) */
+[data-theme="dark"] .search-mode-toggle {
+  background: var(--gray-100);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .search-mode-toggle:hover {
+  background: var(--gray-200);
+  border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .search-mode-toggle.fuzzy-mode {
+  background: linear-gradient(135deg, #1a237e, #3949ab);
+  border-color: var(--info-light);
+  color: var(--info-light);
+}
+
+[data-theme="dark"] .search-mode-toggle.exact-mode {
+  background: linear-gradient(135deg, #e65100, #f57c00);
+  border-color: #ff9800;
+  color: #fff3e0; /* Light cream color for excellent contrast against dark orange */
+  font-weight: 900; /* Bolder text for better visibility */
+}
+
+/* System preference fallback */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .search-mode-toggle {
+    background: var(--gray-100);
+    border-color: var(--border);
+    color: var(--text-primary);
+  }
+
+  html:not([data-theme]) .search-mode-toggle:hover {
+    background: var(--gray-200);
+    border-color: var(--primary-color);
+  }
+
+  html:not([data-theme]) .search-mode-toggle.fuzzy-mode {
+    background: linear-gradient(135deg, #1a237e, #3949ab);
+    border-color: var(--info-light);
+    color: var(--info-light);
+  }
+
+  html:not([data-theme]) .search-mode-toggle.exact-mode {
+    background: linear-gradient(135deg, #e65100, #f57c00);
+    border-color: #ff9800;
+    color: #fff3e0; /* Light cream color for excellent contrast against dark orange */
+    font-weight: 900; /* Bolder text for better visibility */
+  }
+}
+
+/* Ensure search container has proper layout for the toggle button */
+.panel-search-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-xs);
+}
+
 /* Help Icon Tooltips */
 .help-icon {
   display: inline-flex;
@@ -1299,4 +1450,215 @@ button.test-button[disabled] {
   color: var(--text-muted);
   margin-top: var(--spacing-xs);
   text-align: center;
+}
+
+/* Enhanced Tooltips */
+.enhanced-tooltip {
+  background: var(--surface);
+  color: var(--text-color);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  max-width: 300px;
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  opacity: 0;
+  animation: tooltip-fade-in 0.3s ease-out forwards;
+  border: 1px solid var(--border-light);
+  font-family: var(--font-base);
+  z-index: 1000;
+}
+
+[data-theme="light"] .enhanced-tooltip {
+  background: var(--surface);
+  color: var(--text-color);
+  border-color: var(--border-light);
+}
+
+[data-theme="dark"] .enhanced-tooltip {
+  background: var(--surface);
+  color: var(--text-color);
+  border-color: var(--border-light);
+}
+
+.enhanced-tooltip .tooltip-title {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+  font-family: var(--font-mono);
+  margin-bottom: 0;
+}
+
+/* Color-coded tooltip titles based on button state - high specificity to override theme rules */
+.enhanced-tooltip .tooltip-title.granted {
+  color: #22c55e !important; /* Green for granted commands/categories */
+}
+
+.enhanced-tooltip .tooltip-title.blocked {
+  color: #ef4444 !important; /* Red for blocked commands/categories */
+}
+
+.enhanced-tooltip .tooltip-content {
+  color: var(--text-color);
+  margin-top: 0;
+  font-size: 0.825rem;
+}
+
+/* Visual separation between state info and relationship content */
+.enhanced-tooltip .tooltip-state {
+  color: var(--text-muted);
+  margin: 8px 0;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* Expandable link styling */
+.enhanced-tooltip .expandable-link {
+  color: var(--primary-color);
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.enhanced-tooltip .expandable-link:hover {
+  color: var(--primary-hover);
+  text-decoration: none;
+}
+
+/* Color-coded expandable links based on button state */
+.enhanced-tooltip .expandable-link.granted {
+  color: #22c55e !important; /* Green for granted expandable links */
+}
+
+.enhanced-tooltip .expandable-link.granted:hover {
+  color: #16a34a !important; /* Darker green on hover */
+}
+
+.enhanced-tooltip .expandable-link.blocked {
+  color: #ef4444 !important; /* Red for blocked expandable links */
+}
+
+.enhanced-tooltip .expandable-link.blocked:hover {
+  color: #dc2626 !important; /* Darker red on hover */
+}
+
+[data-theme="light"] .enhanced-tooltip .tooltip-title {
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .enhanced-tooltip .tooltip-title {
+  color: var(--primary-color);
+}
+
+.enhanced-tooltip em {
+  color: var(--text-muted);
+  font-style: italic;
+  opacity: 0.85;
+}
+
+[data-theme="light"] .enhanced-tooltip em {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .enhanced-tooltip em {
+  color: var(--text-muted);
+}
+
+/* System preference support for tooltips */
+@media (prefers-color-scheme: light) {
+  html:not([data-theme]) .enhanced-tooltip {
+    background: var(--surface);
+    color: var(--text-color);
+    border-color: var(--border-light);
+  }
+
+  html:not([data-theme]) .enhanced-tooltip .tooltip-title {
+    color: var(--primary-color);
+  }
+
+  html:not([data-theme]) .enhanced-tooltip em {
+    color: var(--text-muted);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .enhanced-tooltip {
+    background: var(--surface);
+    color: var(--text-color);
+    border-color: var(--border-light);
+  }
+
+  html:not([data-theme]) .enhanced-tooltip .tooltip-title {
+    color: var(--primary-color);
+  }
+
+  html:not([data-theme]) .enhanced-tooltip em {
+    color: var(--text-muted);
+  }
+}
+
+/* Multi-column layout for large tooltips */
+.enhanced-tooltip .tooltip-columns {
+  display: grid;
+  gap: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.enhanced-tooltip .tooltip-columns.cols-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.enhanced-tooltip .tooltip-columns.cols-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.enhanced-tooltip .tooltip-columns.cols-4 {
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+
+.enhanced-tooltip .tooltip-column {
+  min-width: 0; /* Allow columns to shrink */
+}
+
+.enhanced-tooltip .tooltip-column ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  line-height: 1.6;
+}
+
+.enhanced-tooltip .tooltip-column li {
+  margin-bottom: 2px;
+  word-break: break-word;
+  font-size: 0.8rem;
+  color: var(--text-color);
+}
+
+/* Expanded tooltip sizing */
+.enhanced-tooltip.expanded {
+  max-width: min(80vw, 600px);
+  max-height: 70vh;
+  overflow: hidden;
+}
+
+.enhanced-tooltip.expanded .tooltip-content {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
