@@ -29,11 +29,11 @@ const App = {
             // Clean up deprecated localStorage keys
             Storage.cleanupDeprecatedKeys();
             
-            // Restore saved user data from localStorage
-            this.restoreUserData();
-            
-            // Set up event handlers (including storage persistence)
+            // Set up event handlers first (needed for version restoration)
             EventHandlers.init();
+
+            // Restore saved user data from localStorage (after event handlers are ready)
+            this.restoreUserData();
             
             // Initialize interactive ACL builder (three-column layout)
             // Note: InteractiveACLBuilder.init() will handle parsing restored rules
@@ -64,6 +64,8 @@ const App = {
             // Restore ACL rule text
             const savedRule = Storage.loadAclRule();
             if (savedRule && DOMElements.aclRuleInput) {
+                // Mark as programmatic update to prevent hiding redundancy warnings
+                DOMElements.aclRuleInput.dataset.programmaticUpdate = 'true';
                 DOMElements.aclRuleInput.value = savedRule;
                 
                 // Update character counter and button states
@@ -97,9 +99,11 @@ const App = {
                     versionToggle.checked = expectedToggleState;
                 }
 
-                // Trigger change event to update everything else (parse rule, update UI, etc.)
+                // Call performVersionSwitch directly with restoration flag to avoid hiding redundancy warnings
                 // This won't cause visual toggle movement since state is already correct
-                versionToggle.dispatchEvent(new Event('change'));
+                if (versionToggle.performVersionSwitch) {
+                    versionToggle.performVersionSwitch(initialVersion, true); // true = isRestoration
+                }
             }
 
         } catch (error) {

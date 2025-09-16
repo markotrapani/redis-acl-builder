@@ -66,14 +66,15 @@ const InteractiveACLBuilder = {
         try {
             await this.loadAllData();
             this.initializeDefaultState();
-            await this.renderColumns();
-            
+
             // Check if there's existing content in textarea (from localStorage restoration)
             const existingRule = this.elements.aclRuleInput.value.trim();
-            
+
             // Set initialized to true before restoration so syncFromRuleText works
             this.state.isInitialized = true;
-            
+
+            let needsInitialRender = true;
+
             if (existingRule) {
                 // Restore lastGeneratedRule BEFORE restoration for proper change detection
                 const savedLastGenerated = Storage.loadLastGeneratedRule();
@@ -93,34 +94,37 @@ const InteractiveACLBuilder = {
                     if (savedLastGenerated) {
                         // Temporarily set textarea to last generated rule for sync
                         const currentTextareaValue = this.elements.aclRuleInput.value;
+                        this.elements.aclRuleInput.dataset.programmaticUpdate = 'true';
                         this.elements.aclRuleInput.value = savedLastGenerated;
 
                         // Sync panels to the committed state (without redundancy analysis since user has pending changes)
                         await this.syncFromRuleText(true); // Pass true to indicate this is restoration
+                        needsInitialRender = false; // syncFromRuleText already rendered
 
                         // Restore the actual textarea content (with pending changes)
+                        this.elements.aclRuleInput.dataset.programmaticUpdate = 'true';
                         this.elements.aclRuleInput.value = currentTextareaValue;
-                    } else {
-                        // No committed state, render empty
-                        await this.loadAllData();
-                        await this.renderColumns();
                     }
+                    // If no savedLastGenerated, keep needsInitialRender = true for empty state
                 } else {
                     // No pending changes, safe to auto-sync
                     await this.syncFromRuleText(true); // Pass true to indicate this is restoration
+                    needsInitialRender = false; // syncFromRuleText already rendered
                 }
-            } else {
-                // No saved rule - let scheduleRender() handle initial rule generation
-                // to avoid timing conflict with loading cover
-                await this.loadAllData();
+            }
+
+            // Only render if we haven't already rendered via syncFromRuleText
+            if (needsInitialRender) {
                 await this.renderColumns();
             }
-            
+
             // Add event listeners
             this.setupEventListeners();
 
-            // Ensure initial rendering is complete and remove loading covers
-            this.scheduleRender();
+            // Final check for Submit Changes button visibility - no additional render needed
+            setTimeout(() => {
+                this.checkForManualChanges();
+            }, 50);
 
             // Remove textarea loading cover after a brief delay
             setTimeout(() => {
@@ -350,6 +354,9 @@ const InteractiveACLBuilder = {
     applyLoadingAnimation() {
         const containers = document.querySelectorAll('.command-categories-container');
         containers.forEach(container => {
+            // Reset scroll position to ensure loading cover aligns properly
+            container.scrollTop = 0;
+
             // Remove any existing fade-out state first
             container.classList.remove('loading-fadeout');
             // Apply loading cover
@@ -385,7 +392,6 @@ const InteractiveACLBuilder = {
             return; // No loading cover to remove
         }
 
-        const textarea = textareaContainer.querySelector('textarea');
 
         // Add fade-out class to trigger smooth opacity transition
         textareaContainer.classList.add('loading-fadeout');
@@ -424,14 +430,16 @@ const InteractiveACLBuilder = {
     /**
      * Smooth rendering with loading covers to prevent empty state flash
      */
-    async smoothRender() {
+    async smoothRender(shouldUpdateRuleText = true) {
         // Apply loading covers instead of opacity fade to prevent empty state flash
         this.applyLoadingAnimation();
 
         // Small delay to ensure loading covers are visible, then render
         setTimeout(async () => {
-            // Update rule text based on current state
-            await this.updateRuleText();
+            // Update rule text based on current state (skip during Submit Changes to preserve user input)
+            if (shouldUpdateRuleText) {
+                await this.updateRuleText();
+            }
             
             // Then refresh API response data for partial category detection
             const currentRule = this.elements.aclRuleInput.value.trim();
@@ -573,21 +581,78 @@ const InteractiveACLBuilder = {
                     }
                 });
             } else {
-                // Normal case - show available categories (not granted, not blocked)
-                availableCategories.push(...this.state.allCategories.filter(cat => 
-                    !this.state.grantedCategories.has(cat) && !this.state.blockedCategories.has(cat)
-                ));
-                
+                // FIXED: Normal case - use effective category status for all categories (not just when @all is granted)
+                this.state.allCategories.forEach(category => {
+                    if (effectiveCategoryStatus[category] === 'blocked') {
+                        effectivelyBlockedCategories.push(category);
+                    } else if (effectiveCategoryStatus[category] === 'available') {
+                        availableCategories.push(category);
+                    }
+                    // Categories with 'granted' status are handled in the granted section above
+                });
+
                 // Always show @all category as available when it's not granted and not blocked
                 if (!this.state.grantedCategories.has('all') && !this.state.blockedCategories.has('all')) {
-                    availableCategories.unshift('all'); // Add @all at the beginning
+                    // Only add if not already added by effectiveCategoryStatus logic
+                    if (!availableCategories.includes('all') && !effectivelyBlockedCategories.includes('all')) {
+                        availableCategories.unshift('all'); // Add @all at the beginning
+                    }
                 }
-                
-                // Show explicitly blocked categories
-                effectivelyBlockedCategories.push(...Array.from(this.state.blockedCategories));
             }
-            
-            // Show available categories first
+
+            // Show blocked categories: EXPLICITLY blocked first, then implicitly blocked
+            if (effectivelyBlockedCategories.length > 0) {
+                // Collect all blocked categories with their types for smart sorting
+                const blockedCategories = [];
+
+                effectivelyBlockedCategories.forEach(category => {
+                    const isExplicitlyBlocked = this.state.blockedCategories.has(category);
+
+                    if (isExplicitlyBlocked) {
+                        // Explicitly blocked category (e.g., -@dangerous)
+                        blockedCategories.push({ category, type: 'explicit', priority: 1 });
+                    } else {
+                        // Implicitly blocked category (available but not granted)
+                        blockedCategories.push({ category, type: 'implicit', priority: 2 });
+                    }
+                });
+
+                // Sort by priority first (explicit first), then by rule order for explicit blocks, then alphabetically
+                blockedCategories.sort((a, b) => {
+                    // Always put @all first
+                    if (a.category === 'all') return -1;
+                    if (b.category === 'all') return 1;
+
+                    // Then sort by priority (explicit first)
+                    if (a.priority !== b.priority) {
+                        return a.priority - b.priority;
+                    }
+
+                    // For categories with same priority:
+                    if (a.priority === 1 && b.priority === 1) {
+                        // Both are explicitly blocked - sort by order in original rule
+                        const aIndex = this.state.orderedTerms.findIndex(term =>
+                            term.type === 'category' && term.operation === 'block' && term.value === a.category);
+                        const bIndex = this.state.orderedTerms.findIndex(term =>
+                            term.type === 'category' && term.operation === 'block' && term.value === b.category);
+
+                        if (aIndex !== -1 && bIndex !== -1) {
+                            return aIndex - bIndex; // Maintain rule order
+                        }
+                    }
+
+                    // Default to alphabetical for implicit blocks or when rule order not found
+                    return a.category.localeCompare(b.category);
+                });
+
+
+                blockedCategories.forEach(({ category, type }) => {
+                    const button = this.createCategoryButton(category, 'blocked', null, type);
+                    this.elements.blockedCategoriesButtons.appendChild(button);
+                });
+            }
+
+            // Show available categories after explicitly blocked categories
             if (availableCategories.length > 0) {
                 // Sort categories, but keep @all at the front if present
                 const sortedCategories = [...availableCategories];
@@ -640,43 +705,7 @@ const InteractiveACLBuilder = {
                     });
                 }
             }
-            
-            // Show blocked categories: EXPLICITLY blocked first, then implicitly blocked
-            if (effectivelyBlockedCategories.length > 0) {
-                // Collect all blocked categories with their types for smart sorting
-                const blockedCategories = [];
-                
-                effectivelyBlockedCategories.forEach(category => {
-                    if (this.state.blockedCategories.has(category)) {
-                        // Explicitly blocked category (e.g., -@dangerous)
-                        blockedCategories.push({ category, type: 'explicit', priority: 1 });
-                    } else {
-                        // Implicitly blocked category (available but not granted)
-                        blockedCategories.push({ category, type: 'implicit', priority: 2 });
-                    }
-                });
-                
-                // Sort by priority first (explicit first), then alphabetically, but keep @all at front
-                blockedCategories.sort((a, b) => {
-                    // Always put @all first
-                    if (a.category === 'all') return -1;
-                    if (b.category === 'all') return 1;
-                    
-                    // Then sort by priority (explicit first)
-                    if (a.priority !== b.priority) {
-                        return a.priority - b.priority;
-                    }
-                    
-                    // Finally alphabetically
-                    return a.category.localeCompare(b.category);
-                });
-                
-                blockedCategories.forEach(({ category, type }) => {
-                    const button = this.createCategoryButton(category, 'blocked', null, type);
-                    this.elements.blockedCategoriesButtons.appendChild(button);
-                });
-            }
-            
+
             if (availableCategories.length === 0 && effectivelyBlockedCategories.length === 0) {
                 const message = document.createElement('div');
                 message.className = 'text-muted';
@@ -1696,7 +1725,7 @@ const InteractiveACLBuilder = {
      * Sync manual rule text changes to the interactive display
      * @param {boolean} isRestoration - True if this is called during localStorage restoration
      */
-    async syncFromRuleText(isRestoration = false) {
+    async syncFromRuleText(isRestoration = false, preserveUserInput = false) {
         if (!this.elements.aclRuleInput || !this.state.isInitialized) {
             return;
         }
@@ -1826,7 +1855,8 @@ const InteractiveACLBuilder = {
             }
 
             // Re-render the interactive display with loading animation to prevent visual artifacts
-            await this.smoothRender();
+            // Skip rule text regeneration during Submit Changes to preserve user input for redundancy analysis
+            await this.smoothRender(!isRestoration);
             
             // Update tracking state differently for restoration vs manual sync
             if (isRestoration) {
@@ -1842,14 +1872,15 @@ const InteractiveACLBuilder = {
                 }
             } else {
                 // Normal sync operation - user clicked "Submit Changes"
+                // Preserve the original user input without automatic optimization
                 this.state.lastGeneratedRule = ruleText;
                 this.state.lastValidRule = ruleText;  // User successfully submitted this rule
                 this.state.hasManualChanges = false;
                 this.hideSubmitButton();
-                
+
                 // Save lastGeneratedRule to localStorage for proper restoration
                 Storage.saveLastGeneratedRule(ruleText);
-                
+
                 // Shrink panels after successful sync since no manual changes remain
                 const layout = document.querySelector('.three-column-layout');
                 if (layout && layout.classList.contains('submit-button-visible')) {
@@ -1890,7 +1921,7 @@ const InteractiveACLBuilder = {
                 this.state.grantedCategories.add(category);
                 this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
             } else if (token.startsWith('-@')) {
-                // Blocked category  
+                // Blocked category
                 const category = token.substring(2);
                 this.state.blockedCategories.add(category);
                 this.state.orderedTerms.push({ type: 'category', operation: 'block', value: category });

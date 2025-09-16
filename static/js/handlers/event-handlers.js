@@ -113,9 +113,11 @@ const EventHandlers = {
             if (isProgrammaticUpdate) {
                 delete this.dataset.programmaticUpdate;
             }
-            
-            // Hide redundancy warnings immediately for responsive feedback
-            RuleManager.hideRedundancyWarnings();
+
+            // Hide redundancy warnings immediately for responsive feedback (only for user typing)
+            if (!isProgrammaticUpdate) {
+                RuleManager.hideRedundancyWarnings();
+            }
 
             // Update action button states immediately (not debounced)
             EventHandlers.updateActionButtonStates(this.value);
@@ -144,18 +146,20 @@ const EventHandlers = {
                 }
             }
 
-            // Debounce expensive operations only
-            clearTimeout(inputTimeout);
-            inputTimeout = setTimeout(() => {
-                // Only expand panels if there's actual content in the textarea and it's a manual change
-                const hasContent = this.value.trim().length > 0;
+            // Debounce expensive operations only (skip for programmatic updates)
+            if (!isProgrammaticUpdate) {
+                clearTimeout(inputTimeout);
+                inputTimeout = setTimeout(() => {
+                    // Only expand panels if there's actual content in the textarea and it's a manual change
+                    const hasContent = this.value.trim().length > 0;
 
-                // Silently trigger rule parsing WITHOUT redundancy analysis during typing
-                // Redundancy analysis should only happen when user submits changes
-                if (hasContent) {
-                    RuleManager.parseRuleSilent(true); // Skip redundancy analysis during manual typing
-                }
-            }, 150); // Reduced debounce since we're not processing during resize
+                    // Silently trigger rule parsing WITHOUT redundancy analysis during typing
+                    // Redundancy analysis should only happen when user submits changes
+                    if (hasContent) {
+                        RuleManager.parseRuleSilent(true); // Skip redundancy analysis during manual typing
+                    }
+                }, 150); // Reduced debounce since we're not processing during resize
+            }
         });
         
         // Version toggle
@@ -219,7 +223,7 @@ const EventHandlers = {
         });
         
         // Helper function to perform the actual version switch
-        DOMElements.versionToggle.performVersionSwitch = function(newVersion) {
+        DOMElements.versionToggle.performVersionSwitch = function(newVersion, isRestoration = false) {
             AppState.currentVersion = newVersion;
 
             // Save version preference to localStorage
@@ -230,7 +234,14 @@ const EventHandlers = {
             const commandCount = newVersion === 'redis8' ? '446' : '311';
             DOMElements.versionDetail.textContent = `Redis ${newVersion.slice(-1)} (${categoryCount} categories, ${commandCount} commands)`;
 
-            RuleManager.parseRuleSilent(true); // Skip redundancy analysis and error notifications during version changes
+            // During restoration, only skip error notifications but allow redundancy analysis
+            // During user changes, skip both redundancy analysis and error notifications
+            if (isRestoration) {
+                RuleManager.parseRuleInternal(false, false); // Allow redundancy analysis, skip error notifications
+            } else {
+                RuleManager.parseRuleSilent(true); // Skip redundancy analysis and error notifications during user version changes
+            }
+
             // Also update interactive builder if initialized
             if (window.updateInteractiveBuilder) {
                 window.updateInteractiveBuilder();
