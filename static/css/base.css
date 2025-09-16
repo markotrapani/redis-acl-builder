@@ -231,14 +231,14 @@ body {
 .container {
   max-width: var(--container-max-width);
   margin: 0 auto;
-  padding: var(--spacing-lg);
+  padding: 15px; /* Reduced from var(--spacing-lg) = 20px for vertical compaction */
 }
 
 /* Typography */
 h1 {
   color: var(--primary-color);
   font-size: var(--font-size-xxl);
-  margin-bottom: 10px;
+  margin-bottom: 5px; /* Reduced from 10px for header compaction */
 }
 
 h2 {
@@ -293,11 +293,11 @@ h5 {
 /* Header */
 header {
   text-align: center;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 10px; /* Reduced from var(--spacing-md) = 15px for header compaction */
   background: var(--surface);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+  padding: 12px; /* Reduced from var(--spacing-lg) = 20px for header compaction */
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 

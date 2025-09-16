@@ -4,13 +4,13 @@
 .three-column-layout {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--spacing-md);
+  gap: 12px; /* Reduced from var(--spacing-md) = 15px for vertical compaction */
   align-items: start;
 }
 
 /* Make all panels in three-column layout uniform */
 .three-column-layout > .panel {
-  height: 700px; /* Adjusted height for comfortable fit */
+  height: 605px; /* Conservative reduction to prevent bookmark bar overflow while preserving content */
   min-width: 0;
 }
 
@@ -37,8 +37,8 @@
   border: 1px solid var(--border-light);
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   height: auto;
-  min-height: 190px; /* Fixed minimum height */
-  max-height: 190px; /* Prevent expansion beyond this */
+  min-height: 175px; /* Reduced from 190px for vertical compaction */
+  max-height: 175px; /* Prevent expansion beyond this */
 }
 
 /* Column-specific panel styling */
@@ -419,7 +419,7 @@
   }
   
   .three-column-layout > .panel {
-    height: 450px; /* Further reduced to match new proportions */
+    height: 378px; /* Conservative mobile reduction to prevent overflow while preserving content */
   }
   
   
@@ -468,15 +468,15 @@
 .testing-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-md);
+  gap: 12px; /* Reduced from var(--spacing-md) = 15px for vertical compaction */
+  margin-top: 12px; /* Reduced from var(--spacing-md) = 15px for vertical compaction */
 }
 
 .test-section {
   margin: 0; /* Remove default margin since grid handles spacing */
   overflow: visible; /* Allow result divs to overflow without expanding section */
   position: relative; /* Establish positioning context for absolutely positioned results */
-  height: 190px; /* Fixed height to prevent expansion */
+  height: 175px; /* Reduced from 190px for vertical compaction */
   padding: var(--panel-padding); /* Ensure proper padding is applied */
 }
 

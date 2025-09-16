@@ -19,21 +19,25 @@ const EventHandlers = {
         const currentText = aclRuleText.trim();
         const lastCommittedRule = Storage.loadAclRule();
 
-        // Clear/Copy buttons should be enabled if there's a committed rule OR current content
-        // They should stay enabled during manual editing until Submit Changes commits the changes
+        // Clear/Copy buttons logic:
+        // Clear button: enabled if there's committed content, current content, OR history exists
+        // Copy button: enabled if there's committed content OR current content (not for history alone)
         const hasCommittedContent = lastCommittedRule && lastCommittedRule.trim().length > 0;
         const hasCurrentContent = currentText.length > 0;
-        const shouldEnableButtons = hasCommittedContent || hasCurrentContent;
+        const hasHistory = Storage.hasHistory();
+
+        const shouldEnableClearButton = hasCommittedContent || hasCurrentContent || hasHistory;
+        const shouldEnableCopyButton = hasCommittedContent || hasCurrentContent;
 
 
         const clearBtn = document.getElementById('clearRuleBtn');
         const copyBtn = document.getElementById('copyRuleBtn');
 
         if (clearBtn) {
-            clearBtn.disabled = !shouldEnableButtons;
+            clearBtn.disabled = !shouldEnableClearButton;
         }
         if (copyBtn) {
-            copyBtn.disabled = !shouldEnableButtons;
+            copyBtn.disabled = !shouldEnableCopyButton;
         }
     },
 
@@ -295,6 +299,39 @@ const EventHandlers = {
                 }
             }
         });
+
+        // Global keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Undo/Redo shortcuts (global)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                if (e.shiftKey) {
+                    // Shift+Ctrl+Z / Shift+Cmd+Z - Redo
+                    EventHandlers.redoRule();
+                } else {
+                    // Ctrl+Z / Cmd+Z - Undo
+                    EventHandlers.undoRule();
+                }
+                return false;
+            }
+
+            // Only apply other shortcuts when ACL Rule textarea is focused or when no specific input is focused
+            const aclRuleTextarea = document.getElementById('aclRule');
+            const isAclRuleFocused = document.activeElement === aclRuleTextarea;
+            const isBodyFocused = document.activeElement === document.body;
+
+            if (!aclRuleTextarea || (!isAclRuleFocused && !isBodyFocused)) {
+                return; // Don't interfere with other input fields
+            }
+
+            // ESC key - Clear pending changes in ACL Rule text area
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                EventHandlers.clearPendingChanges();
+            }
+        }, true);
         
         // Global error handler
         window.addEventListener('error', function(e) {
@@ -492,6 +529,182 @@ const EventHandlers = {
         if (textarea) {
             this.updateCharacterCounter(textarea);
         }
+    },
+
+    /**
+     * Clear pending changes in ACL Rule text area (ESC key functionality)
+     * Reverts textarea to the last committed state and hides Submit Changes button
+     */
+    clearPendingChanges() {
+        const aclRuleTextarea = document.getElementById('aclRule');
+        if (!aclRuleTextarea) {
+            return;
+        }
+
+        // Get the last committed rule from localStorage
+        const lastCommittedRule = Storage.loadAclRule() || '';
+
+        // Check if there are actually pending changes
+        const currentText = aclRuleTextarea.value.trim();
+        if (currentText === lastCommittedRule.trim()) {
+            // No pending changes to clear
+            import('../core/utils.js').then(({ default: Utils }) => {
+                Utils.showNotification('No pending changes to clear', 'info', 2000);
+            });
+            return;
+        }
+
+        // Mark as programmatic update to prevent hiding redundancy warnings
+        aclRuleTextarea.dataset.programmaticUpdate = 'true';
+        aclRuleTextarea.value = lastCommittedRule;
+
+        // Update character counter and button states
+        this.updateCharacterCounterProgrammatically(aclRuleTextarea);
+        this.updateActionButtonStates(lastCommittedRule);
+
+        // Auto-expand textarea based on content
+        this.autoExpandTextarea(aclRuleTextarea);
+
+        // Hide Submit Changes button since changes are cleared
+        const layout = document.querySelector('.three-column-layout');
+        const submitBtn = document.getElementById('submitChangesBtn');
+        if (layout && submitBtn) {
+            layout.classList.remove('submit-button-visible');
+            submitBtn.style.display = 'none';
+        }
+
+        // Sync to interactive builder
+        if (window.updateInteractiveBuilder) {
+            window.updateInteractiveBuilder();
+        }
+
+        // Show notification
+        import('../core/utils.js').then(({ default: Utils }) => {
+            Utils.showNotification('Pending changes cleared (ESC)', 'info', 2000);
+        });
+
+        // Focus back on textarea
+        aclRuleTextarea.focus();
+    },
+
+    /**
+     * Undo to previous rule in history (Ctrl+Z/Cmd+Z functionality)
+     * Moves backward in the undo/redo history
+     */
+    undoRule() {
+        const aclRuleTextarea = document.getElementById('aclRule');
+        if (!aclRuleTextarea) {
+            return;
+        }
+
+        // Get the previous rule from history
+        const result = Storage.undoFromHistory();
+
+        // Handle different error scenarios
+        if (result.error) {
+            import('../core/utils.js').then(({ default: Utils }) => {
+                switch (result.error) {
+                    case 'no_history':
+                        Utils.showNotification('No undo history available', 'warning', 2000);
+                        break;
+                    case 'at_beginning':
+                        Utils.showNotification('Already at oldest change', 'warning', 2000);
+                        break;
+                    default:
+                        Utils.showNotification('Undo failed', 'error', 2000);
+                }
+            });
+            return;
+        }
+
+        this.applyHistoryRule(result.rule, 'Undo');
+    },
+
+    /**
+     * Redo to next rule in history (Shift+Ctrl+Z/Shift+Cmd+Z functionality)
+     * Moves forward in the undo/redo history
+     */
+    redoRule() {
+        const aclRuleTextarea = document.getElementById('aclRule');
+        if (!aclRuleTextarea) {
+            return;
+        }
+
+        // Get the next rule from history
+        const result = Storage.redoFromHistory();
+
+        // Handle different error scenarios
+        if (result.error) {
+            import('../core/utils.js').then(({ default: Utils }) => {
+                switch (result.error) {
+                    case 'no_history':
+                        Utils.showNotification('No redo history available', 'warning', 2000);
+                        break;
+                    case 'at_end':
+                        Utils.showNotification('Already at newest change', 'warning', 2000);
+                        break;
+                    default:
+                        Utils.showNotification('Cannot redo', 'warning', 2000);
+                        break;
+                }
+            });
+            return;
+        }
+
+        this.applyHistoryRule(result.rule, 'Redo');
+    },
+
+    /**
+     * Apply a rule from history and update the UI
+     * @param {string} rule - The rule to apply
+     * @param {string} action - 'Undo' or 'Redo' for notification
+     */
+    applyHistoryRule(rule, action) {
+        const aclRuleTextarea = document.getElementById('aclRule');
+        if (!aclRuleTextarea) {
+            return;
+        }
+
+        // Mark as programmatic update to prevent hiding redundancy warnings
+        aclRuleTextarea.dataset.programmaticUpdate = 'true';
+        aclRuleTextarea.value = rule;
+
+        // Update character counter and button states
+        this.updateCharacterCounterProgrammatically(aclRuleTextarea);
+        this.updateActionButtonStates(rule);
+
+        // Auto-expand textarea based on content
+        this.autoExpandTextarea(aclRuleTextarea);
+
+        // Commit the restored rule immediately (like clicking Submit Changes)
+        Storage.saveAclRule(rule);
+
+        // Hide Submit Changes button since we're now in committed state
+        const layout = document.querySelector('.three-column-layout');
+        const submitBtn = document.getElementById('submitChangesBtn');
+        if (layout && submitBtn) {
+            layout.classList.remove('submit-button-visible');
+            submitBtn.style.display = 'none';
+        }
+
+        // Parse the restored rule but DON'T sync back to interactive builder
+        // (that would regenerate the rule and overwrite our undo)
+        RuleManager.parseRule();
+
+        // Instead, sync FROM the text TO the interactive builder
+        import('../components/interactive-acl-builder.js').then(({ default: InteractiveACLBuilder }) => {
+            if (InteractiveACLBuilder.state.isInitialized) {
+                InteractiveACLBuilder.syncFromRuleText();
+            }
+        });
+
+        // Show notification
+        import('../core/utils.js').then(({ default: Utils }) => {
+            Utils.showNotification(`${action} successful`, 'success', 2000);
+        });
+
+        // Focus back on textarea
+        aclRuleTextarea.focus();
     }
 };
 

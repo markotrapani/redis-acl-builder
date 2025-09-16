@@ -173,6 +173,9 @@ const InteractiveACLBuilder = {
         this.state.grantedCommands.clear();
         this.state.blockedCategories.clear();
         this.state.blockedCommands.clear();
+
+        // Initialize scroll position storage
+        this.scrollPositions = new Map();
     },
 
     /**
@@ -709,8 +712,11 @@ const InteractiveACLBuilder = {
     applyLoadingAnimation() {
         const containers = document.querySelectorAll('.command-categories-container');
         containers.forEach(container => {
-            // Reset scroll position to ensure loading cover aligns properly
-            container.scrollTop = 0;
+            // Store current scroll position to restore later
+            if (!this.scrollPositions) {
+                this.scrollPositions = new Map();
+            }
+            this.scrollPositions.set(container, container.scrollTop);
 
             // Remove any existing fade-out state first
             container.classList.remove('loading-fadeout');
@@ -733,6 +739,19 @@ const InteractiveACLBuilder = {
             // Remove both classes after fade animation completes
             setTimeout(() => {
                 container.classList.remove('loading', 'loading-fadeout');
+
+                // Restore scroll position if we have one stored
+                if (this.scrollPositions && this.scrollPositions.has(container)) {
+                    const savedScrollTop = this.scrollPositions.get(container);
+                    const maxScrollTop = container.scrollHeight - container.clientHeight;
+
+                    // Only restore if content is still scrollable and position is valid
+                    if (maxScrollTop > 0) {
+                        // Clamp scroll position to valid range
+                        container.scrollTop = Math.min(savedScrollTop, maxScrollTop);
+                    }
+                    // If content no longer needs scrolling (maxScrollTop <= 0), leave at top (0)
+                }
             }, 200); // Match CSS transition duration
         });
     },
@@ -2279,6 +2298,9 @@ const InteractiveACLBuilder = {
         this.state.hasManualChanges = false;
         this.hideSubmitButton();
         
+        // Add the newly committed rule to history BEFORE saving it
+        Storage.addToHistory(rule);
+
         // Save to localStorage for proper restoration
         Storage.saveLastGeneratedRule(rule);
 

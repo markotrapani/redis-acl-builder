@@ -115,8 +115,22 @@ const App = {
 // Global functions (for onclick handlers in HTML)
 window.setRule = (rule) => RuleManager.setRule(rule);
 window.setRuleAndParse = (rule) => {
+    // Add current rule to history before applying the new rule (only if different)
+    const aclRuleTextarea = document.getElementById('aclRule');
+    if (aclRuleTextarea) {
+        const currentRule = aclRuleTextarea.value;
+        // Only add to history if the new rule is different from current
+        if (currentRule !== rule) {
+            Storage.addToHistory(currentRule);
+        }
+    }
+
     RuleManager.setRule(rule);
     RuleManager.parseRule();
+
+    // Add the new rule to history after applying it (same as manual commit)
+    Storage.addToHistory(rule);
+
     // Also sync to interactive builder (same as clicking Submit Changes)
     if (InteractiveACLBuilder.state.isInitialized) {
         InteractiveACLBuilder.syncFromRuleText();
@@ -129,7 +143,10 @@ window.syncRuleToInteractive = () => {
     // Save the current rule to localStorage when user submits changes
     const aclRuleTextarea = document.getElementById('aclRule');
     if (aclRuleTextarea) {
-        Storage.saveAclRule(aclRuleTextarea.value);
+        const newRule = aclRuleTextarea.value;
+        // Add the newly committed rule to history BEFORE saving it
+        Storage.addToHistory(newRule);
+        Storage.saveAclRule(newRule);
     }
 
     // Sync to interactive builder
@@ -201,8 +218,9 @@ window.clearACLRule = () => {
     const currentRule = aclRuleTextarea.value.trim();
     const committedRule = Storage.loadAclRule();
 
-    // Check if both current text and committed rule are empty
-    if (!currentRule && (!committedRule || committedRule.trim().length === 0)) {
+    // Check if both current text and committed rule are empty AND no history exists
+    const hasHistory = Storage.hasHistory();
+    if (!currentRule && (!committedRule || committedRule.trim().length === 0) && !hasHistory) {
         Utils.showNotification('ACL rule is already empty! 📝', 'info');
         return;
     }
@@ -211,9 +229,10 @@ window.clearACLRule = () => {
         // Clear the rule
         aclRuleTextarea.value = '';
         
-        // Clear from localStorage
+        // Clear from localStorage and clear history
         Storage.saveAclRule('');
         Storage.saveLastGeneratedRule('');
+        Storage.clearHistory();
         
         aclRuleTextarea.focus();
         
@@ -244,9 +263,11 @@ window.clearACLRule = () => {
         const clearedCurrent = currentRule.length > 0;
         const clearedCommitted = committedRule && committedRule.trim().length > 0;
 
-        let message = 'ACL rule cleared and command lists updated! 💣';
-        if (!clearedCurrent && clearedCommitted) {
-            message = 'Committed ACL rule cleared and command lists updated! 💣';
+        let message = 'ACL rule and history cleared! 💣';
+        if (!clearedCurrent && !clearedCommitted && hasHistory) {
+            message = 'ACL rule history cleared! 💣';
+        } else if (!clearedCurrent && clearedCommitted) {
+            message = 'Committed ACL rule and history cleared! 💣';
         }
 
         Utils.showNotification(message, 'success');

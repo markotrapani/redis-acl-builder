@@ -8,7 +8,9 @@ const Storage = {
     keys: {
         ACL_RULE: 'redis-acl-builder-rule',
         REDIS_VERSION: 'redis-acl-builder-version',
-        LAST_GENERATED_RULE: 'redis-acl-builder-last-generated'
+        LAST_GENERATED_RULE: 'redis-acl-builder-last-generated',
+        ACL_RULE_HISTORY: 'redis-acl-builder-rule-history',
+        ACL_RULE_HISTORY_POSITION: 'redis-acl-builder-rule-history-position'
     },
 
     /**
@@ -151,6 +153,142 @@ const Storage = {
      */
     loadLastGeneratedRule() {
         return this.load(this.keys.LAST_GENERATED_RULE);
+    },
+
+    /**
+     * Add a new rule to history and update position
+     * @param {string} newRule - New rule to add to history
+     */
+    addToHistory(newRule) {
+        try {
+            const historyJson = this.load(this.keys.ACL_RULE_HISTORY, '[]');
+            const history = JSON.parse(historyJson);
+            const position = parseInt(this.load(this.keys.ACL_RULE_HISTORY_POSITION, '-1'));
+
+            // Initialize history with current committed rule if this is the first addition
+            if (history.length === 0) {
+                const currentCommitted = this.loadAclRule() || '';
+                if (currentCommitted !== newRule) {
+                    history.push(currentCommitted);
+                }
+            }
+
+            // If we're not at the end of history, truncate everything after current position
+            // This happens when user made changes after undoing
+            if (position >= 0 && position < history.length - 1) {
+                history.splice(position + 1);
+            }
+
+            // Don't add if it's the same as the last entry
+            if (history.length > 0 && history[history.length - 1] === newRule) {
+                return;
+            }
+
+            // Add new rule to history
+            history.push(newRule);
+
+            // Update position to point to the newly added rule
+            const newPosition = history.length - 1;
+
+            // Limit history to 20 entries (FIFO)
+            if (history.length > 20) {
+                history.shift();
+                // Adjust position after removing first element
+                const adjustedPosition = Math.max(0, newPosition - 1);
+                this.save(this.keys.ACL_RULE_HISTORY_POSITION, adjustedPosition.toString());
+            } else {
+                this.save(this.keys.ACL_RULE_HISTORY_POSITION, newPosition.toString());
+            }
+
+            this.save(this.keys.ACL_RULE_HISTORY, JSON.stringify(history));
+        } catch (e) {
+            console.warn('Failed to add rule to history:', e);
+        }
+    },
+
+
+    /**
+     * Move backward in history (undo)
+     * @returns {string|null} Previous rule or null if can't undo
+     */
+    undoFromHistory() {
+        try {
+            const historyJson = this.load(this.keys.ACL_RULE_HISTORY, '[]');
+            const history = JSON.parse(historyJson);
+            const position = parseInt(this.load(this.keys.ACL_RULE_HISTORY_POSITION, '-1'));
+
+            // Can't undo if no history exists
+            if (history.length === 0) {
+                return { error: 'no_history' };
+            }
+
+            // Can't undo if already at the beginning
+            if (position <= 0) {
+                return { error: 'at_beginning' };
+            }
+
+            // Move to previous position
+            const newPosition = position - 1;
+            this.save(this.keys.ACL_RULE_HISTORY_POSITION, newPosition.toString());
+
+            return { rule: history[newPosition] };
+        } catch (e) {
+            console.warn('Failed to undo from history:', e);
+            return { error: 'system_error' };
+        }
+    },
+
+    /**
+     * Move forward in history (redo)
+     * @returns {string|null} Next rule or null if can't redo
+     */
+    redoFromHistory() {
+        try {
+            const historyJson = this.load(this.keys.ACL_RULE_HISTORY, '[]');
+            const history = JSON.parse(historyJson);
+            const position = parseInt(this.load(this.keys.ACL_RULE_HISTORY_POSITION, '-1'));
+
+            // Can't redo if no history exists
+            if (history.length === 0) {
+                return { error: 'no_history' };
+            }
+
+            // Can't redo if already at the end
+            if (position >= history.length - 1) {
+                return { error: 'at_end' };
+            }
+
+            // Move to next position
+            const newPosition = position + 1;
+            this.save(this.keys.ACL_RULE_HISTORY_POSITION, newPosition.toString());
+
+            return { rule: history[newPosition] };
+        } catch (e) {
+            console.warn('Failed to redo from history:', e);
+            return { error: 'system_error' };
+        }
+    },
+
+    /**
+     * Check if there is any history available
+     * @returns {boolean} True if history exists
+     */
+    hasHistory() {
+        try {
+            const historyJson = this.load(this.keys.ACL_RULE_HISTORY, '[]');
+            const history = JSON.parse(historyJson);
+            return history.length > 0;
+        } catch (e) {
+            return false;
+        }
+    },
+
+    /**
+     * Clear ACL rule history and reset position
+     */
+    clearHistory() {
+        this.save(this.keys.ACL_RULE_HISTORY, '[]');
+        this.save(this.keys.ACL_RULE_HISTORY_POSITION, '-1');
     }
 };
 

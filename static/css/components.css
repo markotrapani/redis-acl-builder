@@ -358,7 +358,7 @@ button.test-button[disabled] {
 
 /* Test Command/Search Inputs - Compact padding */
 .test-command-input {
-  padding: 2px 4px;
+  padding: 2px 6px;
   min-height: auto;
 }
 
@@ -1152,7 +1152,7 @@ button.test-button[disabled] {
 .test-input-group {
   display: flex;
   gap: 10px;
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 8px; /* Reduced from var(--spacing-lg) = 20px for compact test panels */
   position: relative; /* Enable absolute positioning for result popups */
 }
 
@@ -1275,14 +1275,18 @@ button.test-button[disabled] {
 }
 
 .example-group {
-  margin-bottom: 12px;
+  margin-bottom: 2px; /* Reduced from 12px for more compact Quick Examples */
+}
+
+.example-group:last-child {
+  margin-bottom: 0;
 }
 
 .example-category {
   color: var(--text-primary);
   font-size: var(--font-size-sm);
   font-weight: 600;
-  margin: 0 0 var(--spacing-xs) 0;
+  margin: 0 0 2px 0; /* Reduced from var(--spacing-xs) = 4px for more compact Quick Examples */
   letter-spacing: 0.5px;
 }
 

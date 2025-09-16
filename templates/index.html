@@ -158,7 +158,7 @@
                     <textarea
                         id="aclRule"
                         class="rule-input rule-input-compact"
-                        placeholder="Click commands/categories in the surrounding panels to build your ACL rule interactively, or type manually..."
+                        placeholder="Click commands/categories in the other panels to build your ACL rule interactively, or type manually..."
                         aria-label="ACL Rule Input"
                         spellcheck="false"
                         maxlength="500"
@@ -210,9 +210,6 @@
                             </button>
                             <button type="button" class="example" onclick="setRuleAndParse('+get +set +del +exists ~*')" title="Basic key operations only">
                                 +get +set +del +exists ~*
-                            </button>
-                            <button type="button" class="example" onclick="setRuleAndParse('+@all -@scripting -@dangerous ~*')" title="Application user access without scripting or dangerous commands">
-                                +@all -@scripting -@dangerous ~*
                             </button>
                         </div>
                     </div>
