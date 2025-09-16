@@ -10,7 +10,7 @@
 
 /* Make all panels in three-column layout uniform */
 .three-column-layout > .panel {
-  height: 605px; /* Conservative reduction to prevent bookmark bar overflow while preserving content */
+  height: 600px; /* Fine-tuned to eliminate remaining space below Quick Examples */
   min-width: 0;
 }
 
@@ -419,7 +419,7 @@
   }
   
   .three-column-layout > .panel {
-    height: 378px; /* Conservative mobile reduction to prevent overflow while preserving content */
+    height: 375px; /* Fine-tuned mobile optimization to eliminate remaining space */
   }
   
   

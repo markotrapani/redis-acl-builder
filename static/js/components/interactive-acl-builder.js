@@ -2298,8 +2298,10 @@ const InteractiveACLBuilder = {
         this.state.hasManualChanges = false;
         this.hideSubmitButton();
         
-        // Add the newly committed rule to history BEFORE saving it
-        Storage.addToHistory(rule);
+        // Add the newly committed rule to history BEFORE saving it (skip empty rules)
+        if (rule.trim() !== '') {
+            Storage.addToHistory(rule);
+        }
 
         // Save to localStorage for proper restoration
         Storage.saveLastGeneratedRule(rule);
