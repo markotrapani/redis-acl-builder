@@ -655,7 +655,28 @@ button.test-button[disabled] {
 }
 
 /* Three-state category system */
-.category-button.granted.partial {
+/* Explicit partial categories - user explicitly granted category but some commands excluded */
+.category-button.granted.partial.explicit {
+  background: #996600 !important; /* Darker yellow/orange background like explicit commands */
+  border-color: #ffcc00 !important; /* Bright yellow border like explicit commands */
+  color: #ffffff !important;
+  position: relative;
+  font-weight: bold !important;
+  box-shadow: inset 0 0 0 2px rgba(255, 204, 0, 0.3), 0 2px 4px rgba(153, 102, 0, 0.4) !important; /* Bright yellow glow to match border */
+}
+
+/* Implicit partial categories - some commands granted individually */
+.category-button.granted.partial.implicit {
+  background: rgba(255, 193, 7, 0.2) !important;
+  border-color: #996600 !important; /* Darker border */
+  color: rgba(255, 193, 7, 0.9) !important; /* Brighter text */
+  position: relative;
+  font-weight: normal !important;
+  /* No highlight/glow for implicit partial */
+}
+
+/* Legacy fallback for existing partial buttons without explicit/implicit class */
+.category-button.granted.partial:not(.explicit):not(.implicit) {
   background: rgba(255, 193, 7, 0.3) !important;
   border-color: rgba(255, 193, 7, 0.8) !important;
   color: #ff8f00 !important;
@@ -806,7 +827,71 @@ button.test-button[disabled] {
 }
 
 /* Partial category hover */
-.category-button.granted.partial:hover {
+/* Explicit partial hover - brighter with enhanced highlight */
+.category-button.granted.partial.explicit:hover {
+  background: #cc8800 !important; /* Brighter but still dark yellow/orange on hover */
+  border-color: #ffff00 !important; /* Very bright yellow border on hover like explicit commands */
+  color: #ffffff !important;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 0, 0.4), 0 3px 6px rgba(204, 136, 0, 0.5) !important; /* Very bright yellow glow on hover */
+}
+
+/* Implicit partial hover - subtle change */
+.category-button.granted.partial.implicit:hover {
+  background: rgba(255, 193, 7, 0.25) !important;
+  border-color: #804400 !important; /* Darker border on hover */
+  color: rgba(255, 193, 7, 1.0) !important; /* Even brighter text on hover */
+  /* No highlight/glow on hover for implicit */
+}
+
+/* Legacy fallback hover for existing partial buttons */
+.category-button.granted.partial:not(.explicit):not(.implicit):hover {
+  background: rgba(255, 193, 7, 0.4);
+  border-color: rgba(255, 193, 7, 0.9);
+  color: #e68900;
+}
+
+/* Blocked partial category styling - matches granted partial styling */
+/* Explicit partial blocked categories */
+.category-button.blocked.partial.explicit {
+  background: #996600 !important; /* Same as granted partial explicit */
+  border-color: #ffcc00 !important; /* Same as granted partial explicit */
+  color: #ffffff !important;
+  box-shadow: inset 0 0 0 2px rgba(255, 204, 0, 0.3), 0 2px 4px rgba(153, 102, 0, 0.4) !important;
+}
+
+/* Implicit partial blocked categories */
+.category-button.blocked.partial.implicit {
+  background: rgba(255, 193, 7, 0.2) !important; /* Same as granted partial implicit */
+  border-color: #996600 !important; /* Same as granted partial implicit */
+  color: rgba(255, 193, 7, 0.9) !important; /* Same as granted partial implicit */
+}
+
+/* Legacy fallback for existing blocked partial buttons without explicit/implicit class */
+.category-button.blocked.partial:not(.explicit):not(.implicit) {
+  background: rgba(255, 193, 7, 0.3) !important;
+  border-color: rgba(255, 193, 7, 0.8) !important;
+  color: #ff8f00 !important;
+  font-style: italic;
+}
+
+/* Blocked partial hover effects */
+/* Explicit partial blocked hover - brighter with enhanced highlight */
+.category-button.blocked.partial.explicit:hover {
+  background: #cc8800 !important; /* Same as granted partial explicit hover */
+  border-color: #ffff00 !important; /* Same as granted partial explicit hover */
+  color: #ffffff !important;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 0, 0.4), 0 3px 6px rgba(204, 136, 0, 0.5) !important;
+}
+
+/* Implicit partial blocked hover - subtle change */
+.category-button.blocked.partial.implicit:hover {
+  background: rgba(255, 193, 7, 0.25) !important; /* Same as granted partial implicit hover */
+  border-color: #804400 !important; /* Same as granted partial implicit hover */
+  color: rgba(255, 193, 7, 1.0) !important; /* Same as granted partial implicit hover */
+}
+
+/* Legacy fallback hover for existing blocked partial buttons */
+.category-button.blocked.partial:not(.explicit):not(.implicit):hover {
   background: rgba(255, 193, 7, 0.4);
   border-color: rgba(255, 193, 7, 0.9);
   color: #e68900;
@@ -819,6 +904,7 @@ button.test-button[disabled] {
   border-color: var(--success-border);
   opacity: 0.9;
 }
+
 
 /* Active/Click effects */
 .category-button:active, 

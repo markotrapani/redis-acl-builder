@@ -181,13 +181,16 @@ const InteractiveACLBuilder = {
     async grantCategory(category) {
         this.state.grantedCategories.add(category);
         this.state.blockedCategories.delete(category);
-        
+
         // Update ordered terms - remove any existing entries for this category and add new grant
-        this.state.orderedTerms = this.state.orderedTerms.filter(term => 
+        this.state.orderedTerms = this.state.orderedTerms.filter(term =>
             !(term.type === 'category' && term.value === category)
         );
         this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
-        
+
+        // Mark that we should auto-optimize after the next render
+        this.state.shouldAutoOptimize = true;
+
         this.scheduleRender();
     },
 
@@ -197,14 +200,363 @@ const InteractiveACLBuilder = {
     async blockCategory(category) {
         this.state.blockedCategories.add(category);
         this.state.grantedCategories.delete(category);
-        
+
         // Update ordered terms - remove any existing entries for this category and add new block
-        this.state.orderedTerms = this.state.orderedTerms.filter(term => 
+        this.state.orderedTerms = this.state.orderedTerms.filter(term =>
             !(term.type === 'category' && term.value === category)
         );
         this.state.orderedTerms.push({ type: 'category', operation: 'block', value: category });
-        
+
         this.scheduleRender();
+    },
+
+    /**
+     * Detect redundant command exclusions that are later granted by categories
+     * Returns array of redundant command exclusions with suggestions
+     */
+    async detectRedundantExclusions() {
+        const redundantExclusions = [];
+
+        // Get all commands that are effectively granted according to API
+        const allGrantedCommands = new Set();
+        if (this.lastApiResponse && this.lastApiResponse.granted_commands) {
+            this.lastApiResponse.granted_commands.forEach(cmd => allGrantedCommands.add(cmd));
+        }
+
+        // Check each explicitly blocked command
+        Array.from(this.state.blockedCommands).forEach(command => {
+            // If this blocked command is actually granted (due to later category grants)
+            if (allGrantedCommands.has(command)) {
+                redundantExclusions.push({
+                    command,
+                    suggestion: `Remove redundant exclusion "-${command}" (granted by later category)`
+                });
+            }
+        });
+
+        return redundantExclusions;
+    },
+
+    /**
+     * Display optimization suggestions for manually typed redundant exclusions
+     */
+    async displayOptimizationSuggestions() {
+        const redundantExclusions = await this.detectRedundantExclusions();
+
+        if (redundantExclusions.length > 0) {
+            // Use the existing redundancy warning system to show optimization suggestions
+            const warningsList = document.getElementById('warningsList');
+            const suggestionsList = document.getElementById('suggestionsList');
+            const warningsContainer = document.getElementById('redundancyWarnings');
+
+            if (warningsList && suggestionsList && warningsContainer) {
+                // Clear existing content first to avoid duplication (same as RuleManager does)
+                // Note: Backend redundancy analysis will also clear these, but we need to clear
+                // them here too since we might be called multiple times before backend analysis
+                warningsList.innerHTML = '';
+                suggestionsList.innerHTML = '';
+
+                // Add optimization suggestions using the same format as existing redundancy warnings
+                redundantExclusions.forEach(({ command }) => {
+                    // Generate the optimized rule by temporarily removing the redundant exclusion
+                    const optimizedTerms = this.state.orderedTerms.filter(term =>
+                        !(term.type === 'command' && term.operation === 'block' && term.value === command)
+                    );
+
+                    // Build the optimized rule string
+                    const optimizedRule = this.generateRuleFromTerms(optimizedTerms);
+
+                    // Add warning (red box) explaining the redundancy
+                    const warningDiv = document.createElement('div');
+                    warningDiv.className = 'warning-item';
+                    warningDiv.innerHTML = `Redundant exclusion "-${command}" is overridden by later category grant.`;
+                    warningsList.appendChild(warningDiv);
+
+                    // Add suggestion (blue box) with clickable simplified rule
+                    const suggestionDiv = document.createElement('div');
+                    suggestionDiv.className = 'suggestion-item';
+                    suggestionDiv.innerHTML = `Simplified rule: <span class="simplified-rule">${optimizedRule}</span>`;
+
+                    // Make simplified rule clickable (same pattern as existing simplifications)
+                    const ruleSpan = suggestionDiv.querySelector('.simplified-rule');
+                    if (ruleSpan) {
+                        ruleSpan.style.cursor = 'pointer';
+                        ruleSpan.title = 'Click to apply this simplified rule';
+                        ruleSpan.addEventListener('click', async () => {
+                            // Remove the redundant exclusion
+                            this.state.blockedCommands.delete(command);
+                            this.state.orderedTerms = this.state.orderedTerms.filter(term =>
+                                !(term.type === 'command' && term.operation === 'block' && term.value === command)
+                            );
+
+                            // Update rule text and re-render
+                            await this.updateRuleText();
+                            this.scheduleRender();
+
+                            // Trigger re-analysis which will clear the warnings/suggestions
+                            // Import RuleManager to trigger redundancy analysis which will clear these warnings
+                            import('../managers/rule-manager.js').then(({ default: RuleManager }) => {
+                                // Parse rule with redundancy analysis to refresh warnings
+                                RuleManager.parseRule();
+                            });
+
+                            // Show success notification
+                            import('../core/utils.js').then(({ default: Utils }) => {
+                                Utils.showNotification(`Applied optimization: removed "-${command}"`, 'success');
+                            });
+                        });
+                    }
+
+                    suggestionsList.appendChild(suggestionDiv);
+                });
+
+                // Show the warnings container if it's hidden
+                warningsContainer.style.display = 'block';
+            }
+        }
+    },
+
+    /**
+     * Generate ACL rule string from ordered terms (helper for optimization suggestions)
+     */
+    generateRuleFromTerms(orderedTerms) {
+        const parts = [];
+
+        orderedTerms.forEach(term => {
+            if (term.type === 'category') {
+                if (term.operation === 'grant') {
+                    parts.push(`+@${term.value}`);
+                } else if (term.operation === 'block') {
+                    parts.push(`-@${term.value}`);
+                }
+            } else if (term.type === 'command') {
+                if (term.operation === 'grant') {
+                    parts.push(`+${term.value}`);
+                } else if (term.operation === 'block') {
+                    parts.push(`-${term.value}`);
+                }
+            }
+        });
+
+        return parts.join(' ') || '';
+    },
+
+    /**
+     * Grant @all category by replacing entire rule with +@all
+     * This is a special case where we clear everything and just grant all commands
+     */
+    async grantAllCategory() {
+        // Clear all existing state
+        this.state.grantedCategories.clear();
+        this.state.blockedCategories.clear();
+        this.state.grantedCommands.clear();
+        this.state.blockedCommands.clear();
+        this.state.orderedTerms = [];
+
+        // Add @all as the only grant
+        this.state.grantedCategories.add('all');
+        this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: 'all' });
+
+        // Update the rule text and re-render
+        await this.updateRuleText();
+        this.scheduleRender();
+
+        // Show notification about the change
+        import('../core/utils.js').then(({ default: Utils }) => {
+            Utils.showNotification('Granted ALL commands via @all category', 'success');
+        });
+    },
+
+    /**
+     * Clear ACL rule completely - for when implicitly partially granted @all is clicked
+     * This revokes all commands by clearing the entire rule
+     */
+    async clearAllCategory() {
+        // Clear all existing state
+        this.state.grantedCategories.clear();
+        this.state.blockedCategories.clear();
+        this.state.grantedCommands.clear();
+        this.state.blockedCommands.clear();
+        this.state.orderedTerms = [];
+
+        // Don't add anything - empty rule blocks all commands by default
+
+        // Update the rule text and re-render
+        await this.updateRuleText();
+        this.scheduleRender();
+
+        // Show notification about the change
+        import('../core/utils.js').then(({ default: Utils }) => {
+            Utils.showNotification('Cleared ACL rule - ALL commands now blocked', 'info');
+        });
+    },
+
+    /**
+     * Grant a category and clean up any individual command entries for that category
+     * This is used when clicking a partially blocked category in the blocked column
+     */
+    async grantCategoryAndCleanup(category) {
+        try {
+            // Get all commands in this category
+            const categoryCommands = await this.getCategoryCommandsCached(category);
+            const categoryCommandSet = new Set(categoryCommands);
+
+            // Add the category to granted categories
+            this.state.grantedCategories.add(category);
+            this.state.blockedCategories.delete(category);
+
+            // Remove any existing category entries for this category
+            this.state.orderedTerms = this.state.orderedTerms.filter(term =>
+                !(term.type === 'category' && term.value === category)
+            );
+
+            // Remove any individual command entries (both granted and blocked) that belong to this category
+            const commandsToRemove = [];
+            this.state.orderedTerms = this.state.orderedTerms.filter(term => {
+                if (term.type === 'command' && categoryCommandSet.has(term.value)) {
+                    commandsToRemove.push(term.value);
+                    // Also remove from state sets
+                    this.state.grantedCommands.delete(term.value);
+                    this.state.blockedCommands.delete(term.value);
+                    return false; // Remove this term
+                }
+                return true; // Keep other terms
+            });
+
+            // Add the category grant at the end
+            this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
+
+            // Update the rule text and re-render
+            await this.updateRuleText();
+            this.scheduleRender();
+
+            // Show notification about the change
+            import('../core/utils.js').then(({ default: Utils }) => {
+                const commandCount = commandsToRemove.length;
+                if (commandCount > 0) {
+                    Utils.showNotification(
+                        `Granted @${category} category and removed ${commandCount} individual command${commandCount > 1 ? 's' : ''}`,
+                        'success'
+                    );
+                } else {
+                    Utils.showNotification(`Granted @${category} category`, 'success');
+                }
+            });
+
+        } catch (error) {
+            console.error('Error granting category and cleaning up:', error);
+            // Fallback to simple category grant
+            await this.grantCategory(category);
+        }
+    },
+
+    /**
+     * Remove all terms related to a category (both individual commands and category rules)
+     * This is used when clicking a partially granted category in the granted column
+     */
+    async removeAllCategoryRelatedTerms(category) {
+        try {
+            // Get all commands in this category
+            const categoryCommands = await this.getCategoryCommandsCached(category);
+            if (!categoryCommands || categoryCommands.length === 0) {
+                console.warn(`No commands found for category ${category}`);
+                return;
+            }
+
+            // Remove any explicit category grant/block for this category
+            this.state.grantedCategories.delete(category);
+            this.state.blockedCategories.delete(category);
+
+            // Remove individual command grants/blocks that belong to this category
+            const categoryCommandsSet = new Set(categoryCommands);
+            categoryCommandsSet.forEach(command => {
+                this.state.grantedCommands.delete(command);
+                this.state.blockedCommands.delete(command);
+            });
+
+            // Remove all terms from ordered list that relate to this category
+            this.state.orderedTerms = this.state.orderedTerms.filter(term => {
+                // Remove category rules for this category
+                if (term.type === 'category' && term.value === category) {
+                    return false;
+                }
+                // Remove individual command rules that belong to this category
+                if (term.type === 'command' && categoryCommandsSet.has(term.value)) {
+                    return false;
+                }
+                return true;
+            });
+
+            // Update the rule text and re-render
+            await this.updateRuleText();
+            this.scheduleRender();
+
+            // Show notification about the change
+            import('../core/utils.js').then(({ default: Utils }) => {
+                Utils.showNotification(`Removed all terms related to @${category} category`, 'success');
+            });
+        } catch (error) {
+            console.error(`Error removing terms for category ${category}:`, error);
+        }
+    },
+
+    /**
+     * Convert implicit partial category to explicit full category grant
+     * Removes individual command grants that belong to this category and adds the category grant
+     */
+    async convertImplicitToExplicitCategory(category) {
+        try {
+            // Get all commands in this category
+            const categoryCommands = await this.getCategoryCommandsCached(category);
+            if (!categoryCommands || categoryCommands.length === 0) {
+                console.warn(`No commands found for category ${category}`);
+                return;
+            }
+
+            // Get individual command grants from the parsed rule
+            const individuallyGrantedCommands = new Set();
+            if (this.lastApiResponse && this.lastApiResponse.parsed_rule && this.lastApiResponse.parsed_rule.command_rules) {
+                this.lastApiResponse.parsed_rule.command_rules.forEach(rule => {
+                    if (rule.target === 'command' && rule.type === 'allow') {
+                        individuallyGrantedCommands.add(rule.value);
+                    }
+                });
+            }
+
+            // Find which commands in this category are granted individually
+            const categoryCommandSet = new Set(categoryCommands);
+            const commandsToRemove = Array.from(categoryCommandSet).filter(cmd =>
+                individuallyGrantedCommands.has(cmd)
+            );
+
+            console.log(`Converting implicit partial @${category}: removing individual commands [${commandsToRemove.join(', ')}] and adding @${category}`);
+
+            // Remove individual command grants that belong to this category
+            this.state.orderedTerms = this.state.orderedTerms.filter(term =>
+                !(term.type === 'command' && term.operation === 'grant' && commandsToRemove.includes(term.value))
+            );
+
+            // Remove from granted commands state
+            commandsToRemove.forEach(cmd => {
+                this.state.grantedCommands.delete(cmd);
+            });
+
+            // Add the category grant
+            this.state.grantedCategories.add(category);
+            this.state.blockedCategories.delete(category);
+
+            // Add to ordered terms (preserve order by adding at the end)
+            this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
+
+            // Mark that we should auto-optimize after the next render
+            this.state.shouldAutoOptimize = true;
+
+            this.scheduleRender();
+        } catch (error) {
+            console.error(`Error converting implicit partial category ${category}:`, error);
+            // Fallback to normal grant behavior
+            await this.grantCategory(category);
+        }
     },
 
     /**
@@ -341,11 +693,14 @@ const InteractiveACLBuilder = {
      */
     async renderColumns() {
         // Note: Loading class is already in HTML to prevent initial flash
-        
+
         await this.renderCategoryButtons();
         await this.renderCommandButtons();
-        
-        // Note: Loading covers are removed after init completes in init() method
+
+        // Always remove loading covers after rendering is complete
+        setTimeout(() => {
+            this.removeLoadingAnimation();
+        }, 50);
     },
 
     /**
@@ -443,17 +798,48 @@ const InteractiveACLBuilder = {
             
             // Then refresh API response data for partial category detection
             const currentRule = this.elements.aclRuleInput.value.trim();
-            if (currentRule) {
-                try {
-                    const response = await API.parseRule(currentRule, AppState.currentVersion);
-                    if (response && response.success) {
-                        this.lastApiResponse = response;
+            try {
+                const response = await API.parseRule(currentRule, AppState.currentVersion);
+                if (response && response.success) {
+                    this.lastApiResponse = response;
+                }
+            } catch (error) {
+                console.error('Error refreshing API response:', error);
+            }
+
+            // Auto-optimize redundant exclusions if requested (after API response is fresh)
+            if (this.state.shouldAutoOptimize) {
+                this.state.shouldAutoOptimize = false;
+                const redundantExclusions = await this.detectRedundantExclusions();
+
+                if (redundantExclusions.length > 0) {
+
+                    // Remove redundant exclusions from state
+                    redundantExclusions.forEach(({ command }) => {
+                        this.state.blockedCommands.delete(command);
+
+                        // Remove from ordered terms
+                        this.state.orderedTerms = this.state.orderedTerms.filter(term =>
+                            !(term.type === 'command' && term.operation === 'block' && term.value === command)
+                        );
+                    });
+
+                    // Update rule text and refresh API response with optimized rule
+                    if (shouldUpdateRuleText) {
+                        await this.updateRuleText();
                     }
-                } catch (error) {
-                    console.error('Error refreshing API response:', error);
+                    const optimizedRule = this.elements.aclRuleInput.value.trim();
+                    try {
+                        const optimizedResponse = await API.parseRule(optimizedRule, AppState.currentVersion);
+                        if (optimizedResponse && optimizedResponse.success) {
+                            this.lastApiResponse = optimizedResponse;
+                        }
+                    } catch (error) {
+                        console.error('Error refreshing API response after optimization:', error);
+                    }
                 }
             }
-            
+
             // Now render with fresh API data
             await this.renderColumns();
 
@@ -485,30 +871,124 @@ const InteractiveACLBuilder = {
         // For now, let's simplify and not use the three-state analysis to fix the loading issue
         // We can re-enable it once we debug the problem
         const hasAllCategory = this.state.grantedCategories.has('all');
-        
+
         // Determine effective status of all categories based on ACL rule precedence
         const effectiveCategoryStatus = this.getEffectiveCategoryStatus();
-        
+
+        // Detect implicit partial categories ONCE to ensure consistency between granted and blocked columns
+        const implicitPartialCategories = new Set();
+        const implicitPartialBlockedCategories = new Set();
+
+        for (const category of this.state.allCategories) {
+            // Check if this category has partial grants (some commands granted individually)
+            if (!this.state.grantedCategories.has(category)) {
+                const categoryAnalysis = await this.detectPartialCategory(category);
+                if (categoryAnalysis[category] === 'partial') {
+                    implicitPartialCategories.add(category);
+                }
+            }
+
+            // Check if this category has partial blocks (some commands blocked individually)
+            if (!this.state.blockedCategories.has(category)) {
+                const blockedAnalysis = await this.detectPartiallyBlockedCategory(category);
+                if (blockedAnalysis[category] === 'partial') {
+                    implicitPartialBlockedCategories.add(category);
+                }
+            }
+
+            // IMPORTANT: If a category is partially granted, it's also partially blocked
+            // This creates the dual-button behavior where users can act from either column
+            if (implicitPartialCategories.has(category)) {
+                implicitPartialBlockedCategories.add(category);
+            }
+        }
+
+        // Check @all specifically since it might not be in allCategories
+        if (!this.state.allCategories.includes('all')) {
+            if (!this.state.grantedCategories.has('all')) {
+                const categoryAnalysis = await this.detectPartialCategory('all');
+                if (categoryAnalysis['all'] === 'partial') {
+                    implicitPartialCategories.add('all');
+                }
+            }
+
+            if (!this.state.blockedCategories.has('all')) {
+                const blockedAnalysis = await this.detectPartiallyBlockedCategory('all');
+                if (blockedAnalysis['all'] === 'partial') {
+                    implicitPartialBlockedCategories.add('all');
+                }
+            }
+
+            // Add @all to both if it's partial granted (means it's also partial blocked)
+            // @all always gets dual-button behavior when partial
+            if (implicitPartialCategories.has('all')) {
+                implicitPartialBlockedCategories.add('all');
+            }
+        }
+
         // Render granted categories
         if (this.elements.grantedCategoriesButtons) {
             // Clear any existing content (including initial placeholders from HTML)
             this.elements.grantedCategoriesButtons.innerHTML = '';
             
             const effectivelyGrantedCategories = [];
-            
-            if (hasAllCategory) {
-                // When @all is granted, show the @all category itself first
+
+            // Check if @all is explicitly granted
+            const hasAllExplicitlyGranted = this.state.grantedCategories.has('all');
+
+            if (hasAllExplicitlyGranted) {
+                // When @all is explicitly granted, show @all as explicitly granted first
                 effectivelyGrantedCategories.push('all');
-                
-                // Then show all other categories that are effectively granted
+
+                // Then show all other categories as implicitly granted (not explicitly granted)
                 this.state.allCategories.forEach(category => {
-                    if (effectiveCategoryStatus[category] === 'granted') {
+                    if (category !== 'all' && effectiveCategoryStatus[category] === 'granted') {
                         effectivelyGrantedCategories.push(category);
                     }
                 });
             } else {
-                // Normal case - only show explicitly granted categories
-                effectivelyGrantedCategories.push(...Array.from(this.state.grantedCategories));
+                // Normal case - show explicitly granted categories first, then implicit partial categories
+                const explicitlyGrantedCategories = Array.from(this.state.grantedCategories);
+
+                // Use pre-calculated implicit partial categories (already computed above)
+                const implicitPartialCategoriesArray = Array.from(implicitPartialCategories);
+
+                // Special @all handling: if there are any inclusions but @all is not explicitly granted,
+                // show @all as implicitly partially granted
+                const hasAnyInclusions = this.state.grantedCategories.size > 0 || this.state.grantedCommands.size > 0;
+                const hasAllCategory = explicitlyGrantedCategories.includes('all');
+                const shouldShowAllAsPartial = hasAnyInclusions && !hasAllCategory && !this.state.blockedCategories.has('all');
+
+                let sortedExplicitCategories;
+
+                if (hasAllCategory) {
+                    // Remove @all, sort the rest, then put @all first
+                    const explicitWithoutAll = explicitlyGrantedCategories.filter(cat => cat !== 'all').sort();
+                    sortedExplicitCategories = ['all', ...explicitWithoutAll];
+                } else {
+                    sortedExplicitCategories = explicitlyGrantedCategories.sort();
+                }
+
+                // Add @all as implicit partial if needed
+                if (shouldShowAllAsPartial && !implicitPartialCategoriesArray.includes('all')) {
+                    implicitPartialCategoriesArray.unshift('all'); // Add @all at the beginning of implicit partials
+                }
+
+                // Combine: explicit categories first (with @all at front), then implicit partial categories (sorted, but @all first)
+                const sortedImplicitPartials = implicitPartialCategoriesArray.includes('all')
+                    ? ['all', ...implicitPartialCategoriesArray.filter(cat => cat !== 'all').sort()]
+                    : implicitPartialCategoriesArray.sort();
+
+                // Ensure @all is always first in the final list, regardless of whether it's explicit or implicit
+                const combinedCategories = [...sortedExplicitCategories, ...sortedImplicitPartials];
+                const hasAllInCombined = combinedCategories.includes('all');
+                if (hasAllInCombined) {
+                    // Remove @all from wherever it is and put it first
+                    const withoutAll = combinedCategories.filter(cat => cat !== 'all');
+                    effectivelyGrantedCategories.push('all', ...withoutAll);
+                } else {
+                    effectivelyGrantedCategories.push(...combinedCategories);
+                }
             }
             
             if (effectivelyGrantedCategories.length === 0) {
@@ -518,28 +998,18 @@ const InteractiveACLBuilder = {
                 message.textContent = 'No categories granted';
                 this.elements.grantedCategoriesButtons.appendChild(message);
             } else {
-                // Sort categories, but keep @all at the front if present
-                const hasAllInGrantedList = effectivelyGrantedCategories.includes('all');
-                let sortedCategories;
-                
-                if (hasAllInGrantedList) {
-                    // Remove @all from the list, sort the rest, then add @all back at the front
-                    const withoutAll = effectivelyGrantedCategories.filter(cat => cat !== 'all').sort();
-                    sortedCategories = ['all', ...withoutAll];
-                } else {
-                    // Normal sorting when @all is not in the list
-                    sortedCategories = effectivelyGrantedCategories.sort();
-                }
-                
+                // Categories are already properly ordered above (explicit first, then implicit)
+                // No additional sorting needed here to preserve the explicit/implicit ordering
+
                 // First, we need to detect which granted categories are partial (have blocked subcommands)
-                const categoryAnalysisPromises = sortedCategories.map(async (category) => {
+                const categoryAnalysisPromises = effectivelyGrantedCategories.map(async (category) => {
                     const categoryAnalysis = await this.detectPartialCategory(category);
                     return { category, categoryAnalysis };
                 });
-                
+
                 // Wait for all analyses to complete
                 const analyses = await Promise.all(categoryAnalysisPromises);
-                
+
                 analyses.forEach(({ category, categoryAnalysis }) => {
                     const button = this.createCategoryButton(category, 'granted', categoryAnalysis);
                     
@@ -582,7 +1052,15 @@ const InteractiveACLBuilder = {
                 });
             } else {
                 // FIXED: Normal case - use effective category status for all categories (not just when @all is granted)
+                // BUT exclude implicit partial categories that are shown in granted column
+
+                // Use pre-calculated implicit partial categories (computed at the beginning of this method)
                 this.state.allCategories.forEach(category => {
+                    // Skip categories that are explicitly granted (but allow partial categories in both columns)
+                    if (this.state.grantedCategories.has(category)) {
+                        return;
+                    }
+
                     if (effectiveCategoryStatus[category] === 'blocked') {
                         effectivelyBlockedCategories.push(category);
                     } else if (effectiveCategoryStatus[category] === 'available') {
@@ -591,8 +1069,14 @@ const InteractiveACLBuilder = {
                     // Categories with 'granted' status are handled in the granted section above
                 });
 
-                // Always show @all category as available when it's not granted and not blocked
-                if (!this.state.grantedCategories.has('all') && !this.state.blockedCategories.has('all')) {
+                // Special handling for @all category
+                // Only show @all as available (blocked) when the rule is truly empty (no inclusions at all)
+                const hasAnyInclusions = this.state.grantedCategories.size > 0 || this.state.grantedCommands.size > 0;
+
+                if (!this.state.grantedCategories.has('all') &&
+                    !this.state.blockedCategories.has('all') &&
+                    !hasAnyInclusions &&
+                    !implicitPartialCategories.has('all')) {
                     // Only add if not already added by effectiveCategoryStatus logic
                     if (!availableCategories.includes('all') && !effectivelyBlockedCategories.includes('all')) {
                         availableCategories.unshift('all'); // Add @all at the beginning
@@ -600,11 +1084,11 @@ const InteractiveACLBuilder = {
                 }
             }
 
-            // Show blocked categories: EXPLICITLY blocked first, then implicitly blocked
-            if (effectivelyBlockedCategories.length > 0) {
-                // Collect all blocked categories with their types for smart sorting
-                const blockedCategories = [];
+            // Show blocked categories: EXPLICITLY blocked first, then partially blocked, then implicitly blocked
+            // Collect all blocked categories with their types for smart sorting
+            const blockedCategories = [];
 
+            if (effectivelyBlockedCategories.length > 0) {
                 effectivelyBlockedCategories.forEach(category => {
                     const isExplicitlyBlocked = this.state.blockedCategories.has(category);
 
@@ -613,9 +1097,20 @@ const InteractiveACLBuilder = {
                         blockedCategories.push({ category, type: 'explicit', priority: 1 });
                     } else {
                         // Implicitly blocked category (available but not granted)
-                        blockedCategories.push({ category, type: 'implicit', priority: 2 });
+                        blockedCategories.push({ category, type: 'implicit', priority: 3 });
                     }
                 });
+            }
+
+            // Add partially blocked categories (with individual command blocks)
+            Array.from(implicitPartialBlockedCategories).forEach(category => {
+                // Only add if not already in the list
+                if (!blockedCategories.find(item => item.category === category)) {
+                    blockedCategories.push({ category, type: 'partial', priority: 2 });
+                }
+            });
+
+            if (blockedCategories.length > 0) {
 
                 // Sort by priority first (explicit first), then by rule order for explicit blocks, then alphabetically
                 blockedCategories.sort((a, b) => {
@@ -804,16 +1299,23 @@ const InteractiveACLBuilder = {
         if (this.elements.grantedCommandsButtons) {
             // Clear any existing content (including initial placeholders from HTML)
             this.elements.grantedCommandsButtons.innerHTML = '';
-            
+
             // Create collapsible wrapper
             const wrapper = document.createElement('div');
-            
-            // Get all commands granted via categories and individual grants
-            const grantedViaCategories = await this.getCommandsGrantedByCategories();
-            // Filter out explicitly blocked commands from the granted list
-            const effectiveGrantedViaCategories = grantedViaCategories.filter(cmd => !this.state.blockedCommands.has(cmd));
-            const allGrantedCommands = new Set([...this.state.grantedCommands, ...effectiveGrantedViaCategories]);
-            
+
+            // Use the API response for accurate granted commands (respects ACL precedence)
+            const allGrantedCommands = new Set();
+            if (this.lastApiResponse && this.lastApiResponse.granted_commands) {
+                // Use API response - this correctly handles ACL rule precedence
+                this.lastApiResponse.granted_commands.forEach(cmd => allGrantedCommands.add(cmd));
+            } else {
+                // Fallback to old logic if no API response available
+                const grantedViaCategories = await this.getCommandsGrantedByCategories();
+                const effectiveGrantedViaCategories = grantedViaCategories.filter(cmd => !this.state.blockedCommands.has(cmd));
+                this.state.grantedCommands.forEach(cmd => allGrantedCommands.add(cmd));
+                effectiveGrantedViaCategories.forEach(cmd => allGrantedCommands.add(cmd));
+            }
+
             if (allGrantedCommands.size === 0) {
                 const message = document.createElement('div');
                 message.className = 'text-muted';
@@ -826,24 +1328,26 @@ const InteractiveACLBuilder = {
                 const implicitlyGrantedCommands = [];
 
                 Array.from(allGrantedCommands).forEach(command => {
-                    const isIndividual = this.state.grantedCommands.has(command);
-                    if (isIndividual) {
+                    // Check if this command was explicitly granted as an individual command
+                    const isIndividuallyGranted = this.state.grantedCommands.has(command);
+                    if (isIndividuallyGranted) {
                         explicitlyGrantedCommands.push(command);
                     } else {
+                        // Command is granted via category rules
                         implicitlyGrantedCommands.push(command);
                     }
                 });
 
                 // Show explicitly granted commands first (sorted), then implicitly granted (sorted)
                 explicitlyGrantedCommands.sort().forEach(command => {
-                    const isViaCategory = effectiveGrantedViaCategories.includes(command);
+                    const isViaCategory = false; // Individual commands are not via category
                     const isIndividual = true; // Always true for this group
                     const button = this.createGrantedCommandButton(command, isViaCategory, isIndividual);
                     wrapper.appendChild(button);
                 });
 
                 implicitlyGrantedCommands.sort().forEach(command => {
-                    const isViaCategory = effectiveGrantedViaCategories.includes(command);
+                    const isViaCategory = true; // Commands granted via category rules
                     const isIndividual = false; // Always false for this group
                     const button = this.createGrantedCommandButton(command, isViaCategory, isIndividual);
                     wrapper.appendChild(button);
@@ -898,8 +1402,12 @@ const InteractiveACLBuilder = {
             const commandsToShow = [];
 
             // 1. EXPLICITLY BLOCKED commands (highlighted) - commands with -command in rule
+            // BUT only if they are not effectively granted by later rules
             Array.from(this.state.blockedCommands).forEach(command => {
-                commandsToShow.push({ command, type: 'explicit', priority: 1, visual: 'highlighted' });
+                // Skip if this command is effectively granted (API says it's granted)
+                if (!allGrantedCommands.has(command)) {
+                    commandsToShow.push({ command, type: 'explicit', priority: 1, visual: 'highlighted' });
+                }
             });
 
             // 2. BLOCKED BY CATEGORIES (highlighted) - commands blocked by -@category rules
@@ -950,9 +1458,11 @@ const InteractiveACLBuilder = {
             
             wrapper.className = 'command-buttons';
             this.elements.blockedCommandsButtons.appendChild(wrapper);
-            
+
             // Calculate total blocked command count for header
-            this.updateCommandSectionHeader('blocked', commandsToShow.length);
+            // For empty ACL, show total available commands since they're all effectively blocked
+            const blockedCount = isEmptyACL ? this.state.allCommands.length : commandsToShow.length;
+            this.updateCommandSectionHeader('blocked', blockedCount);
         }
     },
 
@@ -1032,45 +1542,194 @@ const InteractiveACLBuilder = {
     },
     
     /**
-     * Detect if a granted category is partial (has blocked subcommands)
+     * Detect if a category is partially blocked (has some commands blocked individually)
      * Returns analysis object for use with createCategoryButton
      */
-    async detectPartialCategory(category) {
+    async detectPartiallyBlockedCategory(category) {
         try {
+            // Special handling for @all category
+            if (category === 'all') {
+                // @all is considered "partially blocked" when there are any exclusions but @all is not explicitly blocked
+                const hasAnyExclusions = this.state.blockedCategories.size > 0 || this.state.blockedCommands.size > 0;
+                const isExplicitlyBlocked = this.state.blockedCategories.has('all');
+
+                if (hasAnyExclusions && !isExplicitlyBlocked) {
+                    return { [category]: 'partial' };
+                } else {
+                    return { [category]: 'blocked' };
+                }
+            }
+
             // Get all commands in this category
             const categoryCommands = await this.getCategoryCommandsCached(category);
             if (!categoryCommands || categoryCommands.length === 0) {
                 return { [category]: 'blocked' };
             }
-            
+
+            // Get all commands that are currently blocked by the ACL rule (from API response)
+            const allBlockedCommands = new Set();
+            if (this.lastApiResponse && this.lastApiResponse.blocked_commands) {
+                this.lastApiResponse.blocked_commands.forEach(cmd => allBlockedCommands.add(cmd));
+            } else {
+                // If no API response, assume everything is blocked (default state)
+                return { [category]: 'blocked' };
+            }
+
+            // Get individual command blocks from the parsed rule
+            const individuallyBlockedCommands = new Set();
+            if (this.lastApiResponse && this.lastApiResponse.parsed_rule && this.lastApiResponse.parsed_rule.command_rules) {
+                this.lastApiResponse.parsed_rule.command_rules.forEach(rule => {
+                    if (rule.target === 'command' && rule.type === 'deny') {
+                        individuallyBlockedCommands.add(rule.value);
+                    }
+                });
+            }
+
+            // Check how many commands in this category are blocked through individual commands
+            const categoryCommandSet = new Set(categoryCommands);
+            const individuallyBlockedInCategory = Array.from(categoryCommandSet).filter(cmd =>
+                individuallyBlockedCommands.has(cmd)
+            ).length;
+
+            if (individuallyBlockedInCategory > 0) {
+                // Some commands blocked individually - this is a partially blocked category
+                return { [category]: 'partial' };
+            } else {
+                return { [category]: 'blocked' };
+            }
+        } catch (error) {
+            console.error(`Error detecting partially blocked category ${category}:`, error);
+            return { [category]: 'blocked' };
+        }
+    },
+
+    /**
+     * Detect if a granted category is partial (has blocked subcommands)
+     * For implicit partial categories, only show when commands are granted through individual command grants,
+     * not through other category grants.
+     * Returns analysis object for use with createCategoryButton
+     */
+    async detectPartialCategory(category) {
+        try {
+            // Special handling for @all category
+            if (category === 'all') {
+                // @all is considered "partially granted" when there are any inclusions but @all is not explicitly granted
+                const hasAnyInclusions = this.state.grantedCategories.size > 0 || this.state.grantedCommands.size > 0;
+                const isExplicitlyGranted = this.state.grantedCategories.has('all');
+                if (hasAnyInclusions && !isExplicitlyGranted) {
+                    return { [category]: 'partial' };
+                } else if (isExplicitlyGranted) {
+                    // @all is explicitly granted - check if it's partial due to exclusions
+                    const hasExclusions = this.state.blockedCategories.size > 0 || this.state.blockedCommands.size > 0;
+                    return { [category]: hasExclusions ? 'partial' : 'fully-granted' };
+                } else {
+                    return { [category]: 'blocked' };
+                }
+            }
+
+            // Get all commands in this category
+            const categoryCommands = await this.getCategoryCommandsCached(category);
+            if (!categoryCommands || categoryCommands.length === 0) {
+                return { [category]: 'blocked' };
+            }
+
             // Get all commands that are currently granted by the ACL rule (from API response)
             const allGrantedCommands = new Set();
             if (this.lastApiResponse && this.lastApiResponse.granted_commands) {
                 this.lastApiResponse.granted_commands.forEach(cmd => allGrantedCommands.add(cmd));
             } else {
+                return { [category]: 'blocked' };
             }
-            
-            // Check how many commands in this category are granted
-            const categoryCommandSet = new Set(categoryCommands);
-            const grantedInCategory = Array.from(categoryCommandSet).filter(cmd => 
-                allGrantedCommands.has(cmd)
-            ).length;
-            
-            const totalInCategory = categoryCommandSet.size;
-            
-            // Determine the category state
-            let state;
-            if (grantedInCategory === 0) {
-                state = 'blocked';
-            } else if (grantedInCategory === totalInCategory) {
-                state = 'fully-granted';
+
+            // For implicit partial detection, we need to check if commands are granted through individual commands
+            // vs through category grants
+            const isExplicitlyGranted = this.state.grantedCategories.has(category);
+
+            if (!isExplicitlyGranted) {
+                // For implicit categories, only show as partial based on individual command grants/blocks
+                // Exception: @all category can be partial based on other category grants/blocks
+
+                const categoryCommandSet = new Set(categoryCommands);
+
+                if (category === 'all') {
+                    // Special handling for @all - can be partial due to any exclusions
+                    const grantedInCategory = Array.from(categoryCommandSet).filter(cmd =>
+                        allGrantedCommands.has(cmd)
+                    ).length;
+
+                    if (grantedInCategory === 0) {
+                        return { [category]: 'blocked' };
+                    } else if (grantedInCategory === categoryCommands.length) {
+                        return { [category]: 'fully-granted' };
+                    } else {
+                        return { [category]: 'partial' };
+                    }
+                } else {
+                    // For other categories, only show as partial if there are individual command grants
+                    const individuallyGrantedCommands = new Set();
+                    const individuallyBlockedCommands = new Set();
+
+                    // Get individual command grants and blocks from the parsed rule
+                    if (this.lastApiResponse && this.lastApiResponse.parsed_rule && this.lastApiResponse.parsed_rule.command_rules) {
+                        this.lastApiResponse.parsed_rule.command_rules.forEach(rule => {
+                            if (rule.target === 'command' && rule.type === 'allow') {
+                                individuallyGrantedCommands.add(rule.value);
+                            } else if (rule.target === 'command' && rule.type === 'deny') {
+                                individuallyBlockedCommands.add(rule.value);
+                            }
+                        });
+                    }
+
+                    // Check how many commands in this category have individual grants/blocks
+                    const individuallyGrantedInCategory = Array.from(categoryCommandSet).filter(cmd =>
+                        individuallyGrantedCommands.has(cmd)
+                    ).length;
+
+                    const individuallyBlockedInCategory = Array.from(categoryCommandSet).filter(cmd =>
+                        individuallyBlockedCommands.has(cmd)
+                    ).length;
+
+                    const hasIndividualTerms = individuallyGrantedInCategory > 0 || individuallyBlockedInCategory > 0;
+
+                    if (!hasIndividualTerms) {
+                        // No individual command terms for this category
+                        return { [category]: 'blocked' };
+                    }
+
+                    // Has individual terms - check if partial
+                    const totalGranted = Array.from(categoryCommandSet).filter(cmd =>
+                        allGrantedCommands.has(cmd)
+                    ).length;
+
+                    if (totalGranted === 0) {
+                        return { [category]: 'blocked' };
+                    } else if (totalGranted === categoryCommands.length) {
+                        return { [category]: 'fully-granted' };
+                    } else {
+                        return { [category]: 'partial' };
+                    }
+                }
             } else {
-                state = 'partial';
+                // For explicitly granted categories, use the original logic
+                const categoryCommandSet = new Set(categoryCommands);
+                const grantedInCategory = Array.from(categoryCommandSet).filter(cmd =>
+                    allGrantedCommands.has(cmd)
+                ).length;
+
+                const totalInCategory = categoryCommandSet.size;
+
+                // Determine the category state
+                let state;
+                if (grantedInCategory === 0) {
+                    state = 'blocked';
+                } else if (grantedInCategory === totalInCategory) {
+                    state = 'fully-granted';
+                } else {
+                    state = 'partial';
+                }
+
+                return { [category]: state };
             }
-            
-            // Debug logging for partial category detection
-            
-            return { [category]: state };
         } catch (error) {
             console.error(`Error detecting partial category ${category}:`, error);
             return { [category]: 'fully-granted' }; // Default to fully-granted on error
@@ -1406,36 +2065,75 @@ const InteractiveACLBuilder = {
         
         if (state === 'granted') {
             const analysisState = categoryAnalysis?.[category];
-            
+            const isExplicitlyGranted = this.state.grantedCategories.has(category);
+
             if (analysisState === 'partial') {
-                buttonClass = `category-button granted partial`;
-                tooltipText = `@${category} category (partially granted) - Some commands in this category are excluded - Click to revoke`;
-                clickHandler = () => this.toggleCategory(category);
+                if (isExplicitlyGranted) {
+                    // Explicit partial category inclusion (user explicitly granted category but some commands are excluded)
+                    buttonClass = `category-button granted partial explicit`;
+                    tooltipText = `@${category} category (explicitly partial) - Some commands in this category are excluded - Click to revoke`;
+                    clickHandler = () => this.toggleCategory(category);
+                } else {
+                    // Implicit partial category inclusion (some commands granted individually)
+                    buttonClass = `category-button granted partial implicit`;
+
+                    if (category === 'all') {
+                        // Special handling for @all - clicking should clear the entire rule to revoke all commands
+                        tooltipText = `@${category} category (implicitly partial) - Some commands currently granted - Click to revoke ALL commands`;
+                        clickHandler = () => this.clearAllCategory();
+                    } else {
+                        tooltipText = `@${category} category (implicitly partial) - Some commands granted individually - Click to remove all related terms`;
+                        clickHandler = () => this.removeAllCategoryRelatedTerms(category);
+                    }
+                }
             } else if (analysisState === 'fully-granted' && !this.state.grantedCategories.has(category)) {
                 // Implicitly granted (all commands granted individually)
                 buttonClass = `category-button granted implicit`;
                 tooltipText = `@${category} category (implicitly granted) - All commands granted individually - Click to add category rule`;
                 clickHandler = () => this.grantCategory(category);
             } else {
-                // Explicitly granted
-                buttonClass = `category-button granted explicit`;
-                tooltipText = `@${category} category (explicitly granted) - Click to revoke`;
-                clickHandler = () => this.toggleCategory(category);
+                // Check if this category is granted via @all (implicitly) or explicitly granted
+                const isGrantedViaAll = this.state.grantedCategories.has('all') && !this.state.grantedCategories.has(category);
+
+                if (isGrantedViaAll) {
+                    // Implicitly granted via @all
+                    buttonClass = `category-button granted implicit`;
+                    tooltipText = `@${category} category (granted via @all) - Click to block`;
+                    clickHandler = () => this.blockCategory(category);
+                } else {
+                    // Explicitly granted
+                    buttonClass = `category-button granted explicit`;
+                    tooltipText = `@${category} category (explicitly granted) - Click to revoke`;
+                    clickHandler = () => this.toggleCategory(category);
+                }
             }
         } else if (state === 'available') {
             buttonClass = `category-button blocked implicit`; // Available = implicitly blocked (not granted)
             tooltipText = `Click to grant @${category} category`;
             clickHandler = () => this.grantCategory(category);
         } else if (state === 'blocked') {
-            // Determine if explicitly or implicitly blocked
+            // Determine if explicitly, partially, or implicitly blocked
             if (blockType === 'explicit' || this.state.blockedCategories.has(category)) {
                 buttonClass = `category-button blocked explicit`;
                 tooltipText = `@${category} category (explicitly blocked) - Click to toggle`;
+                clickHandler = () => this.toggleCategory(category);
+            } else if (blockType === 'partial') {
+                // Partially blocked category (some commands blocked individually)
+                buttonClass = `category-button blocked partial implicit`;
+
+                if (category === 'all') {
+                    // Special handling for @all - clicking should grant all commands
+                    tooltipText = `@${category} category (partially blocked) - Some commands currently blocked - Click to grant ALL commands`;
+                    clickHandler = () => this.grantAllCategory();
+                } else {
+                    tooltipText = `@${category} category (partially blocked) - Some commands blocked individually - Click to grant full category`;
+                    clickHandler = () => this.grantCategoryAndCleanup(category);
+                }
             } else {
                 buttonClass = `category-button blocked implicit`;
                 tooltipText = `@${category} category (implicitly blocked) - Click to grant`;
+                clickHandler = () => this.toggleCategory(category);
             }
-            clickHandler = () => this.toggleCategory(category);
         } else {
             buttonClass = `category-button ${state}`;
             tooltipText = `Click to ${state === 'granted' ? 'revoke' : 'grant'} @${category} category`;
@@ -1725,7 +2423,7 @@ const InteractiveACLBuilder = {
      * Sync manual rule text changes to the interactive display
      * @param {boolean} isRestoration - True if this is called during localStorage restoration
      */
-    async syncFromRuleText(isRestoration = false, preserveUserInput = false) {
+    async syncFromRuleText(isRestoration = false) {
         if (!this.elements.aclRuleInput || !this.state.isInitialized) {
             return;
         }
@@ -1735,10 +2433,20 @@ const InteractiveACLBuilder = {
         
         // Update the textarea with normalized rule if it changed
         if (ruleText !== rawRuleText) {
+            // Preserve cursor position before updating textarea value
+            const cursorStart = this.elements.aclRuleInput.selectionStart;
+            const cursorEnd = this.elements.aclRuleInput.selectionEnd;
+
             // Mark as programmatic update to prevent panel expansion
             this.elements.aclRuleInput.dataset.programmaticUpdate = 'true';
             this.elements.aclRuleInput.value = ruleText;
-            
+
+            // Restore cursor position after value update
+            // Adjust cursor position if the text was shortened by normalization
+            const newCursorStart = Math.min(cursorStart, ruleText.length);
+            const newCursorEnd = Math.min(cursorEnd, ruleText.length);
+            this.elements.aclRuleInput.setSelectionRange(newCursorStart, newCursorEnd);
+
             // Update character counter and button states
             import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
                 EventHandlers.updateCharacterCounterProgrammatically(this.elements.aclRuleInput);
@@ -1777,16 +2485,18 @@ const InteractiveACLBuilder = {
             this.state.orderedTerms = []; // Reset ordered terms
 
             // Parse the rule using actual ACL logic to get real granted/blocked commands
-            if (ruleText) {
-                try {
-                    // Use the same API call that RuleManager uses for accurate parsing
-                    const data = await API.parseRule(ruleText, AppState.currentVersion);
-                    
-                    if (data && data.success) {
-                        // Store the API response for partial category detection
-                        this.lastApiResponse = data;
-                        
-                        // Parse rule tokens to determine what was explicitly granted
+            // Always make API call, even for empty rules, to get accurate granted commands
+            try {
+                // Use the same API call that RuleManager uses for accurate parsing
+                const data = await API.parseRule(ruleText, AppState.currentVersion);
+
+                if (data && data.success) {
+                    // Store the API response for partial category detection
+                    this.lastApiResponse = data;
+
+                    // Parse rule tokens to determine what was explicitly granted
+                    // Handle empty rules gracefully
+                    if (ruleText) {
                         const tokens = ruleText.split(/\s+/).filter(token => token.length > 0);
                         const grantedCategories = new Set();
                         const blockedCategories = new Set();
@@ -1845,18 +2555,25 @@ const InteractiveACLBuilder = {
                         // Preserve the ordered terms from the original rule
                         this.state.orderedTerms = orderedTerms;
                     } else {
-                        // Fallback to simple text parsing if API fails
-                        this.fallbackTextParsing(ruleText);
+                        // Empty rule - clear all state
+                        this.state.grantedCategories.clear();
+                        this.state.grantedCommands.clear();
+                        this.state.blockedCategories.clear();
+                        this.state.blockedCommands.clear();
+                        this.state.orderedTerms = [];
                     }
-                } catch (error) {
-                    console.error('Error parsing rule with API, falling back to text parsing:', error);
+                } else {
+                    // Fallback to simple text parsing if API fails
                     this.fallbackTextParsing(ruleText);
                 }
+            } catch (error) {
+                console.error('Error parsing rule with API, falling back to text parsing:', error);
+                this.fallbackTextParsing(ruleText);
             }
 
             // Re-render the interactive display with loading animation to prevent visual artifacts
             // Skip rule text regeneration during Submit Changes to preserve user input for redundancy analysis
-            await this.smoothRender(!isRestoration);
+            await this.smoothRender(isRestoration);
             
             // Update tracking state differently for restoration vs manual sync
             if (isRestoration) {
@@ -1886,11 +2603,21 @@ const InteractiveACLBuilder = {
                 if (layout && layout.classList.contains('submit-button-visible')) {
                     layout.classList.remove('submit-button-visible');
                 }
+
+                // Update action button states after successful sync
+                import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
+                    EventHandlers.updateActionButtonStates(ruleText);
+                });
             }
 
             // Always analyze for redundancy to show optimization suggestions (including during restoration)
             try {
                 RuleManager.analyzeRedundancy();
+
+                // Wait a bit for redundancy analysis to complete, then add optimization suggestions
+                setTimeout(async () => {
+                    await this.displayOptimizationSuggestions();
+                }, 100);
             } catch (error) {
                 console.error('Error during post-sync redundancy analysis:', error);
             }

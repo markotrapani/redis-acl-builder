@@ -5,46 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redis Enterprise ACL Builder</title>
     
-    <!-- Prevent theme flash by setting theme before CSS loads -->
+    <!-- Prevent theme flash and version toggle jump by setting initial states before CSS loads -->
     <script>
         (function() {
             try {
                 // More robust theme detection with fallbacks
                 let savedTheme = null;
                 let systemDark = false;
-                
+                let savedVersion = null;
+
                 try {
                     savedTheme = localStorage.getItem('theme');
+                    savedVersion = localStorage.getItem('redis-acl-builder-version');
                 } catch (e) {
                     // localStorage might be blocked in some environments
                     console.warn('localStorage access failed:', e);
                 }
-                
+
                 try {
                     systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                 } catch (e) {
                     // matchMedia might not be available
                     console.warn('matchMedia access failed:', e);
                 }
-                
+
                 // Default to light mode with explicit fallback for Docker/production
                 const theme = savedTheme || (systemDark ? 'dark' : 'light');
-                
+
                 // Set theme immediately to prevent flash
                 document.documentElement.setAttribute('data-theme', theme);
-                
+
+                // Store initial version state to set toggle correctly when DOM loads
+                // Default to Redis 7 if no saved version
+                const initialVersion = savedVersion || 'redis7';
+                window._initialRedisVersion = initialVersion;
+
                 // Debug logging for Docker troubleshooting
-                console.log('Theme initialization:', {
+                console.log('Initial state setup:', {
                     savedTheme: savedTheme,
                     systemDark: systemDark,
                     appliedTheme: theme,
+                    savedVersion: savedVersion,
+                    initialVersion: initialVersion,
                     userAgent: navigator.userAgent.substring(0, 100)
                 });
-                
+
             } catch (e) {
-                // Ultimate fallback - force light mode
-                console.error('Theme initialization failed, forcing light mode:', e);
+                // Ultimate fallback - force defaults
+                console.error('Initial state setup failed, using defaults:', e);
                 document.documentElement.setAttribute('data-theme', 'light');
+                window._initialRedisVersion = 'redis7';
             }
         })();
     </script>
@@ -95,6 +105,41 @@
                                 </span>
                             </label>
                         </div>
+                        <!-- Set initial toggle state to prevent visual jump -->
+                        <script>
+                            (function() {
+                                try {
+                                    const toggle = document.getElementById('versionToggle');
+                                    const versionDetail = document.getElementById('versionDetail');
+
+                                    // Read directly from localStorage to avoid race conditions
+                                    let initialVersion = 'redis7'; // Default
+                                    try {
+                                        const savedVersion = localStorage.getItem('redis-acl-builder-version');
+                                        if (savedVersion) {
+                                            initialVersion = savedVersion;
+                                        }
+                                    } catch (e) {
+                                        // Fallback to global variable if localStorage fails
+                                        initialVersion = window._initialRedisVersion || 'redis7';
+                                    }
+
+                                    if (toggle && initialVersion === 'redis8') {
+                                        toggle.checked = true;
+                                    }
+
+                                    // Also update the version detail text immediately
+                                    if (versionDetail) {
+                                        const categoryCount = initialVersion === 'redis8' ? '29' : '21';
+                                        const commandCount = initialVersion === 'redis8' ? '446' : '311';
+                                        const versionNumber = initialVersion.slice(-1);
+                                        versionDetail.textContent = `Redis ${versionNumber} (${categoryCount} categories, ${commandCount} commands)`;
+                                    }
+                                } catch (e) {
+                                    console.warn('Failed to set initial toggle state:', e);
+                                }
+                            })();
+                        </script>
                     </div>
                     <div class="version-info">
                         <span class="version-detail" id="versionDetail">Redis 7 (21 categories, 311 commands)</span>

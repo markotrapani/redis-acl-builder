@@ -409,9 +409,25 @@ header {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* Dark mode header */
+/* Light mode header (explicit) */
+[data-theme="light"] header {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Dark mode header (explicit) */
+[data-theme="dark"] header {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* System preference fallback */
+@media (prefers-color-scheme: light) {
+  html:not([data-theme]) header {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+}
+
 @media (prefers-color-scheme: dark) {
-  header {
+  html:not([data-theme]) header {
     box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   }
 }

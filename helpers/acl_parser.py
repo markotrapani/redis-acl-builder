@@ -433,7 +433,7 @@ class ACLParser:
                 # Check if these commands are already denied
                 not_granted = rule_commands - cumulative_granted
                 already_denied = rule_commands.intersection(cumulative_denied)
-                
+
                 if not_granted == rule_commands:
                     # All commands weren't granted anyway - completely redundant
                     warnings.append(f"Redundant exclusion: '{original_token}'\nCommands were not granted by earlier rules")
