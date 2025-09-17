@@ -1465,8 +1465,6 @@ const InteractiveACLBuilder = {
                         const isPartiallyBlocked = this.state.blockedCategories.has(category);
 
                         if (category === 'fast') {
-                            console.log(`🔍 @fast in granted panel override logic: isPartiallyBlocked=${isPartiallyBlocked}`);
-                            console.log(`🔍 Current @fast handler before override:`, button.onclick?.toString().substring(0, 100));
                         }
 
                         if (!isPartiallyBlocked) {
@@ -2622,10 +2620,6 @@ const InteractiveACLBuilder = {
     async createCategoryButton(category, state, categoryAnalysis = null, blockType = null) {
         const button = document.createElement('button');
 
-        // DEBUG: Log @fast button creation
-        if (category === 'fast') {
-            console.log(`🔍 Creating @fast button: state=${state}, analysisState=${categoryAnalysis?.fast}, blockType=${blockType}`);
-        }
 
         // Determine visual state and styling
         let buttonClass, tooltipText, clickHandler;
@@ -2674,9 +2668,6 @@ const InteractiveACLBuilder = {
                     const hasConflictingCommands = await this.hasConflictingIndividualCommands(category);
 
                     if (category === 'fast') {
-                        console.log(`🔍 @fast analysis: hasConflictingCommands=${hasConflictingCommands}`);
-                        console.log(`🔍 grantedCommands:`, Array.from(this.state.grantedCommands));
-                        console.log(`🔍 blockedCommands:`, Array.from(this.state.blockedCommands));
                     }
 
                     if (hasConflictingCommands) {
