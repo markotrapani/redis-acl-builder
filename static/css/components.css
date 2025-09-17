@@ -1717,12 +1717,12 @@ button.test-button[disabled] {
   background: var(--gray-700);
 }
 
-/* Search result count (for future enhancement) */
+/* Search result count - matches "No categories granted" styling */
 .search-results-count {
-  font-size: 0.75rem;
   color: var(--text-muted);
-  margin-top: var(--spacing-xs);
-  text-align: center;
+  padding: 10px;
+  font-size: inherit;
+  text-align: left;
 }
 
 /* Enhanced Tooltips */
