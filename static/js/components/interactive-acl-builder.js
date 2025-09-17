@@ -1479,14 +1479,8 @@ const InteractiveACLBuilder = {
                                 button.dataset.stateInfo = `@${category} category (granted via @all) - Click to block`;
                                 button.onclick = () => this.blockCategory(category);
 
-                                if (category === 'fast') {
-                                    console.log(`🎯 Setting blockCategory handler for @fast (no smart handler detected)`);
-                                }
                             } else {
                                 // Keep the smart handler that was set by createCategoryButton
-                                if (category === 'fast') {
-                                    console.log(`🎯 PRESERVING smart handler for @fast: ${button.onclick?.toString().substring(0, 100)}`);
-                                }
                             }
                         }
                         // For partially blocked categories, keep the handler from createCategoryButton
@@ -2691,18 +2685,12 @@ const InteractiveACLBuilder = {
                         tooltipText = `@${category} category (partially granted via @all) - Has conflicting individual commands - Click to remove conflicting commands`;
                         clickHandler = () => this.removeConflictingIndividualCommands(category);
 
-                        if (category === 'fast') {
-                            console.log(`🎯 Using removeConflictingIndividualCommands handler for @fast`);
-                        }
                     } else {
                         // Cleanly granted via @all
                         buttonClass = `category-button granted implicit`;
                         tooltipText = `@${category} category (granted via @all) - Click to block`;
                         clickHandler = () => this.blockCategory(category);
 
-                        if (category === 'fast') {
-                            console.log(`🎯 Using blockCategory handler for @fast (no conflicts detected)`);
-                        }
                     }
                 } else {
                     // Explicitly granted
