@@ -14,6 +14,8 @@ import CommandTester from './components/command-tester.js';
 import KeyspaceTester from './components/keyspace-tester.js';
 import InteractiveACLBuilder from './components/interactive-acl-builder.js';
 import SearchManager from './components/search-manager.js';
+import ResizableContainer from './components/resizable-container.js';
+import SavedRules from './components/saved-rules.js';
 import EventHandlers from './handlers/event-handlers.js';
 
 // Application main object
@@ -41,7 +43,14 @@ const App = {
 
             // Initialize search functionality AFTER interactive builder is ready
             await SearchManager.init();
-            
+
+            // Initialize resizable container system
+            ResizableContainer.init();
+
+            // Initialize saved rules system
+            SavedRules.init();
+            console.log('Saved rules system initialized');
+
             // Clean up saved rule reference (already handled by init)
             if (this.savedRuleToSync) {
                 delete this.savedRuleToSync;
@@ -70,7 +79,7 @@ const App = {
                 
                 // Update character counter and button states
                 EventHandlers.updateCharacterCounterProgrammatically(DOMElements.aclRuleInput);
-                EventHandlers.updateActionButtonStates(savedRule);
+                EventHandlers.updateActionButtonStates();
 
                 // Store the saved rule for later sync after InteractiveACLBuilder is initialized
                 this.savedRuleToSync = savedRule;
@@ -140,13 +149,26 @@ window.testCommand = () => CommandTester.testCommand();
 window.testKeyspace = () => KeyspaceTester.testKeyspace();
 window.CategoryManager = CategoryManager; // Make available for HTML onclick
 window.syncRuleToInteractive = () => {
+    // Clear any pending input operations to prevent interference with committed rule analysis
+    if (window.clearPendingInputOperations) {
+        window.clearPendingInputOperations();
+    }
+
     // Save the current rule to localStorage when user submits changes
     const aclRuleTextarea = document.getElementById('aclRule');
     if (aclRuleTextarea) {
         const newRule = aclRuleTextarea.value;
+
         // Add the newly committed rule to history BEFORE saving it
         Storage.addToHistory(newRule);
         Storage.saveAclRule(newRule);
+
+        // Mark as programmatic update to prevent new timeout creation
+        aclRuleTextarea.dataset.programmaticUpdate = 'true';
+
+        // Trigger input event to notify SavedRules component AFTER rule is committed
+        const inputEvent = new Event('input', { bubbles: true });
+        aclRuleTextarea.dispatchEvent(inputEvent);
     }
 
     // Sync to interactive builder
@@ -228,11 +250,18 @@ window.clearACLRule = () => {
     try {
         // Clear the rule
         aclRuleTextarea.value = '';
-        
-        // Clear from localStorage and clear history
+
+        // Clear from localStorage and clear history FIRST
         Storage.saveAclRule('');
         Storage.saveLastGeneratedRule('');
         Storage.clearHistory();
+
+        // Mark as programmatic update to prevent Submit Changes button flash
+        aclRuleTextarea.dataset.programmaticUpdate = 'true';
+
+        // Trigger input event to notify SavedRules component AFTER clearing localStorage
+        const inputEvent = new Event('input', { bubbles: true });
+        aclRuleTextarea.dispatchEvent(inputEvent);
         
         aclRuleTextarea.focus();
         
@@ -279,11 +308,11 @@ window.clearACLRule = () => {
     }
 };
 
-// Function to check if Quick Examples need scrolling
+// Function to check if ACL Presets need scrolling
 function checkQuickExamplesScroll() {
-    const content = document.querySelector('.rule-examples-content');
+    const content = document.querySelector('.presets-content');
     if (!content) {
-        console.warn('Quick Examples content not found');
+        console.warn('ACL Presets content not found');
         return;
     }
     
@@ -361,6 +390,9 @@ window.dismissRedundancyWarnings = () => {
 };
 
 // Export for potential module usage
+// Expose scroll check function globally for SavedRules component
+window.checkQuickExamplesScroll = checkQuickExamplesScroll;
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         App,

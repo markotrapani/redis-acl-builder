@@ -15,19 +15,18 @@ const EventHandlers = {
     /**
      * Update the state of action buttons based on ACL rule content
      */
-    updateActionButtonStates(aclRuleText = '') {
-        const currentText = aclRuleText.trim();
+    updateActionButtonStates() {
         const lastCommittedRule = Storage.loadAclRule();
 
-        // Clear/Copy buttons logic:
-        // Clear button: enabled if there's committed content, current content, OR history exists
-        // Copy button: enabled if there's committed content OR current content (not for history alone)
+        // Button logic based on committed state, not pending text:
+        // Clear button: enabled if there's committed content OR history exists (not just pending text)
+        // Copy button: enabled if there's committed content (not just pending text)
+        // Save button: handled separately - should only be enabled after Submit Changes commits a rule
         const hasCommittedContent = lastCommittedRule && lastCommittedRule.trim().length > 0;
-        const hasCurrentContent = currentText.length > 0;
         const hasHistory = Storage.hasHistory();
 
-        const shouldEnableClearButton = hasCommittedContent || hasCurrentContent || hasHistory;
-        const shouldEnableCopyButton = hasCommittedContent || hasCurrentContent;
+        const shouldEnableClearButton = hasCommittedContent || hasHistory;
+        const shouldEnableCopyButton = hasCommittedContent;
 
 
         const clearBtn = document.getElementById('clearRuleBtn');
@@ -72,9 +71,15 @@ const EventHandlers = {
         // );
         
         // Hide optimization suggestions and expand panels when user starts typing manually
-        let inputTimeout;
+        let inputTimeouts = []; // Track ALL timeouts, not just the latest
         let isResizing = false;
         let resizeTimeout;
+
+        // Global function to clear pending input operations (called by Submit Changes)
+        window.clearPendingInputOperations = () => {
+            inputTimeouts.forEach(timeout => clearTimeout(timeout));
+            inputTimeouts = [];
+        };
         
         // Detect resize operations to temporarily disable input processing
         DOMElements.aclRuleInput.addEventListener('mousedown', function(e) {
@@ -118,51 +123,56 @@ const EventHandlers = {
                 delete this.dataset.programmaticUpdate;
             }
 
-            // Hide redundancy warnings immediately for responsive feedback (only for user typing)
+            // Let redundancy warnings persist during typing - they're about the committed rule
+            // and will be naturally updated when user commits new changes
+
+            // Update action button states based on committed content (not current text)
+            EventHandlers.updateActionButtonStates();
+
+            // Handle Submit Changes button visibility (only for user input, not programmatic updates)
             if (!isProgrammaticUpdate) {
-                RuleManager.hideRedundancyWarnings();
-            }
+                const layout = document.querySelector('.three-column-layout');
+                if (layout) {
+                    const currentText = this.value.trim();
+                    const lastGeneratedRule = window.getLastGeneratedRule ? window.getLastGeneratedRule() : '';
+                    const isRevertedToGenerated = currentText === lastGeneratedRule;
+                    const submitBtn = document.getElementById('submitChangesBtn');
 
-            // Update action button states immediately (not debounced)
-            EventHandlers.updateActionButtonStates(this.value);
-
-            // Handle Submit Changes button visibility immediately (not debounced)
-            const layout = document.querySelector('.three-column-layout');
-            if (layout) {
-                const currentText = this.value.trim();
-                const lastGeneratedRule = window.getLastGeneratedRule ? window.getLastGeneratedRule() : '';
-                const isRevertedToGenerated = currentText === lastGeneratedRule;
-                const submitBtn = document.getElementById('submitChangesBtn');
-
-                if (!isRevertedToGenerated) {
-                    // Text differs from generated rule - ensure button is visible
-                    layout.classList.add('submit-button-visible');
-                    // Clear any inline display:none that might override CSS
-                    if (submitBtn && submitBtn.style.display === 'none') {
-                        submitBtn.style.display = '';
+                    if (!isRevertedToGenerated) {
+                        // Text differs from generated rule - ensure button is visible
+                        layout.classList.add('submit-button-visible');
+                        // Clear any inline display:none that might override CSS
+                        if (submitBtn && submitBtn.style.display === 'none') {
+                            submitBtn.style.display = '';
+                        }
+                    } else {
+                        // Text matches generated rule - hide button
+                        if (submitBtn) {
+                            submitBtn.style.display = 'none';
+                        }
+                        layout.classList.remove('submit-button-visible');
                     }
-                } else {
-                    // Text matches generated rule - hide button
-                    if (submitBtn) {
-                        submitBtn.style.display = 'none';
-                    }
-                    layout.classList.remove('submit-button-visible');
                 }
             }
 
             // Debounce expensive operations only (skip for programmatic updates)
             if (!isProgrammaticUpdate) {
-                clearTimeout(inputTimeout);
-                inputTimeout = setTimeout(() => {
+                // Clear all existing timeouts and add new one
+                inputTimeouts.forEach(timeout => clearTimeout(timeout));
+                inputTimeouts = [];
+
+                const newTimeout = setTimeout(() => {
                     // Only expand panels if there's actual content in the textarea and it's a manual change
                     const hasContent = this.value.trim().length > 0;
 
-                    // Silently trigger rule parsing WITHOUT redundancy analysis during typing
-                    // Redundancy analysis should only happen when user submits changes
+                    // Trigger rule parsing WITHOUT redundancy analysis during typing
+                    // Redundancy analysis should only happen for committed rules
                     if (hasContent) {
                         RuleManager.parseRuleSilent(true); // Skip redundancy analysis during manual typing
                     }
                 }, 150); // Reduced debounce since we're not processing during resize
+
+                inputTimeouts.push(newTimeout);
             }
         });
         
@@ -362,7 +372,7 @@ const EventHandlers = {
         
         // Initialize action button states (skip if already handled during restoration)
         if (!window.App?.buttonStatesInitialized) {
-            this.updateActionButtonStates(DOMElements.aclRuleInput?.value || '');
+            this.updateActionButtonStates();
         }
         
         // Initialize test button states (should start disabled)
@@ -560,7 +570,7 @@ const EventHandlers = {
 
         // Update character counter and button states
         this.updateCharacterCounterProgrammatically(aclRuleTextarea);
-        this.updateActionButtonStates(lastCommittedRule);
+        this.updateActionButtonStates();
 
         // Auto-expand textarea based on content
         this.autoExpandTextarea(aclRuleTextarea);
@@ -671,7 +681,7 @@ const EventHandlers = {
 
         // Update character counter and button states
         this.updateCharacterCounterProgrammatically(aclRuleTextarea);
-        this.updateActionButtonStates(rule);
+        this.updateActionButtonStates();
 
         // Auto-expand textarea based on content
         this.autoExpandTextarea(aclRuleTextarea);

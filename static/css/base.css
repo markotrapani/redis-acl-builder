@@ -225,6 +225,7 @@ body {
   background: var(--background);
   color: var(--text-primary);
   line-height: var(--line-height);
+  min-height: 100vh;
 }
 
 /* Container */
@@ -295,7 +296,7 @@ header {
   text-align: center;
   margin-bottom: 10px; /* Reduced from var(--spacing-md) = 15px for header compaction */
   background: var(--surface);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--gray-500);
   border-radius: var(--radius-lg);
   padding: 12px; /* Reduced from var(--spacing-lg) = 20px for header compaction */
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);

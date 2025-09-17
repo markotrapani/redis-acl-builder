@@ -13,10 +13,12 @@
                 let savedTheme = null;
                 let systemDark = false;
                 let savedVersion = null;
+                let savedDimensions = null;
 
                 try {
                     savedTheme = localStorage.getItem('theme');
                     savedVersion = localStorage.getItem('redis-acl-builder-version');
+                    savedDimensions = localStorage.getItem('redis-acl-builder-dimensions');
                 } catch (e) {
                     // localStorage might be blocked in some environments
                     console.warn('localStorage access failed:', e);
@@ -35,6 +37,29 @@
                 // Set theme immediately to prevent flash
                 document.documentElement.setAttribute('data-theme', theme);
 
+                // Set saved dimensions to prevent resize flash
+                if (savedDimensions) {
+                    try {
+                        const dimensions = JSON.parse(savedDimensions);
+                        if (dimensions.width && dimensions.height) {
+                            // Set CSS custom properties immediately
+                            const containerWidth = `${dimensions.width + 16}px`;
+                            const panelHeight = `${dimensions.height}px`;
+                            document.documentElement.style.setProperty('--saved-container-width', containerWidth);
+                            document.documentElement.style.setProperty('--saved-panel-height', panelHeight);
+                            // Also set the fallback defaults to match saved values
+                            document.documentElement.style.setProperty('--container-width-default', containerWidth);
+                            document.documentElement.style.setProperty('--panel-height-default', panelHeight);
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse saved dimensions:', e);
+                    }
+                } else {
+                    // Set default fallbacks when no saved dimensions exist
+                    document.documentElement.style.setProperty('--container-width-default', '1416px');
+                    document.documentElement.style.setProperty('--panel-height-default', '600px');
+                }
+
                 // Store initial version state to set toggle correctly when DOM loads
                 // Default to Redis 7 if no saved version
                 const initialVersion = savedVersion || 'redis7';
@@ -47,6 +72,7 @@
                     appliedTheme: theme,
                     savedVersion: savedVersion,
                     initialVersion: initialVersion,
+                    savedDimensions: savedDimensions,
                     userAgent: navigator.userAgent.substring(0, 100)
                 });
 
@@ -65,13 +91,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/interactive.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/resizable.css') }}">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
     <meta name="description" content="Redis Enterprise ACL Builder - Build and validate Redis ACL rules with real-time command & keyspace access analysis">
     <meta name="keywords" content="Redis, ACL, Access Control, Security, Database">
 </head>
 <body>
-    <div class="container">
-        <header>
+    <div class="page-backdrop">
+        <div class="container">
+            <header>
             <div class="header-content">
                 <div class="header-main">
                     <h1>🔐 Redis Enterprise ACL Builder</h1>
@@ -150,6 +178,9 @@
                             <button type="button" id="copyRuleBtn" class="inline-action-button copy-button" onclick="copyACLRule()" title="Copy ACL Rule to clipboard" disabled>
                                 📋
                             </button>
+                            <button type="button" id="saveRuleBtn" class="inline-action-button save-button" onclick="saveACLRule()" title="Save current ACL Rule as preset" disabled>
+                                💾
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -184,39 +215,49 @@
                     Submit Changes
                 </button>
 
-                <div class="rule-examples">
-                    <h4>Quick Examples</h4>
-                    <div class="rule-examples-content">
-                        <div class="example-group">
-                            <h5 class="example-category">Full Access</h5>
-                            <button type="button" class="example" onclick="setRuleAndParse('+@all ~*')" title="Full access to all commands and keys">
-                                +@all ~*
-                            </button>
-                        </div>
+                <div class="acl-presets">
+                    <h4>ACL Rule Presets</h4>
+                    <div class="presets-content">
+                        <section class="quick-examples">
+                            <div class="example-group">
+                                <h6 class="example-category">Full Access</h6>
+                                <button type="button" class="example" onclick="setRuleAndParse('+@all ~*')" title="Full access to all commands and keys">
+                                    +@all ~*
+                                </button>
+                            </div>
 
-                        <div class="example-group">
-                            <h5 class="example-category">Read-Write</h5>
-                            <button type="button" class="example" onclick="setRuleAndParse('+@read +@write -@dangerous ~*')" title="Read and write access excluding dangerous commands">
-                                +@read +@write -@dangerous ~*
-                            </button>
-                        </div>
+                            <div class="example-group">
+                                <h6 class="example-category">Read-Write</h6>
+                                <button type="button" class="example" onclick="setRuleAndParse('+@read +@write -@dangerous ~*')" title="Read and write access excluding dangerous commands">
+                                    +@read +@write -@dangerous ~*
+                                </button>
+                            </div>
 
-                        <div class="example-group">
-                            <h5 class="example-category">Read-Only</h5>
-                            <button type="button" class="example" onclick="setRuleAndParse('+@read ~*')" title="Read-only access to all keys">
-                                +@read ~*
-                            </button>
-                        </div>
+                            <div class="example-group">
+                                <h6 class="example-category">Read-Only</h6>
+                                <button type="button" class="example" onclick="setRuleAndParse('+@read ~*')" title="Read-only access to all keys">
+                                    +@read ~*
+                                </button>
+                            </div>
 
-                        <div class="example-group">
-                            <h5 class="example-category">Other Access</h5>
-                            <button type="button" class="example" onclick="setRuleAndParse('+@read ~user:* ~session:*')" title="Read-only access to user and session keys">
-                                +@read ~user:* ~session:*
-                            </button>
-                            <button type="button" class="example" onclick="setRuleAndParse('+get +set +del +exists ~*')" title="Basic key operations only">
-                                +get +set +del +exists ~*
-                            </button>
-                        </div>
+                            <div class="example-group">
+                                <h6 class="example-category">Other Access</h6>
+                                <button type="button" class="example" onclick="setRuleAndParse('+@read ~user:* ~session:*')" title="Read-only access to user and session keys">
+                                    +@read ~user:* ~session:*
+                                </button>
+                                <button type="button" class="example" onclick="setRuleAndParse('+get +set +del +exists ~*')" title="Basic key operations only">
+                                    +get +set +del +exists ~*
+                                </button>
+                            </div>
+                        </section>
+
+                        <!-- Custom Rules Section -->
+                        <section class="custom-rules" id="savedRulesSection" style="display: none;">
+                            <h5>Custom Rules</h5>
+                            <div class="saved-rules-content" id="savedRulesContent">
+                                <!-- Saved rules will be dynamically populated here -->
+                            </div>
+                        </section>
                     </div>
                 </div>
             </section>
@@ -357,6 +398,7 @@
                     </button>
                 </div>
             </section>
+            </div>
         </div>
     </div>
 

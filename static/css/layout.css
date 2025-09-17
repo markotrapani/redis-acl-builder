@@ -1,25 +1,98 @@
 /* Redis Enterprise ACL Builder - Layout Styles */
 
+/* Page Backdrop Container */
+.page-backdrop {
+  background: var(--gray-300);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: 8px;
+  margin: var(--spacing-xs) auto;
+  max-width: var(--container-width-default); /* Use dynamic default set by inline script */
+  position: relative;
+  border: 1px solid var(--border-light);
+  overflow: visible;
+  /* Ensure backdrop height adapts to content */
+  min-height: auto;
+}
+
+/* Light mode backdrop styling */
+[data-theme="light"] .page-backdrop {
+  background: var(--gray-300);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+  border-color: var(--gray-500);
+}
+
+/* Dark mode backdrop styling */
+[data-theme="dark"] .page-backdrop {
+  background: var(--background);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
+  border-color: var(--border);
+}
+
+/* System preference fallback */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .page-backdrop {
+    background: var(--background);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
+    border-color: var(--border);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .page-backdrop {
+    background: var(--gray-300);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+    border-color: var(--gray-500);
+  }
+}
+
+/* Adjust container styling for backdrop integration */
+.container {
+  max-width: var(--container-width, 1400px);
+  margin: 0 auto;
+  padding: 0; /* Remove padding since backdrop handles spacing */
+  transition: max-width 0.1s ease-out;
+}
+
+/* Responsive backdrop */
+@media (max-width: 768px) {
+  .page-backdrop {
+    margin: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-backdrop {
+    margin: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+  }
+}
+
 /* Three Column Layout */
 .three-column-layout {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px; /* Reduced from var(--spacing-md) = 15px for vertical compaction */
   align-items: start;
+  height: var(--panel-height-default); /* Use dynamic default set by inline script */
 }
 
 /* Make all panels in three-column layout uniform */
 .three-column-layout > .panel {
-  height: 600px; /* Fine-tuned to eliminate remaining space below Quick Examples */
+  height: var(--panel-height-default); /* Use dynamic default set by inline script */
   min-width: 0;
 }
 
 
-/* ACL Rule Configuration panel - clip overflow but don't scroll */
+/* ACL Rule Configuration panel - allow vertical scrolling when content overflows */
 .three-column-layout > .acl-config-panel {
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Clip content that exceeds panel bounds */
+  overflow-y: auto; /* Allow vertical scrolling when content overflows */
+  overflow-x: hidden; /* Prevent horizontal overflow */
 }
 
 
@@ -34,7 +107,7 @@
 .test-section {
   margin-top: var(--spacing-md);
   margin-bottom: var(--spacing-md);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--gray-500);
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   height: auto;
   min-height: 175px; /* Reduced from 190px for vertical compaction */
@@ -190,7 +263,6 @@
 /* Command categories container */
 .command-categories-container {
   flex: 1;
-  max-height: 650px;
   overflow-y: auto;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);

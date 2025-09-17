@@ -22,10 +22,14 @@ const RuleManager = {
         // Save to localStorage FIRST
         Storage.saveAclRule(rule);
 
+        // Trigger input event to notify SavedRules component AFTER saving
+        const inputEvent = new Event('input', { bubbles: true });
+        DOMElements.aclRuleInput.dispatchEvent(inputEvent);
+
         // Update character counter and button states AFTER saving
         Utils.executeMultipleEventHandlers([
             { method: 'updateCharacterCounterProgrammatically', args: [DOMElements.aclRuleInput] },
-            { method: 'updateActionButtonStates', args: [rule] }
+            { method: 'updateActionButtonStates', args: [] }
         ]);
 
         this.parseRule();
@@ -61,10 +65,17 @@ const RuleManager = {
         
         // Update the textarea with normalized rule if it changed
         if (rule !== rawRule) {
+            // Preserve cursor position during normalization
+            const cursorStart = DOMElements.aclRuleInput.selectionStart;
+            const cursorEnd = DOMElements.aclRuleInput.selectionEnd;
+
             // Mark as programmatic update to prevent panel expansion
             DOMElements.aclRuleInput.dataset.programmaticUpdate = 'true';
             DOMElements.aclRuleInput.value = rule;
-            
+
+            // Restore cursor position after value update
+            DOMElements.aclRuleInput.setSelectionRange(cursorStart, cursorEnd);
+
             // Update character counter
             Utils.executeEventHandler('updateCharacterCounterProgrammatically', DOMElements.aclRuleInput);
         }
@@ -209,6 +220,10 @@ const RuleManager = {
                             } else {
                                 DOMElements.aclRuleInput.value = simplifiedRule;
                             }
+
+                            // Trigger input event to notify SavedRules component
+                            const inputEvent = new Event('input', { bubbles: true });
+                            DOMElements.aclRuleInput.dispatchEvent(inputEvent);
 
                             // Update character counter
                             Utils.executeEventHandler('updateCharacterCounterProgrammatically', DOMElements.aclRuleInput);

@@ -1,0 +1,332 @@
+/* Redis Enterprise ACL Builder - Resizable Container Styles */
+
+/* Container positioning for resize handles */
+.page-backdrop {
+    position: relative;
+    transition: max-width 0.1s ease-out;
+}
+
+/* Resize handles base styling */
+.resize-handle {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    color: white;
+    border: 2px solid var(--surface);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: nw-resize;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+    user-select: none;
+    opacity: 0.7;
+}
+
+.resize-handle:hover {
+    opacity: 1;
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Bottom-right handle (both width and height) */
+.resize-handle-br {
+    bottom: 4px;
+    right: 4px;
+    cursor: nw-resize;
+    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+}
+
+/* Bottom-left handle (height only) */
+.resize-handle-bl {
+    bottom: 4px;
+    left: 4px;
+    cursor: ns-resize;
+    background: linear-gradient(135deg, var(--success-color), var(--primary-color));
+}
+
+/* Active resize state styling */
+.resize-handle.active {
+    opacity: 1;
+    transform: scale(1.2);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Body states during resizing */
+body.resizing {
+    user-select: none;
+}
+
+body.resizing-both {
+    cursor: nw-resize !important;
+}
+
+body.resizing-height-only {
+    cursor: ns-resize !important;
+}
+
+/* Visual feedback during resize */
+body.resizing .container {
+    transition: none; /* Disable transitions during resize for smooth feedback */
+}
+
+body.resizing .three-column-layout {
+    transition: none;
+}
+
+body.resizing .panel {
+    transition: none;
+}
+
+/* Smooth transitions when not resizing */
+.three-column-layout {
+    transition: height 0.2s ease-out;
+}
+
+.three-column-layout > .panel {
+    transition: height 0.2s ease-out;
+}
+
+/* Handle visibility on different screen sizes */
+@media (max-width: 768px) {
+    .resize-handle {
+        width: 24px;
+        height: 24px;
+        font-size: 16px;
+    }
+
+    .resize-handle-br {
+        bottom: 15px;
+        right: 15px;
+    }
+
+    .resize-handle-bl {
+        bottom: 15px;
+        left: 15px;
+    }
+}
+
+/* Hide handles on very small screens */
+@media (max-width: 480px) {
+    .resize-handle {
+        display: none;
+    }
+}
+
+/* Dark mode handle styling */
+[data-theme="dark"] .resize-handle {
+    border-color: var(--gray-600);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .resize-handle:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+}
+
+/* Light mode handle styling */
+[data-theme="light"] .resize-handle {
+    border-color: var(--gray-200);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .resize-handle:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* System preference fallback */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) .resize-handle {
+        border-color: var(--gray-600);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    :root:not([data-theme]) .resize-handle:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+    }
+}
+
+/* Container width constraint updates */
+.container {
+    max-width: var(--container-width, 1400px);
+    margin: 0 auto;
+}
+
+/* Enhanced three-column layout with custom height */
+.three-column-layout {
+    height: var(--panel-height-default);
+}
+
+.three-column-layout > .panel {
+    height: var(--panel-height-default);
+}
+
+/* Resize indicators for better UX */
+.resize-handle::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 2px dashed transparent;
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+
+.resize-handle:hover::before {
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Tooltip-style labels for handles */
+.resize-handle::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    margin-bottom: 5px;
+}
+
+.resize-handle:hover::after {
+    opacity: 1;
+}
+
+/* Improved positioning for bottom-left tooltip */
+.resize-handle-bl::after {
+    left: 0;
+    transform: none;
+}
+
+/* Improved positioning for bottom-right tooltip */
+.resize-handle-br::after {
+    right: 0;
+    left: auto;
+    transform: none;
+}
+
+/* Animation for handle appearance */
+@keyframes handleAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 0.7;
+        transform: scale(1);
+    }
+}
+
+.resize-handle {
+    animation: handleAppear 0.3s ease-out;
+}
+
+/* Responsive layout adjustments */
+@media (min-width: 1400px) {
+    .container {
+        max-width: var(--container-width, 1400px);
+    }
+}
+
+@media (min-width: 1600px) {
+    .container {
+        max-width: var(--container-width, 1600px);
+    }
+}
+
+@media (min-width: 1800px) {
+    .container {
+        max-width: var(--container-width, 1800px);
+    }
+}
+
+/* Ensure panels maintain proper overflow behavior during resize */
+.panel {
+    overflow: auto;
+    position: relative;
+}
+
+/* Maintain test section positioning during container resize */
+.test-section {
+    width: 100%;
+    max-width: none;
+}
+
+/* Resize overlay to prevent visual artifacts during button reflow */
+.resize-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--loading-overlay-bg, rgba(255, 255, 255, 0.9));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+    border-radius: var(--radius-lg);
+}
+
+.resize-overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.resize-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--gray-300);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    animation: resize-spin 1s linear infinite;
+}
+
+.resize-text {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+@keyframes resize-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Dark mode overlay styling */
+[data-theme="dark"] .resize-overlay {
+    background: rgba(31, 41, 55, 0.9);
+}
+
+[data-theme="dark"] .resize-spinner {
+    border-color: var(--gray-600);
+    border-top-color: var(--primary-color);
+}
+
+/* System preference fallback */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) .resize-overlay {
+        background: rgba(31, 41, 55, 0.9);
+    }
+
+    :root:not([data-theme]) .resize-spinner {
+        border-color: var(--gray-600);
+        border-top-color: var(--primary-color);
+    }
+}

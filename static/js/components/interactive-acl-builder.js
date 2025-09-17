@@ -3537,7 +3537,7 @@ const InteractiveACLBuilder = {
             // Update character counter and button states
             this.executeMultipleEventHandlers([
                 { method: 'updateCharacterCounterProgrammatically', args: [this.elements.aclRuleInput] },
-                { method: 'updateActionButtonStates', args: [ruleText] }
+                { method: 'updateActionButtonStates', args: [] }
             ]);
         }
         
@@ -3692,7 +3692,7 @@ const InteractiveACLBuilder = {
                 }
 
                 // Update action button states after successful sync
-                this.executeEventHandler('updateActionButtonStates', ruleText);
+                this.executeEventHandler('updateActionButtonStates');
             }
 
             // Always analyze for redundancy to show optimization suggestions (including during restoration)

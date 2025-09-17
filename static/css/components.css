@@ -202,6 +202,18 @@ button.test-button[disabled] {
   box-shadow: 0 3px 12px rgba(33, 150, 243, 0.4);
 }
 
+.inline-action-button.save-button {
+  background: linear-gradient(135deg, #4CAF50, #388E3C);
+  color: white;
+  border-color: #388E3C;
+}
+
+.inline-action-button.save-button:hover {
+  background: linear-gradient(135deg, #388E3C, #2E7D32);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(76, 175, 80, 0.4);
+}
+
 .inline-action-button:active {
   transform: translateY(0);
   box-shadow: 0 1px 4px rgba(0,0,0,0.2);
@@ -1220,8 +1232,8 @@ button.test-button[disabled] {
   }
 }
 
-/* Rule Examples */
-.rule-examples {
+/* ACL Presets */
+.acl-presets {
   font-size: 1.2em; /* Larger font for entire examples section */
   display: flex;
   flex-direction: column;
@@ -1229,38 +1241,160 @@ button.test-button[disabled] {
   min-height: 0; /* Allow flexbox to shrink below content size */
 }
 
-.rule-examples h4 {
+/* Saved Rules - similar styling to Rule Examples */
+.saved-rules {
+  font-size: 1.2em;
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--spacing-lg);
+  flex-shrink: 0; /* Prevent shrinking when panel scrolls */
+}
+
+.saved-rules h4 {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-sm);
+  text-decoration: underline;
+}
+
+.saved-rules-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.saved-rule-item {
+  position: relative;
+  display: flex;
+  margin-bottom: 5px;
+}
+
+.saved-rule-button {
+  background: var(--gray-200);
+  padding: var(--spacing-sm);
+  padding-right: 36px; /* Add extra padding on right for delete button overlay */
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: background-color var(--transition-normal);
+  border: none;
+  font-size: var(--font-size-md);
+  text-align: left;
+  color: inherit;
+  width: 100%; /* Full width */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-rule-button:hover {
+  background: var(--gray-300);
+}
+
+.saved-rule-button:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.saved-rule-delete {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  background: var(--error-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  font-size: 11px;
+  font-weight: bold;
+  z-index: 10;
+  opacity: 0.8;
+}
+
+.saved-rule-delete:hover {
+  background: var(--error-light);
+  opacity: 1;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.saved-rule-item:hover .saved-rule-delete {
+  opacity: 1;
+}
+
+.saved-rule-delete:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Light mode saved rule buttons */
+[data-theme="light"] .saved-rule-button {
+  background: #e9ecef;
+  color: #212529;
+}
+
+[data-theme="light"] .saved-rule-button:hover {
+  background: #dee2e6;
+}
+
+/* Dark mode saved rule buttons */
+[data-theme="dark"] .saved-rule-button {
+  background: var(--gray-100);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .saved-rule-button:hover {
+  background: var(--gray-300);
+}
+
+/* System preference fallback */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .saved-rule-button {
+    background: var(--gray-100);
+    color: var(--text-primary);
+  }
+
+  html:not([data-theme]) .saved-rule-button:hover {
+    background: var(--gray-300);
+  }
+}
+
+.acl-presets h4 {
   color: var(--text-secondary);
   margin-bottom: var(--spacing-sm);
   text-decoration: underline; /* Only underline the main title */
   flex-shrink: 0; /* Keep title visible */
 }
 
-.rule-examples-content {
+.presets-content {
   overflow-y: hidden;
   flex: 1;
 }
 
 /* Only show scrollbar when content actually overflows */
-.rule-examples-content.needs-scroll {
+.presets-content.needs-scroll {
   overflow-y: auto;
 }
 
 /* Minimal scrollbar styling - let it overlap content */
-.rule-examples-content::-webkit-scrollbar {
+.presets-content::-webkit-scrollbar {
   width: 8px;
 }
 
-.rule-examples-content::-webkit-scrollbar-track {
+.presets-content::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.rule-examples-content::-webkit-scrollbar-thumb {
+.presets-content::-webkit-scrollbar-thumb {
   background: var(--gray-400);
   border-radius: 6px;
 }
 
-.rule-examples-content::-webkit-scrollbar-thumb:hover {
+.presets-content::-webkit-scrollbar-thumb:hover {
   background: var(--gray-500);
 }
 
