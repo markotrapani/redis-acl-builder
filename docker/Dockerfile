@@ -2,7 +2,7 @@
 # Target size: ~150-200MB (vs current 1.23GB)
 
 # Build stage - includes build tools and dependencies
-FROM python:3.12-slim as builder
+FROM python:3.12-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-prod.txt
 
 # Production stage - minimal runtime image
-FROM python:3.12-slim as production
+FROM python:3.12-slim AS production
 
 # Install only runtime dependencies (curl for health checks)
 RUN apt-get update && apt-get install -y \
