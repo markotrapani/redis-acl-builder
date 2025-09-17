@@ -645,6 +645,15 @@ class ACLParser:
         # Category completion analysis - detect when individual commands cover entire categories
         self._analyze_category_completion(parsed, warnings, suggestions)
 
+        # Check for all-categories pattern - suggest +@all when all categories are explicitly granted
+        self._analyze_all_categories_pattern(parsed, warnings, suggestions, redundant_terms)
+
+        # Check for cancelled @all pattern - suggest empty rule when @all is granted then all categories blocked
+        self._analyze_cancelled_all_pattern(parsed, warnings, suggestions, redundant_terms)
+
+        # Group similar redundancy warnings to avoid overwhelming the user
+        warnings, suggestions, redundant_terms = self._group_redundancy_warnings(warnings, suggestions, redundant_terms)
+
         return {
             'warnings': warnings,
             'suggestions': suggestions,
@@ -898,7 +907,10 @@ class ACLParser:
 
                     # Generate optimized rule that removes the null category and its exclusions
                     optimized_rule = self._generate_optimized_rule_for_null_category(parsed_rule, category)
-                    suggestions.append(f"Simplified rule: {optimized_rule}")
+                    if optimized_rule.strip():
+                        suggestions.append(f"Simplified rule: {optimized_rule}")
+                    else:
+                        suggestions.append("Simplified rule: (empty rule)")
 
         except Exception as e:
             # Don't let null category analysis errors break the main redundancy analysis
@@ -939,12 +951,260 @@ class ACLParser:
                 # Keep all other tokens
                 new_tokens.append(token)
 
-            # Return the simplified rule (or empty rule if no tokens remain)
+            # Return the simplified rule (or empty string if no tokens remain)
             if new_tokens:
                 return ' '.join(new_tokens)
             else:
-                return '(empty rule)'
+                return ''
 
         except Exception:
             # If optimization fails, return original rule
             return parsed_rule['raw_rule']
+
+    def _group_redundancy_warnings(self, warnings, suggestions, redundant_terms):
+        """
+        Group similar redundancy warnings to avoid overwhelming the user with many similar messages.
+
+        Args:
+            warnings: List of warning messages
+            suggestions: List of suggestion messages
+            redundant_terms: List of redundant term objects
+
+        Returns:
+            tuple: (grouped_warnings, updated_suggestions, grouped_redundant_terms)
+        """
+        if len(warnings) <= 2:
+            # Not enough warnings to group
+            return warnings, suggestions, redundant_terms
+
+        # Group redundant inclusion and exclusion warnings
+        redundant_inclusion_pattern = "Redundant inclusion:"
+        redundant_exclusion_pattern = "Redundant exclusion:"
+
+        inclusion_warnings = []
+        inclusion_terms = []
+        exclusion_warnings = []
+        exclusion_terms = []
+        other_warnings = []
+        other_terms = []
+
+        # Separate inclusion warnings, exclusion warnings, and others
+        for i, warning in enumerate(warnings):
+            if redundant_inclusion_pattern in warning and "All commands already granted by earlier rules" in warning:
+                # Extract the term from the warning
+                lines = warning.split('\n')
+                if len(lines) >= 2:
+                    term_line = lines[0].replace(redundant_inclusion_pattern, '').strip().strip("'")
+                    inclusion_warnings.append(term_line)
+                    # Find corresponding redundant term
+                    for term in redundant_terms:
+                        if term.get('term') == term_line and term.get('type') == 'inclusion':
+                            inclusion_terms.append(term)
+                            break
+            elif redundant_exclusion_pattern in warning and "Commands were not granted by earlier rules" in warning:
+                # Extract the term from the warning
+                lines = warning.split('\n')
+                if len(lines) >= 2:
+                    term_line = lines[0].replace(redundant_exclusion_pattern, '').strip().strip("'")
+                    exclusion_warnings.append(term_line)
+                    # Find corresponding redundant term
+                    for term in redundant_terms:
+                        if term.get('term') == term_line and term.get('type') == 'exclusion':
+                            exclusion_terms.append(term)
+                            break
+            else:
+                other_warnings.append(warning)
+
+        # Separate other redundant terms that don't correspond to grouped warnings
+        for term in redundant_terms:
+            if term not in inclusion_terms and term not in exclusion_terms:
+                other_terms.append(term)
+
+        # Create grouped warnings and suggestions if we have multiple redundant inclusions or exclusions
+        grouped_warnings = other_warnings.copy()
+        grouped_terms = other_terms.copy()
+
+        # Group redundant inclusions
+        if len(inclusion_warnings) >= 3:  # Group if 3 or more similar warnings
+            # Create a single grouped warning
+            terms_list = "', '".join(inclusion_warnings)
+            grouped_warning = f"Multiple redundant category inclusions detected:\n'{terms_list}'\nAll commands in these categories are already granted by earlier rules"
+            grouped_warnings.append(grouped_warning)
+
+            # Add a single grouped redundant term entry
+            grouped_terms.append({
+                'term': f"[{len(inclusion_warnings)} redundant inclusions]",
+                'position': -1,
+                'type': 'grouped_inclusion',
+                'reason': f"Multiple redundant category inclusions: {', '.join(inclusion_warnings)}",
+                'grouped_terms': inclusion_terms
+            })
+        else:
+            # Keep individual warnings if less than 3
+            for warning in warnings:
+                if redundant_inclusion_pattern in warning:
+                    grouped_warnings.append(warning)
+            grouped_terms.extend(inclusion_terms)
+
+        # Group redundant exclusions
+        if len(exclusion_warnings) >= 3:  # Group if 3 or more similar warnings
+            # Create a single grouped warning for exclusions
+            terms_list = "', '".join(exclusion_warnings)
+            grouped_warning = f"Multiple redundant category exclusions detected:\n'{terms_list}'\nThese categories were not granted by earlier rules, so excluding them is unnecessary"
+            grouped_warnings.append(grouped_warning)
+
+            # Add a single grouped redundant term entry
+            grouped_terms.append({
+                'term': f"[{len(exclusion_warnings)} redundant exclusions]",
+                'position': -1,
+                'type': 'grouped_exclusion',
+                'reason': f"Multiple redundant category exclusions: {', '.join(exclusion_warnings)}",
+                'grouped_terms': exclusion_terms
+            })
+        else:
+            # Keep individual warnings if less than 3
+            for warning in warnings:
+                if redundant_exclusion_pattern in warning:
+                    grouped_warnings.append(warning)
+            grouped_terms.extend(exclusion_terms)
+
+        return grouped_warnings, suggestions, grouped_terms
+
+    def _analyze_all_categories_pattern(self, parsed_rule, warnings, suggestions, redundant_terms):
+        """
+        Check if all available categories are explicitly granted and suggest +@all optimization.
+
+        Args:
+            parsed_rule: The parsed ACL rule structure
+            warnings: List of warning messages (modified in-place)
+            suggestions: List of suggestions (modified in-place)
+            redundant_terms: List of redundant terms (modified in-place)
+        """
+        try:
+            # Extract granted categories from the rule
+            granted_categories = set()
+            tokens = parsed_rule['raw_rule'].strip().split()
+
+            for token in tokens:
+                if token.startswith('+@') and len(token) > 2:
+                    category = token[2:]  # Remove '+@' prefix
+                    if category in self.data['categories'] and category != 'all':
+                        granted_categories.add(category)
+
+            # Get all available categories (excluding 'all')
+            all_categories = set(self.data['categories'].keys()) - {'all'}
+
+            # Check if all categories are explicitly granted
+            if granted_categories == all_categories and len(granted_categories) >= 10:
+                # All categories are explicitly granted - suggest +@all
+
+                # Find key patterns to preserve
+                key_tokens = [token for token in tokens if token.startswith('~')]
+                key_part = ' '.join(key_tokens) if key_tokens else '~*'
+
+                # Replace existing suggestion with +@all optimization
+                all_suggestion = f"Optimized rule: +@all {key_part}"
+
+                # Clear existing suggestions and add the @all optimization
+                suggestions.clear()
+                suggestions.append(all_suggestion)
+
+                # Clear existing warnings and add the all-categories specific warning
+                warnings.clear()
+                category_list = "', '".join(sorted(granted_categories))
+                all_categories_warning = f"All {len(granted_categories)} categories explicitly granted:\n'{category_list}'\nThis can be simplified to '+@all' for better readability"
+                warnings.append(all_categories_warning)
+
+                # Mark all category tokens as redundant for UI highlighting
+                for token in tokens:
+                    if token.startswith('+@') and token[2:] in granted_categories:
+                        redundant_terms.append({
+                            'term': token,
+                            'position': tokens.index(token),
+                            'type': 'all_categories_optimization',
+                            'reason': f"Part of all-categories pattern, can be simplified to '+@all'"
+                        })
+
+        except Exception as e:
+            # Don't let all-categories analysis errors break the main redundancy analysis
+            pass
+
+    def _analyze_cancelled_all_pattern(self, parsed_rule, warnings, suggestions, redundant_terms):
+        """
+        Check if @all is granted but then all categories are blocked, resulting in empty ACL.
+
+        Args:
+            parsed_rule: The parsed ACL rule structure
+            warnings: List of warning messages (modified in-place)
+            suggestions: List of suggestions (modified in-place)
+            redundant_terms: List of redundant terms (modified in-place)
+        """
+        try:
+            # Extract tokens from the rule
+            tokens = parsed_rule['raw_rule'].strip().split()
+
+            # Look for +@all followed by blocking all other categories
+            has_all_grant = False
+            blocked_categories = set()
+
+            for token in tokens:
+                if token == '+@all':
+                    has_all_grant = True
+                elif token.startswith('-@') and len(token) > 2:
+                    category = token[2:]  # Remove '-@' prefix
+                    if category in self.data['categories'] and category != 'all':
+                        blocked_categories.add(category)
+
+            if not has_all_grant:
+                return  # Not a cancelled @all pattern
+
+            # Get all available categories (excluding 'all')
+            all_categories = set(self.data['categories'].keys()) - {'all'}
+
+            # Check if all categories (except @all) are blocked after @all is granted
+            if blocked_categories == all_categories and len(blocked_categories) >= 10:
+                # This is a cancelled @all pattern - @all granted then all categories blocked = empty ACL
+
+                # Find key patterns to preserve
+                key_tokens = [token for token in tokens if token.startswith('~')]
+                key_part = ' '.join(key_tokens) if key_tokens else '~*'
+
+                # Clear existing warnings and suggestions - this is the primary issue
+                warnings.clear()
+                suggestions.clear()
+
+                # Add specific warning about cancelled @all pattern
+                blocked_list = "', '".join(sorted(blocked_categories))
+                cancelled_warning = f"Cancelled @all pattern detected:\n'+@all' grants all permissions, but then all {len(blocked_categories)} categories are blocked:\n'{blocked_list}'\nThis results in no effective permissions (empty ACL)"
+                warnings.append(cancelled_warning)
+
+                # Suggest empty rule or just key patterns
+                if key_tokens:
+                    suggestions.append(f"Simplified rule: {key_part}")
+                else:
+                    suggestions.append("Simplified rule: (empty rule)")
+
+                # Mark the @all grant and all category blocks as redundant
+                redundant_terms.clear()  # Clear existing redundant terms
+
+                # Mark +@all as leading to cancelled pattern
+                redundant_terms.append({
+                    'term': '+@all',
+                    'position': tokens.index('+@all') if '+@all' in tokens else -1,
+                    'type': 'cancelled_all_grant',
+                    'reason': 'Grants all permissions but immediately cancelled by blocking all categories'
+                })
+
+                # Mark all blocked categories as part of cancelled pattern
+                for token in tokens:
+                    if token.startswith('-@') and token[2:] in blocked_categories:
+                        redundant_terms.append({
+                            'term': token,
+                            'position': tokens.index(token),
+                            'type': 'cancelled_all_block',
+                            'reason': 'Part of cancelled @all pattern - blocks permissions that were just granted'
+                        })
+
+        except Exception as e:
+            # Don't let cancelled @all analysis errors break the main redundancy analysis
+            pass

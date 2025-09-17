@@ -302,6 +302,10 @@ function checkQuickExamplesScroll() {
 document.addEventListener('DOMContentLoaded', () => {
     // Make App accessible globally for cross-module communication
     window.App = App;
+
+    // Expose InteractiveACLBuilder for debugging
+    window.InteractiveACLBuilder = InteractiveACLBuilder;
+
     App.init();
     // Check scroll need after layout settles
     setTimeout(checkQuickExamplesScroll, 100);
@@ -342,6 +346,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Function to manually dismiss redundancy warnings
+window.dismissRedundancyWarnings = () => {
+    const redundancyWarnings = document.getElementById('redundancyWarnings');
+    if (redundancyWarnings) {
+        redundancyWarnings.style.display = 'none';
+
+        // Show a brief confirmation message
+        Utils.showNotification('Redundancy warnings dismissed 👋', 'info');
+
+        console.log('📋 Redundancy warnings manually dismissed by user');
+    }
+};
 
 // Export for potential module usage
 if (typeof module !== 'undefined' && module.exports) {

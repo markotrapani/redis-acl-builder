@@ -51,7 +51,7 @@ docker run -d -p 8000:8000 --name redis-acl-builder redis-acl-builder:v1.7.0-bet
 - **Production Ready**: Removed debug logging and optimized for production deployment
 
 ### 🎯 **Dual Testing Interface**
-- **📋 Command Tester**: Real-time command validation with comprehensive error reporting
+- **🧪 Command Tester**: Real-time command validation with comprehensive error reporting
 - **🔑 Keyspace Tester**: Advanced key pattern testing with full glob support (*, ?, [abc], [a-z], [^abc])
 - **Auto-Dismissible Results**: 5-second auto-dismiss with manual close buttons and smooth animations
 

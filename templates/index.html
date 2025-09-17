@@ -170,7 +170,12 @@
 
                 <!-- Rule Redundancy Warnings -->
                 <div id="redundancyWarnings" class="redundancy-warnings" style="display: none;">
-                    <h4>⚠️ Redundant Terms Detected:</h4>
+                    <div class="redundancy-header">
+                        <h4>⚠️ Redundant Terms Detected:</h4>
+                        <button id="dismissRedundancyBtn" class="dismiss-btn" onclick="dismissRedundancyWarnings()" title="Dismiss redundancy warnings">
+                            ✕
+                        </button>
+                    </div>
                     <div id="warningsList"></div>
                     <div id="suggestionsList"></div>
                 </div>
@@ -309,7 +314,7 @@
         <div class="testing-container">
             <!-- Command Tester -->
             <section class="panel test-section command-test-section">
-                <h2>📋 Command Tester</h2>
+                <h2>🧪 Command Tester</h2>
                 <p class="text-muted mb-2">Test if a specific command is allowed by your current ACL rule:</p>
                 
                 <div id="testResult" role="region" aria-label="Test results" aria-live="polite"></div>

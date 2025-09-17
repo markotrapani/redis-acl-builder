@@ -82,7 +82,6 @@
 
 /* Rule Optimization Warnings */
 .redundancy-warnings {
-  margin-top: 10px;
   padding: var(--spacing-md);
   background: var(--warning-bg);
   border: 2px solid var(--warning-border);
@@ -90,11 +89,43 @@
   animation: slideDown var(--transition-slow);
 }
 
+.redundancy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
 .redundancy-warnings h4 {
-  margin: 0 0 10px 0;
+  margin: 0;
   color: #856404;
   font-size: 14px;
   font-weight: 600;
+  flex-grow: 1;
+}
+
+.dismiss-btn {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  color: #856404;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all var(--transition-fast);
+  margin-left: 10px;
+  flex-shrink: 0;
+}
+
+.dismiss-btn:hover {
+  background: rgba(133, 100, 4, 0.1);
+  transform: scale(1.1);
 }
 
 .warning-item {
@@ -164,6 +195,14 @@
   color: var(--warning-border);
 }
 
+[data-theme="dark"] .dismiss-btn {
+  color: var(--warning-border);
+}
+
+[data-theme="dark"] .dismiss-btn:hover {
+  background: rgba(255, 204, 2, 0.1);
+}
+
 [data-theme="dark"] .warning-item {
   background: #2d1b1e;
   border-color: #842029;
@@ -190,6 +229,14 @@
   
   html:not([data-theme]) .redundancy-warnings h4 {
     color: var(--warning-border);
+  }
+
+  html:not([data-theme]) .dismiss-btn {
+    color: var(--warning-border);
+  }
+
+  html:not([data-theme]) .dismiss-btn:hover {
+    background: rgba(255, 204, 2, 0.1);
   }
   
   html:not([data-theme]) .warning-item {

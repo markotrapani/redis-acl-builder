@@ -23,10 +23,10 @@ const RuleManager = {
         Storage.saveAclRule(rule);
 
         // Update character counter and button states AFTER saving
-        import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
-            EventHandlers.updateCharacterCounterProgrammatically(DOMElements.aclRuleInput);
-            EventHandlers.updateActionButtonStates(rule);
-        });
+        Utils.executeMultipleEventHandlers([
+            { method: 'updateCharacterCounterProgrammatically', args: [DOMElements.aclRuleInput] },
+            { method: 'updateActionButtonStates', args: [rule] }
+        ]);
 
         this.parseRule();
     },
@@ -66,9 +66,7 @@ const RuleManager = {
             DOMElements.aclRuleInput.value = rule;
             
             // Update character counter
-            import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
-                EventHandlers.updateCharacterCounterProgrammatically(DOMElements.aclRuleInput);
-            });
+            Utils.executeEventHandler('updateCharacterCounterProgrammatically', DOMElements.aclRuleInput);
         }
         
         // Validate ACL rule syntax first
@@ -205,17 +203,15 @@ const RuleManager = {
                         ruleSpan.title = 'Click to apply this simplified rule';
                         ruleSpan.onclick = () => {
                             const simplifiedRule = ruleSpan.textContent.replace(/'/g, '');
-                            // Handle special case of "(empty rule)" - clear the text area completely
-                            if (simplifiedRule === '(empty rule)') {
+                            // Handle special case of "(empty rule)" or empty string - clear the text area completely
+                            if (simplifiedRule === '(empty rule)' || simplifiedRule === '' || simplifiedRule === ' ') {
                                 DOMElements.aclRuleInput.value = '';
                             } else {
                                 DOMElements.aclRuleInput.value = simplifiedRule;
                             }
 
                             // Update character counter
-                            import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
-                                EventHandlers.updateCharacterCounterProgrammatically(DOMElements.aclRuleInput);
-                            });
+                            Utils.executeEventHandler('updateCharacterCounterProgrammatically', DOMElements.aclRuleInput);
 
                             this.parseRule(); // Re-parse with simplified rule
 

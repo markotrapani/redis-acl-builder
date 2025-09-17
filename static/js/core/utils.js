@@ -456,6 +456,41 @@ Do you want to continue and automatically clean the rule?`;
                 dismissResult();
             }, autoDismissMs);
         }
+    },
+
+    /**
+     * Execute EventHandlers method with dynamic import (shared utility)
+     * Eliminates repeated dynamic import pattern across modules
+     */
+    async executeEventHandler(methodName, ...args) {
+        try {
+            const { default: EventHandlers } = await import('../handlers/event-handlers.js');
+            if (EventHandlers[methodName]) {
+                return EventHandlers[methodName](...args);
+            } else {
+                console.error(`EventHandler method ${methodName} not found`);
+            }
+        } catch (error) {
+            console.error(`Failed to execute EventHandler ${methodName}:`, error);
+        }
+    },
+
+    /**
+     * Execute multiple EventHandler methods in sequence (shared utility)
+     */
+    async executeMultipleEventHandlers(calls) {
+        try {
+            const { default: EventHandlers } = await import('../handlers/event-handlers.js');
+            for (const { method, args } of calls) {
+                if (EventHandlers[method]) {
+                    EventHandlers[method](...(args || []));
+                } else {
+                    console.error(`EventHandler method ${method} not found`);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to execute multiple EventHandlers:', error);
+        }
     }
 };
 
