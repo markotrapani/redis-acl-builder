@@ -271,7 +271,7 @@ class TestFlaskApp(unittest.TestCase):
         """Test home page loads."""
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Redis ACL Builder', response.data)
+        self.assertIn(b'Redis Enterprise ACL Builder', response.data)
     
     def test_health_endpoint(self):
         """Test health check endpoint."""
@@ -498,20 +498,24 @@ class TestUserInterface(unittest.TestCase):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         html_content = response.data.decode('utf-8')
-        
-        # Check for Copy and Clear buttons
-        self.assertIn('📋 Copy Rule', html_content)
-        self.assertIn('🗑️ Clear Rule', html_content)
+
+        # Check for Copy and Clear button IDs and emojis
         self.assertIn('id="copyRuleBtn"', html_content)
         self.assertIn('id="clearRuleBtn"', html_content)
-        
-        # Check buttons are in correct position (after textarea, before Quick Examples)
-        copy_pos = html_content.find('📋 Copy Rule')
-        examples_pos = html_content.find('Quick Examples:')
+        self.assertIn('📋', html_content)  # Copy emoji
+        self.assertIn('💣', html_content)  # Clear emoji
+
+        # Check buttons are in correct position (in version-info section, before textarea)
+        copy_pos = html_content.find('id="copyRuleBtn"')
+        examples_pos = html_content.find('Quick Examples')
         textarea_pos = html_content.find('id="aclRule"')
-        
-        self.assertTrue(textarea_pos < copy_pos < examples_pos, 
-                       "Copy button should be between textarea and Quick Examples")
+        version_info_pos = html_content.find('class="version-info"')
+
+        # Verify buttons are positioned correctly relative to other elements
+        self.assertTrue(version_info_pos < copy_pos < textarea_pos,
+                       "Copy button should be in version-info section before textarea")
+        self.assertTrue(textarea_pos < examples_pos,
+                       "Textarea should be before Quick Examples")
     
     def test_version_toggle_design_consistency(self):
         """Test that version toggle uses final design without A/B testing artifacts."""

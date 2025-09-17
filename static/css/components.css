@@ -1078,6 +1078,7 @@ button.test-button[disabled] {
   display: none; /* Hide default loading spinner */
 }
 
+/* Initial loading covers for page load - CSS pseudo-elements */
 .command-categories-container.loading::before {
   content: '';
   position: absolute;
@@ -1085,66 +1086,55 @@ button.test-button[disabled] {
   left: 0;
   right: 0;
   bottom: 0;
-  background: #2B2020; /* Dark red for blocked commands */
-  transition: opacity 0.15s ease-out;
   z-index: 100;
   pointer-events: none;
+  transition: opacity 0.15s ease-out;
 }
 
-/* Dark green cover for granted commands panel */
+/* Light mode initial loading covers */
+.command-categories-container.loading::before {
+  background: #fff3e0; /* Light orange for blocked */
+}
+
 .granted-commands-panel .command-categories-container.loading::before {
-  background: #1F2B1F; /* Dark green */
+  background: #f1f8e9; /* Light green for granted */
 }
 
-/* Dark red cover for blocked commands panel */
 .blocked-commands-panel .command-categories-container.loading::before {
-  background: #2B2020; /* Dark red */
+  background: #fff3e0; /* Light orange for blocked */
+}
+
+/* Dark mode initial loading covers */
+[data-theme="dark"] .command-categories-container.loading::before {
+  background: #2b1e1e; /* Dark red for blocked */
+}
+
+[data-theme="dark"] .granted-commands-panel .command-categories-container.loading::before {
+  background: #1e2b1e; /* Dark green for granted */
+}
+
+[data-theme="dark"] .blocked-commands-panel .command-categories-container.loading::before {
+  background: #2b1e1e; /* Dark red for blocked */
+}
+
+/* System preference fallback for initial loading covers */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .command-categories-container.loading::before {
+    background: #2b1e1e; /* Dark red for blocked */
+  }
+
+  :root:not([data-theme]) .granted-commands-panel .command-categories-container.loading::before {
+    background: #1e2b1e; /* Dark green for granted */
+  }
+
+  :root:not([data-theme]) .blocked-commands-panel .command-categories-container.loading::before {
+    background: #2b1e1e; /* Dark red for blocked */
+  }
 }
 
 /* Fade out animation when removing loading class */
 .command-categories-container.loading-fadeout::before {
   opacity: 0;
-}
-
-/* Light mode loading covers (explicit) */
-[data-theme="light"] .command-categories-container.loading::before {
-  background: #f8d7da; /* Light red for blocked commands */
-}
-
-[data-theme="light"] .granted-commands-panel .command-categories-container.loading::before {
-  background: #d4edda; /* Light green for granted commands */
-}
-
-[data-theme="light"] .blocked-commands-panel .command-categories-container.loading::before {
-  background: #f8d7da; /* Light red for blocked commands */
-}
-
-/* Dark mode loading covers (explicit - keep existing dark colors) */
-[data-theme="dark"] .command-categories-container.loading::before {
-  background: #2B2020; /* Dark red for blocked commands */
-}
-
-[data-theme="dark"] .granted-commands-panel .command-categories-container.loading::before {
-  background: #1F2B1F; /* Dark green for granted commands */
-}
-
-[data-theme="dark"] .blocked-commands-panel .command-categories-container.loading::before {
-  background: #2B2020; /* Dark red for blocked commands */
-}
-
-/* System preference fallback for loading covers */
-@media (prefers-color-scheme: dark) {
-  html:not([data-theme]) .command-categories-container.loading::before {
-    background: #2B2020; /* Dark red for blocked commands */
-  }
-
-  html:not([data-theme]) .granted-commands-panel .command-categories-container.loading::before {
-    background: #1F2B1F; /* Dark green for granted commands */
-  }
-
-  html:not([data-theme]) .blocked-commands-panel .command-categories-container.loading::before {
-    background: #2B2020; /* Dark red for blocked commands */
-  }
 }
 
 
@@ -1527,6 +1517,146 @@ button.test-button[disabled] {
 /* Ensure smooth appearance of toggle buttons */
 .search-mode-toggle {
   transition: all var(--transition-normal);
+}
+
+/* Search Link Toggle Buttons */
+.search-link-toggle {
+  background: var(--gray-200);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  height: 26px;
+  width: 26px;
+  margin-left: var(--spacing-xs);
+  padding: 0;
+  transition: all var(--transition-normal);
+  user-select: none;
+  vertical-align: top;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.search-link-toggle:hover {
+  background: var(--gray-300);
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.search-link-toggle:active {
+  background: var(--gray-400);
+  transform: translateY(0);
+}
+
+/* Unlinked state */
+.search-link-toggle.unlinked {
+  background: linear-gradient(135deg, #fff3e0, #ffcc80);
+  border-color: #e65100;
+  color: #e65100;
+  font-weight: bold;
+}
+
+.search-link-toggle.unlinked:hover {
+  background: linear-gradient(135deg, #ffcc80, #ffb74d);
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+/* Linked state */
+.search-link-toggle.linked {
+  background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+  border-color: #2e7d32;
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+.search-link-toggle.linked:hover {
+  background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* Light mode search link toggle */
+[data-theme="light"] .search-link-toggle {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  color: #495057;
+}
+
+[data-theme="light"] .search-link-toggle:hover {
+  background: #e9ecef;
+  border-color: var(--primary-color);
+}
+
+[data-theme="light"] .search-link-toggle.unlinked {
+  background: linear-gradient(135deg, #fff3e0, #ffcc80);
+  border-color: #e65100;
+  color: #e65100;
+  font-weight: bold;
+}
+
+[data-theme="light"] .search-link-toggle.linked {
+  background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+  border-color: #2e7d32;
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+/* Dark mode search link toggle */
+[data-theme="dark"] .search-link-toggle {
+  background: var(--gray-100);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .search-link-toggle:hover {
+  background: var(--gray-200);
+  border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .search-link-toggle.unlinked {
+  background: linear-gradient(135deg, #c62828, #b71c1c);
+  border-color: #ff5722;
+  color: #ffcdd2;
+  font-weight: bold;
+}
+
+[data-theme="dark"] .search-link-toggle.linked {
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+  border-color: #66bb6a;
+  color: #c8e6c9;
+  font-weight: bold;
+}
+
+/* System preference fallback for search link toggle */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .search-link-toggle {
+    background: var(--gray-100);
+    border-color: var(--border);
+    color: var(--text-primary);
+  }
+
+  html:not([data-theme]) .search-link-toggle:hover {
+    background: var(--gray-200);
+    border-color: var(--primary-color);
+  }
+
+  html:not([data-theme]) .search-link-toggle.unlinked {
+    background: linear-gradient(135deg, #c62828, #b71c1c);
+    border-color: #ff5722;
+    color: #ffcdd2;
+    font-weight: bold;
+  }
+
+  html:not([data-theme]) .search-link-toggle.linked {
+    background: linear-gradient(135deg, #2e7d32, #1b5e20);
+    border-color: #66bb6a;
+    color: #c8e6c9;
+    font-weight: bold;
+  }
 }
 
 /* Help Icon Tooltips */

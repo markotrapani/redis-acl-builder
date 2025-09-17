@@ -12,6 +12,9 @@ const SearchManager = {
         granted: false   // Default to fuzzy matching for granted search
     },
 
+    // State for search linking (synchronized search bars)
+    searchLinked: false,
+
     /**
      * Initialize search functionality
      */
@@ -32,7 +35,7 @@ const SearchManager = {
         const blockedSearch = document.getElementById('blockedSearch');
         if (blockedSearch) {
             blockedSearch.addEventListener('input',
-                Utils.debounce((e) => this.filterAll('blocked', e.target.value), 150)
+                Utils.debounce((e) => this.handleSearchInput('blocked', e.target.value), 150)
             );
             blockedSearch.addEventListener('keydown', (e) => this.handleKeydown(e, 'blockedSearch'));
         }
@@ -41,19 +44,22 @@ const SearchManager = {
         const grantedSearch = document.getElementById('grantedSearch');
         if (grantedSearch) {
             grantedSearch.addEventListener('input',
-                Utils.debounce((e) => this.filterAll('granted', e.target.value), 150)
+                Utils.debounce((e) => this.handleSearchInput('granted', e.target.value), 150)
             );
             grantedSearch.addEventListener('keydown', (e) => this.handleKeydown(e, 'grantedSearch'));
         }
     },
 
     /**
-     * Setup toggle buttons for search mode switching
+     * Setup toggle buttons for search mode switching and link toggles
      */
     setupToggleButtons() {
         // Find existing toggle buttons in HTML and set up their event handlers
         this.setupExistingToggleButton('blocked');
         this.setupExistingToggleButton('granted');
+
+        // Setup search link toggle buttons
+        this.setupSearchLinkToggles();
     },
 
     /**
@@ -119,6 +125,81 @@ const SearchManager = {
     },
 
     /**
+     * Setup search link toggle buttons for synchronizing search bars
+     */
+    setupSearchLinkToggles() {
+        const blockedLinkButton = document.querySelector('[data-search-type="blocked"].search-link-toggle');
+        const grantedLinkButton = document.querySelector('[data-search-type="granted"].search-link-toggle');
+
+        if (blockedLinkButton) {
+            blockedLinkButton.addEventListener('click', () => this.toggleSearchLink('blocked'));
+        }
+
+        if (grantedLinkButton) {
+            grantedLinkButton.addEventListener('click', () => this.toggleSearchLink('granted'));
+        }
+
+        // Update initial appearance
+        this.updateSearchLinkAppearance();
+    },
+
+    /**
+     * Toggle search linking on/off
+     */
+    toggleSearchLink(clickedSearchType) {
+        this.searchLinked = !this.searchLinked;
+
+        // If linking is being enabled, sync the search inputs
+        if (this.searchLinked) {
+            this.syncSearchInputs(clickedSearchType);
+        }
+
+        this.updateSearchLinkAppearance();
+    },
+
+    /**
+     * Update the appearance of search link toggle buttons
+     */
+    updateSearchLinkAppearance() {
+        const linkButtons = document.querySelectorAll('.search-link-toggle');
+
+        linkButtons.forEach(button => {
+            if (this.searchLinked) {
+                button.classList.remove('unlinked');
+                button.classList.add('linked');
+                button.textContent = '🔗';
+                button.title = 'Search bars are linked - Click to unlink searches';
+            } else {
+                button.classList.remove('linked');
+                button.classList.add('unlinked');
+                button.textContent = '⛓️‍💥';
+                button.title = 'Search bars are unlinked - Click to link searches';
+            }
+        });
+    },
+
+    /**
+     * Sync search inputs when linking is enabled
+     */
+    syncSearchInputs(clickedSearchType) {
+        const blockedSearch = document.getElementById('blockedSearch');
+        const grantedSearch = document.getElementById('grantedSearch');
+
+        if (blockedSearch && grantedSearch && clickedSearchType) {
+            // Use the search bar where the link button was clicked as the source
+            const sourceInput = clickedSearchType === 'blocked' ? blockedSearch : grantedSearch;
+            const targetInput = clickedSearchType === 'blocked' ? grantedSearch : blockedSearch;
+
+            // Copy the source input's value to the target
+            targetInput.value = sourceInput.value;
+
+            // Trigger search on the target input to apply filtering
+            const event = new Event('input', { bubbles: true });
+            targetInput.dispatchEvent(event);
+        }
+    },
+
+    /**
      * Update toggle button appearance based on current mode for specific search type
      */
     updateToggleButtonAppearance(button, searchType) {
@@ -166,12 +247,42 @@ const SearchManager = {
     },
 
     /**
+     * Handle search input with optional synchronization
+     */
+    handleSearchInput(searchType, searchValue) {
+        // Always filter the current search type
+        this.filterAll(searchType, searchValue);
+
+        // If search bars are linked, sync to the other input
+        if (this.searchLinked) {
+            const otherType = searchType === 'blocked' ? 'granted' : 'blocked';
+            const otherInputId = otherType === 'blocked' ? 'blockedSearch' : 'grantedSearch';
+            const otherInput = document.getElementById(otherInputId);
+
+            if (otherInput && otherInput.value !== searchValue) {
+                // Temporarily disable event to avoid infinite loop
+                const oldValue = otherInput.value;
+                otherInput.value = searchValue;
+
+                // Apply filtering to the other search type
+                this.filterAll(otherType, searchValue);
+            }
+        }
+    },
+
+    /**
      * Handle keyboard shortcuts for search inputs
      */
     handleKeydown(event, inputId) {
         if (event.key === 'Escape') {
             this.clearSearch(inputId);
             event.target.blur();
+
+            // If search bars are linked, also clear the other search bar
+            if (this.searchLinked) {
+                const otherInputId = inputId === 'blockedSearch' ? 'grantedSearch' : 'blockedSearch';
+                this.clearSearch(otherInputId);
+            }
         }
     },
 
