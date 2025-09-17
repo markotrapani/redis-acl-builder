@@ -235,7 +235,9 @@
                 <h3>💡 Pro Tips</h3>
                 <ul>
                     <li>Start with restrictive rules and gradually add permissions as needed</li>
-                    <li>Use the redundancy analysis to optimize complex rules</li>
+                    <li>Use the auto-simplification engine to optimize complex rules automatically</li>
+                    <li>Link search bars (🔗) to synchronize filtering across blocked and granted columns</li>
+                    <li>Toggle between fuzzy (≈) and exact (=) search modes for precise filtering</li>
                     <li>Test with real application commands using the Command Tester</li>
                     <li>Validate key patterns with the Keyspace Tester using glob patterns (*, ?, [abc], [a-z])</li>
                     <li>Use dismissible test results with auto-timeout for efficient testing workflow</li>
@@ -412,9 +414,10 @@ docker run -d -p 7380:7380 markotrapani608/redis-acl-builder:latest
                 
                 <h3>📦 Available Tags</h3>
                 <ul>
-                    <li><strong>latest:</strong> <code>markotrapani608/redis-acl-builder:latest</code> - Always the most recent stable release (currently v1.9.0-beta)</li>
-                    <li><strong>v1.9.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.9.0-beta</code> - Current beta version with advanced search system and enhanced tooltips</li>
-                    <li><strong>v1.8.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.8.0-beta</code> - Previous version with enhanced loading animations and critical bug fixes</li>
+                    <li><strong>latest:</strong> <code>markotrapani608/redis-acl-builder:latest</code> - Always the most recent stable release (currently v1.11.0-beta)</li>
+                    <li><strong>v1.11.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.11.0-beta</code> - Current beta version with advanced auto-simplification engine and smart handler system</li>
+                    <li><strong>v1.10.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.10.0-beta</code> - Enhanced interactive ACL builder with comprehensive category logic improvements</li>
+                    <li><strong>v1.9.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.9.0-beta</code> - Advanced search system with independent fuzzy/exact modes and multi-column tooltips</li>
                 </ul>
                 
                 <h3>🛠️ Container Management</h3>
@@ -497,7 +500,7 @@ docker rm redis-acl-builder
 
                     <div class="feature-card">
                         <h4>🔎 Advanced Search System</h4>
-                        <p>Independent fuzzy/exact search modes for blocked and granted columns with enhanced toggle buttons for precise filtering control.</p>
+                        <p>Independent fuzzy/exact search modes for blocked and granted columns with synchronized linking capabilities and enhanced toggle buttons for precise filtering control.</p>
                     </div>
 
                     <div class="feature-card">
@@ -514,6 +517,16 @@ docker rm redis-acl-builder
                         <h4>🎯 Color-Coded Interface</h4>
                         <p>Green/red tooltip titles and expandable links provide instant visual feedback based on granted/blocked state.</p>
                     </div>
+
+                    <div class="feature-card">
+                        <h4>🔗 Synchronized Search Linking</h4>
+                        <p>Link search bars to mirror both text content and fuzzy/exact modes for unified filtering across blocked and granted columns.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>🤖 Auto-Simplification Engine</h4>
+                        <p>Advanced detection and optimization of ACL patterns including cancelled @all, all-categories, and individual category optimizations with intelligent rule simplification.</p>
+                    </div>
                 </div>
             </section>
             
@@ -524,9 +537,10 @@ docker rm redis-acl-builder
                 <h3>🗄️ Command Database</h3>
                 <ul>
                     <li><strong>Redis 7:</strong> 311 commands across 21 categories</li>
-                    <li><strong>Redis 8:</strong> 446 commands across 29 categories</li>
-                    <li><strong>Module Support:</strong> RediSearch, RedisJSON, TimeSeries, Bloom, Cuckoo, CMS, TopK, T-Digest</li>
+                    <li><strong>Redis 8:</strong> 446 commands across 29 categories including all module commands</li>
+                    <li><strong>Module Support:</strong> RediSearch (38 commands), RedisJSON (25), TimeSeries (17), Bloom (11), Cuckoo (14), CMS (6), TopK (7), T-Digest (14)</li>
                     <li><strong>Real-time Updates:</strong> Command permissions calculated instantly as you modify rules</li>
+                    <li><strong>Search & Filter:</strong> Advanced search with fuzzy/exact modes and synchronized linking across columns</li>
                 </ul>
                 
                 <h3>🔌 API Endpoints</h3>
@@ -545,10 +559,11 @@ GET /health                  # Application health check
                 <ul>
                     <li><strong>Frontend:</strong> Modular ES6 JavaScript (8 modules) + Optimized CSS (5 modules)</li>
                     <li><strong>Backend:</strong> Flask with comprehensive Redis ACL parsing engine</li>
-                    <li><strong>Testing:</strong> 29 automated tests with 82% code coverage</li>
+                    <li><strong>Testing:</strong> 35 automated tests with 82% code coverage (Core logic: 95-100%, API: 71%)</li>
                     <li><strong>Theming:</strong> Explicit light/dark mode support with CSS custom properties</li>
                     <li><strong>Performance:</strong> Debounced rendering, optimized command previews, smooth transitions</li>
-                    <li><strong>UX:</strong> Dismissible results, smart button states, auto-expanding textareas</li>
+                    <li><strong>UX:</strong> Dismissible results, smart button states, auto-expanding textareas, synchronized search linking</li>
+                    <li><strong>Auto-Simplification:</strong> Advanced rule optimization with comprehensive pattern detection</li>
                 </ul>
             </section>
 

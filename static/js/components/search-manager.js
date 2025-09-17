@@ -189,9 +189,20 @@ const SearchManager = {
             // Use the search bar where the link button was clicked as the source
             const sourceInput = clickedSearchType === 'blocked' ? blockedSearch : grantedSearch;
             const targetInput = clickedSearchType === 'blocked' ? grantedSearch : blockedSearch;
+            const sourceType = clickedSearchType;
+            const targetType = clickedSearchType === 'blocked' ? 'granted' : 'blocked';
 
             // Copy the source input's value to the target
             targetInput.value = sourceInput.value;
+
+            // Sync the search mode (fuzzy vs exact) from source to target
+            this.searchModes[targetType] = this.searchModes[sourceType];
+
+            // Update the target toggle button appearance to match the source
+            const targetToggleButton = document.querySelector(`[data-search-type="${targetType}"].search-mode-toggle`);
+            if (targetToggleButton) {
+                this.updateToggleButtonAppearance(targetToggleButton, targetType);
+            }
 
             // Trigger search on the target input to apply filtering
             const event = new Event('input', { bubbles: true });
@@ -223,6 +234,21 @@ const SearchManager = {
      */
     toggleSearchMode(searchType) {
         this.searchModes[searchType] = !this.searchModes[searchType];
+
+        // If search bars are linked, sync the mode to the other search type
+        if (this.searchLinked) {
+            const otherType = searchType === 'blocked' ? 'granted' : 'blocked';
+            this.searchModes[otherType] = this.searchModes[searchType];
+
+            // Update the other toggle button appearance to match
+            const otherToggleButton = document.querySelector(`[data-search-type="${otherType}"].search-mode-toggle`);
+            if (otherToggleButton) {
+                this.updateToggleButtonAppearance(otherToggleButton, otherType);
+            }
+
+            // Refresh the other search to apply the new mode
+            this.refreshSearch(otherType);
+        }
     },
 
     /**
@@ -260,9 +286,17 @@ const SearchManager = {
             const otherInput = document.getElementById(otherInputId);
 
             if (otherInput && otherInput.value !== searchValue) {
-                // Temporarily disable event to avoid infinite loop
-                const oldValue = otherInput.value;
+                // Update the other input's value
                 otherInput.value = searchValue;
+
+                // Sync the search mode from the current type to the other type
+                this.searchModes[otherType] = this.searchModes[searchType];
+
+                // Update the other toggle button appearance to match
+                const otherToggleButton = document.querySelector(`[data-search-type="${otherType}"].search-mode-toggle`);
+                if (otherToggleButton) {
+                    this.updateToggleButtonAppearance(otherToggleButton, otherType);
+                }
 
                 // Apply filtering to the other search type
                 this.filterAll(otherType, searchValue);
