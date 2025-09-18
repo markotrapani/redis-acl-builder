@@ -1,0 +1,300 @@
+/**
+ * Drag and Drop Panel Reordering Styles
+ * Visual feedback and animations for panel reordering system
+ */
+
+/* Panel Header Layout for Drag Handles */
+.panel h2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Drag Handle Styling */
+.panel-drag-handle {
+    display: inline-block;
+    cursor: grab;
+    color: var(--text-muted);
+    font-size: 22px;
+    line-height: 1;
+    margin-left: auto;
+    padding: 6px 8px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    user-select: none;
+    vertical-align: middle;
+    font-family: monospace;
+    font-weight: bold;
+    background: var(--background-hover);
+    border: 1px solid var(--border);
+    text-align: center;
+}
+
+.panel-drag-handle:hover {
+    color: var(--text);
+    background: var(--primary-bg);
+    border-color: var(--primary);
+    cursor: grab;
+}
+
+/* Simple colored highlight strips for main panels */
+.acl-config-panel,
+.blocked-commands-panel,
+.granted-commands-panel {
+    position: relative;
+    border-left: 4px solid var(--info-color);
+    transition: all 0.3s ease;
+    /* Use CSS variable to control opacity for flash prevention */
+    opacity: var(--panels-opacity, 1);
+}
+
+/* Ensure container can handle panel transforms during drag */
+.three-column-layout {
+    overflow: visible;
+    position: relative;
+}
+
+.blocked-commands-panel {
+    border-left-color: var(--error-color);
+}
+
+.granted-commands-panel {
+    border-left-color: var(--success-color);
+}
+
+/* Panel being actively dragged */
+.panel-dragging {
+    transform: translateX(12px) translateY(-12px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+    z-index: 1000;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+/* Panel that will make room for the dragged panel */
+.panel-make-room-left {
+    transform: translateX(-20px);
+    transition: transform 0.3s ease;
+}
+
+.panel-make-room-right {
+    transform: translateX(20px);
+    transition: transform 0.3s ease;
+}
+
+/* Panel moving to its actual destination position during drag */
+.panel-preview-position {
+    transition: transform 0.15s ease-out;
+}
+
+/* Fallback for browsers that don't support :has() */
+@supports not selector(:has(*)) {
+    .panel-drag-handle:hover {
+        /* Handle will still have hover effects, but panel won't slide in older browsers */
+    }
+}
+
+.panel-drag-handle:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+}
+
+/* Panel Dragging States */
+.panel-dragging {
+    opacity: 0.7;
+    transform: scale(0.98);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 2px dashed var(--primary);
+    transition: all 0.2s ease;
+    z-index: 1000;
+    position: relative;
+}
+
+/* Drop Zone Styling */
+.panel-drop-zone {
+    border: 2px solid var(--primary);
+    background: var(--primary-bg);
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+    box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.3);
+}
+
+/* Swap Animation */
+.panel-swap-animation {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Global drag state */
+.panel-drag-active {
+    cursor: grabbing;
+}
+
+.panel-drag-active .panel:not(.panel-dragging) {
+    transition: all 0.2s ease;
+}
+
+.panel-drag-active .panel:not(.panel-dragging):hover {
+    transform: scale(1.01);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Theme-specific styling */
+
+/* Light mode */
+[data-theme="light"] .panel-drag-handle {
+    color: var(--gray-600);
+}
+
+[data-theme="light"] .panel-drag-handle:hover {
+    color: var(--gray-800);
+    background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .panel-dragging {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border-color: var(--blue-500);
+}
+
+[data-theme="light"] .panel-drop-zone {
+    border-color: var(--blue-500);
+    background: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="light"] .panel:has(.panel-drag-handle:hover)::after {
+    box-shadow:
+        -4px 0 12px rgba(0, 0, 0, 0.15),
+        0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+/* Dark mode */
+[data-theme="dark"] .panel-drag-handle {
+    color: var(--gray-400);
+}
+
+[data-theme="dark"] .panel-drag-handle:hover {
+    color: var(--gray-200);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .panel-dragging {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border-color: var(--blue-400);
+}
+
+[data-theme="dark"] .panel-drop-zone {
+    border-color: var(--blue-400);
+    background: rgba(96, 165, 250, 0.15);
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+}
+
+[data-theme="dark"] .panel:has(.panel-drag-handle:hover)::after {
+    box-shadow:
+        -4px 0 12px rgba(0, 0, 0, 0.5),
+        0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* System preference fallbacks */
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme]) .panel-drag-handle {
+        color: #6b7280;
+    }
+
+    :root:not([data-theme]) .panel-drag-handle:hover {
+        color: #1f2937;
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    :root:not([data-theme]) .panel-dragging {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        border-color: #3b82f6;
+    }
+
+    :root:not([data-theme]) .panel-drop-zone {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+    }
+
+    :root:not([data-theme]) .panel:has(.panel-drag-handle:hover)::after {
+        box-shadow:
+            -4px 0 12px rgba(0, 0, 0, 0.15),
+            0 8px 20px rgba(0, 0, 0, 0.18);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) .panel-drag-handle {
+        color: #9ca3af;
+    }
+
+    :root:not([data-theme]) .panel-drag-handle:hover {
+        color: #e5e7eb;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    :root:not([data-theme]) .panel-dragging {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        border-color: #60a5fa;
+    }
+
+    :root:not([data-theme]) .panel-drop-zone {
+        border-color: #60a5fa;
+        background: rgba(96, 165, 250, 0.15);
+        box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+    }
+
+    :root:not([data-theme]) .panel:has(.panel-drag-handle:hover)::after {
+        box-shadow:
+            -4px 0 12px rgba(0, 0, 0, 0.5),
+            0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .panel-drag-handle {
+        font-size: 16px;
+        margin-right: 6px;
+        padding: 3px;
+    }
+
+    .panel-dragging {
+        transform: scale(0.95);
+    }
+
+    .panel-drop-zone {
+        transform: scale(1.01);
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    .panel-drag-handle,
+    .panel-dragging,
+    .panel-drop-zone,
+    .panel-swap-animation,
+    .panel-drag-active .panel {
+        transition: none;
+    }
+}
+
+/* Focus states for keyboard accessibility */
+.panel-drag-handle:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .panel-drag-handle {
+        font-size: 28px;
+        padding: 8px 12px;
+        margin-left: 8px;
+    }
+
+    .panel-drag-handle:hover {
+        transform: none;
+    }
+}
