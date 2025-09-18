@@ -59,17 +59,35 @@ body.resizing-both-left {
     cursor: sw-resize !important;
 }
 
-/* Visual feedback during resize */
+/* Enhanced visual feedback during resize - disable all transitions for synchronized movement */
 body.resizing .container {
-    transition: none; /* Disable transitions during resize for smooth feedback */
+    transition: none !important; /* Disable transitions during resize for smooth feedback */
 }
 
 body.resizing .three-column-layout {
-    transition: none;
+    transition: none !important;
 }
 
 body.resizing .panel {
-    transition: none;
+    transition: none !important;
+}
+
+/* Disable transitions on all interactive elements during resize */
+body.resizing .command-button,
+body.resizing .category-button,
+body.resizing .test-button,
+body.resizing .panel-search-container,
+body.resizing .command-categories-container,
+body.resizing .category-buttons,
+body.resizing .command-buttons {
+    transition: none !important;
+    transform: none !important; /* Prevent any transform-based animations */
+}
+
+/* Force immediate text and layout reflow during resize */
+body.resizing * {
+    transition-property: none !important;
+    animation-duration: 0s !important;
 }
 
 /* Smooth transitions when not resizing */
@@ -170,68 +188,4 @@ body.resizing .panel {
     max-width: none;
 }
 
-/* Resize overlay to prevent visual artifacts during button reflow */
-.resize-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--loading-overlay-bg, rgba(255, 255, 255, 0.9));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    backdrop-filter: blur(2px);
-    border-radius: var(--radius-lg);
-}
-
-.resize-overlay-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-md);
-    color: var(--text-primary);
-}
-
-.resize-spinner {
-    width: 32px;
-    height: 32px;
-    border: 3px solid var(--gray-300);
-    border-top: 3px solid var(--primary-color);
-    border-radius: 50%;
-    animation: resize-spin 1s linear infinite;
-}
-
-.resize-text {
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: var(--text-secondary);
-}
-
-@keyframes resize-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Dark mode overlay styling */
-[data-theme="dark"] .resize-overlay {
-    background: rgba(31, 41, 55, 0.9);
-}
-
-[data-theme="dark"] .resize-spinner {
-    border-color: var(--gray-600);
-    border-top-color: var(--primary-color);
-}
-
-/* System preference fallback */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme]) .resize-overlay {
-        background: rgba(31, 41, 55, 0.9);
-    }
-
-    :root:not([data-theme]) .resize-spinner {
-        border-color: var(--gray-600);
-        border-top-color: var(--primary-color);
-    }
-}
+/* Enhanced content synchronization during resize */

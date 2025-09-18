@@ -198,8 +198,8 @@ const ResizableContainer = {
             document.body.style.cursor = `url("data:image/svg+xml,%3csvg width='32' height='32' xmlns='http://www.w3.org/2000/svg'%3e%3ctext x='16' y='24' text-anchor='middle' font-size='28' font-weight='bold' fill='${fillColor}' stroke='${strokeColor}' stroke-width='1'%3e⤢%3c/text%3e%3c/svg%3e") 16 16, sw-resize`; // Bottom-left corner
         }
 
-        // Show resize overlay to prevent visual artifacts during button reflow
-        this.showResizeOverlay();
+        // Force immediate layout recalculation for smooth real-time feedback
+        this.elements.container.offsetHeight;
     },
 
     /**
@@ -233,8 +233,8 @@ const ResizableContainer = {
         this.state.width = newWidth;
         this.state.height = newHeight;
 
-        // Apply dimensions immediately for smooth feedback
-        this.applyDimensions();
+        // Apply dimensions with immediate content synchronization for smooth feedback
+        this.applyDimensionsImmediate();
     },
 
     /**
@@ -250,8 +250,10 @@ const ResizableContainer = {
         document.body.classList.remove('resizing', 'resizing-both', 'resizing-both-left');
         document.body.style.cursor = '';
 
-        // Hide resize overlay after a short delay to allow transitions to complete
-        this.hideResizeOverlay();
+        // Force final layout recalculation and re-enable transitions
+        requestAnimationFrame(() => {
+            this.elements.container.offsetHeight;
+        });
 
         // Save final dimensions
         this.saveDimensions();
@@ -342,41 +344,28 @@ const ResizableContainer = {
     },
 
     /**
-     * Show resize overlay to prevent visual artifacts during resize
+     * Enhanced dimensions application with immediate content synchronization
      */
-    showResizeOverlay() {
-        // Create overlay if it doesn't exist
-        if (!this.resizeOverlay) {
-            this.resizeOverlay = document.createElement('div');
-            this.resizeOverlay.className = 'resize-overlay';
-            this.resizeOverlay.innerHTML = `
-                <div class="resize-overlay-content">
-                    <div class="resize-spinner"></div>
-                    <div class="resize-text">Resizing...</div>
-                </div>
-            `;
-        }
+    applyDimensionsImmediate() {
+        if (!this.elements.container || !this.elements.threeColumnLayout) return;
 
-        // Apply overlay to three-column layout to prevent button reflow artifacts
-        if (this.elements.threeColumnLayout) {
-            this.elements.threeColumnLayout.appendChild(this.resizeOverlay);
-            // Force immediate display
-            this.resizeOverlay.offsetHeight;
-        }
-    },
+        // Apply dimensions immediately
+        this.applyDimensions();
 
-    /**
-     * Hide resize overlay after transitions complete
-     */
-    hideResizeOverlay() {
-        if (this.resizeOverlay && this.resizeOverlay.parentNode) {
-            // Wait for backdrop and panel transitions to complete (max 0.2s)
-            setTimeout(() => {
-                if (this.resizeOverlay && this.resizeOverlay.parentNode) {
-                    this.resizeOverlay.parentNode.removeChild(this.resizeOverlay);
-                }
-            }, 250); // Slightly longer than CSS transition (0.2s) to ensure completion
-        }
+        // Force immediate layout recalculation for all panel content
+        const panels = this.elements.threeColumnLayout.querySelectorAll('.panel');
+        panels.forEach(panel => {
+            // Force reflow of panel content including buttons and text
+            panel.offsetHeight;
+
+            // Recalculate any content that might need repositioning
+            const buttons = panel.querySelectorAll('button, .command-button, .category-button');
+            buttons.forEach(button => button.offsetWidth);
+        });
+
+        // Ensure search containers and other dynamic content adjusts immediately
+        const searchContainers = this.elements.threeColumnLayout.querySelectorAll('.panel-search-container');
+        searchContainers.forEach(container => container.offsetWidth);
     }
 };
 
