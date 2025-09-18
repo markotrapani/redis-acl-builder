@@ -263,12 +263,12 @@
 /* Command categories container */
 .command-categories-container {
   flex: 1;
-  overflow-y: auto;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: var(--spacing-md);
   margin-bottom: 0;
   background: rgba(0,0,0,0.02);
+  /* Overflow and scrollbar settings will be defined in the scrollbar section below */
 }
 
 /* Light mode for test section and command categories container (explicit) */
@@ -472,29 +472,56 @@
 
 /* Scrollbars */
 .command-grid::-webkit-scrollbar,
-.category-commands::-webkit-scrollbar,
-.command-categories-container::-webkit-scrollbar {
+.category-commands::-webkit-scrollbar {
   width: 8px;
 }
 
 .command-grid::-webkit-scrollbar-track,
-.category-commands::-webkit-scrollbar-track,
-.command-categories-container::-webkit-scrollbar-track {
+.category-commands::-webkit-scrollbar-track {
   background: var(--gray-100);
   border-radius: var(--radius-sm);
 }
 
 .command-grid::-webkit-scrollbar-thumb,
-.category-commands::-webkit-scrollbar-thumb,
-.command-categories-container::-webkit-scrollbar-thumb {
+.category-commands::-webkit-scrollbar-thumb {
   background: var(--gray-400);
   border-radius: var(--radius-sm);
 }
 
 .command-grid::-webkit-scrollbar-thumb:hover,
-.category-commands::-webkit-scrollbar-thumb:hover,
+.category-commands::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
+/* Force stable scrollbar space for command categories containers to prevent layout shifts */
+.command-categories-container {
+  overflow-y: auto; /* Use auto for overlay-style scrollbars */
+  /* Modern browser support for thin scrollbars */
+  scrollbar-width: thin;
+}
+
+/* For WebKit browsers - simple, clean scrollbar styling */
+.command-categories-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.command-categories-container::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: var(--radius-sm);
+}
+
+.command-categories-container::-webkit-scrollbar-thumb {
+  background: var(--gray-400);
+  border-radius: var(--radius-sm);
+}
+
 .command-categories-container::-webkit-scrollbar-thumb:hover {
   background: var(--gray-500);
+}
+
+/* Ensure scrollbar button consistency (if present) */
+.command-categories-container::-webkit-scrollbar-button {
+  display: none; /* Hide scroll buttons for cleaner appearance */
 }
 
 /* Animations */

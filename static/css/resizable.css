@@ -6,55 +6,43 @@
     transition: max-width 0.1s ease-out;
 }
 
-/* Resize handles base styling */
+/* Resize handles base styling - invisible but interactive */
 .resize-handle {
     position: absolute;
     width: 20px;
     height: 20px;
-    background: var(--primary-color);
-    color: white;
-    border: 2px solid var(--surface);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: nw-resize;
+    background: transparent; /* Make invisible */
+    border: none;
     z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s ease;
     user-select: none;
-    opacity: 0.7;
+    /* Add subtle corner highlight on hover */
+    border-radius: 3px;
+    transition: background 0.2s ease;
 }
 
 .resize-handle:hover {
-    opacity: 1;
-    transform: scale(1.1);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    /* Subtle corner highlight to indicate interactive area */
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+    backdrop-filter: blur(1px);
 }
 
 /* Bottom-right handle (both width and height) */
 .resize-handle-br {
-    bottom: 4px;
-    right: 4px;
-    cursor: nw-resize;
-    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+    bottom: 0;
+    right: 0;
+    cursor: se-resize;
 }
 
-/* Bottom-left handle (height only) */
+/* Bottom-left handle (both width and height) */
 .resize-handle-bl {
-    bottom: 4px;
-    left: 4px;
-    cursor: ns-resize;
-    background: linear-gradient(135deg, var(--success-color), var(--primary-color));
+    bottom: 0;
+    left: 0;
+    cursor: sw-resize;
 }
 
 /* Active resize state styling */
 .resize-handle.active {
-    opacity: 1;
-    transform: scale(1.2);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.2);
 }
 
 /* Body states during resizing */
@@ -62,12 +50,13 @@ body.resizing {
     user-select: none;
 }
 
+/* Active resize cursors */
 body.resizing-both {
-    cursor: nw-resize !important;
+    cursor: se-resize !important;
 }
 
-body.resizing-height-only {
-    cursor: ns-resize !important;
+body.resizing-both-left {
+    cursor: sw-resize !important;
 }
 
 /* Visual feedback during resize */
@@ -95,19 +84,18 @@ body.resizing .panel {
 /* Handle visibility on different screen sizes */
 @media (max-width: 768px) {
     .resize-handle {
-        width: 24px;
-        height: 24px;
-        font-size: 16px;
+        width: 30px;
+        height: 30px;
     }
 
     .resize-handle-br {
-        bottom: 15px;
-        right: 15px;
+        bottom: 0;
+        right: 0;
     }
 
     .resize-handle-bl {
-        bottom: 15px;
-        left: 15px;
+        bottom: 0;
+        left: 0;
     }
 }
 
@@ -118,35 +106,19 @@ body.resizing .panel {
     }
 }
 
-/* Dark mode handle styling */
-[data-theme="dark"] .resize-handle {
-    border-color: var(--gray-600);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-}
-
+/* Theme-specific hover highlights */
 [data-theme="dark"] .resize-handle:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
-}
-
-/* Light mode handle styling */
-[data-theme="light"] .resize-handle {
-    border-color: var(--gray-200);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: rgba(96, 165, 250, 0.15);
 }
 
 [data-theme="light"] .resize-handle:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    background: rgba(59, 130, 246, 0.1);
 }
 
 /* System preference fallback */
 @media (prefers-color-scheme: dark) {
-    :root:not([data-theme]) .resize-handle {
-        border-color: var(--gray-600);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-    }
-
     :root:not([data-theme]) .resize-handle:hover {
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+        background: rgba(96, 165, 250, 0.15);
     }
 }
 
@@ -165,74 +137,7 @@ body.resizing .panel {
     height: var(--panel-height-default);
 }
 
-/* Resize indicators for better UX */
-.resize-handle::before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    border: 2px dashed transparent;
-    border-radius: 8px;
-    transition: border-color 0.2s ease;
-}
-
-.resize-handle:hover::before {
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
-/* Tooltip-style labels for handles */
-.resize-handle::after {
-    content: attr(title);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-    margin-bottom: 5px;
-}
-
-.resize-handle:hover::after {
-    opacity: 1;
-}
-
-/* Improved positioning for bottom-left tooltip */
-.resize-handle-bl::after {
-    left: 0;
-    transform: none;
-}
-
-/* Improved positioning for bottom-right tooltip */
-.resize-handle-br::after {
-    right: 0;
-    left: auto;
-    transform: none;
-}
-
-/* Animation for handle appearance */
-@keyframes handleAppear {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-    to {
-        opacity: 0.7;
-        transform: scale(1);
-    }
-}
-
-.resize-handle {
-    animation: handleAppear 0.3s ease-out;
-}
+/* Clean, minimal styling without visual clutter */
 
 /* Responsive layout adjustments */
 @media (min-width: 1400px) {

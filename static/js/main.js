@@ -16,6 +16,7 @@ import InteractiveACLBuilder from './components/interactive-acl-builder.js';
 import SearchManager from './components/search-manager.js';
 import ResizableContainer from './components/resizable-container.js';
 import SavedRules from './components/saved-rules.js';
+import DragDropPanels from './components/drag-drop-panels.js';
 import EventHandlers from './handlers/event-handlers.js';
 
 // Application main object
@@ -27,10 +28,13 @@ const App = {
         try {
             // Initialize DOM references
             DOMElements.init();
-            
+
+            // Initialize drag-and-drop panel reordering system early (to prevent pop-in)
+            DragDropPanels.init();
+
             // Clean up deprecated localStorage keys
             Storage.cleanupDeprecatedKeys();
-            
+
             // Set up event handlers first (needed for version restoration)
             EventHandlers.init();
 
@@ -49,7 +53,6 @@ const App = {
 
             // Initialize saved rules system
             SavedRules.init();
-            console.log('Saved rules system initialized');
 
             // Clean up saved rule reference (already handled by init)
             if (this.savedRuleToSync) {
@@ -332,8 +335,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Make App accessible globally for cross-module communication
     window.App = App;
 
-    // Expose InteractiveACLBuilder for debugging
+    // Expose InteractiveACLBuilder and DragDropPanels for debugging
     window.InteractiveACLBuilder = InteractiveACLBuilder;
+    window.DragDropPanels = DragDropPanels;
 
     App.init();
     // Check scroll need after layout settles
@@ -386,6 +390,15 @@ window.dismissRedundancyWarnings = () => {
         Utils.showNotification('Redundancy warnings dismissed 👋', 'info');
 
         console.log('📋 Redundancy warnings manually dismissed by user');
+    }
+};
+
+// Global function to reset panel layout to default
+window.resetPanelLayout = () => {
+    if (window.DragDropPanels && window.DragDropPanels.state.isInitialized) {
+        DragDropPanels.resetToDefault();
+    } else {
+        Utils.showNotification('Panel system not initialized', 'error');
     }
 };
 

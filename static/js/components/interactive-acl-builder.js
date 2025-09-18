@@ -1107,7 +1107,7 @@ const InteractiveACLBuilder = {
         if (this.loadingOverlays && this.loadingOverlays.length > 0) {
             this.loadingOverlays.forEach(overlay => {
                 // Fade out overlay
-                overlay.style.transition = 'opacity 0.2s ease';
+                overlay.style.transition = 'opacity 0.15s ease';
                 overlay.style.opacity = '0';
 
                 // Remove from DOM after fade completes
@@ -1115,7 +1115,7 @@ const InteractiveACLBuilder = {
                     if (overlay.parentNode) {
                         overlay.parentNode.removeChild(overlay);
                     }
-                }, 200);
+                }, 150); // Match CSS transition duration (0.15s)
             });
 
             // Clear the overlay array
@@ -1142,7 +1142,7 @@ const InteractiveACLBuilder = {
                     }
                     // If content no longer needs scrolling (maxScrollTop <= 0), leave at top (0)
                 }
-            }, 200); // Match CSS transition duration
+            }, 150); // Match CSS transition duration (0.15s)
         });
     },
 
@@ -1167,7 +1167,7 @@ const InteractiveACLBuilder = {
             // Log final textarea styles
             setTimeout(() => {
             }, 50);
-        }, 200); // Match CSS transition duration
+        }, 150); // Match CSS transition duration (0.15s)
     },
 
     /**
@@ -1265,7 +1265,15 @@ const InteractiveACLBuilder = {
             // Wait one more frame after search filters are applied
             await new Promise(resolve => requestAnimationFrame(resolve));
 
+            // Additional wait to ensure all DOM mutations from search filters are truly complete
+            // This prevents users from seeing button repopulation during the fade-out transition
+            await new Promise(resolve => requestAnimationFrame(resolve));
+
+            // Wait one final frame to be absolutely certain no more DOM changes are pending
+            await new Promise(resolve => requestAnimationFrame(resolve));
+
             // Remove loading covers with smooth fade animation
+            // Note: Scrollbar space is now always reserved via CSS overflow-y: scroll
             this.removeLoadingAnimation();
         }, 50); // Reduced since we now use proper frame timing for overlay removal
     },

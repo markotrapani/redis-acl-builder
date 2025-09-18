@@ -129,13 +129,11 @@ const ResizableContainer = {
         this.elements.bottomRightHandle = document.createElement('div');
         this.elements.bottomRightHandle.className = 'resize-handle resize-handle-br';
         this.elements.bottomRightHandle.title = 'Drag to resize container (width + height)';
-        this.elements.bottomRightHandle.innerHTML = '⤡';
 
-        // Bottom-left handle (height only)
+        // Bottom-left handle (both width and height, expanding left)
         this.elements.bottomLeftHandle = document.createElement('div');
         this.elements.bottomLeftHandle.className = 'resize-handle resize-handle-bl';
-        this.elements.bottomLeftHandle.title = 'Drag to resize height only';
-        this.elements.bottomLeftHandle.innerHTML = '⤢';
+        this.elements.bottomLeftHandle.title = 'Drag to resize container (width + height)';
 
         // Add handles to container
         this.elements.container.appendChild(this.elements.bottomRightHandle);
@@ -154,9 +152,9 @@ const ResizableContainer = {
             this.startResize(e, 'both');
         });
 
-        // Bottom-left handle (height only)
+        // Bottom-left handle (both dimensions, expanding left)
         this.elements.bottomLeftHandle.addEventListener('mousedown', (e) => {
-            this.startResize(e, 'height-only');
+            this.startResize(e, 'both-left');
         });
 
         // Global mouse events
@@ -189,8 +187,16 @@ const ResizableContainer = {
         document.body.classList.add('resizing');
         document.body.classList.add(`resizing-${resizeType}`);
 
-        // Update cursor
-        document.body.style.cursor = resizeType === 'both' ? 'nw-resize' : 'ns-resize';
+        // Update cursor based on resize type and theme
+        const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+        const fillColor = isDarkMode ? '%23fff' : '%23000';
+        const strokeColor = isDarkMode ? '%23000' : '%23fff';
+
+        if (resizeType === 'both') {
+            document.body.style.cursor = `url("data:image/svg+xml,%3csvg width='32' height='32' xmlns='http://www.w3.org/2000/svg'%3e%3ctext x='16' y='24' text-anchor='middle' font-size='28' font-weight='bold' fill='${fillColor}' stroke='${strokeColor}' stroke-width='1'%3e⤡%3c/text%3e%3c/svg%3e") 16 16, se-resize`; // Bottom-right corner
+        } else if (resizeType === 'both-left') {
+            document.body.style.cursor = `url("data:image/svg+xml,%3csvg width='32' height='32' xmlns='http://www.w3.org/2000/svg'%3e%3ctext x='16' y='24' text-anchor='middle' font-size='28' font-weight='bold' fill='${fillColor}' stroke='${strokeColor}' stroke-width='1'%3e⤢%3c/text%3e%3c/svg%3e") 16 16, sw-resize`; // Bottom-left corner
+        }
 
         // Show resize overlay to prevent visual artifacts during button reflow
         this.showResizeOverlay();
@@ -210,9 +216,12 @@ const ResizableContainer = {
 
         // Calculate new dimensions based on resize type
         if (this.state.resizeType === 'both') {
+            // Bottom-right corner: expand right and down
             newWidth = this.state.startWidth + deltaX;
             newHeight = this.state.startHeight + deltaY;
-        } else if (this.state.resizeType === 'height-only') {
+        } else if (this.state.resizeType === 'both-left') {
+            // Bottom-left corner: expand left and down (width increases as we drag left)
+            newWidth = this.state.startWidth - deltaX;
             newHeight = this.state.startHeight + deltaY;
         }
 
@@ -238,7 +247,7 @@ const ResizableContainer = {
         this.state.resizeType = null;
 
         // Remove visual feedback
-        document.body.classList.remove('resizing', 'resizing-both', 'resizing-height-only');
+        document.body.classList.remove('resizing', 'resizing-both', 'resizing-both-left');
         document.body.style.cursor = '';
 
         // Hide resize overlay after a short delay to allow transitions to complete
