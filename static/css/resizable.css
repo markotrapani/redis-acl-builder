@@ -15,9 +15,18 @@
     border: none;
     z-index: 1000;
     user-select: none;
-    /* Add subtle corner highlight on hover */
-    border-radius: 3px;
     transition: background 0.2s ease;
+}
+
+/* Square resize handles with rounded corners */
+.resize-handle-br {
+    /* Bottom-right corner: rounded square with subtle corners */
+    border-radius: var(--radius-sm);
+}
+
+.resize-handle-bl {
+    /* Bottom-left corner: rounded square with subtle corners */
+    border-radius: var(--radius-sm);
 }
 
 .resize-handle:hover {
@@ -40,9 +49,16 @@
     cursor: sw-resize;
 }
 
-/* Active resize state styling */
+/* Active resize state styling - when body has resizing class */
+body.resizing .resize-handle {
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
+    backdrop-filter: blur(2px);
+}
+
+/* Legacy active class support */
 .resize-handle.active {
-    background: rgba(var(--primary-rgb, 59, 130, 246), 0.2);
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.5);
+    backdrop-filter: blur(2px);
 }
 
 /* Body states during resizing */
@@ -140,11 +156,7 @@ body.resizing * {
     }
 }
 
-/* Container width constraint updates */
-.container {
-    max-width: var(--container-width, 1400px);
-    margin: 0 auto;
-}
+/* Container width is handled by layout.css */
 
 /* Enhanced three-column layout with custom height */
 .three-column-layout {
