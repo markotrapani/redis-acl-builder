@@ -372,28 +372,30 @@ pip install gunicorn
 gunicorn --bind 0.0.0.0:7380 --workers 4 app:app
 ```
 
-### Docker Deployment
+### Docker Deployment (Recommended)
 
-Create a `Dockerfile`:
+#### Quick Start - Latest Version
+```bash
+# Run the latest version directly from Docker Hub
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
 
-```dockerfile
-FROM python:3.9-slim
+# Access the application
+open http://localhost:7380
+```
 
-WORKDIR /app
+#### Upgrade to Latest Version (One-Liner)
+```bash
+# Stop, remove, pull latest, and restart with one command
+docker stop redis-acl-builder 2>/dev/null; docker rm redis-acl-builder 2>/dev/null; docker pull markotrapani608/redis-acl-builder:latest && docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
+```
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+#### Alternative Deployment Methods
+```bash
+# Specific version
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:v1.12.0-beta
 
-COPY . .
-
-RUN touch helpers/__init__.py tests/__init__.py
-
-EXPOSE 5000
-
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5000/health || exit 1
-
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "app:app"]
+# Custom port mapping
+docker run -d --name redis-acl-builder -p 8080:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
 ```
 
 ## Features

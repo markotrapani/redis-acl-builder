@@ -14,7 +14,22 @@ This folder contains all Docker-related files for the Redis ACL Builder v1.12.0-
 
 ## 🚀 Quick Start
 
-### Option 1: Automated Script (Recommended)
+### Option 1: Docker Hub (Fastest)
+```bash
+# Run the latest version directly from Docker Hub
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
+
+# Access the application
+open http://localhost:7380
+```
+
+#### Upgrade to Latest Version (One-Liner)
+```bash
+# Stop, remove, pull latest, and restart with one command
+docker stop redis-acl-builder 2>/dev/null; docker rm redis-acl-builder 2>/dev/null; docker pull markotrapani608/redis-acl-builder:latest && docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
+```
+
+### Option 2: Automated Script (Build Locally)
 ```bash
 chmod +x deploy-beta.sh
 ./deploy-beta.sh
@@ -25,7 +40,7 @@ chmod +x deploy-beta.sh
 docker-compose up -d
 ```
 
-### Option 3: Build and Export Image (for distribution)
+### Option 4: Build and Export Image (for distribution)
 ```bash
 # Build image
 docker build -t redis-acl-builder:v1.12.0-beta -f Dockerfile ..
@@ -33,17 +48,19 @@ docker build -t redis-acl-builder:v1.12.0-beta -f Dockerfile ..
 # Export image (if needed for distribution) - uncompressed for simplicity
 docker save redis-acl-builder:v1.12.0-beta > redis-acl-builder-v1.12.0-beta.tar
 
-# Run
-docker run -d -p 7380:7830 --name redis-acl-builder markotrapani608/redis-acl-builder:v1.12.0-beta
+# Run with consistent naming and restart policy
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped redis-acl-builder:v1.12.0-beta
 ```
 
-### Option 4: Alternative Build Locations
+### Option 5: Alternative Build Locations
 ```bash
 # From docker folder
 docker build -t redis-acl-builder:v1.12.0-beta -f Dockerfile ..
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped redis-acl-builder:v1.12.0-beta
 
 # From project root
 docker build -t redis-acl-builder:v1.12.0-beta -f docker/Dockerfile .
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped redis-acl-builder:v1.12.0-beta
 ```
 
 ## 📋 Image Details
