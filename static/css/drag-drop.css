@@ -30,12 +30,7 @@
     text-align: center;
 }
 
-.panel-drag-handle:hover {
-    color: var(--text);
-    background: var(--primary-bg);
-    border-color: var(--primary);
-    cursor: grab;
-}
+/* Removed hover effects - only show feedback on active drag */
 
 /* Simple colored highlight strips for main panels */
 .acl-config-panel,
@@ -98,6 +93,9 @@
 .panel-drag-handle:active {
     cursor: grabbing;
     transform: scale(0.95);
+    color: var(--text);
+    background: var(--primary-bg);
+    border-color: var(--primary);
 }
 
 /* Panel Dragging States */
@@ -146,9 +144,11 @@
     color: var(--gray-600);
 }
 
-[data-theme="light"] .panel-drag-handle:hover {
+/* Active state for light mode */
+[data-theme="light"] .panel-drag-handle:active {
     color: var(--gray-800);
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(59, 130, 246, 0.1);
+    border-color: var(--blue-500);
 }
 
 [data-theme="light"] .panel-dragging {
@@ -162,20 +162,18 @@
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
 }
 
-[data-theme="light"] .panel:has(.panel-drag-handle:hover)::after {
-    box-shadow:
-        -4px 0 12px rgba(0, 0, 0, 0.15),
-        0 8px 20px rgba(0, 0, 0, 0.18);
-}
+/* Removed light mode panel hover shadow effects */
 
 /* Dark mode */
 [data-theme="dark"] .panel-drag-handle {
     color: var(--gray-400);
 }
 
-[data-theme="dark"] .panel-drag-handle:hover {
+/* Active state for dark mode */
+[data-theme="dark"] .panel-drag-handle:active {
     color: var(--gray-200);
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(96, 165, 250, 0.15);
+    border-color: var(--blue-400);
 }
 
 [data-theme="dark"] .panel-dragging {
@@ -189,11 +187,7 @@
     box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
 }
 
-[data-theme="dark"] .panel:has(.panel-drag-handle:hover)::after {
-    box-shadow:
-        -4px 0 12px rgba(0, 0, 0, 0.5),
-        0 8px 20px rgba(0, 0, 0, 0.4);
-}
+/* Removed dark mode panel hover shadow effects */
 
 /* System preference fallbacks */
 @media (prefers-color-scheme: light) {
@@ -201,9 +195,11 @@
         color: #6b7280;
     }
 
-    :root:not([data-theme]) .panel-drag-handle:hover {
+    /* Active state for system preference light mode */
+    :root:not([data-theme]) .panel-drag-handle:active {
         color: #1f2937;
-        background: rgba(0, 0, 0, 0.05);
+        background: rgba(59, 130, 246, 0.1);
+        border-color: #3b82f6;
     }
 
     :root:not([data-theme]) .panel-dragging {
@@ -217,11 +213,7 @@
         box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
     }
 
-    :root:not([data-theme]) .panel:has(.panel-drag-handle:hover)::after {
-        box-shadow:
-            -4px 0 12px rgba(0, 0, 0, 0.15),
-            0 8px 20px rgba(0, 0, 0, 0.18);
-    }
+    /* Removed system preference light mode panel hover shadow effects */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -229,9 +221,11 @@
         color: #9ca3af;
     }
 
-    :root:not([data-theme]) .panel-drag-handle:hover {
+    /* Active state for system preference dark mode */
+    :root:not([data-theme]) .panel-drag-handle:active {
         color: #e5e7eb;
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(96, 165, 250, 0.15);
+        border-color: #60a5fa;
     }
 
     :root:not([data-theme]) .panel-dragging {
@@ -245,11 +239,7 @@
         box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
     }
 
-    :root:not([data-theme]) .panel:has(.panel-drag-handle:hover)::after {
-        box-shadow:
-            -4px 0 12px rgba(0, 0, 0, 0.5),
-            0 8px 20px rgba(0, 0, 0, 0.4);
-    }
+    /* Removed system preference dark mode panel hover shadow effects */
 }
 
 /* Responsive adjustments */
@@ -294,7 +284,5 @@
         margin-left: 8px;
     }
 
-    .panel-drag-handle:hover {
-        transform: none;
-    }
+    /* Hover effects already removed globally */
 }

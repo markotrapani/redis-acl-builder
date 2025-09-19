@@ -109,7 +109,7 @@ const ResizableContainer = {
         height: 600,
         isResizing: false,
         isDragging: false,
-        resizeType: null,   // 'both', 'both-left'
+        resizeType: null,   // 'both', 'both-left', 'top-both', 'top-both-left', 'width-right', 'width-left', 'height-up', 'height-down'
         startX: 0,
         startY: 0,
         startWidth: 0,
@@ -125,7 +125,13 @@ const ResizableContainer = {
         threeColumnLayout: null,
         header: null,
         bottomRightHandle: null,
-        bottomLeftHandle: null
+        bottomLeftHandle: null,
+        topRightHandle: null,
+        topLeftHandle: null,
+        topEdge: null,
+        bottomEdge: null,
+        leftEdge: null,
+        rightEdge: null
     },
 
     /**
@@ -203,7 +209,7 @@ const ResizableContainer = {
     },
 
     /**
-     * Save current dimensions to localStorage
+     * Save current dimensions to localStorage and CSS custom properties
      */
     saveDimensions() {
         try {
@@ -213,13 +219,17 @@ const ResizableContainer = {
                 timestamp: Date.now()
             };
             localStorage.setItem('redis-acl-builder-dimensions', JSON.stringify(dimensions));
+
+            // Also set CSS custom properties for proper restoration
+            document.documentElement.style.setProperty('--saved-container-width', `${this.state.width + 16}px`);
+            document.documentElement.style.setProperty('--saved-panel-height', `${this.state.height}px`);
         } catch (error) {
             console.warn('Failed to save dimensions:', error);
         }
     },
 
     /**
-     * Create resize handles (simplified to 2 bottom corners only)
+     * Create resize handles (all 4 corners)
      */
     createResizeHandles() {
         // Bottom-right handle (both width and height)
@@ -232,9 +242,48 @@ const ResizableContainer = {
         this.elements.bottomLeftHandle.className = 'resize-handle resize-handle-bl';
         this.elements.bottomLeftHandle.title = 'Drag to resize container (width + height)';
 
+        // Top-right handle (both width and height, expanding up)
+        this.elements.topRightHandle = document.createElement('div');
+        this.elements.topRightHandle.className = 'resize-handle resize-handle-tr';
+        this.elements.topRightHandle.title = 'Drag to resize container (width + height, bottom anchored)';
+
+        // Top-left handle (both width and height, expanding left and up)
+        this.elements.topLeftHandle = document.createElement('div');
+        this.elements.topLeftHandle.className = 'resize-handle resize-handle-tl';
+        this.elements.topLeftHandle.title = 'Drag to resize container (width + height, bottom anchored)';
+
+        // Create edge handles for side resizing
+        // Top edge (height resize, bottom anchored)
+        this.elements.topEdge = document.createElement('div');
+        this.elements.topEdge.className = 'resize-edge resize-edge-top';
+        this.elements.topEdge.title = 'Drag to resize height (bottom anchored)';
+
+        // Bottom edge (height resize)
+        this.elements.bottomEdge = document.createElement('div');
+        this.elements.bottomEdge.className = 'resize-edge resize-edge-bottom';
+        this.elements.bottomEdge.title = 'Drag to resize height';
+
+        // Left edge (width resize, right anchored)
+        this.elements.leftEdge = document.createElement('div');
+        this.elements.leftEdge.className = 'resize-edge resize-edge-left';
+        this.elements.leftEdge.title = 'Drag to resize width (right anchored)';
+
+        // Right edge (width resize)
+        this.elements.rightEdge = document.createElement('div');
+        this.elements.rightEdge.className = 'resize-edge resize-edge-right';
+        this.elements.rightEdge.title = 'Drag to resize width';
+
         // Add handles to page backdrop (for positioning)
         this.elements.pageBackdrop.appendChild(this.elements.bottomRightHandle);
         this.elements.pageBackdrop.appendChild(this.elements.bottomLeftHandle);
+        this.elements.pageBackdrop.appendChild(this.elements.topRightHandle);
+        this.elements.pageBackdrop.appendChild(this.elements.topLeftHandle);
+
+        // Add edge handles to page backdrop
+        this.elements.pageBackdrop.appendChild(this.elements.topEdge);
+        this.elements.pageBackdrop.appendChild(this.elements.bottomEdge);
+        this.elements.pageBackdrop.appendChild(this.elements.leftEdge);
+        this.elements.pageBackdrop.appendChild(this.elements.rightEdge);
 
         // Make container and header draggable
         // Only set position to relative if not already positioned by inline script
@@ -262,12 +311,60 @@ const ResizableContainer = {
             this.startResize(e, 'both-left');
         });
 
+        // Top-right handle (both dimensions, expanding up, bottom anchored)
+        this.elements.topRightHandle.addEventListener('mousedown', (e) => {
+            this.startResize(e, 'top-both');
+        });
+
+        // Top-left handle (both dimensions, expanding left and up, bottom anchored)
+        this.elements.topLeftHandle.addEventListener('mousedown', (e) => {
+            this.startResize(e, 'top-both-left');
+        });
+
+        // Edge handles (single dimension resize)
+        // Top edge (height only, bottom anchored)
+        this.elements.topEdge.addEventListener('mousedown', (e) => {
+            // Check if click is near corners - corners have priority
+            if (this.isNearCorner(e, this.elements.topLeftHandle, this.elements.topRightHandle)) {
+                return; // Let corner handle take precedence
+            }
+            this.startResize(e, 'height-up');
+        });
+
+        // Bottom edge (height only)
+        this.elements.bottomEdge.addEventListener('mousedown', (e) => {
+            // Check if click is near corners - corners have priority
+            if (this.isNearCorner(e, this.elements.bottomLeftHandle, this.elements.bottomRightHandle)) {
+                return; // Let corner handle take precedence
+            }
+            this.startResize(e, 'height-down');
+        });
+
+        // Left edge (width only, right anchored)
+        this.elements.leftEdge.addEventListener('mousedown', (e) => {
+            // Check if click is near corners - corners have priority
+            if (this.isNearCorner(e, this.elements.topLeftHandle, this.elements.bottomLeftHandle)) {
+                return; // Let corner handle take precedence
+            }
+            this.startResize(e, 'width-left');
+        });
+
+        // Right edge (width only)
+        this.elements.rightEdge.addEventListener('mousedown', (e) => {
+            // Check if click is near corners - corners have priority
+            if (this.isNearCorner(e, this.elements.topRightHandle, this.elements.bottomRightHandle)) {
+                return; // Let corner handle take precedence
+            }
+            this.startResize(e, 'width-right');
+        });
+
         // Header drag functionality
         this.elements.header.addEventListener('mousedown', (e) => {
-            // Don't interfere with theme toggle, info link, or resize handle clicks
+            // Don't interfere with theme toggle, info link, resize handles, or resize edges
             if (e.target.closest('.theme-toggle') ||
                 e.target.closest('.info-link') ||
-                e.target.closest('.resize-handle')) {
+                e.target.closest('.resize-handle') ||
+                e.target.closest('.resize-edge')) {
                 return;
             }
             this.startDrag(e);
@@ -277,11 +374,32 @@ const ResizableContainer = {
         document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         document.addEventListener('mouseup', (e) => this.stopOperation(e));
 
-        // Prevent context menu on handles and header
-        [this.elements.bottomRightHandle, this.elements.bottomLeftHandle, this.elements.header].forEach(element => {
+        // Prevent context menu on handles, edges, and header
+        [this.elements.bottomRightHandle, this.elements.bottomLeftHandle, this.elements.topRightHandle, this.elements.topLeftHandle,
+         this.elements.topEdge, this.elements.bottomEdge, this.elements.leftEdge, this.elements.rightEdge, this.elements.header].forEach(element => {
             element.addEventListener('contextmenu', (e) => e.preventDefault());
         });
 
+    },
+
+    /**
+     * Check if mouse event is near corner handles (priority system)
+     */
+    isNearCorner(event, corner1Handle, corner2Handle) {
+        const cornerBuffer = 25; // 25px buffer around corners
+
+        const isNearHandle = (handle) => {
+            const rect = handle.getBoundingClientRect();
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+
+            return mouseX >= rect.left - cornerBuffer &&
+                   mouseX <= rect.right + cornerBuffer &&
+                   mouseY >= rect.top - cornerBuffer &&
+                   mouseY <= rect.bottom + cornerBuffer;
+        };
+
+        return isNearHandle(corner1Handle) || isNearHandle(corner2Handle);
     },
 
     /**
@@ -297,8 +415,9 @@ const ResizableContainer = {
         this.state.startWidth = this.state.width;
         this.state.startHeight = this.state.height;
 
-        // Store initial position and disable CSS centering for left-side anchor
-        if (resizeType === 'both-left') {
+        // Store initial position and disable CSS centering for anchored resize modes
+        if (resizeType === 'both-left' || resizeType === 'top-both' || resizeType === 'top-both-left' ||
+            resizeType === 'width-left' || resizeType === 'height-up') {
             const initialRect = this.elements.pageBackdrop.getBoundingClientRect();
             this.state.startLeft = initialRect.left;
             this.state.startTop = initialRect.top;
@@ -321,6 +440,18 @@ const ResizableContainer = {
             document.body.style.cursor = 'se-resize';
         } else if (resizeType === 'both-left') {
             document.body.style.cursor = 'sw-resize';
+        } else if (resizeType === 'top-both') {
+            document.body.style.cursor = 'ne-resize';
+        } else if (resizeType === 'top-both-left') {
+            document.body.style.cursor = 'nw-resize';
+        } else if (resizeType === 'width-right') {
+            document.body.style.cursor = 'e-resize';
+        } else if (resizeType === 'width-left') {
+            document.body.style.cursor = 'w-resize';
+        } else if (resizeType === 'height-down') {
+            document.body.style.cursor = 's-resize';
+        } else if (resizeType === 'height-up') {
+            document.body.style.cursor = 'n-resize';
         }
 
         // Force immediate layout recalculation for smooth real-time feedback
@@ -344,7 +475,7 @@ const ResizableContainer = {
         let newWidth = this.state.startWidth;
         let newHeight = this.state.startHeight;
 
-        // Calculate new dimensions based on resize type - ONLY 2 bottom corners
+        // Calculate new dimensions based on resize type
         if (this.state.resizeType === 'both') {
             // Bottom-right corner: expand right and down
             newWidth = this.state.startWidth + deltaX;
@@ -353,17 +484,49 @@ const ResizableContainer = {
             // Bottom-left corner: expand left and down (width increases as we drag left)
             newWidth = this.state.startWidth - deltaX;
             newHeight = this.state.startHeight + deltaY;
+        } else if (this.state.resizeType === 'top-both') {
+            // Top-right corner: expand right and up (bottom anchored)
+            newWidth = this.state.startWidth + deltaX;
+            newHeight = this.state.startHeight - deltaY;
+        } else if (this.state.resizeType === 'top-both-left') {
+            // Top-left corner: expand left and up (bottom anchored)
+            newWidth = this.state.startWidth - deltaX;
+            newHeight = this.state.startHeight - deltaY;
+        } else if (this.state.resizeType === 'width-right') {
+            // Right edge: expand right only
+            newWidth = this.state.startWidth + deltaX;
+            newHeight = this.state.startHeight; // Keep height unchanged
+        } else if (this.state.resizeType === 'width-left') {
+            // Left edge: expand left only (right anchored)
+            newWidth = this.state.startWidth - deltaX;
+            newHeight = this.state.startHeight; // Keep height unchanged
+        } else if (this.state.resizeType === 'height-down') {
+            // Bottom edge: expand down only
+            newWidth = this.state.startWidth; // Keep width unchanged
+            newHeight = this.state.startHeight + deltaY;
+        } else if (this.state.resizeType === 'height-up') {
+            // Top edge: expand up only (bottom anchored)
+            newWidth = this.state.startWidth; // Keep width unchanged
+            newHeight = this.state.startHeight - deltaY;
         }
 
         // Apply constraints
         const constrainedWidth = Math.max(this.defaults.minWidth, Math.min(this.defaults.maxWidth, newWidth));
         const constrainedHeight = Math.max(this.defaults.minHeight, Math.min(this.defaults.maxHeight, newHeight));
 
-        // Apply real-time position adjustment for left anchor during drag
-        if (this.state.resizeType === 'both-left') {
+        // Apply real-time position adjustments for anchored resize modes
+        if (this.state.resizeType === 'both-left' || this.state.resizeType === 'top-both-left' || this.state.resizeType === 'width-left') {
+            // Left anchor: adjust horizontal position when width changes
             const widthDelta = constrainedWidth - this.state.startWidth;
             const newLeft = this.state.startLeft - widthDelta;
             this.elements.pageBackdrop.style.left = `${newLeft}px`;
+        }
+
+        if (this.state.resizeType === 'top-both' || this.state.resizeType === 'top-both-left' || this.state.resizeType === 'height-up') {
+            // Bottom anchor: adjust vertical position when height changes
+            const heightDelta = constrainedHeight - this.state.startHeight;
+            const newTop = this.state.startTop - heightDelta;
+            this.elements.pageBackdrop.style.top = `${newTop}px`;
         }
 
         // Update state
@@ -398,8 +561,9 @@ const ResizableContainer = {
         this.state.isResizing = false;
         this.state.resizeType = null;
 
-        // Remove visual feedback - simplified classes
-        document.body.classList.remove('resizing', 'resizing-both', 'resizing-both-left');
+        // Remove visual feedback - all resize classes
+        document.body.classList.remove('resizing', 'resizing-both', 'resizing-both-left', 'resizing-top-both', 'resizing-top-both-left',
+            'resizing-width-right', 'resizing-width-left', 'resizing-height-down', 'resizing-height-up');
         document.body.style.cursor = '';
 
         // Force final layout recalculation and re-enable transitions
@@ -408,11 +572,12 @@ const ResizableContainer = {
         });
 
         // Clean up CSS overrides for proper state transitions
-        if (resizeType === 'both-left') {
-            // Save position but don't restore margin yet - keep explicit positioning
+        if (resizeType === 'both-left' || resizeType === 'top-both' || resizeType === 'top-both-left' ||
+            resizeType === 'width-left' || resizeType === 'height-up') {
+            // Save position for anchored resize modes - keep explicit positioning
             this.savePosition();
         } else {
-            // For bottom-right resize, ensure container can return to centered state if needed
+            // For non-anchored resize modes, ensure container can return to centered state if needed
             // Don't override the position: fixed from drag operations, but clear margin override
             if (this.elements.pageBackdrop.style.margin === '0') {
                 this.elements.pageBackdrop.style.margin = '';

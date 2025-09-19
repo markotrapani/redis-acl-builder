@@ -13,8 +13,8 @@
 /* Resize handles base styling - invisible but interactive */
 .resize-handle {
     position: absolute;
-    width: 20px;
-    height: 20px;
+    width: 32px;
+    height: 32px;
     background: transparent; /* Make invisible */
     border: none;
     z-index: 1000;
@@ -22,15 +22,39 @@
     transition: all 0.2s ease;
 }
 
-/* Square resize handles with rounded corners */
+/* Resize edges base styling - invisible but interactive strips */
+.resize-edge {
+    position: absolute;
+    background: transparent; /* Make invisible */
+    border: none;
+    z-index: 998; /* Lower than corner handles (1000) */
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+/* Triangle resize handles with rounded corners */
 .resize-handle-br {
-    /* Bottom-right corner: rounded square with subtle corners */
-    border-radius: var(--radius-sm);
+    /* Bottom-right corner: triangle pointing down-right (↘) */
+    clip-path: polygon(0% 100%, 100% 0%, 100% 100%);
+    border-radius: var(--radius-lg);
 }
 
 .resize-handle-bl {
-    /* Bottom-left corner: rounded square with subtle corners */
-    border-radius: var(--radius-sm);
+    /* Bottom-left corner: triangle pointing down-left (↙) */
+    clip-path: polygon(0% 0%, 0% 100%, 100% 100%);
+    border-radius: var(--radius-lg);
+}
+
+.resize-handle-tr {
+    /* Top-right corner: triangle pointing up-right (↗) */
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%);
+    border-radius: var(--radius-lg);
+}
+
+.resize-handle-tl {
+    /* Top-left corner: triangle pointing up-left (↖) */
+    clip-path: polygon(0% 0%, 0% 100%, 100% 0%);
+    border-radius: var(--radius-lg);
 }
 
 /* Individual corner hover effects */
@@ -44,6 +68,16 @@
     border-left: 2px solid rgba(var(--primary-rgb, 59, 130, 246), 0.3);
 }
 
+.resize-handle-tr:hover {
+    border-top: 2px solid rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+    border-right: 2px solid rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+}
+
+.resize-handle-tl:hover {
+    border-top: 2px solid rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+    border-left: 2px solid rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+}
+
 
 .resize-handle:hover {
     /* Subtle corner highlight to indicate interactive area */
@@ -51,6 +85,27 @@
     backdrop-filter: blur(1px);
     transform: scale(1.2);
     transition: all 0.2s ease;
+}
+
+/* Edge hover effects */
+.resize-edge:hover {
+    /* Blue edge highlight to indicate interactive area */
+    background: rgba(59, 130, 246, 0.2) !important;
+    backdrop-filter: blur(1px);
+    transition: all 0.2s ease;
+}
+
+/* Individual edge hover styling */
+.resize-edge-top:hover,
+.resize-edge-bottom:hover {
+    border-top: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.5);
+    border-bottom: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.5);
+}
+
+.resize-edge-left:hover,
+.resize-edge-right:hover {
+    border-left: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.5);
+    border-right: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.5);
 }
 
 /* Bottom-right handle (both width and height) */
@@ -67,6 +122,65 @@
     cursor: sw-resize;
 }
 
+/* Top-right handle (both width and height, bottom anchored) */
+.resize-handle-tr {
+    top: 0;
+    right: 0;
+    cursor: ne-resize;
+}
+
+/* Top-left handle (both width and height, bottom anchored) */
+.resize-handle-tl {
+    top: 0;
+    left: 0;
+    cursor: nw-resize;
+}
+
+/* Edge handle positioning and sizing */
+/* Top edge (height resize, bottom anchored) */
+.resize-edge-top {
+    top: 0;
+    left: 0; /* Extend to full width including corners */
+    right: 0; /* Extend to full width including corners */
+    height: 12px;
+    cursor: n-resize;
+    z-index: 998; /* Below corners but above other content */
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0; /* Rounded top corners */
+}
+
+/* Bottom edge (height resize) */
+.resize-edge-bottom {
+    bottom: 0;
+    left: 0; /* Extend to full width including corners */
+    right: 0; /* Extend to full width including corners */
+    height: 12px;
+    cursor: s-resize;
+    z-index: 998; /* Below corners but above other content */
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg); /* Rounded bottom corners */
+}
+
+/* Left edge (width resize, right anchored) */
+.resize-edge-left {
+    left: 0;
+    top: 0; /* Extend to full height including corners */
+    bottom: 0; /* Extend to full height including corners */
+    width: 12px;
+    cursor: w-resize;
+    z-index: 998; /* Below corners but above other content */
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg); /* Rounded left corners */
+}
+
+/* Right edge (width resize) */
+.resize-edge-right {
+    right: 0;
+    top: 0; /* Extend to full height including corners */
+    bottom: 0; /* Extend to full height including corners */
+    width: 12px;
+    cursor: e-resize;
+    z-index: 998; /* Below corners but above other content */
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0; /* Rounded right corners */
+}
+
 
 /* Active resize state styling - specific to each corner type */
 body.resizing-both .resize-handle-br {
@@ -81,6 +195,49 @@ body.resizing-both-left .resize-handle-bl {
     backdrop-filter: blur(2px);
     border-bottom: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
     border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+}
+
+body.resizing-top-both .resize-handle-tr {
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
+    backdrop-filter: blur(2px);
+    border-top: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    border-right: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+}
+
+body.resizing-top-both-left .resize-handle-tl {
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
+    backdrop-filter: blur(2px);
+    border-top: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+}
+
+/* Active edge resize state styling */
+body.resizing-width-right .resize-edge-right {
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
+    backdrop-filter: blur(2px);
+    border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    border-right: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+}
+
+body.resizing-width-left .resize-edge-left {
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
+    backdrop-filter: blur(2px);
+    border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    border-right: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+}
+
+body.resizing-height-down .resize-edge-bottom {
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
+    backdrop-filter: blur(2px);
+    border-top: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    border-bottom: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+}
+
+body.resizing-height-up .resize-edge-top {
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
+    backdrop-filter: blur(2px);
+    border-top: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    border-bottom: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
 }
 
 
@@ -102,6 +259,30 @@ body.resizing-both {
 
 body.resizing-both-left {
     cursor: sw-resize !important;
+}
+
+body.resizing-top-both {
+    cursor: ne-resize !important;
+}
+
+body.resizing-top-both-left {
+    cursor: nw-resize !important;
+}
+
+body.resizing-width-right {
+    cursor: e-resize !important;
+}
+
+body.resizing-width-left {
+    cursor: w-resize !important;
+}
+
+body.resizing-height-down {
+    cursor: s-resize !important;
+}
+
+body.resizing-height-up {
+    cursor: n-resize !important;
 }
 
 /* Draggable header styling */
@@ -176,8 +357,8 @@ body.resizing * {
 /* Handle visibility on different screen sizes */
 @media (max-width: 768px) {
     .resize-handle {
-        width: 30px;
-        height: 30px;
+        width: 40px;
+        height: 40px;
     }
 
     .resize-handle-br {
