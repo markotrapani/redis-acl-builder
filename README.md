@@ -57,18 +57,21 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 ## ✨ What's New in v1.13.0-beta
 
 ### Enhanced Light Mode Experience
+
 - **🎨 Adaptive SVG Background**: Dynamic background inversion for light mode using CSS filters
 - **🌈 Optimized Contrast**: Fine-tuned `brightness(0.85) contrast(1.8)` for perfect geometric pattern visibility
 - **📦 Enhanced Container Shadows**: Prominent shadows (`0 20px 60px rgba(0, 0, 0, 0.4)`) for excellent depth perception in light mode
 - **⚡ CSS Performance**: Hardware-accelerated filters with pseudo-element layering for clean separation
 
 ### Code Quality Improvements
+
 - **🧹 Eliminated Duplicate Code**: Consolidated 5 duplicate positioning functions into reusable `applyPositioningStyles()` helper
 - **🔧 CSS Optimization**: Merged duplicate `.theme-toggle` selectors and removed obsolete edge handle CSS rules
 - **📝 Debug Cleanup**: Removed all debug console.log statements while preserving legitimate logging
 - **🎯 Enhanced Documentation**: Comprehensive analysis of 6 test files identifying redundancy opportunities
 
 ### Technical Enhancements
+
 - **🖼️ Background Layer Management**: Proper z-index layering with `::before` pseudo-elements
 - **🎛️ Filter Chain Optimization**: `invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.8)` for ideal light mode appearance
 - **📐 Shadow Calibration**: Professional shadow depth matching between light and dark themes
@@ -394,6 +397,7 @@ gunicorn --bind 0.0.0.0:7380 --workers 4 app:app
 ### Docker Deployment (Recommended)
 
 #### Quick Start - Latest Version
+
 ```bash
 # Run the latest version directly from Docker Hub
 docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
@@ -403,12 +407,14 @@ open http://localhost:7380
 ```
 
 #### Upgrade to Latest Version (One-Liner)
+
 ```bash
 # Stop, remove, pull latest, and restart with one command
 docker stop redis-acl-builder 2>/dev/null; docker rm redis-acl-builder 2>/dev/null; docker pull markotrapani608/redis-acl-builder:latest && docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
 ```
 
 #### Alternative Deployment Methods
+
 ```bash
 # Specific version
 docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:v1.12.0-beta
