@@ -34,7 +34,7 @@ docker build -t redis-acl-builder:v1.12.0-beta -f Dockerfile ..
 docker save redis-acl-builder:v1.12.0-beta > redis-acl-builder-v1.12.0-beta.tar
 
 # Run
-docker run -d -p 8000:8000 --name redis-acl-builder redis-acl-builder:v1.12.0-beta
+docker run -d -p 7380:7830 --name redis-acl-builder markotrapani608/redis-acl-builder:v1.12.0-beta
 ```
 
 ### Option 4: Alternative Build Locations
