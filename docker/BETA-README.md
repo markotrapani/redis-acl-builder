@@ -159,7 +159,7 @@ Please test thoroughly and report any issues you encounter:
 2. **Advanced Analytics**: Usage patterns and security recommendations
 3. **Pub/Sub Support**: Full `&` channel pattern support
 4. **Rule History**: Persistent ACL rule management
-5. **Keyboard Shortcuts**: Power user workflow enhancements
+5. **Keyboard Shortcuts**: Power user workflow enhancements (Enter to submit, Cmd/Ctrl+Enter for newline)
 
 ## 📞 Support
 
