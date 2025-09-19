@@ -223,7 +223,6 @@ const InteractiveACLBuilder = {
                 this.state.grantedCommands.has(cmd)
             );
 
-            console.log(`Granting @${category} and removing conflicting individual commands: [${conflictingCommands.join(', ')}]`);
 
             // Remove the category block
             this.state.blockedCategories.delete(category);
@@ -263,8 +262,6 @@ const InteractiveACLBuilder = {
      */
     async removePartialGrantsFromBlockedCategory(category) {
         try {
-            console.log(`DEBUG: removePartialGrantsFromBlockedCategory called for ${category}`);
-            console.log(`DEBUG: Current orderedTerms before:`, this.state.orderedTerms.map(t => `${t.operation}${t.type === 'category' ? '@' : ''}${t.value}`));
 
             // Get all commands in this category
             const categoryCommands = await this.getCategoryCommandsCached(category);
@@ -279,11 +276,9 @@ const InteractiveACLBuilder = {
             );
 
             if (grantedCommands.length === 0) {
-                console.log(`No individual grants found for blocked category ${category}`);
                 return;
             }
 
-            console.log(`Removing partial grants from blocked @${category}: [${grantedCommands.join(', ')}]`);
 
             // Remove individual command grants (but keep category block)
             grantedCommands.forEach(cmd => {
@@ -295,7 +290,6 @@ const InteractiveACLBuilder = {
                 !(term.type === 'command' && term.operation === 'grant' && grantedCommands.includes(term.value))
             );
 
-            console.log(`DEBUG: Current orderedTerms after:`, this.state.orderedTerms.map(t => `${t.operation}${t.type === 'category' ? '@' : ''}${t.value}`));
 
             // Show notification about the action
             import('../core/utils.js').then(({ default: Utils }) => {
@@ -865,7 +859,6 @@ const InteractiveACLBuilder = {
                 individuallyGrantedCommands.has(cmd)
             );
 
-            console.log(`Converting implicit partial @${category}: removing individual commands [${commandsToRemove.join(', ')}] and adding @${category}`);
 
             // Remove individual command grants that belong to this category
             this.state.orderedTerms = this.state.orderedTerms.filter(term =>
@@ -938,7 +931,6 @@ const InteractiveACLBuilder = {
 
                 // Debug logging to verify cleanup
                 if (commandsToRemove.length > 0) {
-                    console.log(`Cleaned up ${commandsToRemove.length} command exclusions for category ${category}:`, commandsToRemove);
                 }
             } catch (error) {
                 console.warn('Could not clean up command exclusions for category:', category, error);
@@ -3260,7 +3252,6 @@ const InteractiveACLBuilder = {
      * Call this from browser console: window.ACLBuilder.testGeoAutoSimplify()
      */
     async testGeoAutoSimplify() {
-        console.log('🧪 Testing geo auto-simplification...');
 
         // Clear current state
         this.state.grantedCommands.clear();
@@ -3271,16 +3262,12 @@ const InteractiveACLBuilder = {
 
         // Get all geo commands for current Redis version
         const categoryCommands = await this.getCategoryCommandsCached('geo');
-        console.log('📝 Geo commands to add:', categoryCommands);
 
         // Grant each geo command one by one
         for (const command of categoryCommands) {
-            console.log(`➕ Adding geo command: ${command}`);
             await this.grantCommand(command);
-            console.log(`✅ Added ${command}, granted commands now:`, Array.from(this.state.grantedCommands));
         }
 
-        console.log('🏁 Test complete. Rule should be auto-simplified.');
     },
 
     /**

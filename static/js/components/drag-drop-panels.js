@@ -49,7 +49,6 @@ const DragDropPanels = {
             this.applyPanelOrder();
             this.setupEventListeners();
             this.state.isInitialized = true;
-            console.log('Drag-drop panels system initialized');
         } catch (error) {
             console.error('Failed to initialize drag-drop panels:', error);
         }
@@ -70,7 +69,6 @@ const DragDropPanels = {
             throw new Error(`Expected 3 panels, found ${this.elements.panels.length}`);
         }
 
-        console.log('Found panels:', this.elements.panels.map(p => p.className));
     },
 
     /**
@@ -80,7 +78,6 @@ const DragDropPanels = {
         // Check if panel order was pre-loaded to prevent flash
         if (window._initialPanelOrder && Array.isArray(window._initialPanelOrder) && window._initialPanelOrder.length === 3) {
             this.state.panelOrder = [...window._initialPanelOrder];
-            console.log('Using pre-loaded panel order (no flash):', this.state.panelOrder);
             return;
         }
 
@@ -93,7 +90,6 @@ const DragDropPanels = {
                 if (Array.isArray(savedOrder) && savedOrder.length === 3 &&
                     this.DEFAULT_ORDER.every(panel => savedOrder.includes(panel))) {
                     this.state.panelOrder = savedOrder;
-                    console.log('Loaded saved panel order from localStorage:', this.state.panelOrder);
                     return;
                 }
             }
@@ -103,7 +99,6 @@ const DragDropPanels = {
 
         // Use default order
         this.state.panelOrder = [...this.DEFAULT_ORDER];
-        console.log('Using default panel order:', this.state.panelOrder);
     },
 
     /**
@@ -112,7 +107,6 @@ const DragDropPanels = {
     savePanelOrder() {
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state.panelOrder));
-            console.log('Saved panel order:', this.state.panelOrder);
         } catch (error) {
             console.warn('Failed to save panel order:', error);
         }
@@ -175,12 +169,10 @@ const DragDropPanels = {
 
         // Show panels now that they're in the correct order (prevent flash)
         if (window._panelsHidden) {
-            console.log('🔧 Showing panels after reordering (flash prevention)');
             document.documentElement.style.setProperty('--panels-opacity', '1');
             window._panelsHidden = false;
         }
 
-        console.log('Applied panel order:', this.state.panelOrder);
     },
 
     /**
@@ -284,12 +276,6 @@ const DragDropPanels = {
         // Prevent text selection during drag
         document.body.style.userSelect = 'none';
 
-        console.log('🚀 DRAG START:');
-        console.log('  - Panel index:', index);
-        console.log('  - Panel class:', this.state.draggedPanel.className);
-        console.log('  - Initial position:', { left: rect.left, top: rect.top, width: rect.width });
-        console.log('  - Mouse start:', { x: e.clientX, y: e.clientY });
-        console.log('  - Current panel order:', this.state.panelOrder);
     },
 
     /**
@@ -354,13 +340,11 @@ const DragDropPanels = {
                 // Dragging to the right: check if dragged panel's left edge crosses target's left edge
                 if (draggedLeft > targetLeft) {
                     crossovers.push(index);
-                    console.log(`    🔄 Right crossover: Panel ${draggedIndex} crosses panel ${index}`);
                 }
             } else {
                 // Dragging to the left: check if dragged panel's right edge crosses target's right edge
                 if (draggedRight < targetRight) {
                     crossovers.push(index);
-                    console.log(`    🔄 Left crossover: Panel ${draggedIndex} crosses panel ${index}`);
                 }
             }
         }
@@ -374,7 +358,6 @@ const DragDropPanels = {
                 // Dragging left: use the leftmost crossover
                 insertPosition = Math.min(...crossovers);
             }
-            console.log(`    🎯 Crossovers detected: [${crossovers.join(', ')}], final insertPosition: ${insertPosition}`);
         }
 
         // Check if we've dragged past the last panel (need to insert at end)
@@ -383,32 +366,23 @@ const DragDropPanels = {
             // We need to insert at position 3 (after removing the dragged panel from 0)
             // But since we'll remove index 0 first, the final position becomes 2
             insertPosition = 2; // After removal of index 0, this becomes the end position
-            console.log(`    🎯 Special case: Leftmost past rightmost, insertPosition stays ${insertPosition}`);
         }
 
         // Add debug for the insertion logic
-        console.log(`    📍 Final insertPosition: ${insertPosition} (panel will be placed at this index after removal)`);
 
         // Let's trace through the expected array operations:
         if (draggedIndex === 0 && insertPosition === 2) {
-            console.log(`    🔍 Expected transformation: [A,B,C] → remove A → [B,C] → insert A at 2 → [B,C,A]`);
         }
 
         // Only update if position actually changed to prevent unnecessary animations
         if (insertPosition !== this.state.dropZoneIndex) {
             const isMultiShift = Math.abs(insertPosition - draggedIndex) > 1;
-            console.log('🎯 CROSSOVER DETECTED:');
-            console.log('  - Dragged panel:', draggedIndex, '→', insertPosition);
-            console.log('  - Type:', isMultiShift ? '🔄 MULTI-PANEL SHIFT' : '↔️ SINGLE PANEL SWAP');
-            console.log('  - Dragged bounds:', { left: draggedLeft, right: draggedRight });
-            console.log('  - Affected panels:');
 
             // Show which panels will be affected
             for (let i = Math.min(draggedIndex, insertPosition); i <= Math.max(draggedIndex, insertPosition); i++) {
                 if (i !== draggedIndex) {
                     const panel = this.elements.panels[i];
                     const direction = insertPosition > draggedIndex ? 'LEFT' : 'RIGHT';
-                    console.log(`    [${i}] ${this.getPanelClass(panel)} will shift ${direction}`);
                 }
             }
 
@@ -442,19 +416,12 @@ const DragDropPanels = {
                 previewOrder.splice(insertPosition, 0, draggedPanel);
             }
 
-            console.log('🎬 VISUALIZATION UPDATE:');
-            console.log('  - Current DOM order:', this.elements.panels.map(p => this.getPanelClass(p)));
-            console.log('  - Preview order:', previewOrder.map(p => this.getPanelClass(p)));
-            console.log('  - Multi-panel shift scenario:', draggedIndex === 0 && insertPosition === 2 ? 'LEFT→RIGHT (2 panels shift)' :
-                       draggedIndex === 2 && insertPosition === 0 ? 'RIGHT→LEFT (2 panels shift)' : 'Single panel shift');
 
             // Show detailed position mapping
-            console.log('  - Position changes:');
             this.elements.panels.forEach((panel, currentIndex) => {
                 if (currentIndex !== draggedIndex) {
                     const previewIndex = previewOrder.findIndex(p => p === panel);
                     const change = previewIndex - currentIndex;
-                    console.log(`    [${currentIndex}] ${this.getPanelClass(panel)} → [${previewIndex}] (Δ${change})`);
                 }
             });
 
@@ -472,15 +439,12 @@ const DragDropPanels = {
                     const gap = 16; // Conservative gap that works reliably
                     const calculatedOffset = positionDifference * (panelWidth + gap);
 
-                    console.log(`  - Panel [${currentIndex}] ${this.getPanelClass(panel)}: ${currentIndex} → ${previewIndex} (Δ${positionDifference})`);
-                    console.log(`    Panel width: ${panelWidth}px, Gap: ${gap}px, Offset: ${calculatedOffset}px`);
 
                     // Apply the calculated transform
                     panel.classList.add('panel-preview-position');
                     panel.style.transform = `translateX(${calculatedOffset}px)`;
                 } else {
                     // Panel stays in place
-                    console.log(`  - Panel [${currentIndex}] ${this.getPanelClass(panel)}: staying in place`);
                     panel.classList.add('panel-preview-position');
                     panel.style.transform = '';
                 }
@@ -494,17 +458,12 @@ const DragDropPanels = {
     handleMouseUp(e) {
         if (!this.state.isDragging) return;
 
-        console.log('🏁 DRAG END:');
-        console.log('  - Final drop zone:', this.state.dropZoneIndex);
-        console.log('  - Original index:', this.state.draggedIndex);
 
         // If we have a valid drop zone, perform the insertion
         if (this.state.dropZoneIndex !== -1 && this.state.dropZoneIndex !== this.state.draggedIndex) {
-            console.log('  - ✅ Performing panel insertion');
             this.insertPanel(this.state.draggedIndex, this.state.dropZoneIndex);
             Utils.showNotification('Panel layout updated! 🔄', 'success');
         } else {
-            console.log('  - ❌ No valid drop zone, returning to original position');
         }
 
         this.handleDragEnd();
@@ -564,7 +523,6 @@ const DragDropPanels = {
         this.state.draggedIndex = -1;
         this.state.dropZoneIndex = -1;
 
-        console.log('Drag ended');
     },
 
     /**
@@ -589,10 +547,6 @@ const DragDropPanels = {
         const container = this.elements.threeColumnLayout;
         const draggedPanel = this.elements.panels[draggedIndex];
 
-        console.log('🔄 PANEL INSERTION:');
-        console.log(`  - Moving panel from index ${draggedIndex} to ${insertPosition}`);
-        console.log('  - Before:', this.state.panelOrder);
-        console.log('  - Before elements array:', this.elements.panels.map(p => this.getPanelClass(p)));
 
         // Add animation class to all affected panels
         this.elements.panels.forEach(panel => panel.classList.add('panel-swap-animation'));
@@ -601,18 +555,14 @@ const DragDropPanels = {
         const draggedPanelClass = this.state.panelOrder.splice(draggedIndex, 1)[0];
         const draggedPanelElement = this.elements.panels.splice(draggedIndex, 1)[0];
 
-        console.log(`  - Removed: ${draggedPanelClass}`);
 
         // Insert at new position
         this.state.panelOrder.splice(insertPosition, 0, draggedPanelClass);
         this.elements.panels.splice(insertPosition, 0, draggedPanelElement);
 
-        console.log(`  - Inserted at position ${insertPosition}`);
-        console.log('  - After:', this.state.panelOrder);
 
         // Rebuild DOM in the new order
         this.elements.panels.forEach((panel, index) => {
-            console.log(`  - DOM order [${index}]: ${this.getPanelClass(panel)}`);
             container.appendChild(panel);
         });
 
@@ -630,7 +580,6 @@ const DragDropPanels = {
             this.elements.panels.forEach(panel => {
                 panel.classList.remove('panel-swap-animation');
             });
-            console.log('🎉 Panel insertion complete!');
         }, 300);
     },
 
@@ -658,7 +607,6 @@ const DragDropPanels = {
         this.applyPanelOrder();
         this.savePanelOrder();
         Utils.showNotification('Panel layout reset to default! 🔄', 'success');
-        console.log('Reset to default panel order');
     },
 
     /**
