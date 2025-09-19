@@ -730,8 +730,8 @@ const EventHandlers = {
         aclRuleTextarea.addEventListener('keydown', (event) => {
             // Check if Enter key was pressed
             if (event.key === 'Enter') {
-                // If Cmd (Mac) or Ctrl (Windows/Linux) is held, allow newline
-                if (event.metaKey || event.ctrlKey) {
+                // If Shift is held, allow newline (more intuitive)
+                if (event.shiftKey) {
                     return; // Allow default behavior (newline)
                 }
 

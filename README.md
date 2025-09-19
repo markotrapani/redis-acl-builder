@@ -41,7 +41,7 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Rule Precedence**: Correctly implements left-to-right Redis ACL rule evaluation
 - **Enhanced Error Handling**: Comprehensive validation with user-friendly error recovery
 - **Smooth Animations**: Eliminated screen flashing with optimized rendering
-- **Keyboard Shortcuts**: Enter key submits ACL changes, Cmd/Ctrl+Enter for newlines
+- **Keyboard Shortcuts**: Enter key submits ACL changes
 - **Enhanced Resize Handles**: Rounded square corner handles with active state feedback
 - **Optimized CSS Architecture**: Streamlined stylesheets with reusable variables and reduced redundancy
 - **Redis Enterprise Compliance**: Full validation against Redis ACL specifications
@@ -171,7 +171,6 @@ redis_acl_builder/
    - Use Submit Changes button when manually editing rules
    - **Keyboard Shortcuts**:
      - Press **Enter** to submit pending changes
-     - Press **Cmd+Enter** (Mac) or **Ctrl+Enter** (Windows/Linux) to add newline
 4. **View Results**: See granted and blocked commands organized by categories and individual commands
 5. **Test Commands**: Use the command tester at the top to check specific commands
 6. **Collapsible Sections**: Click on "Individual Commands" headers to expand/collapse sections

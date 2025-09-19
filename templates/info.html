@@ -546,13 +546,26 @@ docker rm redis-acl-builder
                 <h3>🔌 API Endpoints</h3>
                 <p>The application provides a RESTful API for programmatic access:</p>
                 <div class="syntax-example">
-POST /api/parse              # Parse ACL rule and return permissions
-POST /api/test-command       # Test specific command access
-POST /api/test-keyspace      # Test key pattern matching with glob support
-POST /api/validate-rule      # Validate ACL syntax
-GET /api/categories          # Get available command categories
-POST /api/search-commands    # Search commands with patterns
-GET /health                  # Application health check
+                    # Parse ACL rule and return permissions<br>
+                    POST /api/parse<br>
+                    <br>
+                    # Test specific command access<br>              
+                    POST /api/test-command<br>
+                    <br>
+                    # Test key pattern matching with glob support<br>
+                    POST /api/test-keyspace<br>
+                    <br>
+                    # Validate ACL syntax<br>
+                    POST /api/validate-rule<br>
+                    <br>
+                    # Get available command categories<br>
+                    GET /api/categories<br>
+                    <br>
+                    # Search commands with patterns<br>
+                    POST /api/search-commands<br>
+                    <br>
+                    # Application health check<br>
+                    GET /health<br>
                 </div>
                 
                 <h3>🏗️ Architecture</h3>
