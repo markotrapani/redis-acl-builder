@@ -1,8 +1,9 @@
 # Redis ACL Builder - Optimized Multi-stage Docker Build
 # Target size: ~150-200MB (vs current 1.23GB)
+# Using Python 3.13.7 - Latest stable version with performance improvements
 
 # Build stage - includes build tools and dependencies
-FROM python:3.12-slim AS builder
+FROM python:3.13-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
@@ -20,7 +21,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-prod.txt
 
 # Production stage - minimal runtime image
-FROM python:3.12-slim AS production
+FROM python:3.13-slim AS production
 
 # Install only runtime dependencies (curl for health checks)
 RUN apt-get update && apt-get install -y \

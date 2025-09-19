@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Redis ACL Builder Beta Deployment Script
-# Version 1.13.0-beta
+# Version 1.14.0-beta
 
 set -e
 
-echo "🚀 Redis ACL Builder Beta v1.13.0-beta - Deployment Script"
+echo "🚀 Redis ACL Builder Beta v1.14.0-beta - Deployment Script"
 echo "=================================================="
 
 # Check if Docker is installed
@@ -32,10 +32,10 @@ if docker ps -a --format 'table {{.Names}}' | grep -q "redis-acl-builder"; then
     docker rm redis-acl-builder 2>/dev/null || true
 fi
 
-# Build the optimized Docker image (multi-stage build: ~253MB vs 1.23GB)
-echo "🔨 Building optimized Docker image (multi-stage build)..."
-echo "   📦 Target size: ~253MB (79% reduction from 1.23GB)"
-docker build -t redis-acl-builder:v1.13.0-beta -f Dockerfile ..
+# Build the optimized Docker image (multi-stage build: ~276MB vs 1.23GB)
+echo "🔨 Building optimized Docker image (multi-stage build with Python 3.13)..."
+echo "   📦 Target size: ~276MB (77% reduction from 1.23GB)"
+docker build -t redis-acl-builder:v1.14.0-beta -f Dockerfile ..
 
 # Run the container
 echo "🐳 Starting Redis ACL Builder container..."
@@ -43,7 +43,7 @@ docker run -d \
     --name redis-acl-builder \
     -p 7380:7380 \
     --restart unless-stopped \
-    redis-acl-builder:v1.13.0-beta
+    redis-acl-builder:v1.14.0-beta
 
 # Wait for container to be healthy
 echo "⏳ Waiting for application to start..."
