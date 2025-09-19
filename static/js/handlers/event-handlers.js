@@ -64,43 +64,14 @@ const EventHandlers = {
      * Initialize all event listeners
      */
     init() {
-        // ACL rule input with debounced parsing - REMOVED per user request
-        // Parsing now only occurs on explicit actions: Submit Changes, button clicks, Quick Examples
-        // DOMElements.aclRuleInput.addEventListener('input', 
-        //     Utils.debounce(() => RuleManager.parseRule(), 300)
-        // );
-        
         // Hide optimization suggestions and expand panels when user starts typing manually
         let inputTimeouts = []; // Track ALL timeouts, not just the latest
-        let isResizing = false;
-        let resizeTimeout;
 
         // Global function to clear pending input operations (called by Submit Changes)
         window.clearPendingInputOperations = () => {
             inputTimeouts.forEach(timeout => clearTimeout(timeout));
             inputTimeouts = [];
         };
-        
-        // Detect resize operations to temporarily disable input processing
-        DOMElements.aclRuleInput.addEventListener('mousedown', function(e) {
-            // Check if clicking on resize handle (bottom-right corner)
-            const rect = this.getBoundingClientRect();
-            const isNearBottomRight = (
-                e.clientX > rect.right - 20 && 
-                e.clientY > rect.bottom - 20
-            );
-            
-            if (isNearBottomRight) {
-                isResizing = true;
-            }
-        });
-        
-        // Re-enable input processing after resize
-        document.addEventListener('mouseup', function() {
-            if (isResizing) {
-                isResizing = false;
-            }
-        });
         
         DOMElements.aclRuleInput.addEventListener('input', function(e) {
             // Update character counter
@@ -109,13 +80,8 @@ const EventHandlers = {
             // NOTE: We no longer save to localStorage on every keystroke
             // The rule is only saved when user clicks "Submit Changes"
             
-            // Auto-expand textarea based on content (unless manually resized)
+            // Auto-expand textarea based on content
             EventHandlers.autoExpandTextarea(this);
-            
-            // Skip ALL processing during resize operations
-            if (isResizing) {
-                return;
-            }
             
             // Track if this is a programmatic change
             const isProgrammaticUpdate = this.dataset.programmaticUpdate === 'true';
@@ -170,7 +136,7 @@ const EventHandlers = {
                     if (hasContent) {
                         RuleManager.parseRuleSilent(true); // Skip redundancy analysis during manual typing
                     }
-                }, 150); // Reduced debounce since we're not processing during resize
+                }, 150); // Reduced debounce for better responsiveness
 
                 inputTimeouts.push(newTimeout);
             }
@@ -507,8 +473,8 @@ const EventHandlers = {
         const scrollHeight = textarea.scrollHeight;
         textarea.style.height = originalHeight; // Restore immediately
         
-        const minHeight = 120; // From CSS min-height  
-        const maxHeight = 540; // From CSS max-height
+        const minHeight = 80; // From CSS min-height
+        const maxHeight = 256; // From CSS max-height
         const requiredHeight = scrollHeight + 4;
         
         // Only change height if there's a significant difference (prevent jumping)
@@ -692,6 +658,10 @@ const EventHandlers = {
         // Commit the restored rule immediately (like clicking Submit Changes)
         Storage.saveAclRule(rule);
 
+        // Trigger input event to notify SavedRules component AFTER rule is committed
+        const inputEvent = new Event('input', { bubbles: true });
+        aclRuleTextarea.dispatchEvent(inputEvent);
+
         // Hide Submit Changes button since we're now in committed state
         const layout = document.querySelector('.three-column-layout');
         const submitBtn = document.getElementById('submitChangesBtn');
@@ -730,20 +700,17 @@ const EventHandlers = {
         aclRuleTextarea.addEventListener('keydown', (event) => {
             // Check if Enter key was pressed
             if (event.key === 'Enter') {
-                // If Shift is held, allow newline (more intuitive)
-                if (event.shiftKey) {
-                    return; // Allow default behavior (newline)
-                }
+                // Prevent all newlines in ACL rule textarea
+                event.preventDefault();
 
                 // Check if Submit Changes button is visible
                 const submitButton = document.getElementById('submitChangesBtn');
                 if (submitButton && submitButton.style.display !== 'none' && !submitButton.hidden) {
-                    // Prevent default textarea behavior (new line)
-                    event.preventDefault();
-
-                    // Trigger the sync function
+                    // Trigger the sync function (now async)
                     if (window.syncRuleToInteractive) {
-                        window.syncRuleToInteractive();
+                        window.syncRuleToInteractive().catch(error => {
+                            console.error('Failed to sync rule:', error);
+                        });
                     }
                 }
             }

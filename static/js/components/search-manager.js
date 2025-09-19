@@ -13,7 +13,7 @@ const SearchManager = {
     },
 
     // State for search linking (synchronized search bars)
-    searchLinked: false,
+    searchLinked: true,
 
     /**
      * Initialize search functionality

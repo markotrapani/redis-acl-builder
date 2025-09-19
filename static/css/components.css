@@ -364,8 +364,8 @@ button.test-button[disabled] {
 /* ACL Rule Textarea - Comfortable padding */
 .rule-input {
   padding: 9px;
-  resize: vertical;
   min-height: 80px; /* Compact height to prevent text cutoff */
+  resize: none; /* Disable manual resizing */
 }
 
 /* Test Command/Search Inputs - Compact padding */
@@ -416,7 +416,7 @@ button.test-button[disabled] {
 .acl-config-panel .rule-input {
   min-height: 80px;
   max-height: 256px;
-  resize: vertical;
+  resize: none; /* Ensure no resizing in interactive mode */
 }
 
 /* Compact rule input with better height for preview text */

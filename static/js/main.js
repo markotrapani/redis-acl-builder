@@ -151,18 +151,32 @@ window.setRuleAndParse = (rule) => {
 window.testCommand = () => CommandTester.testCommand();
 window.testKeyspace = () => KeyspaceTester.testKeyspace();
 window.CategoryManager = CategoryManager; // Make available for HTML onclick
-window.syncRuleToInteractive = () => {
+window.syncRuleToInteractive = async () => {
     // Clear any pending input operations to prevent interference with committed rule analysis
     if (window.clearPendingInputOperations) {
         window.clearPendingInputOperations();
     }
 
-    // Save the current rule to localStorage when user submits changes
     const aclRuleTextarea = document.getElementById('aclRule');
     if (aclRuleTextarea) {
         const newRule = aclRuleTextarea.value;
 
-        // Add the newly committed rule to history BEFORE saving it
+        // Validate the rule BEFORE saving it to localStorage
+        try {
+            const validation = await Utils.validateACLRule(Utils.normalizeACLRule(newRule));
+            if (!validation.valid) {
+                // Rule is invalid - don't save it, show error notification
+                const firstError = validation.errors[0];
+                Utils.showNotification(firstError, 'error', 5000);
+                return; // Exit early without saving or updating button states
+            }
+        } catch (error) {
+            // Validation failed - don't save the rule
+            Utils.showNotification('Failed to validate ACL rule', 'error', 5000);
+            return;
+        }
+
+        // Rule is valid - save it to localStorage
         Storage.addToHistory(newRule);
         Storage.saveAclRule(newRule);
 
@@ -388,8 +402,6 @@ window.dismissRedundancyWarnings = () => {
 
         // Show a brief confirmation message
         Utils.showNotification('Redundancy warnings dismissed 👋', 'info');
-
-        console.log('📋 Redundancy warnings manually dismissed by user');
     }
 };
 

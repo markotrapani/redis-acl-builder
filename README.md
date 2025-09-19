@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version 1.12.0-beta** - Enhanced UX with Keyboard Shortcuts & CSS Optimization
+**Version 1.13.0-beta** - Enhanced Light Mode with Adaptive Background & Container Shadows
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -53,6 +53,26 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Comprehensive Testing**: 35 automated tests with 79% code coverage
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
+
+## ✨ What's New in v1.13.0-beta
+
+### Enhanced Light Mode Experience
+- **🎨 Adaptive SVG Background**: Dynamic background inversion for light mode using CSS filters
+- **🌈 Optimized Contrast**: Fine-tuned `brightness(0.85) contrast(1.8)` for perfect geometric pattern visibility
+- **📦 Enhanced Container Shadows**: Prominent shadows (`0 20px 60px rgba(0, 0, 0, 0.4)`) for excellent depth perception in light mode
+- **⚡ CSS Performance**: Hardware-accelerated filters with pseudo-element layering for clean separation
+
+### Code Quality Improvements
+- **🧹 Eliminated Duplicate Code**: Consolidated 5 duplicate positioning functions into reusable `applyPositioningStyles()` helper
+- **🔧 CSS Optimization**: Merged duplicate `.theme-toggle` selectors and removed obsolete edge handle CSS rules
+- **📝 Debug Cleanup**: Removed all debug console.log statements while preserving legitimate logging
+- **🎯 Enhanced Documentation**: Comprehensive analysis of 6 test files identifying redundancy opportunities
+
+### Technical Enhancements
+- **🖼️ Background Layer Management**: Proper z-index layering with `::before` pseudo-elements
+- **🎛️ Filter Chain Optimization**: `invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.8)` for ideal light mode appearance
+- **📐 Shadow Calibration**: Professional shadow depth matching between light and dark themes
+- **🏗️ Modular Architecture**: Consolidated style application patterns for better maintainability
 
 ## Quick Start
 

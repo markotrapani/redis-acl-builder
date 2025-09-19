@@ -2,8 +2,12 @@
 
 /* Container positioning for resize handles */
 .page-backdrop {
-    position: relative;
+    position: var(--saved-container-position, relative);
+    left: var(--saved-container-left, auto);
+    top: var(--saved-container-top, auto);
     transition: max-width 0.1s ease-out;
+    /* Hide initially to prevent position flash, show after positioning */
+    opacity: var(--container-opacity, 0);
 }
 
 /* Resize handles base styling - invisible but interactive */
@@ -15,7 +19,7 @@
     border: none;
     z-index: 1000;
     user-select: none;
-    transition: background 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 /* Square resize handles with rounded corners */
@@ -29,10 +33,24 @@
     border-radius: var(--radius-sm);
 }
 
+/* Individual corner hover effects */
+.resize-handle-br:hover {
+    border-bottom: 2px solid rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+    border-right: 2px solid rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+}
+
+.resize-handle-bl:hover {
+    border-bottom: 2px solid rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+    border-left: 2px solid rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+}
+
+
 .resize-handle:hover {
     /* Subtle corner highlight to indicate interactive area */
-    background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+    background: rgba(59, 130, 246, 0.1) !important;
     backdrop-filter: blur(1px);
+    transform: scale(1.2);
+    transition: all 0.2s ease;
 }
 
 /* Bottom-right handle (both width and height) */
@@ -49,11 +67,22 @@
     cursor: sw-resize;
 }
 
-/* Active resize state styling - when body has resizing class */
-body.resizing .resize-handle {
+
+/* Active resize state styling - specific to each corner type */
+body.resizing-both .resize-handle-br {
     background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
     backdrop-filter: blur(2px);
+    border-bottom: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    border-right: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
 }
+
+body.resizing-both-left .resize-handle-bl {
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
+    backdrop-filter: blur(2px);
+    border-bottom: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+}
+
 
 /* Legacy active class support */
 .resize-handle.active {
@@ -73,6 +102,35 @@ body.resizing-both {
 
 body.resizing-both-left {
     cursor: sw-resize !important;
+}
+
+/* Draggable header styling */
+.draggable-header {
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+/* Remove hover color change - only show on active drag */
+.draggable-header:hover {
+    /* No background color change on hover */
+}
+
+/* Show color only when actively dragging */
+body.dragging .draggable-header {
+    background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+}
+
+/* Body states during dragging */
+body.dragging {
+    user-select: none;
+    cursor: move !important;
+}
+
+/* Container being dragged */
+.being-dragged {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: none !important;
+    z-index: 1001;
 }
 
 /* Enhanced visual feedback during resize - disable all transitions for synchronized movement */

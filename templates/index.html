@@ -14,12 +14,14 @@
                 let systemDark = false;
                 let savedVersion = null;
                 let savedDimensions = null;
+                let savedPosition = null;
                 let savedPanelOrder = null;
 
                 try {
                     savedTheme = localStorage.getItem('theme');
                     savedVersion = localStorage.getItem('redis-acl-builder-version');
                     savedDimensions = localStorage.getItem('redis-acl-builder-dimensions');
+                    savedPosition = localStorage.getItem('redis-acl-builder-position');
                     savedPanelOrder = localStorage.getItem('redis-acl-builder-panel-order');
                 } catch (e) {
                     // localStorage might be blocked in some environments
@@ -60,6 +62,53 @@
                     // Set default fallbacks when no saved dimensions exist
                     document.documentElement.style.setProperty('--container-width-default', '1416px');
                     document.documentElement.style.setProperty('--panel-height-default', '600px');
+                }
+
+                // Set saved position to prevent position flash
+                if (savedPosition) {
+                    try {
+                        const position = JSON.parse(savedPosition);
+                        if (position.left !== undefined && position.top !== undefined) {
+                            // Apply position constraints (same logic as in resizable-container.js)
+                            const padding = 20;
+                            // Use actual saved width if available, otherwise fallback to default
+                            let containerWidth = 1416; // Default width
+                            if (savedDimensions) {
+                                try {
+                                    const dimensions = JSON.parse(savedDimensions);
+                                    if (dimensions.width) {
+                                        containerWidth = dimensions.width + 16; // Add padding like in resizable-container.js
+                                    }
+                                } catch (e) {
+                                    // Keep default width if parsing fails
+                                }
+                            }
+                            const maxLeft = window.innerWidth - containerWidth - padding;
+                            const maxTop = window.innerHeight - 200 - padding;
+
+                            const constrainedLeft = Math.max(padding, Math.min(maxLeft, position.left || 0));
+                            const constrainedTop = Math.max(padding, Math.min(maxTop, position.top || 0));
+
+                            // Set CSS custom properties for immediate positioning
+                            document.documentElement.style.setProperty('--saved-container-left', `${constrainedLeft}px`);
+                            document.documentElement.style.setProperty('--saved-container-top', `${constrainedTop}px`);
+                            document.documentElement.style.setProperty('--saved-container-position', 'fixed');
+                            document.documentElement.style.setProperty('--container-opacity', '1');
+
+                            // ALSO apply directly as inline styles for absolute immediacy
+                            window._immediatePositioning = {
+                                left: `${constrainedLeft}px`,
+                                top: `${constrainedTop}px`,
+                                position: 'fixed',
+                                margin: '0'
+                            };
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse saved position:', e);
+                    }
+                } else {
+                    // No saved position - show container normally (centered)
+                    document.documentElement.style.setProperty('--container-opacity', '1');
                 }
 
                 // Store initial version state to set toggle correctly when DOM loads
@@ -112,7 +161,7 @@
     <meta name="keywords" content="Redis, ACL, Access Control, Security, Database">
 </head>
 <body>
-    <div class="page-backdrop">
+    <div class="page-backdrop" id="page-backdrop">
         <div class="container">
             <header>
             <div class="header-content">
@@ -233,6 +282,14 @@
                 <div class="acl-presets">
                     <h4>ACL Rule Presets</h4>
                     <div class="presets-content">
+                        <!-- Custom Rules Section - Appears First -->
+                        <section class="custom-rules" id="savedRulesSection" style="display: none;">
+                            <h5>Custom Rules</h5>
+                            <div class="saved-rules-content" id="savedRulesContent">
+                                <!-- Saved rules will be dynamically populated here -->
+                            </div>
+                        </section>
+
                         <section class="quick-examples">
                             <div class="example-group">
                                 <h6 class="example-category">Full Access</h6>
@@ -265,14 +322,6 @@
                                 </button>
                             </div>
                         </section>
-
-                        <!-- Custom Rules Section -->
-                        <section class="custom-rules" id="savedRulesSection" style="display: none;">
-                            <h5>Custom Rules</h5>
-                            <div class="saved-rules-content" id="savedRulesContent">
-                                <!-- Saved rules will be dynamically populated here -->
-                            </div>
-                        </section>
                     </div>
                 </div>
             </section>
@@ -298,10 +347,10 @@
                         spellcheck="false"
                     >
                     <button type="button"
-                            class="search-link-toggle unlinked"
+                            class="search-link-toggle linked"
                             data-search-type="blocked"
                             aria-label="Toggle search synchronization"
-                            title="Search bars are unlinked - Click to link with granted search">⛓️‍💥</button>
+                            title="Search bars are linked - Click to unlink searches">🔗</button>
                 </div>
 
                 <div class="command-categories-container loading">
@@ -342,10 +391,10 @@
                         spellcheck="false"
                     >
                     <button type="button"
-                            class="search-link-toggle unlinked"
+                            class="search-link-toggle linked"
                             data-search-type="granted"
                             aria-label="Toggle search synchronization"
-                            title="Search bars are unlinked - Click to link with blocked search">⛓️‍💥</button>
+                            title="Search bars are linked - Click to unlink searches">🔗</button>
                 </div>
 
                 <div class="command-categories-container loading">
@@ -416,6 +465,22 @@
             </div>
         </div>
     </div>
+
+    <!-- Apply immediate positioning if saved position exists -->
+    <script>
+        (function() {
+            if (window._immediatePositioning) {
+                const backdrop = document.getElementById('page-backdrop');
+                if (backdrop) {
+                    backdrop.style.position = window._immediatePositioning.position;
+                    backdrop.style.left = window._immediatePositioning.left;
+                    backdrop.style.top = window._immediatePositioning.top;
+                    backdrop.style.margin = window._immediatePositioning.margin;
+                    backdrop.style.transition = 'none';
+                }
+            }
+        })();
+    </script>
 
     <!-- Notification Container -->
     <div id="notificationContainer" class="notification-container"></div>

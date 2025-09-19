@@ -1,4 +1,4 @@
-# Redis ACL Builder v1.12.0-beta - Distribution Package
+# Redis ACL Builder v1.13.0-beta - Distribution Package
 
 ## 📦 Package Contents
 
@@ -36,10 +36,10 @@ This script will:
 
 ```bash
 # Build the Docker image
-docker build -t redis-acl-builder:v1.12.0-beta -f Dockerfile ..
+docker build -t redis-acl-builder:v1.13.0-beta -f Dockerfile ..
 
 # Run the container
-docker run -d -p 8000:8000 --name redis-acl-builder redis-acl-builder:v1.12.0-beta
+docker run -d -p 8000:8000 --name redis-acl-builder redis-acl-builder:v1.13.0-beta
 
 # Access the application
 open http://localhost:8000
@@ -106,7 +106,7 @@ See `BETA-README.md` for complete feature documentation, API reference, and test
 lsof -i :8000
 
 # Use different port
-docker run -d -p 8080:8000 --name redis-acl-builder redis-acl-builder:v1.12.0-beta
+docker run -d -p 8080:8000 --name redis-acl-builder redis-acl-builder:v1.13.0-beta
 ```
 
 ### Container Won't Start

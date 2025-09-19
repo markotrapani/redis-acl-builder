@@ -18,7 +18,7 @@
 /* Light mode backdrop styling */
 [data-theme="light"] .page-backdrop {
   background: var(--gray-300);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.25);
   border-color: var(--gray-500);
 }
 

@@ -233,6 +233,51 @@ body {
   color: var(--text-primary);
   line-height: var(--line-height);
   min-height: 100vh;
+
+  /* Custom background SVG */
+  background-image: url('/static/background.svg');
+  background-attachment: fixed;
+  background-repeat: repeat;
+}
+
+/* Light mode: create light background by inverting just the background image */
+[data-theme="light"] body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/static/background.svg');
+  background-attachment: fixed;
+  background-repeat: repeat;
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.8);
+  z-index: -1;
+}
+
+[data-theme="light"] body {
+  background-image: none;
+}
+
+/* System preference fallback for light mode */
+@media (prefers-color-scheme: light) {
+  html:not([data-theme]) body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/background.svg');
+    background-attachment: fixed;
+    background-repeat: repeat;
+    filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.8);
+    z-index: -1;
+  }
+
+  html:not([data-theme]) body {
+    background-image: none;
+  }
 }
 
 /* Container styling moved to layout.css for better organization */
@@ -367,6 +412,10 @@ header {
   width: 44px;
   height: 36px;
   position: relative;
+  /* Default state (dark mode active) - show light appearance to switch to light */
+  background: linear-gradient(135deg, #ffffff, #f1f3f4);
+  color: #495057;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .theme-toggle::before {
@@ -380,13 +429,6 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-/* Default state (dark mode active) - show light appearance to switch to light */
-.theme-toggle {
-  background: linear-gradient(135deg, #ffffff, #f1f3f4);
-  color: #495057;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .theme-toggle:hover {
