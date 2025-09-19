@@ -29,22 +29,7 @@
   border-color: var(--border);
 }
 
-/* System preference fallback */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .page-backdrop {
-    background: var(--background);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
-    border-color: var(--border);
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme]) .page-backdrop {
-    background: var(--gray-300);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
-    border-color: var(--gray-500);
-  }
-}
+/* System preference fallbacks removed - app always sets explicit themes */
 
 /* Adjust container styling for backdrop integration */
 .container {
@@ -313,28 +298,7 @@
   border-bottom-color: var(--border);
 }
 
-/* System preference fallback for test section and containers */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .test-section {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-  }
-  
-  :root:not([data-theme]) .command-categories-container,
-  :root:not([data-theme]) .acl-config-panel .command-categories-container,
-  :root:not([data-theme]) .granted-commands-panel .command-categories-container,
-  :root:not([data-theme]) .blocked-commands-panel .command-categories-container {
-    background: rgba(0,0,0,0.3);
-    border-color: var(--border);
-    color: var(--text-primary);
-  }
-  
-  :root:not([data-theme]) .acl-config-panel .command-categories-container h3,
-  :root:not([data-theme]) .granted-commands-panel .command-categories-container h3,
-  :root:not([data-theme]) .blocked-commands-panel .command-categories-container h3 {
-    color: var(--text-secondary) !important;
-    border-bottom-color: var(--border);
-  }
-}
+/* System preference fallback removed - themes always explicit */
 
 /* Categories and commands sections */
 .categories-section {
@@ -495,33 +459,8 @@
 
 /* Force stable scrollbar space for command categories containers to prevent layout shifts */
 .command-categories-container {
-  overflow-y: auto; /* Use auto for overlay-style scrollbars */
-  /* Modern browser support for thin scrollbars */
-  scrollbar-width: thin;
-}
-
-/* For WebKit browsers - simple, clean scrollbar styling */
-.command-categories-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-.command-categories-container::-webkit-scrollbar-track {
-  background: var(--gray-100);
-  border-radius: var(--radius-sm);
-}
-
-.command-categories-container::-webkit-scrollbar-thumb {
-  background: var(--gray-400);
-  border-radius: var(--radius-sm);
-}
-
-.command-categories-container::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-500);
-}
-
-/* Ensure scrollbar button consistency (if present) */
-.command-categories-container::-webkit-scrollbar-button {
-  display: none; /* Hide scroll buttons for cleaner appearance */
+  overflow-y: auto;
+  /* Let browser use native overlay scrollbars completely */
 }
 
 /* Animations */

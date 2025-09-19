@@ -5,7 +5,7 @@
 
 /* Enhanced interactive panel behaviors */
 .panel {
-  transition: box-shadow var(--transition-normal);
+  transition: box-shadow var(--transition-normal), opacity var(--transition-normal);
 }
 
 .panel:hover {
@@ -19,16 +19,11 @@
 .blocked-commands-panel .panel-description {
   margin-bottom: var(--spacing-xs);
   padding: var(--spacing-sm);
-  background: rgba(0,0,0,0.05);
+  background: rgba(0,0,0,var(--alpha-subtle));
   border-radius: var(--radius-sm);
 }
 
-/* Light mode panel descriptions (explicit) */
-[data-theme="light"] .acl-config-panel .panel-description,
-[data-theme="light"] .granted-commands-panel .panel-description,
-[data-theme="light"] .blocked-commands-panel .panel-description {
-  background: rgba(0,0,0,0.05);
-}
+/* Light theme panel descriptions use base rule (rgba(0,0,0,var(--alpha-subtle))) */
 
 /* Dark mode panel descriptions (explicit) */
 [data-theme="dark"] .acl-config-panel .panel-description,
@@ -37,14 +32,7 @@
   background: rgba(255,255,255,0.05);
 }
 
-/* System preference fallback (only when no theme set) */
-@media (prefers-color-scheme: dark) {
-  html:not([data-theme]) .acl-config-panel .panel-description,
-  html:not([data-theme]) .granted-commands-panel .panel-description,
-  html:not([data-theme]) .blocked-commands-panel .panel-description {
-    background: rgba(255,255,255,0.05);
-  }
-}
+/* System preference fallback removed - themes always explicit */
 
 
 /* Interactive state management */

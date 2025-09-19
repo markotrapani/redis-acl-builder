@@ -71,7 +71,6 @@
                 if (savedPanelOrder) {
                     try {
                         window._initialPanelOrder = JSON.parse(savedPanelOrder);
-                        console.log('🔧 Panel order restored from localStorage:', window._initialPanelOrder);
 
                         // Check if reordering is actually needed
                         const defaultOrder = ['acl-config-panel', 'blocked-commands-panel', 'granted-commands-panel'];
@@ -81,9 +80,7 @@
                             // Only hide panels if they actually need reordering
                             document.documentElement.style.setProperty('--panels-opacity', '0');
                             window._panelsHidden = true;
-                            console.log('🔧 Panels hidden - reordering needed:', window._initialPanelOrder);
                         } else {
-                            console.log('🔧 Panels in default order - no hiding needed');
                         }
                     } catch (e) {
                         console.warn('Failed to parse saved panel order:', e);
@@ -91,25 +88,11 @@
                     }
                 } else {
                     window._initialPanelOrder = ['acl-config-panel', 'blocked-commands-panel', 'granted-commands-panel'];
-                    console.log('🔧 Using default panel order, no hiding needed');
                 }
 
-                // Debug logging for Docker troubleshooting
-                console.log('Initial state setup:', {
-                    savedTheme: savedTheme,
-                    systemDark: systemDark,
-                    appliedTheme: theme,
-                    savedVersion: savedVersion,
-                    initialVersion: initialVersion,
-                    savedDimensions: savedDimensions,
-                    savedPanelOrder: savedPanelOrder,
-                    initialPanelOrder: window._initialPanelOrder,
-                    userAgent: navigator.userAgent.substring(0, 100)
-                });
 
             } catch (e) {
                 // Ultimate fallback - force defaults
-                console.error('Initial state setup failed, using defaults:', e);
                 document.documentElement.setAttribute('data-theme', 'light');
                 window._initialRedisVersion = 'redis7';
             }
@@ -220,7 +203,7 @@
                 <div class="textarea-container loading">
                     <textarea
                         id="aclRule"
-                        class="rule-input rule-input-compact"
+                        class="rule-input"
                         placeholder="Click commands/categories in the other panels to build your ACL rule interactively, or type manually..."
                         aria-label="ACL Rule Input"
                         spellcheck="false"

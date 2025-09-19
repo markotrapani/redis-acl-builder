@@ -105,6 +105,13 @@
   /* Layout */
   --container-max-width: 1400px;
   --panel-padding: var(--spacing-md);
+
+  /* Common alpha values for rgba() colors */
+  --alpha-subtle: 0.05;
+  --alpha-light: 0.1;
+  --alpha-medium: 0.15;
+  --alpha-strong: 0.3;
+  --alpha-heavy: 0.5;
 }
 
 /* Light Mode Variables (explicit override) */
@@ -228,12 +235,7 @@ body {
   min-height: 100vh;
 }
 
-/* Container */
-.container {
-  max-width: var(--container-max-width);
-  margin: 0 auto;
-  padding: 15px; /* Reduced from var(--spacing-lg) = 20px for vertical compaction */
-}
+/* Container styling moved to layout.css for better organization */
 
 /* Typography */
 h1 {

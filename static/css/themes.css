@@ -539,6 +539,4 @@
 .granted-commands-panel .command-categories-container,
 .blocked-commands-panel .command-categories-container,
 .acl-config-panel,
-.panel {
-  transition: opacity var(--transition-normal);
-}
+/* Panel transition consolidated in interactive.css */

@@ -363,9 +363,9 @@ button.test-button[disabled] {
 
 /* ACL Rule Textarea - Comfortable padding */
 .rule-input {
-  padding: 12px;
+  padding: 9px;
   resize: vertical;
-  min-height: 100px;
+  min-height: 80px; /* Compact height to prevent text cutoff */
 }
 
 /* Test Command/Search Inputs - Compact padding */
@@ -414,15 +414,13 @@ button.test-button[disabled] {
 
 /* Enhanced rule input for interactive mode */
 .acl-config-panel .rule-input {
-  min-height: 120px;
+  min-height: 80px;
   max-height: 256px;
   resize: vertical;
 }
 
 /* Compact rule input with better height for preview text */
-.rule-input-compact {
-  min-height: 80px !important; /* Increased from 60px to prevent text cutoff */
-}
+/* .rule-input-compact removed - height consolidated into base .rule-input class */
 
 /* Textarea container for positioning overlay */
 .textarea-container {
@@ -1129,20 +1127,7 @@ button.test-button[disabled] {
   background: #2b1e1e; /* Dark red for blocked */
 }
 
-/* System preference fallback for initial loading covers */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .command-categories-container.loading::before {
-    background: #2b1e1e; /* Dark red for blocked */
-  }
-
-  :root:not([data-theme]) .granted-commands-panel .command-categories-container.loading::before {
-    background: #1e2b1e; /* Dark green for granted */
-  }
-
-  :root:not([data-theme]) .blocked-commands-panel .command-categories-container.loading::before {
-    background: #2b1e1e; /* Dark red for blocked */
-  }
-}
+/* System preference fallback removed - themes always explicit */
 
 /* Fade out animation when removing loading class */
 .command-categories-container.loading-fadeout::before {
@@ -1154,7 +1139,6 @@ button.test-button[disabled] {
 .test-input-group {
   display: flex;
   gap: 10px;
-  margin-bottom: 8px; /* Reduced from var(--spacing-lg) = 20px for compact test panels */
   position: relative; /* Enable absolute positioning for result popups */
 }
 
