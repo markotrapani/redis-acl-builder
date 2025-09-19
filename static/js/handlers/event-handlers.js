@@ -377,6 +377,9 @@ const EventHandlers = {
         
         // Initialize test button states (should start disabled)
         this.updateTestButtonStates();
+
+        // Initialize keyboard shortcuts
+        this.initKeyboardShortcuts();
     },
     
     /**
@@ -715,6 +718,36 @@ const EventHandlers = {
 
         // Focus back on textarea
         aclRuleTextarea.focus();
+    },
+
+    /**
+     * Initialize keyboard shortcuts for the application
+     */
+    initKeyboardShortcuts() {
+        const aclRuleTextarea = document.getElementById('aclRule');
+        if (!aclRuleTextarea) return;
+
+        aclRuleTextarea.addEventListener('keydown', (event) => {
+            // Check if Enter key was pressed
+            if (event.key === 'Enter') {
+                // If Cmd (Mac) or Ctrl (Windows/Linux) is held, allow newline
+                if (event.metaKey || event.ctrlKey) {
+                    return; // Allow default behavior (newline)
+                }
+
+                // Check if Submit Changes button is visible
+                const submitButton = document.getElementById('submitChangesBtn');
+                if (submitButton && submitButton.style.display !== 'none' && !submitButton.hidden) {
+                    // Prevent default textarea behavior (new line)
+                    event.preventDefault();
+
+                    // Trigger the sync function
+                    if (window.syncRuleToInteractive) {
+                        window.syncRuleToInteractive();
+                    }
+                }
+            }
+        });
     }
 };
 
