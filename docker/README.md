@@ -28,22 +28,22 @@ docker-compose up -d
 ### Option 3: Build and Export Image (for distribution)
 ```bash
 # Build image
-docker build -t redis-acl-builder:v1.7.0-beta -f Dockerfile ..
+docker build -t redis-acl-builder:v1.12.0-beta -f Dockerfile ..
 
 # Export image (if needed for distribution) - uncompressed for simplicity
-docker save redis-acl-builder:v1.7.0-beta > redis-acl-builder-v1.7.0-beta.tar
+docker save redis-acl-builder:v1.12.0-beta > redis-acl-builder-v1.12.0-beta.tar
 
 # Run
-docker run -d -p 8000:8000 --name redis-acl-builder redis-acl-builder:v1.7.0-beta
+docker run -d -p 8000:8000 --name redis-acl-builder redis-acl-builder:v1.12.0-beta
 ```
 
 ### Option 4: Alternative Build Locations
 ```bash
 # From docker folder
-docker build -t redis-acl-builder:v1.7.0-beta -f Dockerfile ..
+docker build -t redis-acl-builder:v1.12.0-beta -f Dockerfile ..
 
 # From project root
-docker build -t redis-acl-builder:v1.7.0-beta -f docker/Dockerfile .
+docker build -t redis-acl-builder:v1.12.0-beta -f docker/Dockerfile .
 ```
 
 ## 📋 Image Details

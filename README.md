@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version 1.12.0-beta** - Elegant Resize System & Professional UX
+**Version 1.12.0-beta** - Enhanced UX with Keyboard Shortcuts & CSS Optimization
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -41,6 +41,9 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Rule Precedence**: Correctly implements left-to-right Redis ACL rule evaluation
 - **Enhanced Error Handling**: Comprehensive validation with user-friendly error recovery
 - **Smooth Animations**: Eliminated screen flashing with optimized rendering
+- **Keyboard Shortcuts**: Enter key submits ACL changes, Cmd/Ctrl+Enter for newlines
+- **Enhanced Resize Handles**: Rounded square corner handles with active state feedback
+- **Optimized CSS Architecture**: Streamlined stylesheets with reusable variables and reduced redundancy
 - **Redis Enterprise Compliance**: Full validation against Redis ACL specifications
 - **Advanced Keyspace Testing**: Full glob pattern support (*, ?, [abc], [a-z], [^abc]) with real-time validation
 - **Dismissible Test Results**: Auto-timeout after 5 seconds with manual close buttons and smooth fade animations

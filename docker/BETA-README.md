@@ -14,10 +14,10 @@ This is a comprehensive web application for building, testing, and validating Re
 
 ```bash
 # Build the Docker image (Docker images not included in repo due to size limits)
-docker build -t redis-acl-builder:v1.7.0-beta -f Dockerfile ..
+docker build -t redis-acl-builder:v1.12.0-beta -f Dockerfile ..
 
 # Run the beta image
-docker run -d -p 8000:8000 --name redis-acl-builder redis-acl-builder:v1.7.0-beta
+docker run -d -p 8000:8000 --name redis-acl-builder redis-acl-builder:v1.12.0-beta
 
 # Access the application
 open http://localhost:8000
@@ -30,14 +30,14 @@ open http://localhost:8000
 cd redis-acl-builder
 
 # Build the image (from project root)
-docker build -t redis-acl-builder:v1.7.0-beta -f docker/Dockerfile .
+docker build -t redis-acl-builder:v1.12.0-beta -f docker/Dockerfile .
 
 # Or build from docker folder
 cd docker
-docker build -t redis-acl-builder:v1.7.0-beta -f Dockerfile ..
+docker build -t redis-acl-builder:v1.12.0-beta -f Dockerfile ..
 
 # Run the container
-docker run -d -p 8000:8000 --name redis-acl-builder redis-acl-builder:v1.7.0-beta
+docker run -d -p 8000:8000 --name redis-acl-builder redis-acl-builder:v1.12.0-beta
 ```
 
 ## ✨ Key Features
@@ -178,7 +178,7 @@ docker restart redis-acl-builder
 
 # Remove container and start fresh
 docker stop redis-acl-builder && docker rm redis-acl-builder
-docker run -d -p 8000:8000 --name redis-acl-builder redis-acl-builder:v1.7.0-beta
+docker run -d -p 8000:8000 --name redis-acl-builder redis-acl-builder:v1.12.0-beta
 ```
 
 ---
