@@ -159,6 +159,7 @@ const ResizableContainer = {
             const cssWidth = parseInt(savedContainerWidth) - 16; // Remove the +16 padding
             const cssHeight = parseInt(savedPanelHeight);
 
+
             // Update state to match CSS but don't touch DOM since CSS already has correct values
             this.state.width = cssWidth;
             this.state.height = cssHeight;
@@ -736,6 +737,7 @@ const ResizableContainer = {
      */
     applyDimensions() {
         if (!this.elements.container || !this.elements.threeColumnLayout) return;
+
 
         // Set page-backdrop max-width (this.elements.container is pageBackdrop now)
         this.elements.container.style.maxWidth = `${this.state.width + 16}px`;

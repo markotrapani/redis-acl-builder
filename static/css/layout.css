@@ -7,7 +7,7 @@
   box-shadow: var(--shadow-xl);
   padding: 8px;
   margin: var(--spacing-xs) auto;
-  max-width: var(--container-width-default); /* Use dynamic default set by inline script */
+  max-width: calc(var(--container-width, 1400px) + 16px); /* Base container width + 8px padding on each side */
   position: relative;
   border: 1px solid var(--border-light);
   overflow: visible;

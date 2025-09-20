@@ -23,6 +23,7 @@
                     savedDimensions = localStorage.getItem('redis-acl-builder-dimensions');
                     savedPosition = localStorage.getItem('redis-acl-builder-position');
                     savedPanelOrder = localStorage.getItem('redis-acl-builder-panel-order');
+
                 } catch (e) {
                     // localStorage might be blocked in some environments
                     console.warn('localStorage access failed:', e);
@@ -46,22 +47,40 @@
                     try {
                         const dimensions = JSON.parse(savedDimensions);
                         if (dimensions.width && dimensions.height) {
-                            // Set CSS custom properties immediately
-                            const containerWidth = `${dimensions.width + 16}px`;
-                            const panelHeight = `${dimensions.height}px`;
-                            document.documentElement.style.setProperty('--saved-container-width', containerWidth);
-                            document.documentElement.style.setProperty('--saved-panel-height', panelHeight);
-                            // Also set the fallback defaults to match saved values
-                            document.documentElement.style.setProperty('--container-width-default', containerWidth);
-                            document.documentElement.style.setProperty('--panel-height-default', panelHeight);
+                            // Calculate consistent width values
+                            const baseWidth = dimensions.width;
+                            const backdropWidth = baseWidth + 16; // Backdrop = base + 8px padding on each side
+                            const panelHeight = dimensions.height;
+
+
+                            // Set UNIFIED CSS properties - use the same width value everywhere
+                            document.documentElement.style.setProperty('--container-width', `${baseWidth}px`);
+                            document.documentElement.style.setProperty('--panel-height', `${panelHeight}px`);
+
+                            // Also set the legacy properties for backwards compatibility
+                            document.documentElement.style.setProperty('--saved-container-width', `${backdropWidth}px`);
+                            document.documentElement.style.setProperty('--saved-panel-height', `${panelHeight}px`);
+                            document.documentElement.style.setProperty('--container-width-default', `${backdropWidth}px`);
+                            document.documentElement.style.setProperty('--panel-height-default', `${panelHeight}px`);
+
                         }
                     } catch (e) {
                         console.warn('Failed to parse saved dimensions:', e);
                     }
                 } else {
                     // Set default fallbacks when no saved dimensions exist
-                    document.documentElement.style.setProperty('--container-width-default', '1416px');
-                    document.documentElement.style.setProperty('--panel-height-default', '600px');
+                    const defaultBaseWidth = 1400;
+                    const defaultPanelHeight = 600;
+                    const defaultBackdropWidth = defaultBaseWidth + 16;
+
+
+                    // Set UNIFIED CSS properties for defaults
+                    document.documentElement.style.setProperty('--container-width', `${defaultBaseWidth}px`);
+                    document.documentElement.style.setProperty('--panel-height', `${defaultPanelHeight}px`);
+
+                    // Set legacy properties for backwards compatibility
+                    document.documentElement.style.setProperty('--container-width-default', `${defaultBackdropWidth}px`);
+                    document.documentElement.style.setProperty('--panel-height-default', `${defaultPanelHeight}px`);
                 }
 
                 // Set saved position to prevent position flash
@@ -71,6 +90,8 @@
                         if (position.left !== undefined && position.top !== undefined) {
                             // Apply position constraints (same logic as in resizable-container.js)
                             const padding = 20;
+                            const cssMarginTop = 4; // var(--spacing-xs) = 4px margin from CSS
+
                             // Use actual saved width if available, otherwise fallback to default
                             let containerWidth = 1416; // Default width
                             if (savedDimensions) {
@@ -106,7 +127,34 @@
                     } catch (e) {
                         console.warn('Failed to parse saved position:', e);
                     }
+                }
+
+                // NEW: Set immediate sizing styles to prevent any flash
+                if (savedDimensions) {
+                    try {
+                        const dimensions = JSON.parse(savedDimensions);
+                        if (dimensions.width && dimensions.height) {
+                            const baseWidth = dimensions.width;
+                            const backdropWidth = baseWidth + 16;
+
+                            window._immediateSizing = {
+                                maxWidth: `${backdropWidth}px`,
+                                containerMaxWidth: `${baseWidth}px`
+                            };
+
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse saved dimensions for immediate sizing:', e);
+                    }
                 } else {
+                    window._immediateSizing = {
+                        maxWidth: '1416px',
+                        containerMaxWidth: '1400px'
+                    };
+                }
+
+                // Ensure container opacity is set
+                if (!savedPosition) {
                     // No saved position - show container normally (centered)
                     document.documentElement.style.setProperty('--container-opacity', '1');
                 }
@@ -129,7 +177,6 @@
                             // Only hide panels if they actually need reordering
                             document.documentElement.style.setProperty('--panels-opacity', '0');
                             window._panelsHidden = true;
-                        } else {
                         }
                     } catch (e) {
                         console.warn('Failed to parse saved panel order:', e);
@@ -466,18 +513,37 @@
         </div>
     </div>
 
-    <!-- Apply immediate positioning if saved position exists -->
+    <!-- Apply immediate positioning and sizing if saved values exist -->
     <script>
         (function() {
-            if (window._immediatePositioning) {
-                const backdrop = document.getElementById('page-backdrop');
+            const backdrop = document.getElementById('page-backdrop');
+            const container = document.querySelector('.container');
+
+            // Apply immediate positioning
+            if (window._immediatePositioning && backdrop) {
+                backdrop.style.position = window._immediatePositioning.position;
+                backdrop.style.left = window._immediatePositioning.left;
+                backdrop.style.top = window._immediatePositioning.top;
+                backdrop.style.margin = window._immediatePositioning.margin;
+                backdrop.style.transition = 'none';
+            }
+
+            // Apply immediate sizing to PREVENT flash
+            if (window._immediateSizing) {
                 if (backdrop) {
-                    backdrop.style.position = window._immediatePositioning.position;
-                    backdrop.style.left = window._immediatePositioning.left;
-                    backdrop.style.top = window._immediatePositioning.top;
-                    backdrop.style.margin = window._immediatePositioning.margin;
+                    backdrop.style.maxWidth = window._immediateSizing.maxWidth;
                     backdrop.style.transition = 'none';
                 }
+                if (container) {
+                    container.style.maxWidth = window._immediateSizing.containerMaxWidth;
+                    container.style.transition = 'none';
+                }
+
+                // Re-enable transitions after a brief delay
+                setTimeout(() => {
+                    if (backdrop) backdrop.style.transition = '';
+                    if (container) container.style.transition = '';
+                }, 100);
             }
         })();
     </script>
