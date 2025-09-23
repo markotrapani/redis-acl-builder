@@ -46,8 +46,8 @@ The multi-arch build script (`build-multi-arch.sh`) performs:
 
 ### Image Details
 
-- **Base Image**: `python:3.13-slim` (latest stable Python with performance improvements)
-- **Final Size**: ~276MB (optimized multi-stage build)
+- **Base Image**: `python:3.13-alpine` (latest stable Python with Alpine optimizations)
+- **Final Size**: ~110MB (optimized multi-stage Alpine build)
 - **Architectures**: Automatically detects and builds for both platforms
 - **Port**: 7380
 - **User**: Non-root user for security

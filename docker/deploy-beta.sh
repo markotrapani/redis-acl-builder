@@ -32,9 +32,9 @@ if docker ps -a --format 'table {{.Names}}' | grep -q "redis-acl-builder"; then
     docker rm redis-acl-builder 2>/dev/null || true
 fi
 
-# Build the optimized Docker image (multi-stage build: ~276MB vs 1.23GB)
-echo "🔨 Building optimized Docker image (multi-stage build with Python 3.13)..."
-echo "   📦 Target size: ~276MB (77% reduction from 1.23GB)"
+# Build the optimized Docker image (multi-stage Alpine build: ~110MB vs 1.23GB)
+echo "🔨 Building optimized Docker image (multi-stage Alpine build with Python 3.13)..."
+echo "   📦 Target size: ~110MB (91% reduction from 1.23GB, improved security)"
 docker build -t redis-acl-builder:v1.14.0-beta -f Dockerfile ..
 
 # Run the container
