@@ -269,7 +269,7 @@ const DragDropPanels = {
         this.state.panelStartX = rect.left;
         this.state.panelStartY = rect.top;
 
-        // Add dragging class for visual feedback
+        // Add dragging class for visual feedback (this panel will follow the mouse and be dimmed)
         this.state.draggedPanel.classList.add('panel-dragging');
         document.body.classList.add('panel-drag-active');
 

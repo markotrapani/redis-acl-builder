@@ -62,8 +62,8 @@
     transform: translateX(12px) translateY(-12px) scale(1.02);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
     z-index: 1000;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    opacity: 0.9;
+    transition: none !important; /* Disable transitions for instant mouse following */
+    opacity: 0.7; /* Dimmed appearance for visual feedback */
     pointer-events: none;
 }
 
@@ -83,13 +83,6 @@
     transition: transform 0.15s ease-out;
 }
 
-/* Fallback for browsers that don't support :has() */
-@supports not selector(:has(*)) {
-    .panel-drag-handle:hover {
-        /* Handle will still have hover effects, but panel won't slide in older browsers */
-    }
-}
-
 .panel-drag-handle:active {
     cursor: grabbing;
     transform: scale(0.95);
@@ -98,8 +91,8 @@
     border-color: var(--primary);
 }
 
-/* Panel Dragging States - for the original panel slot */
-.panel-dragging {
+/* Panel Dragging States - for the original panel slot (visual placeholder) */
+.panel-drag-placeholder {
     opacity: 0.7;
     transform: scale(0.98);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
@@ -113,15 +106,15 @@
 }
 
 /* Preserve colored left borders during drag */
-.acl-config-panel.panel-dragging {
+.acl-config-panel.panel-drag-placeholder {
     border-left: 4px solid var(--info-color);
 }
 
-.blocked-commands-panel.panel-dragging {
+.blocked-commands-panel.panel-drag-placeholder {
     border-left: 4px solid var(--error-color);
 }
 
-.granted-commands-panel.panel-dragging {
+.granted-commands-panel.panel-drag-placeholder {
     border-left: 4px solid var(--success-color);
 }
 
@@ -282,7 +275,7 @@
     border-color: var(--blue-500);
 }
 
-[data-theme="light"] .panel-dragging {
+[data-theme="light"] .panel-drag-placeholder {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
@@ -306,7 +299,7 @@
     border-color: var(--blue-400);
 }
 
-[data-theme="dark"] .panel-dragging {
+[data-theme="dark"] .panel-drag-placeholder {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
@@ -331,7 +324,7 @@
         border-color: #3b82f6;
     }
 
-    :root:not([data-theme]) .panel-dragging {
+    :root:not([data-theme]) .panel-drag-placeholder {
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
         border-color: #3b82f6;
     }
@@ -357,7 +350,7 @@
         border-color: #60a5fa;
     }
 
-    :root:not([data-theme]) .panel-dragging {
+    :root:not([data-theme]) .panel-drag-placeholder {
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         border-color: #60a5fa;
     }
@@ -379,7 +372,7 @@
         padding: 3px;
     }
 
-    .panel-dragging {
+    .panel-drag-placeholder {
         transform: scale(0.95);
     }
 
@@ -392,6 +385,7 @@
 @media (prefers-reduced-motion: reduce) {
     .panel-drag-handle,
     .panel-dragging,
+    .panel-drag-placeholder,
     .panel-drop-zone,
     .panel-swap-animation,
     .panel-drag-active .acl-config-panel,

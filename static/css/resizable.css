@@ -81,7 +81,7 @@
 
 .resize-handle:hover {
     /* Subtle corner highlight to indicate interactive area */
-    background: rgba(59, 130, 246, 0.1) !important;
+    background: var(--resize-handle-hover-bg, rgba(59, 130, 246, 0.1));
     backdrop-filter: blur(1px);
     transform: scale(1.2);
     transition: all 0.2s ease;
@@ -394,11 +394,6 @@ body.resizing-height-up {
     transition: background-color 0.2s ease;
 }
 
-/* Remove hover color change - only show on active drag */
-.draggable-header:hover {
-    /* No background color change on hover */
-}
-
 /* Show color only when actively dragging */
 body.dragging .draggable-header {
     background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
@@ -521,18 +516,18 @@ body.resizing * {
 }
 
 /* Theme-specific hover highlights */
-[data-theme="dark"] .resize-handle:hover {
-    background: rgba(96, 165, 250, 0.15);
+[data-theme="dark"] {
+    --resize-handle-hover-bg: rgba(96, 165, 250, 0.15);
 }
 
-[data-theme="light"] .resize-handle:hover {
-    background: rgba(59, 130, 246, 0.1);
+[data-theme="light"] {
+    --resize-handle-hover-bg: rgba(59, 130, 246, 0.1);
 }
 
 /* System preference fallback */
 @media (prefers-color-scheme: dark) {
-    :root:not([data-theme]) .resize-handle:hover {
-        background: rgba(96, 165, 250, 0.15);
+    :root:not([data-theme]) {
+        --resize-handle-hover-bg: rgba(96, 165, 250, 0.15);
     }
 }
 
