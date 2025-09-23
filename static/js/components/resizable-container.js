@@ -525,19 +525,52 @@ const ResizableContainer = {
             // Left anchor: adjust horizontal position when width changes
             const widthDelta = constrainedWidth - this.state.startWidth;
             const newLeft = this.state.startLeft - widthDelta;
-            this.elements.pageBackdrop.style.left = `${newLeft}px`;
+
+            // Apply viewport constraints for left anchor positioning (allow flush with left edge)
+            const constrainedLeft = Math.max(0, newLeft);
+            this.elements.pageBackdrop.style.left = `${constrainedLeft}px`;
         }
 
         if (this.state.resizeType === 'top-both' || this.state.resizeType === 'top-both-left' || this.state.resizeType === 'height-up') {
             // Bottom anchor: adjust vertical position when height changes
             const heightDelta = constrainedHeight - this.state.startHeight;
             const newTop = this.state.startTop - heightDelta;
-            this.elements.pageBackdrop.style.top = `${newTop}px`;
+
+            // Apply viewport constraints for top anchor positioning (allow flush with top edge)
+            const constrainedTop = Math.max(0, newTop);
+            this.elements.pageBackdrop.style.top = `${constrainedTop}px`;
         }
 
         // Update state
         this.state.width = constrainedWidth;
         this.state.height = constrainedHeight;
+
+        // For non-anchored resize operations, check if container would extend beyond viewport
+        const currentRect = this.elements.pageBackdrop.getBoundingClientRect();
+
+        // Check if expanding right/down would exceed viewport bounds
+        if (this.state.resizeType === 'both' || this.state.resizeType === 'width-right' ||
+            this.state.resizeType === 'top-both') {
+            const wouldExceedRight = currentRect.left + constrainedWidth > window.innerWidth;
+            if (wouldExceedRight && this.elements.pageBackdrop.style.position === 'fixed') {
+                // Adjust position to keep container within viewport (allow flush with right edge)
+                const maxLeft = window.innerWidth - constrainedWidth;
+                const newLeft = Math.max(0, maxLeft);
+                this.elements.pageBackdrop.style.left = `${newLeft}px`;
+            }
+        }
+
+        if (this.state.resizeType === 'both' || this.state.resizeType === 'height-down' ||
+            this.state.resizeType === 'both-left') {
+            const estimatedHeight = constrainedHeight + 200; // Estimate total container height (panels + header)
+            const wouldExceedBottom = currentRect.top + estimatedHeight > window.innerHeight;
+            if (wouldExceedBottom && this.elements.pageBackdrop.style.position === 'fixed') {
+                // Adjust position to keep container within viewport (allow flush with bottom edge)
+                const maxTop = window.innerHeight - estimatedHeight;
+                const newTop = Math.max(0, maxTop);
+                this.elements.pageBackdrop.style.top = `${newTop}px`;
+            }
+        }
 
         // Apply dimensions immediately for smooth feedback
         this.applyDimensions();
@@ -629,13 +662,13 @@ const ResizableContainer = {
         const newLeft = this.state.startLeft + deltaX;
         const newTop = this.state.startTop + deltaY;
 
-        // Apply position constraints (keep container within viewport with some padding)
-        const padding = 20;
-        const maxLeft = window.innerWidth - this.state.width - padding;
-        const maxTop = window.innerHeight - 200 - padding; // Leave room for bottom of container
+        // Apply position constraints (allow flush positioning with viewport edges)
+        const containerHeight = this.elements.pageBackdrop.offsetHeight || 600; // Use actual container height
+        const maxLeft = window.innerWidth - this.state.width; // Allow flush with right edge
+        const maxTop = window.innerHeight - containerHeight; // Allow flush with bottom edge
 
-        const constrainedLeft = Math.max(padding, Math.min(maxLeft, newLeft));
-        const constrainedTop = Math.max(padding, Math.min(maxTop, newTop));
+        const constrainedLeft = Math.max(0, Math.min(maxLeft, newLeft)); // Allow flush with left edge
+        const constrainedTop = Math.max(0, Math.min(maxTop, newTop)); // Allow flush with top edge
 
         // Apply position to page backdrop (the draggable container)
         applyPositioningStyles(
@@ -717,13 +750,13 @@ const ResizableContainer = {
             if (saved) {
                 const position = JSON.parse(saved);
 
-                // Apply position constraints
-                const padding = 20;
-                const maxLeft = window.innerWidth - this.state.width - padding;
-                const maxTop = window.innerHeight - 200 - padding;
+                // Apply position constraints (allow flush positioning with viewport edges)
+                const containerHeight = this.elements.pageBackdrop.offsetHeight || 600; // Use actual container height
+                const maxLeft = window.innerWidth - this.state.width; // Allow flush with right edge
+                const maxTop = window.innerHeight - containerHeight; // Allow flush with bottom edge
 
-                const constrainedLeft = Math.max(padding, Math.min(maxLeft, position.left || 0));
-                const constrainedTop = Math.max(padding, Math.min(maxTop, position.top || 0));
+                const constrainedLeft = Math.max(0, Math.min(maxLeft, position.left || 0)); // Allow flush with left edge
+                const constrainedTop = Math.max(0, Math.min(maxTop, position.top || 0)); // Allow flush with top edge
 
                 applyPositioningStyles(
                     this.elements.pageBackdrop,

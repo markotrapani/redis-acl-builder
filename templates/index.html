@@ -88,9 +88,7 @@
                     try {
                         const position = JSON.parse(savedPosition);
                         if (position.left !== undefined && position.top !== undefined) {
-                            // Apply position constraints (same logic as in resizable-container.js)
-                            const padding = 20;
-                            const cssMarginTop = 4; // var(--spacing-xs) = 4px margin from CSS
+                            // Apply position constraints (allow flush positioning with viewport edges)
 
                             // Use actual saved width if available, otherwise fallback to default
                             let containerWidth = 1416; // Default width
@@ -104,11 +102,14 @@
                                     // Keep default width if parsing fails
                                 }
                             }
-                            const maxLeft = window.innerWidth - containerWidth - padding;
-                            const maxTop = window.innerHeight - 200 - padding;
 
-                            const constrainedLeft = Math.max(padding, Math.min(maxLeft, position.left || 0));
-                            const constrainedTop = Math.max(padding, Math.min(maxTop, position.top || 0));
+                            // Calculate container height for bottom constraint
+                            const estimatedContainerHeight = 800; // Rough estimate for full container (panels + header)
+                            const maxLeft = window.innerWidth - containerWidth; // Allow flush with right edge
+                            const maxTop = window.innerHeight - estimatedContainerHeight; // Allow flush with bottom edge
+
+                            const constrainedLeft = Math.max(0, Math.min(maxLeft, position.left || 0)); // Allow flush with left edge
+                            const constrainedTop = Math.max(0, Math.min(maxTop, position.top || 0)); // Allow flush with top edge
 
                             // Set CSS custom properties for immediate positioning
                             document.documentElement.style.setProperty('--saved-container-left', `${constrainedLeft}px`);

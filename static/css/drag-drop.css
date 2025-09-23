@@ -98,15 +98,31 @@
     border-color: var(--primary);
 }
 
-/* Panel Dragging States */
+/* Panel Dragging States - for the original panel slot */
 .panel-dragging {
     opacity: 0.7;
     transform: scale(0.98);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    border: 2px dashed var(--primary);
+    border-top: 2px dashed var(--primary);
+    border-right: 2px dashed var(--primary);
+    border-bottom: 2px dashed var(--primary);
+    /* Keep the original colored left border intact */
     transition: all 0.2s ease;
     z-index: 1000;
     position: relative;
+}
+
+/* Preserve colored left borders during drag */
+.acl-config-panel.panel-dragging {
+    border-left: 4px solid var(--info-color);
+}
+
+.blocked-commands-panel.panel-dragging {
+    border-left: 4px solid var(--error-color);
+}
+
+.granted-commands-panel.panel-dragging {
+    border-left: 4px solid var(--success-color);
 }
 
 /* Drop Zone Styling */
@@ -128,14 +144,129 @@
     cursor: grabbing;
 }
 
-.panel-drag-active .three-column-layout .panel:not(.panel-dragging) {
+/* Override disabled button cursors with maximum specificity */
+.panel-drag-active button:disabled,
+.panel-drag-active button[disabled],
+.panel-drag-active .test-button:disabled,
+.panel-drag-active .test-button[disabled],
+.panel-drag-active .inline-action-button:disabled,
+.panel-drag-active .inline-action-button[disabled],
+.panel-drag-active input:disabled,
+.panel-drag-active input[disabled] {
+    cursor: grabbing !important;
+}
+
+/* Extra specificity for ACL config panel disabled buttons */
+.panel-drag-active .acl-config-panel button:disabled,
+.panel-drag-active .acl-config-panel button[disabled],
+.panel-drag-active .acl-config-panel .inline-action-button:disabled,
+.panel-drag-active .acl-config-panel .inline-action-button[disabled] {
+    cursor: grabbing !important;
+}
+
+/* Disable ALL hover effects during panel dragging */
+
+.panel-drag-active button:hover,
+.panel-drag-active .test-button:hover,
+.panel-drag-active .inline-action-button:hover,
+.panel-drag-active .category-button:hover,
+.panel-drag-active .command-button:hover {
+    background: inherit !important;
+    border-color: inherit !important;
+    color: inherit !important;
+    transform: none !important;
+    box-shadow: inherit !important;
+}
+
+/* Exception: preserve theme toggle button styling during panel drag */
+.panel-drag-active .theme-toggle:hover {
+    background: linear-gradient(135deg, #e9ecef, #dee2e6) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Theme-specific exception for light mode */
+[data-theme="light"] .panel-drag-active .theme-toggle:hover {
+    background: linear-gradient(135deg, #495057, #343a40) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.panel-drag-active input:hover,
+.panel-drag-active textarea:hover,
+.panel-drag-active select:hover {
+    border-color: inherit !important;
+    box-shadow: inherit !important;
+}
+
+/* Test sections are logically separate from draggable panels - no special pointer-events needed */
+
+/* Only apply drag interactions to three-column panels, not test sections */
+.panel-drag-active .acl-config-panel:not(.panel-dragging),
+.panel-drag-active .blocked-commands-panel:not(.panel-dragging),
+.panel-drag-active .granted-commands-panel:not(.panel-dragging) {
     transition: all 0.2s ease;
 }
 
-.panel-drag-active .three-column-layout .panel:not(.panel-dragging):hover {
+.panel-drag-active .acl-config-panel:not(.panel-dragging):hover,
+.panel-drag-active .blocked-commands-panel:not(.panel-dragging):hover,
+.panel-drag-active .granted-commands-panel:not(.panel-dragging):hover {
+    /* Only three-column panels can show drop zone effects */
     transform: scale(1.01);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
+
+/* Test sections should be completely unaffected by panel drag operations */
+.panel-drag-active .test-section,
+.panel-drag-active .test-section:hover,
+.panel-drag-active .command-test-section,
+.panel-drag-active .command-test-section:hover,
+.panel-drag-active .keyspace-test-section,
+.panel-drag-active .keyspace-test-section:hover {
+    /* Only override the specific properties that might change during drag */
+    transform: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+/* Ensure test sections maintain their normal styling during panel drag */
+.panel-drag-active .test-section,
+.panel-drag-active .command-test-section,
+.panel-drag-active .keyspace-test-section {
+    /* Preserve original test section appearance - use explicit colors */
+    border: 1px solid var(--gray-500) !important;
+}
+
+/* Override the .panel:hover box-shadow that's making test sections darker */
+.panel-drag-active .test-section:hover,
+.panel-drag-active .command-test-section:hover,
+.panel-drag-active .keyspace-test-section:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important; /* Use normal shadow, not hover shadow */
+}
+
+/* Theme-specific test section backgrounds during drag - use correct CSS variable */
+[data-theme="light"] .panel-drag-active .test-section,
+[data-theme="light"] .panel-drag-active .command-test-section,
+[data-theme="light"] .panel-drag-active .keyspace-test-section {
+    background: var(--surface) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+
+[data-theme="dark"] .panel-drag-active .test-section,
+[data-theme="dark"] .panel-drag-active .command-test-section,
+[data-theme="dark"] .panel-drag-active .keyspace-test-section {
+    background: var(--surface) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+}
+
+/* Dark mode test section hover override */
+[data-theme="dark"] .panel-drag-active .test-section:hover,
+[data-theme="dark"] .panel-drag-active .command-test-section:hover,
+[data-theme="dark"] .panel-drag-active .keyspace-test-section:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important; /* Use normal dark shadow, not hover shadow */
+}
+
+/* Removed excessive safety override - test sections are already properly isolated */
 
 /* Theme-specific styling */
 
@@ -153,7 +284,6 @@
 
 [data-theme="light"] .panel-dragging {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    border-color: var(--blue-500);
 }
 
 [data-theme="light"] .panel-drop-zone {
@@ -178,7 +308,6 @@
 
 [data-theme="dark"] .panel-dragging {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    border-color: var(--blue-400);
 }
 
 [data-theme="dark"] .panel-drop-zone {
@@ -265,7 +394,9 @@
     .panel-dragging,
     .panel-drop-zone,
     .panel-swap-animation,
-    .panel-drag-active .panel {
+    .panel-drag-active .acl-config-panel,
+    .panel-drag-active .blocked-commands-panel,
+    .panel-drag-active .granted-commands-panel {
         transition: none;
     }
 }

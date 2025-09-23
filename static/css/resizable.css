@@ -136,23 +136,15 @@
     border: none !important;
 }
 
-/* Global cursor override during panel dragging - use grabbing hand cursor */
-.panel-drag-active,
-.panel-drag-active * {
-    cursor: grabbing !important;
-}
-
-/* Extra specificity for disabled elements that might have not-allowed cursor */
-.panel-drag-active button[disabled],
+/* Force grabbing cursor on ALL elements during panel dragging */
+.panel-drag-active *,
+.panel-drag-active *:hover,
 .panel-drag-active button:disabled,
-.panel-drag-active input[disabled],
+.panel-drag-active button[disabled],
+.panel-drag-active .test-button:disabled,
+.panel-drag-active .test-button[disabled],
 .panel-drag-active input:disabled,
-.panel-drag-active textarea[disabled],
-.panel-drag-active textarea:disabled,
-.panel-drag-active select[disabled],
-.panel-drag-active select:disabled,
-.panel-drag-active .disabled,
-.panel-drag-active [aria-disabled="true"] {
+.panel-drag-active input[disabled] {
     cursor: grabbing !important;
 }
 
@@ -300,6 +292,69 @@ body.resizing {
     user-select: none;
 }
 
+/* Disable all interactive hover effects during resize operations */
+body.resizing .panel-drag-handle:hover {
+    background: transparent !important;
+    transform: none !important;
+}
+
+/* Suppress hover effects on all resize handles during resize operations */
+body.resizing .resize-handle:hover,
+body.resizing .resize-edge:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+    border: none !important;
+    transition: none !important;
+}
+
+/* Suppress individual corner hover effects during resize */
+body.resizing .resize-handle-br:hover,
+body.resizing .resize-handle-bl:hover,
+body.resizing .resize-handle-tr:hover,
+body.resizing .resize-handle-tl:hover {
+    border: none !important;
+}
+
+/* Suppress individual edge hover effects during resize */
+body.resizing .resize-edge-top:hover,
+body.resizing .resize-edge-bottom:hover,
+body.resizing .resize-edge-left:hover,
+body.resizing .resize-edge-right:hover {
+    border: none !important;
+}
+
+/* Ensure consistent cursor inheritance during resize operations */
+body.resizing-both *,
+body.resizing-both-left *,
+body.resizing-top-both *,
+body.resizing-top-both-left *,
+body.resizing-width-right *,
+body.resizing-width-left *,
+body.resizing-height-down *,
+body.resizing-height-up * {
+    cursor: inherit !important;
+}
+
+/* Force proper cursors for disabled elements during ALL drag operations */
+body.dragging button:disabled,
+body.dragging button[disabled],
+body.dragging .test-button:disabled,
+body.dragging .test-button[disabled],
+body.dragging input:disabled,
+body.dragging input[disabled] {
+    cursor: move !important;
+}
+
+body.resizing button:disabled,
+body.resizing button[disabled],
+body.resizing .test-button:disabled,
+body.resizing .test-button[disabled],
+body.resizing input:disabled,
+body.resizing input[disabled] {
+    cursor: inherit !important;
+}
+
 /* Active resize cursors */
 body.resizing-both {
     cursor: se-resize !important;
@@ -352,6 +407,44 @@ body.dragging .draggable-header {
 /* Body states during dragging */
 body.dragging {
     user-select: none;
+    cursor: move !important;
+}
+
+/* Disable all interactive hover effects during header dragging */
+body.dragging .resize-handle:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+    border: none !important;
+}
+
+body.dragging .resize-handle-br:hover,
+body.dragging .resize-handle-bl:hover,
+body.dragging .resize-handle-tr:hover,
+body.dragging .resize-handle-tl:hover {
+    border: none !important;
+}
+
+body.dragging .resize-edge:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+}
+
+body.dragging .resize-edge-top:hover,
+body.dragging .resize-edge-bottom:hover,
+body.dragging .resize-edge-left:hover,
+body.dragging .resize-edge-right:hover {
+    border: none !important;
+}
+
+body.dragging .panel-drag-handle:hover {
+    background: transparent !important;
+    transform: none !important;
+}
+
+/* Suppress cursor changes on all interactive elements during header dragging */
+body.dragging * {
     cursor: move !important;
 }
 
