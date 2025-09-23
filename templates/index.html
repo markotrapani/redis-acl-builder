@@ -250,7 +250,6 @@
                             (function() {
                                 try {
                                     const toggle = document.getElementById('versionToggle');
-                                    const versionDetail = document.getElementById('versionDetail');
 
                                     // Read directly from localStorage to avoid race conditions
                                     let initialVersion = 'redis7'; // Default
@@ -268,13 +267,8 @@
                                         toggle.checked = true;
                                     }
 
-                                    // Also update the version detail text immediately
-                                    if (versionDetail) {
-                                        const categoryCount = initialVersion === 'redis8' ? '29' : '21';
-                                        const commandCount = initialVersion === 'redis8' ? '446' : '311';
-                                        const versionNumber = initialVersion.slice(-1);
-                                        versionDetail.textContent = `Redis ${versionNumber} (${categoryCount} categories, ${commandCount} commands)`;
-                                    }
+                                    // Store the version for use in the version detail element
+                                    window._initialVersionForDetail = initialVersion;
                                 } catch (e) {
                                     console.warn('Failed to set initial toggle state:', e);
                                 }
@@ -282,7 +276,18 @@
                         </script>
                     </div>
                     <div class="version-info">
-                        <span class="version-detail" id="versionDetail">Redis 7 (21 categories, 311 commands)</span>
+                        <span class="version-detail" id="versionDetail">
+                            <script>
+                                // Set correct initial text based on saved version to prevent flash
+                                (function() {
+                                    const initialVersion = window._initialVersionForDetail || 'redis7';
+                                    const categoryCount = initialVersion === 'redis8' ? '29' : '21';
+                                    const commandCount = initialVersion === 'redis8' ? '446' : '311';
+                                    const versionNumber = initialVersion.slice(-1);
+                                    document.write(`Redis ${versionNumber} (${categoryCount} categories, ${commandCount} commands)`);
+                                })();
+                            </script>
+                        </span>
                         <div class="inline-action-buttons">
                             <button type="button" id="clearRuleBtn" class="inline-action-button clear-button" onclick="clearACLRule()" title="Clear ACL Rule text area" disabled>
                                 💣
