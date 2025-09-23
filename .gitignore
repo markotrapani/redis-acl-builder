@@ -172,3 +172,4 @@ Thumbs.db
 
 # Docker images (too large for GitHub)
 docker/*.tar
+

@@ -13,8 +13,6 @@ button.test-button[disabled] {
   box-shadow: none !important;
   opacity: 0.6 !important; /* Keep original opacity */
 }
-
-
 /* Version Selector */
 .version-selector {
   margin-bottom: var(--spacing-lg);
@@ -635,8 +633,6 @@ button.test-button[disabled] {
 .test-button:focus {
   outline: none; /* Remove default browser outline */
 }
-
-
 /* Interactive buttons for categories and commands */
 .category-button, 
 .command-button {
@@ -966,8 +962,6 @@ button.test-button[disabled] {
   border-color: var(--success-border);
   opacity: 0.9;
 }
-
-
 /* Active/Click effects */
 .category-button:active, 
 .command-button:active {
@@ -1111,8 +1105,6 @@ button.test-button[disabled] {
     border-color: #ff5252;
   }
 }
-
-
 /* Button containers */
 .category-buttons, 
 .command-buttons {
@@ -1185,8 +1177,6 @@ button.test-button[disabled] {
 .command-categories-container.loading-fadeout::before {
   opacity: 0;
 }
-
-
 /* Input groups */
 .test-input-group {
   display: flex;
@@ -1276,22 +1266,6 @@ button.test-button[disabled] {
   flex: 1; /* Fill remaining space in panel */
   min-height: 0; /* Allow flexbox to shrink below content size */
 }
-
-/* Saved Rules - similar styling to Rule Examples */
-.saved-rules {
-  font-size: 1.2em;
-  display: flex;
-  flex-direction: column;
-  margin-top: var(--spacing-lg);
-  flex-shrink: 0; /* Prevent shrinking when panel scrolls */
-}
-
-.saved-rules h4 {
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-sm);
-  text-decoration: underline;
-}
-
 .saved-rules-content {
   display: flex;
   flex-direction: column;
@@ -1466,31 +1440,7 @@ button.test-button[disabled] {
     color: var(--text-secondary);
   }
 }
-
-
-/* Rule Actions (Copy/Clear buttons) - Legacy layout (hidden by default) */
-.rule-actions {
-  margin-top: var(--spacing-md);
-  display: none; /* Hidden since we use compact layout */
-  gap: var(--spacing-sm);
-  justify-content: center;
-}
-
-.action-button {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border: 2px solid transparent;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  min-width: 110px;
-  justify-content: center;
-}
-
+/* Removed .rule-actions - legacy layout that was hidden by default */
 .copy-button {
   background: var(--blue-gradient);
   color: white;
@@ -1514,12 +1464,6 @@ button.test-button[disabled] {
   transform: translateY(-1px);
   box-shadow: 0 3px 12px rgba(255, 87, 34, 0.4);
 }
-
-.action-button:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-}
-
 /* Panel Search Container - positioned below instruction text */
 .panel-search-container {
   display: flex;
@@ -1853,38 +1797,6 @@ button.test-button[disabled] {
   background: #2196F3;
   color: white;
   transform: scale(1.1);
-}
-
-
-.search-clear {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1.25rem;
-  line-height: 1;
-  padding: var(--spacing-xs);
-  cursor: pointer;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.search-clear:hover {
-  background: var(--gray-200);
-  color: var(--text-color);
-}
-
-.search-clear:active {
-  transform: scale(0.95);
-}
-
-
-[data-theme="dark"] .search-clear:hover {
-  background: var(--gray-700);
 }
 
 /* Search result count - matches "No categories granted" styling */
