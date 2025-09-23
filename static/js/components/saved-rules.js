@@ -116,9 +116,6 @@ const SavedRules = {
         this.setSavedRules(savedRules);
         this.renderSavedRules();
 
-        // Auto-scroll to reveal the newly saved rule (after DOM updates and scroll detection)
-        this.scrollToNewRule();
-
         this.showNotification('ACL rule saved successfully', 'success');
     },
 
@@ -254,22 +251,6 @@ const SavedRules = {
         }
     },
 
-    /**
-     * Auto-scroll to reveal newly saved custom rule
-     */
-    scrollToNewRule() {
-        // Wait for DOM updates and scroll detection to complete (longer than triggerScrollCheck timeout)
-        setTimeout(() => {
-            const presetsContent = document.querySelector('.presets-content');
-            if (presetsContent) {
-                // Scroll to bottom smoothly to reveal the newly added rule
-                presetsContent.scrollTo({
-                    top: presetsContent.scrollHeight,
-                    behavior: 'smooth'
-                });
-            }
-        }, 100); // Wait 100ms to ensure DOM updates and scroll detection (50ms) are complete
-    },
 
     /**
      * Show a notification to the user

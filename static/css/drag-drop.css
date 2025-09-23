@@ -128,11 +128,11 @@
     cursor: grabbing;
 }
 
-.panel-drag-active .panel:not(.panel-dragging) {
+.panel-drag-active .three-column-layout .panel:not(.panel-dragging) {
     transition: all 0.2s ease;
 }
 
-.panel-drag-active .panel:not(.panel-dragging):hover {
+.panel-drag-active .three-column-layout .panel:not(.panel-dragging):hover {
     transform: scale(1.01);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
