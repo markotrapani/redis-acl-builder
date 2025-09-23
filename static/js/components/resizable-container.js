@@ -47,14 +47,14 @@ const applyPositioningStyles = (element, left, top, options = {}) => {
 
 // CONSOLIDATED position initialization - unified approach to eliminate redundancy
 const initializeSavedPosition = () => {
-    const pageBackdrop = document.querySelector('.page-backdrop');
-    if (!pageBackdrop) return false;
+    const panelContainer = document.querySelector('.panel-container');
+    if (!panelContainer) return false;
 
     const cssLeft = getComputedStyle(document.documentElement).getPropertyValue('--saved-container-left').trim();
     const cssTop = getComputedStyle(document.documentElement).getPropertyValue('--saved-container-top').trim();
 
     if (cssLeft && cssTop) {
-        return applyPositioningStyles(pageBackdrop, cssLeft, cssTop, { setOpacity: true });
+        return applyPositioningStyles(panelContainer, cssLeft, cssTop, { setOpacity: true });
     }
     return false;
 };
@@ -66,8 +66,8 @@ const initializePosition = () => {
     }
 
     // If no saved position, ensure container opacity is set
-    const pageBackdrop = document.querySelector('.page-backdrop');
-    if (pageBackdrop) {
+    const panelContainer = document.querySelector('.panel-container');
+    if (panelContainer) {
         document.documentElement.style.setProperty('--container-opacity', '1');
     }
 };
@@ -123,8 +123,8 @@ const ResizableContainer = {
 
     // DOM elements
     elements: {
-        pageBackdrop: null,
-        container: null,
+        panelContainer: null,
+        innerContainer: null,
         threeColumnLayout: null,
         header: null,
         bottomRightHandle: null,
@@ -181,12 +181,12 @@ const ResizableContainer = {
      * Find required DOM elements
      */
     findElements() {
-        this.elements.pageBackdrop = document.querySelector('.page-backdrop');
-        this.elements.container = document.querySelector('.page-backdrop'); // Match working version - container IS pageBackdrop
+        this.elements.panelContainer = document.querySelector('.panel-container');
+        this.elements.innerContainer = document.querySelector('.inner-container');
         this.elements.threeColumnLayout = document.querySelector('.three-column-layout');
         this.elements.header = document.querySelector('header');
 
-        if (!this.elements.pageBackdrop || !this.elements.container || !this.elements.threeColumnLayout || !this.elements.header) {
+        if (!this.elements.panelContainer || !this.elements.innerContainer || !this.elements.threeColumnLayout || !this.elements.header) {
             return false;
         }
 
@@ -277,23 +277,23 @@ const ResizableContainer = {
         this.elements.rightEdge.className = 'resize-edge resize-edge-right';
         this.elements.rightEdge.title = 'Drag to resize width';
 
-        // Add handles to page backdrop (for positioning)
-        this.elements.pageBackdrop.appendChild(this.elements.bottomRightHandle);
-        this.elements.pageBackdrop.appendChild(this.elements.bottomLeftHandle);
-        this.elements.pageBackdrop.appendChild(this.elements.topRightHandle);
-        this.elements.pageBackdrop.appendChild(this.elements.topLeftHandle);
+        // Add handles to panel container (for positioning)
+        this.elements.panelContainer.appendChild(this.elements.bottomRightHandle);
+        this.elements.panelContainer.appendChild(this.elements.bottomLeftHandle);
+        this.elements.panelContainer.appendChild(this.elements.topRightHandle);
+        this.elements.panelContainer.appendChild(this.elements.topLeftHandle);
 
-        // Add edge handles to page backdrop
-        this.elements.pageBackdrop.appendChild(this.elements.topEdge);
-        this.elements.pageBackdrop.appendChild(this.elements.bottomEdge);
-        this.elements.pageBackdrop.appendChild(this.elements.leftEdge);
-        this.elements.pageBackdrop.appendChild(this.elements.rightEdge);
+        // Add edge handles to panel container
+        this.elements.panelContainer.appendChild(this.elements.topEdge);
+        this.elements.panelContainer.appendChild(this.elements.bottomEdge);
+        this.elements.panelContainer.appendChild(this.elements.leftEdge);
+        this.elements.panelContainer.appendChild(this.elements.rightEdge);
 
         // Make container and header draggable
         // Only set position to relative if not already positioned by inline script
-        const currentPosition = getComputedStyle(this.elements.pageBackdrop).position;
+        const currentPosition = getComputedStyle(this.elements.panelContainer).position;
         if (currentPosition !== 'fixed') {
-            this.elements.pageBackdrop.style.position = 'relative';
+            this.elements.panelContainer.style.position = 'relative';
         }
 
         this.elements.header.style.cursor = 'move';
@@ -427,13 +427,13 @@ const ResizableContainer = {
         // Store initial position and disable CSS centering for anchored resize modes
         if (resizeType === 'both-left' || resizeType === 'top-both' || resizeType === 'top-both-left' ||
             resizeType === 'width-left' || resizeType === 'height-up') {
-            const initialRect = this.elements.pageBackdrop.getBoundingClientRect();
+            const initialRect = this.elements.panelContainer.getBoundingClientRect();
             this.state.startLeft = initialRect.left;
             this.state.startTop = initialRect.top;
 
             // Disable CSS centering and set explicit positioning
             applyPositioningStyles(
-                this.elements.pageBackdrop,
+                this.elements.panelContainer,
                 `${initialRect.left}px`,
                 `${initialRect.top}px`,
                 { useImportant: false }
@@ -464,7 +464,7 @@ const ResizableContainer = {
         }
 
         // Force immediate layout recalculation for smooth real-time feedback
-        this.elements.container.offsetHeight;
+        this.elements.innerContainer.offsetHeight;
     },
 
     /**
@@ -519,9 +519,52 @@ const ResizableContainer = {
             newHeight = this.state.startHeight - deltaY;
         }
 
-        // Apply constraints
-        const constrainedWidth = Math.max(this.defaults.minWidth, Math.min(this.defaults.maxWidth, newWidth));
-        const constrainedHeight = Math.max(this.defaults.minHeight, Math.min(this.defaults.maxHeight, newHeight));
+        // Get current position for viewport boundary calculations
+        const currentRect = this.elements.panelContainer.getBoundingClientRect();
+
+        // Calculate viewport-constrained maximum dimensions based on current position
+        let maxAllowedWidth = newWidth;
+        let maxAllowedHeight = newHeight;
+
+        // For non-anchored resize operations, constrain dimensions to prevent exceeding viewport
+        if (this.state.resizeType === 'both' || this.state.resizeType === 'width-right' ||
+            this.state.resizeType === 'top-both') {
+            // Calculate maximum width that won't exceed right edge of viewport
+            const availableWidth = window.innerWidth - currentRect.left;
+            maxAllowedWidth = Math.min(newWidth, availableWidth);
+        }
+
+        if (this.state.resizeType === 'both' || this.state.resizeType === 'height-down' ||
+            this.state.resizeType === 'both-left') {
+            // Calculate maximum height that won't exceed bottom edge of viewport
+            // Account for header and other elements (estimate 200px total)
+            const availableHeight = window.innerHeight - currentRect.top - 200;
+            maxAllowedHeight = Math.min(newHeight, availableHeight);
+        }
+
+        // For upward resize operations, constrain height to prevent exceeding top edge
+        if (this.state.resizeType === 'top-both' || this.state.resizeType === 'top-both-left' ||
+            this.state.resizeType === 'height-up') {
+            // For anchored resize modes, calculate based on final position after anchor adjustment
+            // Maximum height is when the container's top edge would be at y=0
+            const maxHeightForTopEdge = this.state.startHeight + this.state.startTop;
+            maxAllowedHeight = Math.min(newHeight, maxHeightForTopEdge);
+        }
+
+        // For leftward resize operations, constrain width to prevent exceeding left edge
+        if (this.state.resizeType === 'both-left' || this.state.resizeType === 'top-both-left' ||
+            this.state.resizeType === 'width-left') {
+            // For anchored resize modes, calculate based on final position after anchor adjustment
+            // Maximum width is when the container's left edge would be at x=0
+            const maxWidthForLeftEdge = this.state.startWidth + this.state.startLeft;
+            maxAllowedWidth = Math.min(newWidth, maxWidthForLeftEdge);
+        }
+
+        // Apply all constraints: minimums, maximums, and viewport boundaries
+        const constrainedWidth = Math.max(this.defaults.minWidth,
+            Math.min(this.defaults.maxWidth, maxAllowedWidth));
+        const constrainedHeight = Math.max(this.defaults.minHeight,
+            Math.min(this.defaults.maxHeight, maxAllowedHeight));
 
         // Apply real-time position adjustments for anchored resize modes
         if (this.state.resizeType === 'both-left' || this.state.resizeType === 'top-both-left' || this.state.resizeType === 'width-left') {
@@ -531,7 +574,7 @@ const ResizableContainer = {
 
             // Apply viewport constraints for left anchor positioning (allow flush with left edge)
             const constrainedLeft = Math.max(0, newLeft);
-            this.elements.pageBackdrop.style.left = `${constrainedLeft}px`;
+            this.elements.panelContainer.style.left = `${constrainedLeft}px`;
         }
 
         if (this.state.resizeType === 'top-both' || this.state.resizeType === 'top-both-left' || this.state.resizeType === 'height-up') {
@@ -541,39 +584,12 @@ const ResizableContainer = {
 
             // Apply viewport constraints for top anchor positioning (allow flush with top edge)
             const constrainedTop = Math.max(0, newTop);
-            this.elements.pageBackdrop.style.top = `${constrainedTop}px`;
+            this.elements.panelContainer.style.top = `${constrainedTop}px`;
         }
 
         // Update state
         this.state.width = constrainedWidth;
         this.state.height = constrainedHeight;
-
-        // For non-anchored resize operations, check if container would extend beyond viewport
-        const currentRect = this.elements.pageBackdrop.getBoundingClientRect();
-
-        // Check if expanding right/down would exceed viewport bounds
-        if (this.state.resizeType === 'both' || this.state.resizeType === 'width-right' ||
-            this.state.resizeType === 'top-both') {
-            const wouldExceedRight = currentRect.left + constrainedWidth > window.innerWidth;
-            if (wouldExceedRight && this.elements.pageBackdrop.style.position === 'fixed') {
-                // Adjust position to keep container within viewport (allow flush with right edge)
-                const maxLeft = window.innerWidth - constrainedWidth;
-                const newLeft = Math.max(0, maxLeft);
-                this.elements.pageBackdrop.style.left = `${newLeft}px`;
-            }
-        }
-
-        if (this.state.resizeType === 'both' || this.state.resizeType === 'height-down' ||
-            this.state.resizeType === 'both-left') {
-            const estimatedHeight = constrainedHeight + 200; // Estimate total container height (panels + header)
-            const wouldExceedBottom = currentRect.top + estimatedHeight > window.innerHeight;
-            if (wouldExceedBottom && this.elements.pageBackdrop.style.position === 'fixed') {
-                // Adjust position to keep container within viewport (allow flush with bottom edge)
-                const maxTop = window.innerHeight - estimatedHeight;
-                const newTop = Math.max(0, maxTop);
-                this.elements.pageBackdrop.style.top = `${newTop}px`;
-            }
-        }
 
         // Apply dimensions immediately for smooth feedback
         this.applyDimensions();
@@ -610,7 +626,7 @@ const ResizableContainer = {
 
         // Force final layout recalculation and re-enable transitions
         requestAnimationFrame(() => {
-            this.elements.container.offsetHeight;
+            this.elements.innerContainer.offsetHeight;
         });
 
         // Clean up CSS overrides for proper state transitions
@@ -621,8 +637,8 @@ const ResizableContainer = {
         } else {
             // For non-anchored resize modes, ensure container can return to centered state if needed
             // Don't override the position: fixed from drag operations, but clear margin override
-            if (this.elements.pageBackdrop.style.margin === '0') {
-                this.elements.pageBackdrop.style.margin = '';
+            if (this.elements.panelContainer.style.margin === '0') {
+                this.elements.panelContainer.style.margin = '';
             }
         }
 
@@ -640,18 +656,18 @@ const ResizableContainer = {
         this.state.startX = event.clientX;
         this.state.startY = event.clientY;
 
-        // Get current position of page backdrop (the draggable container)
-        const containerRect = this.elements.pageBackdrop.getBoundingClientRect();
+        // Get current position of panel container (the draggable container)
+        const containerRect = this.elements.panelContainer.getBoundingClientRect();
         this.state.startLeft = containerRect.left;
         this.state.startTop = containerRect.top;
 
         // Add visual feedback
         document.body.classList.add('dragging');
         document.body.style.cursor = 'move';
-        this.elements.pageBackdrop.classList.add('being-dragged');
+        this.elements.panelContainer.classList.add('being-dragged');
 
         // Force immediate layout recalculation
-        this.elements.container.offsetHeight;
+        this.elements.innerContainer.offsetHeight;
     },
 
     /**
@@ -666,17 +682,17 @@ const ResizableContainer = {
         const newTop = this.state.startTop + deltaY;
 
         // Apply position constraints (allow flush positioning with viewport edges)
-        const containerHeight = this.elements.pageBackdrop.offsetHeight || 600; // Use actual container height
-        const backdropWidth = this.state.width + 16; // Backdrop = panel width + 8px padding on each side
-        const maxLeft = window.innerWidth - backdropWidth; // Allow flush with right edge
+        const containerHeight = this.elements.panelContainer.offsetHeight || 600; // Use actual container height
+        const containerWidth = this.state.width + 16; // Container = panel width + 8px padding on each side
+        const maxLeft = window.innerWidth - containerWidth; // Allow flush with right edge
         const maxTop = window.innerHeight - containerHeight; // Allow flush with bottom edge
 
         const constrainedLeft = Math.max(0, Math.min(maxLeft, newLeft)); // Allow flush with left edge
         const constrainedTop = Math.max(0, Math.min(maxTop, newTop)); // Allow flush with top edge
 
-        // Apply position to page backdrop (the draggable container)
+        // Apply position to panel container (the draggable container)
         applyPositioningStyles(
-            this.elements.pageBackdrop,
+            this.elements.panelContainer,
             `${constrainedLeft}px`,
             `${constrainedTop}px`,
             { useImportant: false, includeTransform: true, includeMargin: false }
@@ -694,11 +710,11 @@ const ResizableContainer = {
         // Remove visual feedback
         document.body.classList.remove('dragging');
         document.body.style.cursor = '';
-        this.elements.pageBackdrop.classList.remove('being-dragged');
+        this.elements.panelContainer.classList.remove('being-dragged');
 
         // Force final layout recalculation
         requestAnimationFrame(() => {
-            this.elements.pageBackdrop.offsetHeight;
+            this.elements.panelContainer.offsetHeight;
         });
 
         // Save final position
@@ -710,7 +726,7 @@ const ResizableContainer = {
      */
     savePosition() {
         try {
-            const containerRect = this.elements.pageBackdrop.getBoundingClientRect();
+            const containerRect = this.elements.panelContainer.getBoundingClientRect();
             const position = {
                 left: containerRect.left,
                 top: containerRect.top,
@@ -736,13 +752,13 @@ const ResizableContainer = {
 
             // Apply explicit positioning to override CSS custom properties
             // Disable transitions temporarily to prevent animated positioning
-            applyPositioningStyles(this.elements.pageBackdrop, cssLeft, cssTop, {
+            applyPositioningStyles(this.elements.panelContainer, cssLeft, cssTop, {
                 includeTransform: true
             });
 
             // Re-enable transitions after a brief delay
             setTimeout(() => {
-                this.elements.pageBackdrop.style.setProperty('transition', 'max-width 0.1s ease-out');
+                this.elements.panelContainer.style.setProperty('transition', 'max-width 0.1s ease-out');
             }, 50);
 
             return;
@@ -755,16 +771,16 @@ const ResizableContainer = {
                 const position = JSON.parse(saved);
 
                 // Apply position constraints (allow flush positioning with viewport edges)
-                const containerHeight = this.elements.pageBackdrop.offsetHeight || 600; // Use actual container height
-                const backdropWidth = this.state.width + 16; // Backdrop = panel width + 8px padding on each side
-                const maxLeft = window.innerWidth - backdropWidth; // Allow flush with right edge
+                const containerHeight = this.elements.panelContainer.offsetHeight || 600; // Use actual container height
+                const containerWidth = this.state.width + 16; // Container = panel width + 8px padding on each side
+                const maxLeft = window.innerWidth - containerWidth; // Allow flush with right edge
                 const maxTop = window.innerHeight - containerHeight; // Allow flush with bottom edge
 
                 const constrainedLeft = Math.max(0, Math.min(maxLeft, position.left || 0)); // Allow flush with left edge
                 const constrainedTop = Math.max(0, Math.min(maxTop, position.top || 0)); // Allow flush with top edge
 
                 applyPositioningStyles(
-                    this.elements.pageBackdrop,
+                    this.elements.panelContainer,
                     `${constrainedLeft}px`,
                     `${constrainedTop}px`,
                     { useImportant: false, includeTransform: true, includeMargin: false }
@@ -779,16 +795,15 @@ const ResizableContainer = {
      * Apply current dimensions to the layout
      */
     applyDimensions() {
-        if (!this.elements.container || !this.elements.threeColumnLayout) return;
+        if (!this.elements.panelContainer || !this.elements.threeColumnLayout) return;
 
 
-        // Set page-backdrop max-width (this.elements.container is pageBackdrop now)
-        this.elements.container.style.maxWidth = `${this.state.width + 16}px`;
+        // Set panel-container max-width
+        this.elements.panelContainer.style.maxWidth = `${this.state.width + 16}px`;
 
-        // Also set the inner .container element max-width to ensure content fits
-        const innerContainer = document.querySelector('.container');
-        if (innerContainer) {
-            innerContainer.style.maxWidth = `${this.state.width + 16}px`;
+        // Also set the inner container element max-width to ensure content fits
+        if (this.elements.innerContainer) {
+            this.elements.innerContainer.style.maxWidth = `${this.state.width + 16}px`;
         }
 
         // Set three-column panel height
@@ -831,20 +846,20 @@ const ResizableContainer = {
      * Apply dimensions immediately without transitions (for smooth resize feedback)
      */
     applyDimensionsImmediate() {
-        if (!this.elements.container || !this.elements.threeColumnLayout) return;
+        if (!this.elements.panelContainer || !this.elements.threeColumnLayout) return;
 
         // Temporarily disable transitions
-        const originalTransition = this.elements.container.style.transition;
-        this.elements.container.style.transition = 'none';
+        const originalTransition = this.elements.panelContainer.style.transition;
+        this.elements.panelContainer.style.transition = 'none';
 
         // Apply dimensions
         this.applyDimensions();
 
         // Force a layout recalculation
-        this.elements.container.offsetHeight;
+        this.elements.panelContainer.offsetHeight;
 
         // Restore transitions
-        this.elements.container.style.transition = originalTransition;
+        this.elements.panelContainer.style.transition = originalTransition;
     }
 };
 

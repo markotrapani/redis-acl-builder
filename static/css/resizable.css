@@ -1,7 +1,7 @@
 /* Redis Enterprise ACL Builder - Resizable Container Styles */
 
-/* Container positioning for resize handles */
-.page-backdrop {
+/* Panel container positioning for resize handles */
+.panel-container {
     position: var(--saved-container-position, relative);
     left: var(--saved-container-left, auto);
     top: var(--saved-container-top, auto);
@@ -225,59 +225,59 @@
 /* Active resize state styling - specific to each corner type */
 body.resizing-both .resize-handle-br {
     background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
-    backdrop-filter: blur(2px);
-    border-bottom: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
-    border-right: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    backdrop-filter: blur(2px) !important;
+    border-bottom: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
+    border-right: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
 }
 
 body.resizing-both-left .resize-handle-bl {
     background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
-    backdrop-filter: blur(2px);
-    border-bottom: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
-    border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    backdrop-filter: blur(2px) !important;
+    border-bottom: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
+    border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
 }
 
 body.resizing-top-both .resize-handle-tr {
     background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
-    backdrop-filter: blur(2px);
-    border-top: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
-    border-right: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    backdrop-filter: blur(2px) !important;
+    border-top: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
+    border-right: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
 }
 
 body.resizing-top-both-left .resize-handle-tl {
     background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
-    backdrop-filter: blur(2px);
-    border-top: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
-    border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    backdrop-filter: blur(2px) !important;
+    border-top: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
+    border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
 }
 
 /* Active edge resize state styling */
 body.resizing-width-right .resize-edge-right {
     background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
-    backdrop-filter: blur(2px);
-    border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
-    border-right: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    backdrop-filter: blur(2px) !important;
+    border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
+    border-right: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
 }
 
 body.resizing-width-left .resize-edge-left {
     background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
-    backdrop-filter: blur(2px);
-    border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
-    border-right: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    backdrop-filter: blur(2px) !important;
+    border-left: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
+    border-right: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
 }
 
 body.resizing-height-down .resize-edge-bottom {
     background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
-    backdrop-filter: blur(2px);
-    border-top: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
-    border-bottom: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    backdrop-filter: blur(2px) !important;
+    border-top: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
+    border-bottom: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
 }
 
 body.resizing-height-up .resize-edge-top {
     background: rgba(var(--primary-rgb, 59, 130, 246), 0.5) !important;
-    backdrop-filter: blur(2px);
-    border-top: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
-    border-bottom: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7);
+    backdrop-filter: blur(2px) !important;
+    border-top: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
+    border-bottom: 3px solid rgba(var(--primary-rgb, 59, 130, 246), 0.7) !important;
 }
 
 
@@ -298,29 +298,97 @@ body.resizing .panel-drag-handle:hover {
     transform: none !important;
 }
 
-/* Suppress hover effects on all resize handles during resize operations */
-body.resizing .resize-handle:hover,
-body.resizing .resize-edge:hover {
+/* Suppress hover effects on INACTIVE handles during resize operations */
+/* Only suppress handles that are NOT the currently active one */
+
+/* Suppress inactive corner handles during corner resize operations */
+body.resizing-both .resize-handle-bl:hover,
+body.resizing-both .resize-handle-tr:hover,
+body.resizing-both .resize-handle-tl:hover {
     background: transparent !important;
     backdrop-filter: none !important;
     transform: none !important;
     border: none !important;
-    transition: none !important;
 }
 
-/* Suppress individual corner hover effects during resize */
-body.resizing .resize-handle-br:hover,
-body.resizing .resize-handle-bl:hover,
-body.resizing .resize-handle-tr:hover,
-body.resizing .resize-handle-tl:hover {
+body.resizing-both-left .resize-handle-br:hover,
+body.resizing-both-left .resize-handle-tr:hover,
+body.resizing-both-left .resize-handle-tl:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    transform: none !important;
     border: none !important;
 }
 
-/* Suppress individual edge hover effects during resize */
-body.resizing .resize-edge-top:hover,
-body.resizing .resize-edge-bottom:hover,
-body.resizing .resize-edge-left:hover,
-body.resizing .resize-edge-right:hover {
+body.resizing-top-both .resize-handle-br:hover,
+body.resizing-top-both .resize-handle-bl:hover,
+body.resizing-top-both .resize-handle-tl:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+    border: none !important;
+}
+
+body.resizing-top-both-left .resize-handle-br:hover,
+body.resizing-top-both-left .resize-handle-bl:hover,
+body.resizing-top-both-left .resize-handle-tr:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+    border: none !important;
+}
+
+/* Suppress all corner handles during edge resize operations */
+body.resizing-width-right .resize-handle:hover,
+body.resizing-width-left .resize-handle:hover,
+body.resizing-height-down .resize-handle:hover,
+body.resizing-height-up .resize-handle:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+    border: none !important;
+}
+
+/* Suppress inactive edge handles during edge resize operations */
+body.resizing-width-right .resize-edge-top:hover,
+body.resizing-width-right .resize-edge-bottom:hover,
+body.resizing-width-right .resize-edge-left:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+}
+
+body.resizing-width-left .resize-edge-top:hover,
+body.resizing-width-left .resize-edge-bottom:hover,
+body.resizing-width-left .resize-edge-right:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+}
+
+body.resizing-height-down .resize-edge-top:hover,
+body.resizing-height-down .resize-edge-left:hover,
+body.resizing-height-down .resize-edge-right:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+}
+
+body.resizing-height-up .resize-edge-bottom:hover,
+body.resizing-height-up .resize-edge-left:hover,
+body.resizing-height-up .resize-edge-right:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+}
+
+/* Suppress all edge handles during corner resize operations */
+body.resizing-both .resize-edge:hover,
+body.resizing-both-left .resize-edge:hover,
+body.resizing-top-both .resize-edge:hover,
+body.resizing-top-both-left .resize-edge:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
     border: none !important;
 }
 
@@ -451,7 +519,7 @@ body.dragging * {
 }
 
 /* Enhanced visual feedback during resize - disable all transitions for synchronized movement */
-body.resizing .container {
+body.resizing .inner-container {
     transition: none !important; /* Disable transitions during resize for smooth feedback */
 }
 
@@ -546,19 +614,19 @@ body.resizing * {
 
 /* Responsive layout adjustments */
 @media (min-width: 1400px) {
-    .container {
+    .inner-container {
         max-width: var(--container-width, 1400px);
     }
 }
 
 @media (min-width: 1600px) {
-    .container {
+    .inner-container {
         max-width: var(--container-width, 1600px);
     }
 }
 
 @media (min-width: 1800px) {
-    .container {
+    .inner-container {
         max-width: var(--container-width, 1800px);
     }
 }
