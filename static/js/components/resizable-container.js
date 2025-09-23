@@ -45,51 +45,54 @@ const applyPositioningStyles = (element, left, top, options = {}) => {
     return true;
 };
 
-// ULTRA-IMMEDIATE position fix - run as soon as possible
-const applyImmediatePositioning = () => {
+// CONSOLIDATED position initialization - unified approach to eliminate redundancy
+const initializeSavedPosition = () => {
     const pageBackdrop = document.querySelector('.page-backdrop');
-    if (pageBackdrop) {
-        const cssLeft = getComputedStyle(document.documentElement).getPropertyValue('--saved-container-left').trim();
-        const cssTop = getComputedStyle(document.documentElement).getPropertyValue('--saved-container-top').trim();
+    if (!pageBackdrop) return false;
 
-        if (cssLeft && cssTop) {
-            return applyPositioningStyles(pageBackdrop, cssLeft, cssTop, { setOpacity: true });
-        }
+    const cssLeft = getComputedStyle(document.documentElement).getPropertyValue('--saved-container-left').trim();
+    const cssTop = getComputedStyle(document.documentElement).getPropertyValue('--saved-container-top').trim();
+
+    if (cssLeft && cssTop) {
+        return applyPositioningStyles(pageBackdrop, cssLeft, cssTop, { setOpacity: true });
     }
     return false;
 };
 
-// Try to apply immediately when module loads
-if (document.readyState === 'loading') {
-    // If document is still loading, try every 10ms until element exists
-    const immediateInterval = setInterval(() => {
-        if (applyImmediatePositioning()) {
-            clearInterval(immediateInterval);
-        }
-    }, 10);
+// Unified position initialization with proper timing and fallbacks
+const initializePosition = () => {
+    if (initializeSavedPosition()) {
+        return; // Successfully applied saved position
+    }
 
-    // Stop trying after 1 second
-    setTimeout(() => clearInterval(immediateInterval), 1000);
-} else {
-    // Document already loaded, try immediately
-    applyImmediatePositioning();
-}
-
-// IMMEDIATE position fix - run as soon as this module loads
-document.addEventListener('DOMContentLoaded', () => {
+    // If no saved position, ensure container opacity is set
     const pageBackdrop = document.querySelector('.page-backdrop');
     if (pageBackdrop) {
-        const rect = pageBackdrop.getBoundingClientRect();
-
-        // Check if inline script set custom properties
-        const cssLeft = getComputedStyle(document.documentElement).getPropertyValue('--saved-container-left').trim();
-        const cssTop = getComputedStyle(document.documentElement).getPropertyValue('--saved-container-top').trim();
-
-        if (cssLeft && cssTop) {
-            applyPositioningStyles(pageBackdrop, cssLeft, cssTop);
-        }
+        document.documentElement.style.setProperty('--container-opacity', '1');
     }
-});
+};
+
+// Apply position as soon as possible with proper fallback strategy
+if (document.readyState === 'loading') {
+    // Document still loading - try periodically until element exists
+    const POSITION_RETRY_INTERVAL = 10; // ms
+    const POSITION_TIMEOUT = 1000; // ms
+
+    const positionInterval = setInterval(() => {
+        if (initializeSavedPosition()) {
+            clearInterval(positionInterval);
+        }
+    }, POSITION_RETRY_INTERVAL);
+
+    // Stop trying after timeout and let DOMContentLoaded handle it
+    setTimeout(() => clearInterval(positionInterval), POSITION_TIMEOUT);
+
+    // Backup: ensure position is applied when DOM is ready
+    document.addEventListener('DOMContentLoaded', initializePosition, { once: true });
+} else {
+    // Document already loaded - apply immediately
+    initializePosition();
+}
 
 const ResizableContainer = {
     // Default and current dimensions

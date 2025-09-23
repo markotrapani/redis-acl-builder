@@ -25,6 +25,13 @@
   
   --info-color: #2196F3;
   --info-light: #64B5F6;
+
+  /* Additional utility colors for hardcoded values */
+  --black: #000000;
+  --white: #ffffff;
+  --gray-400: #9ca3af;
+  --gray-disabled: #e8e8e8;
+  --gray-disabled-text: #888888;
   
   /* Blue gradient theme */
   --blue-gradient: linear-gradient(135deg, #2196F3, #1976D2);
@@ -40,6 +47,10 @@
   --red-gradient: linear-gradient(135deg, #d82c2c, #c02525);
   --red-shadow: 0 2px 8px rgba(216, 44, 44, 0.3);
   --red-hover-shadow: 0 3px 12px rgba(216, 44, 44, 0.4);
+
+  /* Orange gradient theme */
+  --orange-gradient: linear-gradient(135deg, #FF5722, #E64A19);
+  --orange-gradient-hover: linear-gradient(135deg, #E64A19, #D84315);
   
   /* Neutral colors */
   --gray-50: #f9f9f9;

@@ -6,7 +6,7 @@
 button.test-button:disabled,
 button.test-button[disabled] {
   background: var(--gray-300) !important; /* Keep original background */
-  color: #9ca3af !important; /* Hardcoded text color to prevent flash */  
+  color: var(--gray-400) !important; /* Use CSS variable instead of hardcoded color */  
   border-color: var(--gray-300) !important; /* Keep original border */
   cursor: not-allowed !important;
   transform: none !important;
@@ -88,7 +88,7 @@ button.test-button[disabled] {
 /* Default state (Redis 7 - Blue) - Using inverted colors */
 .toggle-option-left {
   left: var(--spacing-xs);
-  color: #000000;
+  color: var(--black);
   text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
 }
 
@@ -114,7 +114,7 @@ button.test-button[disabled] {
 
 /* Unchecked state (Redis 7 - Blue) - explicit selectors with inverted colors */
 .toggle-input:not(:checked) + .toggle-label .toggle-option-left {
-  color: #000000;
+  color: var(--black);
   text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
 }
 
@@ -139,7 +139,7 @@ button.test-button[disabled] {
 }
 
 .toggle-input:checked + .toggle-label .toggle-option-right {
-  color: #000000 !important;
+  color: var(--black) !important;
   text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
 }
 
@@ -179,25 +179,25 @@ button.test-button[disabled] {
 }
 
 .inline-action-button.clear-button {
-  background: linear-gradient(135deg, #FF5722, #E64A19);
+  background: var(--orange-gradient);
   color: white;
-  border-color: #E64A19;
+  border-color: var(--orange-color, #E64A19);
 }
 
 .inline-action-button.clear-button:hover {
-  background: linear-gradient(135deg, #E64A19, #D84315);
+  background: var(--orange-gradient-hover);
   transform: translateY(-1px);
   box-shadow: 0 3px 12px rgba(255, 87, 34, 0.4);
 }
 
 .inline-action-button.copy-button {
-  background: linear-gradient(135deg, #2196F3, #1976D2);
+  background: var(--blue-gradient);
   color: white;
-  border-color: #1976D2;
+  border-color: var(--blue-dark, #1976D2);
 }
 
 .inline-action-button.copy-button:hover {
-  background: linear-gradient(135deg, #1976D2, #1565C0);
+  background: var(--blue-gradient-hover, linear-gradient(135deg, #1976D2, #1565C0));
   transform: translateY(-1px);
   box-shadow: 0 3px 12px rgba(33, 150, 243, 0.4);
 }
@@ -233,8 +233,8 @@ button.test-button[disabled] {
 
 .inline-action-button:disabled:hover,
 .inline-action-button[disabled]:hover {
-  background: #e8e8e8 !important; /* More subtle hover effect - between gray-200 and gray-300 */
-  color: #888888 !important; /* More subtle text lightening - between gray-400 and gray-500 */
+  background: var(--gray-disabled) !important; /* More subtle hover effect - between gray-200 and gray-300 */
+  color: var(--gray-disabled-text) !important; /* More subtle text lightening - between gray-400 and gray-500 */
   transform: none !important;
   box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important; /* Even more subtle shadow */
   cursor: not-allowed !important;
@@ -301,8 +301,8 @@ button.test-button[disabled] {
 
 [data-theme="light"] .inline-action-button:disabled:hover,
 [data-theme="light"] .inline-action-button[disabled]:hover {
-  background: #e8e8e8 !important; /* More subtle hover effect in light mode */
-  color: #888888 !important; /* More subtle text lightening */
+  background: var(--gray-disabled) !important; /* More subtle hover effect in light mode */
+  color: var(--gray-disabled-text) !important; /* More subtle text lightening */
   box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important; /* Even more subtle shadow */
 }
 
@@ -1492,25 +1492,25 @@ button.test-button[disabled] {
 }
 
 .copy-button {
-  background: linear-gradient(135deg, #2196F3, #1976D2);
+  background: var(--blue-gradient);
   color: white;
-  border-color: #1976D2;
+  border-color: var(--blue-dark, #1976D2);
 }
 
 .copy-button:hover {
-  background: linear-gradient(135deg, #1976D2, #1565C0);
+  background: var(--blue-gradient-hover, linear-gradient(135deg, #1976D2, #1565C0));
   transform: translateY(-1px);
   box-shadow: 0 3px 12px rgba(33, 150, 243, 0.4);
 }
 
 .clear-button {
-  background: linear-gradient(135deg, #FF5722, #E64A19);
+  background: var(--orange-gradient);
   color: white;
-  border-color: #E64A19;
+  border-color: var(--orange-color, #E64A19);
 }
 
 .clear-button:hover {
-  background: linear-gradient(135deg, #E64A19, #D84315);
+  background: var(--orange-gradient-hover);
   transform: translateY(-1px);
   box-shadow: 0 3px 12px rgba(255, 87, 34, 0.4);
 }
