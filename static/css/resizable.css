@@ -108,6 +108,34 @@
     border-right: 1px solid rgba(var(--primary-rgb, 59, 130, 246), 0.5);
 }
 
+/* Disable resize handle hover effects when panel dragging is active */
+.panel-drag-active .resize-handle:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+    border: none !important;
+}
+
+.panel-drag-active .resize-handle-br:hover,
+.panel-drag-active .resize-handle-bl:hover,
+.panel-drag-active .resize-handle-tr:hover,
+.panel-drag-active .resize-handle-tl:hover {
+    border: none !important;
+}
+
+.panel-drag-active .resize-edge:hover {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+}
+
+.panel-drag-active .resize-edge-top:hover,
+.panel-drag-active .resize-edge-bottom:hover,
+.panel-drag-active .resize-edge-left:hover,
+.panel-drag-active .resize-edge-right:hover {
+    border: none !important;
+}
+
 /* Bottom-right handle (both width and height) */
 .resize-handle-br {
     bottom: 0;
