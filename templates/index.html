@@ -209,8 +209,8 @@
     <meta name="keywords" content="Redis, ACL, Access Control, Security, Database">
 </head>
 <body>
-    <div class="page-backdrop" id="page-backdrop">
-        <div class="container">
+    <div class="panel-container" id="panel-container">
+        <div class="inner-container">
             <header>
             <div class="header-content">
                 <div class="header-main">
@@ -517,8 +517,8 @@
     <!-- Apply immediate positioning and sizing if saved values exist -->
     <script>
         (function() {
-            const backdrop = document.getElementById('page-backdrop');
-            const container = document.querySelector('.container');
+            const backdrop = document.getElementById('panel-container');
+            const container = document.querySelector('.inner-container');
 
             // Apply immediate positioning
             if (window._immediatePositioning && backdrop) {

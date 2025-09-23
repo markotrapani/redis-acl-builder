@@ -1,7 +1,7 @@
 /* Redis Enterprise ACL Builder - Layout Styles */
 
-/* Page Backdrop Container */
-.page-backdrop {
+/* Panel Container */
+.panel-container {
   background: var(--gray-300);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
@@ -11,19 +11,19 @@
   position: relative;
   border: 1px solid var(--border-light);
   overflow: visible;
-  /* Ensure backdrop height adapts to content */
+  /* Ensure container height adapts to content */
   min-height: auto;
 }
 
-/* Light mode backdrop styling */
-[data-theme="light"] .page-backdrop {
+/* Light mode panel container styling */
+[data-theme="light"] .panel-container {
   background: var(--gray-300);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.25);
   border-color: var(--gray-500);
 }
 
-/* Dark mode backdrop styling */
-[data-theme="dark"] .page-backdrop {
+/* Dark mode panel container styling */
+[data-theme="dark"] .panel-container {
   background: var(--background);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
   border-color: var(--border);
@@ -31,17 +31,17 @@
 
 /* System preference fallbacks removed - app always sets explicit themes */
 
-/* Adjust container styling for backdrop integration */
-.container {
+/* Adjust inner container styling for panel container integration */
+.inner-container {
   max-width: var(--container-width, 1400px);
   margin: 0 auto;
-  padding: 0; /* Remove padding since backdrop handles spacing */
+  padding: 0; /* Remove padding since panel container handles spacing */
   transition: max-width 0.1s ease-out;
 }
 
-/* Responsive backdrop */
+/* Responsive panel container */
 @media (max-width: 768px) {
-  .page-backdrop {
+  .panel-container {
     margin: var(--spacing-md);
     padding: var(--spacing-md);
     border-radius: var(--radius-lg);
@@ -49,7 +49,7 @@
 }
 
 @media (max-width: 480px) {
-  .page-backdrop {
+  .panel-container {
     margin: var(--spacing-sm);
     padding: var(--spacing-sm);
     border-radius: var(--radius-md);
@@ -508,7 +508,7 @@
     grid-template-columns: 1fr;
   }
   
-  .container {
+  .inner-container {
     padding: var(--spacing-md);
   }
   
@@ -534,7 +534,7 @@
     padding: var(--spacing-md);
   }
   
-  .container {
+  .inner-container {
     padding: 10px;
   }
 }
