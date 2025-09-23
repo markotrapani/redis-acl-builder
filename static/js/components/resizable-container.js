@@ -667,7 +667,8 @@ const ResizableContainer = {
 
         // Apply position constraints (allow flush positioning with viewport edges)
         const containerHeight = this.elements.pageBackdrop.offsetHeight || 600; // Use actual container height
-        const maxLeft = window.innerWidth - this.state.width; // Allow flush with right edge
+        const backdropWidth = this.state.width + 16; // Backdrop = panel width + 8px padding on each side
+        const maxLeft = window.innerWidth - backdropWidth; // Allow flush with right edge
         const maxTop = window.innerHeight - containerHeight; // Allow flush with bottom edge
 
         const constrainedLeft = Math.max(0, Math.min(maxLeft, newLeft)); // Allow flush with left edge
@@ -755,7 +756,8 @@ const ResizableContainer = {
 
                 // Apply position constraints (allow flush positioning with viewport edges)
                 const containerHeight = this.elements.pageBackdrop.offsetHeight || 600; // Use actual container height
-                const maxLeft = window.innerWidth - this.state.width; // Allow flush with right edge
+                const backdropWidth = this.state.width + 16; // Backdrop = panel width + 8px padding on each side
+                const maxLeft = window.innerWidth - backdropWidth; // Allow flush with right edge
                 const maxTop = window.innerHeight - containerHeight; // Allow flush with bottom edge
 
                 const constrainedLeft = Math.max(0, Math.min(maxLeft, position.left || 0)); // Allow flush with left edge
