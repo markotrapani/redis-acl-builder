@@ -2,11 +2,11 @@
 
 # Redis ACL Builder Multi-Architecture Build Script
 # Builds for both AMD64 (Intel/AMD) and ARM64 (Apple Silicon/ARM) architectures
-# Version 1.14.0-beta
+# Version 1.14.1-beta
 
 set -e
 
-echo "🚀 Redis ACL Builder Multi-Architecture Build v1.14.0-beta"
+echo "🚀 Redis ACL Builder Multi-Architecture Build v1.14.1-beta"
 echo "============================================================"
 
 # Check if Docker is installed
@@ -44,7 +44,7 @@ docker buildx inspect --bootstrap
 
 # Define the image name and tag
 IMAGE_NAME="redis-acl-builder"
-IMAGE_TAG="v1.14.0-beta"
+IMAGE_TAG="v1.14.1-beta"
 FULL_IMAGE_NAME="$IMAGE_NAME:$IMAGE_TAG"
 
 # Build for multiple architectures

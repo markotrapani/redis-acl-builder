@@ -409,6 +409,11 @@ const ResizableContainer = {
     startResize(event, resizeType) {
         event.preventDefault();
 
+        // Don't start resize if panels are being dragged
+        if (document.body.classList.contains('panel-drag-active')) {
+            return;
+        }
+
         this.state.isResizing = true;
         this.state.resizeType = resizeType;
         this.state.startX = event.clientX;

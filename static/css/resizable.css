@@ -136,6 +136,69 @@
     border: none !important;
 }
 
+/* Disable resize cursors when panel dragging is active */
+.panel-drag-active .resize-handle-br,
+.panel-drag-active .resize-handle-bl,
+.panel-drag-active .resize-handle-tr,
+.panel-drag-active .resize-handle-tl {
+    cursor: grabbing !important;
+}
+
+.panel-drag-active .resize-edge-top,
+.panel-drag-active .resize-edge-bottom,
+.panel-drag-active .resize-edge-left,
+.panel-drag-active .resize-edge-right {
+    cursor: grabbing !important;
+}
+
+/* Global cursor override during panel dragging - use grabbing hand cursor */
+.panel-drag-active,
+.panel-drag-active * {
+    cursor: grabbing !important;
+}
+
+/* Specifically override common cursor types that might appear during drag */
+.panel-drag-active .draggable-header,
+.panel-drag-active button,
+.panel-drag-active .command-button,
+.panel-drag-active .category-button,
+.panel-drag-active .test-button,
+.panel-drag-active .theme-toggle,
+.panel-drag-active .info-link,
+.panel-drag-active a,
+.panel-drag-active [role="button"],
+.panel-drag-active .clickable,
+.panel-drag-active .btn,
+.panel-drag-active input,
+.panel-drag-active textarea,
+.panel-drag-active select,
+.panel-drag-active [disabled],
+.panel-drag-active .disabled {
+    cursor: grabbing !important;
+}
+
+/* Extra specificity for disabled buttons that might have not-allowed cursor */
+.panel-drag-active button[disabled],
+.panel-drag-active button:disabled,
+.panel-drag-active .command-button[disabled],
+.panel-drag-active .command-button:disabled,
+.panel-drag-active .category-button[disabled],
+.panel-drag-active .category-button:disabled,
+.panel-drag-active .test-button[disabled],
+.panel-drag-active .test-button:disabled,
+.panel-drag-active input[disabled],
+.panel-drag-active input:disabled,
+.panel-drag-active textarea[disabled],
+.panel-drag-active textarea:disabled,
+.panel-drag-active select[disabled],
+.panel-drag-active select:disabled,
+.panel-drag-active .btn[disabled],
+.panel-drag-active .btn:disabled,
+.panel-drag-active .disabled,
+.panel-drag-active [aria-disabled="true"] {
+    cursor: grabbing !important;
+}
+
 /* Bottom-right handle (both width and height) */
 .resize-handle-br {
     bottom: 0;
