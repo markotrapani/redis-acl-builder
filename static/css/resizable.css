@@ -643,4 +643,22 @@ body.resizing * {
     max-width: none;
 }
 
+/* Responsive behavior styles */
+.resize-controls-disabled {
+    /* Visual indicator that resize controls are disabled */
+    filter: contrast(0.8) brightness(0.9);
+}
+
+.resize-controls-disabled .resize-handle,
+.resize-controls-disabled .resize-edge {
+    /* Additional visual feedback for disabled handles */
+    background: rgba(128, 128, 128, 0.1) !important;
+    cursor: not-allowed !important;
+}
+
+.resize-controls-disabled .draggable-header {
+    /* Header still allows dragging, just not resizing */
+    cursor: move !important;
+}
+
 /* Enhanced content synchronization during resize */

@@ -121,6 +121,18 @@ const ResizableContainer = {
         startTop: 0
     },
 
+    // Responsive behavior state
+    responsive: {
+        viewport: { width: 0, height: 0 },
+        lastUserInteraction: 0,  // Timestamp of last manual resize/drag
+        userIntentTimeout: 5000, // 5 seconds after user action before auto-adjusting
+        resizeDebounceTimeout: null,
+        resizeDebounceDelay: 250, // ms
+        isResponsiveAdjustment: false, // Flag to distinguish auto vs manual adjustments
+        resizeControlsDisabled: false, // Flag when resize controls should be disabled
+        viewportConstrained: false // Flag when viewport forces constraints
+    },
+
     // DOM elements
     elements: {
         panelContainer: null,
@@ -149,6 +161,10 @@ const ResizableContainer = {
 
         this.createResizeHandles();
         this.setupEventListeners();
+        this.setupResponsiveListeners();
+
+        // Initialize viewport tracking
+        this.updateViewportTracking();
 
         // Check if CSS custom properties are already set (inline script loaded saved dimensions)
         const savedContainerWidth = getComputedStyle(document.documentElement).getPropertyValue('--saved-container-width').trim();
@@ -417,6 +433,9 @@ const ResizableContainer = {
             return;
         }
 
+        // Track user interaction for responsive behavior
+        this.trackUserInteraction();
+
         this.state.isResizing = true;
         this.state.resizeType = resizeType;
         this.state.startX = event.clientX;
@@ -652,6 +671,9 @@ const ResizableContainer = {
     startDrag(event) {
         event.preventDefault();
 
+        // Track user interaction for responsive behavior
+        this.trackUserInteraction();
+
         this.state.isDragging = true;
         this.state.startX = event.clientX;
         this.state.startY = event.clientY;
@@ -860,10 +882,303 @@ const ResizableContainer = {
 
         // Restore transitions
         this.elements.panelContainer.style.transition = originalTransition;
+    },
+
+    /**
+     * Setup responsive event listeners
+     */
+    setupResponsiveListeners() {
+        // Window resize listener with debouncing
+        window.addEventListener('resize', () => {
+            // Clear existing timeout
+            if (this.responsive.resizeDebounceTimeout) {
+                clearTimeout(this.responsive.resizeDebounceTimeout);
+            }
+
+            // Debounce the resize handling
+            this.responsive.resizeDebounceTimeout = setTimeout(() => {
+                this.handleViewportChange();
+            }, this.responsive.resizeDebounceDelay);
+        });
+
+        // Also listen for orientation change on mobile devices
+        window.addEventListener('orientationchange', () => {
+            // Orientation change needs longer delay for viewport to stabilize
+            setTimeout(() => {
+                this.handleViewportChange();
+            }, 300);
+        });
+    },
+
+    /**
+     * Update viewport tracking
+     */
+    updateViewportTracking() {
+        this.responsive.viewport = {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
+    },
+
+    /**
+     * Track user interactions to respect user intent
+     */
+    trackUserInteraction() {
+        this.responsive.lastUserInteraction = Date.now();
+    },
+
+    /**
+     * Check if we should respect user intent (don't auto-adjust recently)
+     */
+    shouldRespectUserIntent() {
+        const timeSinceLastInteraction = Date.now() - this.responsive.lastUserInteraction;
+        return timeSinceLastInteraction < this.responsive.userIntentTimeout;
+    },
+
+    /**
+     * Handle viewport changes - main responsive logic
+     */
+    handleViewportChange() {
+        console.log('🔄 Viewport change detected');
+
+        const previousViewport = { ...this.responsive.viewport };
+        this.updateViewportTracking();
+
+        // Check if viewport actually changed significantly
+        const widthChange = Math.abs(this.responsive.viewport.width - previousViewport.width);
+        const heightChange = Math.abs(this.responsive.viewport.height - previousViewport.height);
+
+        if (widthChange < 10 && heightChange < 10) {
+            console.log('📏 Viewport change too small, ignoring');
+            return; // Ignore minor changes
+        }
+
+        console.log(`📐 Viewport changed: ${previousViewport.width}x${previousViewport.height} → ${this.responsive.viewport.width}x${this.responsive.viewport.height}`);
+
+        // Check if we should respect user intent
+        if (this.shouldRespectUserIntent()) {
+            console.log('⏰ Respecting user intent, skipping auto-adjustment');
+            return;
+        }
+
+        // Calculate if responsive adjustments are needed
+        const adjustments = this.calculateResponsiveAdjustments();
+
+        if (adjustments.needed) {
+            console.log('✨ Applying responsive adjustments:', adjustments);
+            this.applyResponsiveAdjustments(adjustments);
+        } else {
+            console.log('✅ No responsive adjustments needed');
+        }
+
+        // Update resize controls state based on viewport constraints
+        this.updateResizeControlsState();
+    },
+
+    /**
+     * Calculate what responsive adjustments are needed
+     */
+    calculateResponsiveAdjustments() {
+        const currentRect = this.elements.panelContainer.getBoundingClientRect();
+        const margins = 40; // Safe margins from viewport edges
+
+        const adjustments = {
+            needed: false,
+            newWidth: this.state.width,
+            newHeight: this.state.height,
+            newLeft: currentRect.left,
+            newTop: currentRect.top,
+            reason: []
+        };
+
+        // Check if container width exceeds viewport
+        const maxAllowedWidth = this.responsive.viewport.width - margins;
+        if (this.state.width > maxAllowedWidth) {
+            adjustments.needed = true;
+            adjustments.newWidth = Math.max(this.defaults.minWidth, maxAllowedWidth);
+            adjustments.reason.push(`width exceeds viewport (${this.state.width} > ${maxAllowedWidth})`);
+        }
+
+        // Check if container position + width exceeds viewport
+        const rightEdge = currentRect.left + (adjustments.newWidth + 16); // +16 for padding
+        if (rightEdge > this.responsive.viewport.width) {
+            adjustments.needed = true;
+            adjustments.newLeft = Math.max(0, this.responsive.viewport.width - (adjustments.newWidth + 16));
+            adjustments.reason.push('right edge exceeds viewport');
+        }
+
+        // Check if container position + height exceeds viewport
+        const containerHeight = currentRect.height;
+        const bottomEdge = currentRect.top + containerHeight;
+        if (bottomEdge > this.responsive.viewport.height) {
+            adjustments.needed = true;
+            adjustments.newTop = Math.max(0, this.responsive.viewport.height - containerHeight);
+            adjustments.reason.push('bottom edge exceeds viewport');
+        }
+
+        return adjustments;
+    },
+
+    /**
+     * Apply responsive adjustments to container
+     */
+    applyResponsiveAdjustments(adjustments) {
+        // Set flag to indicate this is an automatic adjustment
+        this.responsive.isResponsiveAdjustment = true;
+
+        try {
+            // Update dimensions if needed
+            if (adjustments.newWidth !== this.state.width || adjustments.newHeight !== this.state.height) {
+                this.state.width = adjustments.newWidth;
+                this.state.height = adjustments.newHeight;
+                this.applyDimensions();
+                this.saveDimensions();
+            }
+
+            // Update position if needed
+            if (adjustments.newLeft !== undefined || adjustments.newTop !== undefined) {
+                applyPositioningStyles(
+                    this.elements.panelContainer,
+                    `${adjustments.newLeft}px`,
+                    `${adjustments.newTop}px`,
+                    { useImportant: false, includeTransform: true }
+                );
+                this.savePosition();
+            }
+
+        } finally {
+            // Clear the responsive adjustment flag
+            this.responsive.isResponsiveAdjustment = false;
+        }
+    },
+
+    /**
+     * Update resize controls state based on viewport constraints
+     */
+    updateResizeControlsState() {
+        const margins = 40;
+        const maxAllowedWidth = this.responsive.viewport.width - margins;
+        const shouldDisableControls = maxAllowedWidth < this.defaults.minWidth;
+
+        // Check if state changed
+        if (shouldDisableControls !== this.responsive.resizeControlsDisabled) {
+            this.responsive.resizeControlsDisabled = shouldDisableControls;
+            this.responsive.viewportConstrained = shouldDisableControls;
+
+            if (shouldDisableControls) {
+                console.log(`🚫 Disabling resize controls - viewport too small (max allowed: ${maxAllowedWidth}px, min required: ${this.defaults.minWidth}px)`);
+                this.disableResizeControls();
+            } else {
+                console.log('✅ Enabling resize controls - viewport allows normal operation');
+                this.enableResizeControls();
+            }
+        }
+    },
+
+    /**
+     * Disable resize controls when viewport is too constrained
+     */
+    disableResizeControls() {
+        // Add disabled class to container for styling
+        this.elements.panelContainer.classList.add('resize-controls-disabled');
+
+        // Disable all resize handles
+        const handles = [
+            this.elements.bottomRightHandle,
+            this.elements.bottomLeftHandle,
+            this.elements.topRightHandle,
+            this.elements.topLeftHandle,
+            this.elements.topEdge,
+            this.elements.bottomEdge,
+            this.elements.leftEdge,
+            this.elements.rightEdge
+        ];
+
+        handles.forEach(handle => {
+            if (handle) {
+                handle.style.pointerEvents = 'none';
+                handle.style.opacity = '0.3';
+                handle.title = 'Resize controls disabled - window too small';
+            }
+        });
+
+        // Update header drag title
+        if (this.elements.header) {
+            this.elements.header.title = 'Drag to move container (resize disabled - window too small)';
+        }
+    },
+
+    /**
+     * Enable resize controls when viewport allows normal operation
+     */
+    enableResizeControls() {
+        // Remove disabled class from container
+        this.elements.panelContainer.classList.remove('resize-controls-disabled');
+
+        // Re-enable all resize handles
+        const handles = [
+            this.elements.bottomRightHandle,
+            this.elements.bottomLeftHandle,
+            this.elements.topRightHandle,
+            this.elements.topLeftHandle,
+            this.elements.topEdge,
+            this.elements.bottomEdge,
+            this.elements.leftEdge,
+            this.elements.rightEdge
+        ];
+
+        handles.forEach(handle => {
+            if (handle) {
+                handle.style.pointerEvents = '';
+                handle.style.opacity = '';
+                // Restore original titles
+                if (handle.classList.contains('resize-handle-br')) {
+                    handle.title = 'Drag to resize container (width + height)';
+                } else if (handle.classList.contains('resize-handle-bl')) {
+                    handle.title = 'Drag to resize container (width + height)';
+                } else if (handle.classList.contains('resize-handle-tr')) {
+                    handle.title = 'Drag to resize container (width + height, bottom anchored)';
+                } else if (handle.classList.contains('resize-handle-tl')) {
+                    handle.title = 'Drag to resize container (width + height, bottom anchored)';
+                } else if (handle.classList.contains('resize-edge-top')) {
+                    handle.title = 'Drag to resize height (bottom anchored)';
+                } else if (handle.classList.contains('resize-edge-bottom')) {
+                    handle.title = 'Drag to resize height';
+                } else if (handle.classList.contains('resize-edge-left')) {
+                    handle.title = 'Drag to resize width (right anchored)';
+                } else if (handle.classList.contains('resize-edge-right')) {
+                    handle.title = 'Drag to resize width';
+                }
+            }
+        });
+
+        // Restore header drag title
+        if (this.elements.header) {
+            this.elements.header.title = 'Drag to move container';
+        }
     }
 };
 
-// Global function for resetting dimensions (can be called from DevTools)
+// Global functions for testing and debugging (can be called from DevTools)
 window.resetContainerDimensions = () => ResizableContainer.resetDimensions();
+window.debugResponsive = () => {
+    console.log('🔍 Responsive Debug Info:');
+    console.log('Viewport:', ResizableContainer.responsive.viewport);
+    console.log('Container dimensions:', ResizableContainer.state.width + 'x' + ResizableContainer.state.height);
+    console.log('Last user interaction:', new Date(ResizableContainer.responsive.lastUserInteraction));
+    console.log('Should respect user intent:', ResizableContainer.shouldRespectUserIntent());
+
+    const rect = ResizableContainer.elements.panelContainer.getBoundingClientRect();
+    console.log('Container position:', Math.round(rect.left) + ',' + Math.round(rect.top));
+    console.log('Container size:', Math.round(rect.width) + 'x' + Math.round(rect.height));
+
+    // Test responsive calculation
+    const adjustments = ResizableContainer.calculateResponsiveAdjustments();
+    console.log('Responsive adjustments needed:', adjustments);
+};
+window.testResponsive = () => {
+    console.log('🧪 Testing responsive behavior...');
+    ResizableContainer.handleViewportChange();
+};
 
 export default ResizableContainer;

@@ -599,10 +599,17 @@
   border-color: #388E3C;
 }
 
-/* Responsive: Stack vertically on smaller screens */
-@media (max-width: 768px) {
+/* Responsive: Stack vertically when three-column layout becomes single-column */
+@media (max-width: 1200px) {
   .testing-container {
     grid-template-columns: 1fr;
     gap: var(--spacing-md);
+  }
+}
+
+/* Additional responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .testing-container {
+    gap: var(--spacing-sm);
   }
 }
