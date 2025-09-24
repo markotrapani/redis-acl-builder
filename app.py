@@ -3,11 +3,12 @@
 Redis Enterprise ACL Builder - Main Flask Application
 """
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Request
+from flask.wrappers import Response
 import logging
 import sys
 import os
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Union, List, cast
 
 # Add the project directory to Python path for helper imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -31,12 +32,12 @@ logger = logging.getLogger(__name__)
 
 # Load Redis data on startup
 logger.info("Loading Redis command data...")
-REDIS_DATA = get_redis_data()
-REDIS_DATA = build_command_indexes(REDIS_DATA)
+_redis_data = get_redis_data()
+REDIS_DATA: Dict[str, Dict[str, Any]] = build_command_indexes(_redis_data)
 logger.info(f"Loaded data for Redis 7 ({len(REDIS_DATA['redis7']['commands'])} commands) and Redis 8 ({len(REDIS_DATA['redis8']['commands'])} commands)")
 
 # Global parsers for each version
-PARSERS = {
+PARSERS: Dict[str, ACLParser] = {
     'redis7': ACLParser(REDIS_DATA, 'redis7'),
     'redis8': ACLParser(REDIS_DATA, 'redis8')
 }
@@ -55,7 +56,7 @@ def handle_api_error(error_msg: str, status_code: int = 400) -> Tuple[Any, int]:
         'status_code': status_code
     }), status_code
 
-def validate_request_json(request) -> Dict[str, Any]:
+def validate_request_json(request: Request) -> Dict[str, Any]:
     """Extract and validate JSON from request."""
     try:
         data = request.get_json()
@@ -73,17 +74,17 @@ def validate_redis_version(version: str) -> str:
 
 # Routes
 @app.route('/')
-def index():
+def index() -> str:
     """Serve the main web interface."""
     return render_template('index.html')
 
 @app.route('/info')
-def info():
+def info() -> str:
     """Serve the info page explaining the application."""
     return render_template('info.html')
 
 @app.route('/api/parse', methods=['POST'])
-def api_parse():
+def api_parse() -> Union[Response, Tuple[Response, int]]:
     """Parse ACL rule and return granted commands."""
     try:
         data = validate_request_json(request)
@@ -99,12 +100,14 @@ def api_parse():
         
         # Parse and evaluate rule
         parsed_rule = parser.parse_acl_rule(rule)
-        granted_commands, explanations = parser.evaluate_command_permissions(parsed_rule)
+        granted_commands, _explanations = parser.evaluate_command_permissions(parsed_rule)
         
         # Group commands by category for display
-        grouped_commands = {}
-        for category in parser.data['categories'].keys():
-            category_commands = [cmd for cmd in granted_commands 
+        grouped_commands: Dict[str, List[str]] = {}
+        parser_data = parser.data
+        categories = cast(Dict[str, List[str]], parser_data['categories'])
+        for category in categories.keys():
+            category_commands = [cmd for cmd in granted_commands
                                if category in parser.get_command_categories(cmd)]
             if category_commands:
                 grouped_commands[category] = sorted(category_commands)
@@ -117,7 +120,7 @@ def api_parse():
             'granted_commands': sorted(list(granted_commands)),
             'grouped_commands': grouped_commands,
             'total_granted': len(granted_commands),
-            'total_available': len(parser.data['commands']),
+            'total_available': len(cast(Dict[str, Any], parser_data['commands'])),
             'parsed_rule': parsed_rule,
             'impact_summary': impact_summary,
             'version': version
@@ -130,7 +133,7 @@ def api_parse():
         return handle_api_error(f"Internal error: {str(e)}", 500)
 
 @app.route('/api/test-command', methods=['POST'])
-def api_test_command():
+def api_test_command() -> Union[Response, Tuple[Response, int]]:
     """Test if specific command is allowed."""
     try:
         data = validate_request_json(request)
@@ -168,7 +171,7 @@ def api_test_command():
         return handle_api_error(f"Internal error: {str(e)}", 500)
 
 @app.route('/api/command-info', methods=['POST'])
-def api_command_info():
+def api_command_info() -> Union[Response, Tuple[Response, int]]:
     """Get information about a command."""
     try:
         data = validate_request_json(request)
@@ -196,7 +199,7 @@ def api_command_info():
         return handle_api_error(f"Internal error: {str(e)}", 500)
 
 @app.route('/api/categories', methods=['GET'])
-def api_categories():
+def api_categories() -> Union[Response, Tuple[Response, int]]:
     """Get all available categories for a Redis version."""
     try:
         version = validate_redis_version(request.args.get('version', 'redis7'))
@@ -219,7 +222,7 @@ def api_categories():
         return handle_api_error(f"Internal error: {str(e)}", 500)
 
 @app.route('/api/search-commands', methods=['POST'])
-def api_search_commands():
+def api_search_commands() -> Union[Response, Tuple[Response, int]]:
     """Search for commands matching a pattern."""
     try:
         data = validate_request_json(request)
@@ -235,8 +238,8 @@ def api_search_commands():
         
         # Limit results and add category info
         limited_results = matching_commands[:limit]
-        results_with_categories = []
-        
+        results_with_categories: List[Dict[str, Any]] = []
+
         for cmd in limited_results:
             results_with_categories.append({
                 'command': cmd,
@@ -259,7 +262,7 @@ def api_search_commands():
         return handle_api_error(f"Internal error: {str(e)}", 500)
 
 @app.route('/api/validate-rule', methods=['POST'])
-def api_validate_rule():
+def api_validate_rule() -> Union[Response, Tuple[Response, int]]:
     """Validate ACL rule syntax."""
     try:
         data = validate_request_json(request)
@@ -284,7 +287,7 @@ def api_validate_rule():
         return handle_api_error(f"Internal error: {str(e)}", 500)
 
 @app.route('/api/analyze-redundancy', methods=['POST'])
-def api_analyze_redundancy():
+def api_analyze_redundancy() -> Union[Response, Tuple[Response, int]]:
     """Analyze ACL rule for redundant terms and optimization opportunities."""
     try:
         data = validate_request_json(request)
@@ -308,7 +311,7 @@ def api_analyze_redundancy():
         return handle_api_error(f"Internal error: {str(e)}", 500)
 
 @app.route('/health')
-def health_check():
+def health_check() -> Response:
     """Health check endpoint."""
     return jsonify({
         'status': 'healthy',
@@ -320,7 +323,7 @@ def health_check():
     })
 
 @app.errorhandler(404)
-def not_found(error):
+def not_found(_error: Any) -> Tuple[Response, int]:
     """Handle 404 errors."""
     return jsonify({
         'error': True,
@@ -329,9 +332,9 @@ def not_found(error):
     }), 404
 
 @app.errorhandler(500)
-def internal_error(error):
+def internal_error(_error: Any) -> Tuple[Response, int]:
     """Handle 500 errors."""
-    logger.error(f"Internal server error: {str(error)}")
+    logger.error(f"Internal server error: {str(_error)}")
     return jsonify({
         'error': True,
         'message': 'Internal server error',

@@ -9,17 +9,17 @@ import re
 
 class ACLParser:
     """Parse and evaluate Redis ACL rules."""
-    
+
     def __init__(self, redis_data: Dict, redis_version: str = 'redis7'):
         """
         Initialize ACL parser with Redis data.
-        
+
         Args:
             redis_data: Complete Redis command and category data
             redis_version: Redis version ('redis7' or 'redis8')
         """
         self.redis_version = redis_version
-        self.data = redis_data[redis_version]
+        self.data: Dict[str, Any] = redis_data[redis_version]
         
         if not self.data.get('commands'):
             raise ValueError(f"Command index not built for {redis_version}")
@@ -330,7 +330,7 @@ class ACLParser:
             'redis_version': self.redis_version
         }
     
-    def analyze_rule_redundancy(self, rule):
+    def analyze_rule_redundancy(self, rule: str) -> Dict[str, Any]:
         """
         Analyze an ACL rule for redundant terms and suggest optimizations.
         
@@ -661,7 +661,7 @@ class ACLParser:
             'has_redundancy': len(redundant_terms) > 0 or len(warnings) > 0
         }
 
-    def _is_legitimate_security_pattern(self, command_rules, current_index, current_token):
+    def _is_legitimate_security_pattern(self, command_rules: List[Dict[str, str]], current_index: int, current_token: Dict[str, str]) -> bool:
         """
         Detect if the current inclusion rule is part of a legitimate security pattern.
 
@@ -764,7 +764,7 @@ class ACLParser:
         # This means replacing multiple individual commands with one category would simplify the rule
         return individual_commands_from_category >= 2
 
-    def _analyze_category_completion(self, parsed_rule: Dict[str, Any], warnings: List[str], suggestions: List[str]):
+    def _analyze_category_completion(self, parsed_rule: Dict[str, Any], warnings: List[str], suggestions: List[str]) -> None:
         """
         Analyze if individual commands granted cover entire categories.
 
@@ -870,7 +870,7 @@ class ACLParser:
             # If optimization fails, return original rule
             return parsed_rule['raw_rule']
 
-    def _analyze_null_categories(self, parsed_rule: Dict[str, Any], warnings: List[str], suggestions: List[str]):
+    def _analyze_null_categories(self, parsed_rule: Dict[str, Any], warnings: List[str], suggestions: List[str]) -> None:
         """
         Analyze if any categories are included but then all their commands are excluded (null categories).
 
@@ -961,7 +961,7 @@ class ACLParser:
             # If optimization fails, return original rule
             return parsed_rule['raw_rule']
 
-    def _group_redundancy_warnings(self, warnings, suggestions, redundant_terms):
+    def _group_redundancy_warnings(self, warnings: List[str], suggestions: List[str], redundant_terms: List[str]) -> None:
         """
         Group similar redundancy warnings to avoid overwhelming the user with many similar messages.
 
@@ -1070,7 +1070,7 @@ class ACLParser:
 
         return grouped_warnings, suggestions, grouped_terms
 
-    def _analyze_all_categories_pattern(self, parsed_rule, warnings, suggestions, redundant_terms):
+    def _analyze_all_categories_pattern(self, parsed_rule: Dict[str, Any], warnings: List[str], suggestions: List[str], redundant_terms: List[str]) -> None:
         """
         Check if all available categories are explicitly granted and suggest +@all optimization.
 
@@ -1129,7 +1129,7 @@ class ACLParser:
             # Don't let all-categories analysis errors break the main redundancy analysis
             pass
 
-    def _analyze_cancelled_all_pattern(self, parsed_rule, warnings, suggestions, redundant_terms):
+    def _analyze_cancelled_all_pattern(self, parsed_rule: Dict[str, Any], warnings: List[str], suggestions: List[str], redundant_terms: List[str]) -> None:
         """
         Check if @all is granted but then all categories are blocked, resulting in empty ACL.
 
