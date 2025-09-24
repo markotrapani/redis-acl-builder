@@ -73,7 +73,7 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 
 ### Developer Contact Integration & Docker Hub Sync
 
-- **📞 Direct Developer Contact**: Easy access to Marko Trapani (marko.trapani@redis.com) for questions and feedback
+- **📞 Direct Developer Contact**: Easy access to Marko Trapani (<marko.trapani@redis.com>) for questions and feedback
 - **🔄 Docker Hub Description Sync**: Automated README synchronization ensuring Docker Hub shows current version info
 - **📋 Enhanced Support Flow**: Comprehensive support section with technical diagnostics and deployment resources
 - **🔧 Version Reference Cleanup**: Fixed outdated version references throughout documentation
