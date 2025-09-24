@@ -480,13 +480,14 @@ This project is provided as-is for educational and development purposes.
 
 ## Support
 
-For issues or questions:
+For questions, feedback, or issues:
 
-1. Run `python test_imports.py` for diagnostics
-2. Check test results with `../tests/run_tests.sh`
-3. Review the troubleshooting section
-4. Ensure all files are in the correct locations
+1. **Contact**: [Marko Trapani](mailto:marko.trapani@redis.com) - Project Developer
+2. **Technical Issues**: Run `python test_imports.py` for diagnostics
+3. **Test Verification**: Check results with `./tests/run_tests.sh`
+4. **Docker Deployment**: See [Docker Hub Repository](https://hub.docker.com/r/markotrapani608/redis-acl-builder)
+5. **Setup Issues**: Ensure all files are in the correct locations per installation guide
 
 ---
 
-**Redis ACL Builder v1.4.0** - Production-ready with Enhanced UI Polish, Perfect Responsive Design, and 100% test coverage
+**Redis ACL Builder v1.15.10-beta** - Enterprise-Grade Documentation Synchronization & Docker Hub Integration
