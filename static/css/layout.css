@@ -496,10 +496,14 @@
 
   .three-column-layout > .panel {
     height: 375px; /* Fine-tuned mobile optimization to eliminate remaining space */
+    display: flex !important;
+    flex-direction: column !important;
   }
 
   .command-categories-container {
-    max-height: 250px; /* Further reduced to match new proportions */
+    max-height: none !important; /* Remove height constraint to allow full panel usage */
+    flex: 1 !important; /* Fill remaining panel height */
+    min-height: 0 !important; /* Allow flexbox to shrink if needed */
   }
 
   /* Hide console container styling in responsive mode for cleaner mobile experience */
@@ -531,6 +535,18 @@
   /* Reduce header spacing */
   header {
     margin-bottom: var(--spacing-sm) !important;
+  }
+
+  /* Fix header button overlap in responsive mode */
+  .header-content {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: var(--spacing-sm) !important;
+  }
+
+  .header-nav {
+    position: static !important;
+    margin-top: 0 !important;
   }
 }
 
@@ -636,6 +652,26 @@
     grid-template-columns: 1fr;
     gap: var(--spacing-sm); /* Reduced from var(--spacing-md) for tighter mobile spacing */
     margin-top: var(--spacing-sm); /* Reduced margin from top for tighter layout */
+  }
+
+  /* Increase testing panel height for proper form field layout in stacked mode */
+  .test-section {
+    height: auto !important; /* Remove fixed height constraint */
+    min-height: 220px !important; /* Increase minimum height for form content */
+    max-height: none !important; /* Allow natural expansion */
+  }
+
+  /* Fix search button alignment with input fields */
+  .test-command-input {
+    height: 26px !important; /* Match search button height exactly */
+    line-height: 1 !important; /* Normalize line height for alignment */
+    padding: 4px 6px !important; /* Adjust padding to maintain 26px total height */
+  }
+
+  /* Ensure search containers maintain proper vertical alignment */
+  .panel-search-container {
+    align-items: center !important;
+    min-height: 30px !important;
   }
 }
 
