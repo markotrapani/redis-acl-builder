@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version 1.15.14-beta** - Optimized Docker Build & Simplified Dependencies
+**Version 1.16.0-beta** - Docker Maintenance Infrastructure & Enhanced DevOps Tooling
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -69,14 +69,14 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
-## ✨ What's New in v1.15.14-beta
+## ✨ What's New in v1.16.0-beta
 
-### Optimized Docker Build & Simplified Dependencies
+### Docker Maintenance Infrastructure & Enhanced DevOps Tooling
 
-- **🗜️ Smaller Docker Images**: Simplified single-stage build (~45-60MB vs ~65-75MB) by removing redundant multi-stage complexity
-- **⚡ Faster Builds**: Pure Python dependencies require no compilation, eliminating unused build tools (gcc, musl-dev)
-- **📦 Single Requirements File**: Consolidated requirements-prod.txt into requirements.txt for simplified dependency management
-- **🏷️ Clean Docker Tags**: Eliminated duplicate version tags (now only creates clean '1.15.14-beta' instead of both 'v1.15.14-beta' and '1.15.14-beta')
+- **🛠️ Comprehensive Docker Tag Management**: New `docker-tag-maintenance.sh` script with full API-based tag operations
+- **🎯 Pattern-Based Tag Filtering**: List, filter, and delete tags using powerful regex patterns (e.g., `^v`, `.*-experimental$`)
+- **🔒 Secure API Integration**: Uses existing `DOCKERHUB_TOKEN` GitHub secret with proper authentication flow
+- **⚡ Interactive Operations**: Confirmation prompts and dry-run capabilities for safe tag management
 - **📞 Direct Developer Contact**: Easy access to Marko Trapani (<marko.trapani@redis.com>) for questions and feedback
 - **🔄 Docker Hub Description Sync**: Automated README synchronization ensuring Docker Hub shows current version info
 - **📋 Enhanced Support Flow**: Comprehensive support section with technical diagnostics and deployment resources
