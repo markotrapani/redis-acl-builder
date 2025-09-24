@@ -1,34 +1,16 @@
-# Redis ACL Builder - Optimized Multi-stage Docker Build
-# Target size: ~50-75MB (reduced from 150-200MB with Alpine)
-# Using Python 3.13.7 Alpine - Latest stable version with Alpine optimizations
+# Redis ACL Builder - Simplified Single-stage Docker Build
+# Target size: ~45-60MB (pure Python dependencies, no compilation needed)
+# Using Python 3.13 Alpine - Latest stable version with Alpine optimizations
 
-# Build stage - includes build tools and dependencies
-FROM python:3.13-alpine AS builder
+FROM python:3.13-alpine
 
-# Install build dependencies for Alpine
-RUN apk add --no-cache \
-    gcc \
-    musl-dev
-
-# Set up build environment
-WORKDIR /build
-COPY requirements.txt .
-
-# Create virtual environment and install dependencies
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Production stage - minimal runtime image
-FROM python:3.13-alpine AS production
-
-# Install only runtime dependencies (curl for health checks)
+# Install runtime dependencies (curl for health checks)
 RUN apk add --no-cache curl
 
-# Copy virtual environment from builder stage
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Install Python dependencies (all pure Python - no compilation required)
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Set working directory
 WORKDIR /app
