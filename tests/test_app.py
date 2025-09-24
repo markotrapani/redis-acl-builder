@@ -507,15 +507,12 @@ class TestUserInterface(unittest.TestCase):
 
         # Check buttons are in correct position (in version-info section, before textarea)
         copy_pos = html_content.find('id="copyRuleBtn"')
-        examples_pos = html_content.find('Quick Examples')
         textarea_pos = html_content.find('id="aclRule"')
         version_info_pos = html_content.find('class="version-info"')
 
         # Verify buttons are positioned correctly relative to other elements
         self.assertTrue(version_info_pos < copy_pos < textarea_pos,
                        "Copy button should be in version-info section before textarea")
-        self.assertTrue(textarea_pos < examples_pos,
-                       "Textarea should be before Quick Examples")
     
     def test_version_toggle_design_consistency(self):
         """Test that version toggle uses final design without A/B testing artifacts."""

@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, jsonify
 import logging
 import sys
 import os
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 
 # Add the project directory to Python path for helper imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -47,7 +47,7 @@ def get_parser(version: str) -> ACLParser:
         raise ValueError(f"Unsupported Redis version: {version}")
     return PARSERS[version]
 
-def handle_api_error(error_msg: str, status_code: int = 400) -> Dict[str, Any]:
+def handle_api_error(error_msg: str, status_code: int = 400) -> Tuple[Any, int]:
     """Standard error response format."""
     return jsonify({
         'error': True,
