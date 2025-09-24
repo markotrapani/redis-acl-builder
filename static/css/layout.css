@@ -680,6 +680,14 @@
   .panel-search-container {
     align-items: center !important;
     min-height: 30px !important;
+    margin-bottom: 0 !important; /* Remove bottom margin that pushes search bar up */
+  }
+
+  /* Ensure help icons are positioned right next to panel titles */
+  .help-icon {
+    margin-left: 4px !important; /* Tighter spacing next to title */
+    margin-top: 0 !important; /* Remove vertical offset */
+    vertical-align: baseline !important; /* Align with text baseline */
   }
 }
 
