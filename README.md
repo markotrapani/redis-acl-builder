@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version 1.15.10-beta** - Documentation Synchronization & Docker Hub Integration
+**Version 1.15.11-beta** - Developer Contact Integration & Docker Hub Sync
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -69,13 +69,19 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
-## ✨ What's New in v1.15.10-beta
+## ✨ What's New in v1.15.11-beta
 
-### Documentation Synchronization & Docker Hub Integration
+### Developer Contact Integration & Docker Hub Sync
+
+- **📞 Direct Developer Contact**: Easy access to Marko Trapani (marko.trapani@redis.com) for questions and feedback
+- **🔄 Docker Hub Description Sync**: Automated README synchronization ensuring Docker Hub shows current version info
+- **📋 Enhanced Support Flow**: Comprehensive support section with technical diagnostics and deployment resources
+- **🔧 Version Reference Cleanup**: Fixed outdated version references throughout documentation
+
+### Documentation Synchronization & Docker Hub Integration (v1.15.10-beta)
 
 - **📋 Documentation Workflow**: Comprehensive synchronization process preventing version drift across releases
 - **🐳 Docker Hub Prominence**: Direct repository link and quick-start deployment prominently featured
-- **🔧 Version Consistency**: All documentation references synchronized across README, Docker, and project files
 - **⚙️ Mandatory Process**: Systematic version update workflow ensuring documentation accuracy
 
 ### Enterprise-Grade Type Safety (v1.15.8-beta)
@@ -490,4 +496,4 @@ For questions, feedback, or issues:
 
 ---
 
-**Redis ACL Builder v1.15.10-beta** - Enterprise-Grade Documentation Synchronization & Docker Hub Integration
+**Redis ACL Builder v1.15.11-beta** - Enterprise-Grade Developer Contact Integration & Docker Hub Sync
