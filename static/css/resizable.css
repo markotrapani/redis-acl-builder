@@ -610,6 +610,13 @@ body.resizing * {
     height: var(--panel-height-default);
 }
 
+/* Responsive adjustments for three-column layout */
+@media (max-width: 1200px) {
+    .three-column-layout {
+        height: auto; /* Allow natural height expansion in stacked layout */
+    }
+}
+
 /* Clean, minimal styling without visual clutter */
 
 /* Responsive layout adjustments */

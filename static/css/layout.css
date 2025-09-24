@@ -491,13 +491,14 @@
   .three-column-layout {
     grid-template-columns: 1fr;
     gap: var(--spacing-md);
+    height: auto; /* Allow natural height expansion for stacked layout */
   }
-  
+
   .three-column-layout > .panel {
     height: 375px; /* Fine-tuned mobile optimization to eliminate remaining space */
   }
-  
-  
+
+
   .command-categories-container {
     max-height: 250px; /* Further reduced to match new proportions */
   }
