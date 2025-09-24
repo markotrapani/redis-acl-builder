@@ -12,13 +12,13 @@ RUN apk add --no-cache \
 
 # Set up build environment
 WORKDIR /build
-COPY requirements-prod.txt .
+COPY requirements.txt .
 
 # Create virtual environment and install dependencies
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements-prod.txt
+    pip install --no-cache-dir -r requirements.txt
 
 # Production stage - minimal runtime image
 FROM python:3.13-alpine AS production
