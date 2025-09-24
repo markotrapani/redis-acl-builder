@@ -1,6 +1,6 @@
 # Redis ACL Builder - Docker Deployment
 
-This folder contains all Docker-related files for the Redis ACL Builder v1.15.13-beta.
+This folder contains all Docker-related files for the Redis ACL Builder v1.15.14-beta.
 
 ## 📁 Contents
 
@@ -48,25 +48,25 @@ docker-compose up -d
 
 ```bash
 # Build image
-docker build -t redis-acl-builder:1.15.13-beta -f Dockerfile ..
+docker build -t redis-acl-builder:1.15.14-beta -f Dockerfile ..
 
 # Export image (if needed for distribution) - uncompressed for simplicity
-docker save redis-acl-builder:1.15.13-beta > redis-acl-builder-1.15.13-beta.tar
+docker save redis-acl-builder:1.15.14-beta > redis-acl-builder-1.15.14-beta.tar
 
 # Run with consistent naming and restart policy
-docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped redis-acl-builder:1.15.13-beta
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped redis-acl-builder:1.15.14-beta
 ```
 
 ### Option 5: Alternative Build Locations
 
 ```bash
 # From docker folder
-docker build -t redis-acl-builder:1.15.13-beta -f Dockerfile ..
-docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped redis-acl-builder:1.15.13-beta
+docker build -t redis-acl-builder:1.15.14-beta -f Dockerfile ..
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped redis-acl-builder:1.15.14-beta
 
 # From project root
-docker build -t redis-acl-builder:1.15.13-beta -f docker/Dockerfile .
-docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped redis-acl-builder:1.15.13-beta
+docker build -t redis-acl-builder:1.15.14-beta -f docker/Dockerfile .
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped redis-acl-builder:1.15.14-beta
 ```
 
 ## 📋 Image Details
