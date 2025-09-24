@@ -15,24 +15,48 @@ const applyPositioningStyles = (element, left, top, options = {}) => {
         includeMargin = true
     } = options;
 
+    // Check if we're in responsive mode (≤1200px) - use relative positioning for scrolling
+    const isResponsiveMode = window.innerWidth <= 1200;
+    const position = isResponsiveMode ? 'relative' : 'fixed';
+
     if (useImportant) {
         element.style.setProperty('transition', transition, 'important');
-        element.style.setProperty('position', 'fixed', 'important');
-        element.style.setProperty('left', left, 'important');
-        element.style.setProperty('top', top, 'important');
-        if (includeMargin) {
-            element.style.setProperty('margin', '0', 'important');
+        element.style.setProperty('position', position, 'important');
+
+        if (isResponsiveMode) {
+            // In responsive mode, use relative positioning with margin: auto for centering
+            element.style.setProperty('left', 'auto', 'important');
+            element.style.setProperty('top', 'auto', 'important');
+            element.style.setProperty('margin', 'var(--spacing-xs) auto', 'important');
+        } else {
+            // Normal fixed positioning for desktop
+            element.style.setProperty('left', left, 'important');
+            element.style.setProperty('top', top, 'important');
+            if (includeMargin) {
+                element.style.setProperty('margin', '0', 'important');
+            }
         }
+
         if (includeTransform) {
             element.style.setProperty('transform', 'none', 'important');
         }
     } else {
-        element.style.position = 'fixed';
-        element.style.left = left;
-        element.style.top = top;
-        if (includeMargin) {
-            element.style.margin = '0';
+        element.style.position = position;
+
+        if (isResponsiveMode) {
+            // In responsive mode, use relative positioning with margin: auto for centering
+            element.style.left = 'auto';
+            element.style.top = 'auto';
+            element.style.margin = 'var(--spacing-xs) auto';
+        } else {
+            // Normal fixed positioning for desktop
+            element.style.left = left;
+            element.style.top = top;
+            if (includeMargin) {
+                element.style.margin = '0';
+            }
         }
+
         if (includeTransform) {
             element.style.transform = 'none';
         }
@@ -165,6 +189,9 @@ const ResizableContainer = {
 
         // Initialize viewport tracking
         this.updateViewportTracking();
+
+        // Check initial viewport state and disable controls if needed
+        this.updateResizeControlsState();
 
         // Check if CSS custom properties are already set (inline script loaded saved dimensions)
         const savedContainerWidth = getComputedStyle(document.documentElement).getPropertyValue('--saved-container-width').trim();
@@ -973,6 +1000,9 @@ const ResizableContainer = {
 
         // Update resize controls state based on viewport constraints
         this.updateResizeControlsState();
+
+        // Update positioning strategy based on viewport size (fixed vs relative)
+        this.updatePositioningStrategy(previousViewport);
     },
 
     /**
@@ -1155,6 +1185,42 @@ const ResizableContainer = {
         // Restore header drag title
         if (this.elements.header) {
             this.elements.header.title = 'Drag to move container';
+        }
+    },
+
+    /**
+     * Update positioning strategy based on viewport size changes
+     */
+    updatePositioningStrategy(previousViewport) {
+        const currentWidth = this.responsive.viewport.width;
+        const previousWidth = previousViewport.width;
+
+        // Check if we crossed the 1200px responsive threshold
+        const wasResponsive = previousWidth <= 1200;
+        const isResponsive = currentWidth <= 1200;
+
+        if (wasResponsive !== isResponsive) {
+            console.log(`🔄 Switching positioning strategy: ${isResponsive ? 'fixed → relative' : 'relative → fixed'}`);
+
+            const currentRect = this.elements.panelContainer.getBoundingClientRect();
+
+            if (isResponsive) {
+                // Switching to responsive mode - use relative positioning for scrolling
+                this.elements.panelContainer.style.position = 'relative';
+                this.elements.panelContainer.style.left = 'auto';
+                this.elements.panelContainer.style.top = 'auto';
+                this.elements.panelContainer.style.margin = 'var(--spacing-xs) auto';
+                console.log('📱 Switched to relative positioning for scrolling');
+            } else {
+                // Switching back to desktop mode - use fixed positioning
+                applyPositioningStyles(
+                    this.elements.panelContainer,
+                    `${currentRect.left}px`,
+                    `${currentRect.top}px`,
+                    { useImportant: false, includeTransform: true }
+                );
+                console.log('🖥️ Switched to fixed positioning for desktop');
+            }
         }
     }
 };
