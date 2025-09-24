@@ -537,16 +537,24 @@
     margin-bottom: var(--spacing-sm) !important;
   }
 
-  /* Fix header button overlap in responsive mode */
+  /* Fix header button positioning in responsive mode */
   .header-content {
     flex-direction: column !important;
-    align-items: center !important;
-    gap: var(--spacing-sm) !important;
+    align-items: stretch !important;
+    gap: 0 !important;
   }
 
   .header-nav {
     position: static !important;
+    align-self: flex-end !important;
     margin-top: 0 !important;
+    margin-bottom: var(--spacing-sm) !important;
+    order: -1 !important; /* Move nav above the main content */
+  }
+
+  .header-main {
+    text-align: center !important;
+    order: 1 !important; /* Ensure title comes after nav */
   }
 }
 
