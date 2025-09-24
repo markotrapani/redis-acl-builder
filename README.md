@@ -4,6 +4,20 @@
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
+## 🚀 Quick Start - Docker Hub
+
+**Ready to deploy? Get started in seconds:**
+
+🐳 **[Docker Hub Repository](https://hub.docker.com/r/markotrapani608/redis-acl-builder)** - Latest builds with automated CI/CD
+
+```bash
+# Run the latest version directly from Docker Hub
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
+
+# Access the application
+open http://localhost:7380
+```
+
 ## 🏗️ Architecture
 
 The application features modern, modular frontend and backend architectures:
