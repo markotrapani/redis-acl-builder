@@ -3,6 +3,7 @@
 ## 📊 Performance Results
 
 **Image Size Reduction:**
+
 - **Before**: 1.23GB (original single-stage build)
 - **After**: 253MB (optimized multi-stage build)
 - **Improvement**: 79% smaller (~980MB reduction)
@@ -10,6 +11,7 @@
 ## 🏗️ Multi-Stage Build Architecture
 
 ### Build Stage
+
 - **Purpose**: Compile dependencies and create virtual environment
 - **Base Image**: `python:3.12-slim`
 - **Tools**: gcc, build essentials
@@ -17,6 +19,7 @@
 - **Discarded**: Build tools, temporary files, package caches
 
 ### Production Stage
+
 - **Purpose**: Minimal runtime environment
 - **Base Image**: `python:3.12-slim` (fresh, clean)
 - **Runtime Deps**: curl (health checks only)
@@ -26,6 +29,7 @@
 ## 📦 Dependency Optimization
 
 ### Production Requirements (`requirements-prod.txt`)
+
 ```bash
 Flask==3.0.0
 Werkzeug==3.1.3
@@ -37,6 +41,7 @@ MarkupSafe>=2.1.0
 ```
 
 ### Excluded from Production
+
 - pytest, pytest-flask, coverage (testing)
 - setuptools, wheel (build tools)
 - Development utilities and documentation
@@ -44,6 +49,7 @@ MarkupSafe>=2.1.0
 ## 🗂️ File Exclusion Strategy
 
 ### Enhanced `.dockerignore`
+
 ```bash
 # Virtual environments
 venv/, env/, .env
@@ -67,6 +73,7 @@ __pycache__/, *.pyc, .pytest_cache/
 ## ⚡ Runtime Optimizations
 
 ### Environment Variables
+
 ```dockerfile
 ENV PYTHONUNBUFFERED=1        # Real-time output
 ENV PYTHONDONTWRITEBYTECODE=1 # No .pyc files
@@ -75,6 +82,7 @@ ENV FLASK_DEBUG=False         # Disable debug
 ```
 
 ### Gunicorn Configuration
+
 ```dockerfile
 CMD ["gunicorn",
      "--bind", "0.0.0.0:7380",
@@ -88,7 +96,8 @@ CMD ["gunicorn",
 ## 🔧 Implementation Guidelines
 
 ### 1. File Structure
-```
+
+```text
 docker/
 ├── Dockerfile              # Optimized multi-stage build
 ├── docker-compose.yml      # Updated for optimized build
@@ -98,6 +107,7 @@ docker/
 ```
 
 ### 2. Build Commands
+
 ```bash
 # Standard optimized build
 docker build -t redis-acl-builder:v1.9.0-beta .
@@ -110,6 +120,7 @@ docker-compose up -d
 ```
 
 ### 3. Health Check Strategy
+
 ```dockerfile
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:7380/api/categories || exit 1
@@ -118,16 +129,19 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 ## 📈 Benefits
 
 ### Performance
+
 - **79% smaller images** = faster deployment
 - **Reduced bandwidth** for image pulls
 - **Lower storage costs** in registries and production
 
 ### Security
+
 - **Minimal attack surface** (no build tools in production)
 - **Non-root user** (uid 1000)
 - **Production-only dependencies**
 
 ### Maintainability
+
 - **Clear separation** of build vs runtime concerns
 - **Explicit dependency management**
 - **Standardized build process**
@@ -135,21 +149,25 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 ## 🚀 Best Practices
 
 ### 1. Always Use Multi-Stage Builds
+
 - Separate build tools from runtime environment
 - Keep production stage minimal
 - Copy only necessary artifacts
 
 ### 2. Optimize Dependencies
+
 - Create separate `requirements-prod.txt`
 - Exclude test and development packages
 - Pin versions for reproducibility
 
 ### 3. Leverage Build Cache
+
 - Order Dockerfile layers by change frequency
 - Copy requirements before application code
 - Use `.dockerignore` extensively
 
 ### 4. Security First
+
 - Run as non-root user
 - Set appropriate environment variables
 - Include proper health checks
@@ -157,6 +175,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 ## 🔄 Migration Path
 
 ### From Legacy Dockerfile
+
 1. **Create** `requirements-prod.txt` (production only)
 2. **Update** `.dockerignore` with exclusions
 3. **Replace** single-stage with multi-stage build
@@ -164,6 +183,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 5. **Update** deployment scripts
 
 ### Validation Checklist
+
 - [ ] Image size < 300MB
 - [ ] Application starts correctly
 - [ ] Health checks pass
@@ -208,6 +228,7 @@ CMD ["gunicorn", "--bind", "0.0.0.0:7380", "--workers", "4", "app:app"]
 ## 🎯 This Standard is Now Mandatory
 
 All Docker builds must use this optimized pattern to ensure:
+
 - Consistent performance across deployments
 - Minimal resource consumption
 - Security best practices
