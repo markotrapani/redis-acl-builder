@@ -279,6 +279,11 @@ const ResizableContainer = {
      * Create resize handles (all 4 corners)
      */
     createResizeHandles() {
+        // Skip creating resize handles in responsive mode
+        if (window.innerWidth <= 1200) {
+            console.log('📱 Skipping resize handle creation in responsive mode');
+            return;
+        }
         // Bottom-right handle (both width and height)
         this.elements.bottomRightHandle = document.createElement('div');
         this.elements.bottomRightHandle.className = 'resize-handle resize-handle-br';

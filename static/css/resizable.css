@@ -615,6 +615,29 @@ body.resizing * {
     .three-column-layout {
         height: auto; /* Allow natural height expansion in stacked layout */
     }
+
+    /* Hide all resize controls in responsive mode for cleaner mobile experience */
+    .resize-handle,
+    .resize-edge,
+    .resize-overlay {
+        display: none !important;
+    }
+
+    /* Remove drag cursor from header in responsive mode */
+    .draggable-header {
+        cursor: default !important;
+    }
+
+    /* Ensure panel container doesn't respond to resize interactions */
+    .panel-container {
+        cursor: default !important;
+    }
+
+    /* Hide any resize-related visual indicators */
+    .panel-container::before,
+    .panel-container::after {
+        display: none !important;
+    }
 }
 
 /* Clean, minimal styling without visual clutter */

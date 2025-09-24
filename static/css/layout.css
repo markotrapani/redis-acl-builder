@@ -498,9 +498,29 @@
     height: 375px; /* Fine-tuned mobile optimization to eliminate remaining space */
   }
 
-
   .command-categories-container {
     max-height: 250px; /* Further reduced to match new proportions */
+  }
+
+  /* Hide console container styling in responsive mode for cleaner mobile experience */
+  .panel-container {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+  }
+
+  /* Make inner container flush with viewport edges */
+  .inner-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: var(--spacing-sm) !important;
   }
 }
 
