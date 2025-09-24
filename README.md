@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version 1.15.12-beta** - Clean Docker Tagging & Contact Integration
+**Version 1.15.13-beta** - Simplified Dependencies & Clean Docker Tagging
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -69,12 +69,13 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
-## ✨ What's New in v1.15.12-beta
+## ✨ What's New in v1.15.13-beta
 
-### Clean Docker Tagging & Contact Integration
+### Simplified Dependencies & Clean Docker Tagging
 
+- **📦 Single Requirements File**: Consolidated requirements-prod.txt into requirements.txt for simplified dependency management
+- **🏷️ Clean Docker Tags**: Eliminated duplicate version tags (now only creates clean '1.15.13-beta' instead of both 'v1.15.13-beta' and '1.15.13-beta')
 - **📞 Direct Developer Contact**: Easy access to Marko Trapani (<marko.trapani@redis.com>) for questions and feedback
-- **🏷️ Clean Docker Tags**: Eliminated duplicate version tags (now only creates clean '1.15.12-beta' instead of both 'v1.15.12-beta' and '1.15.12-beta')
 - **🔄 Docker Hub Description Sync**: Automated README synchronization ensuring Docker Hub shows current version info
 - **📋 Enhanced Support Flow**: Comprehensive support section with technical diagnostics and deployment resources
 - **🔧 Version Reference Cleanup**: Fixed outdated version references throughout documentation
@@ -497,4 +498,4 @@ For questions, feedback, or issues:
 
 ---
 
-**Redis ACL Builder v1.15.12-beta** - Enterprise-Grade Clean Docker Tagging & Contact Integration
+**Redis ACL Builder v1.15.13-beta** - Enterprise-Grade Simplified Dependencies & Clean Docker Tagging
