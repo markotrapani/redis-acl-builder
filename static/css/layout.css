@@ -680,15 +680,22 @@
   .panel-search-container {
     align-items: center !important;
     min-height: 30px !important;
-    margin-bottom: 0 !important; /* Remove bottom margin that pushes search bar up */
   }
 
-  /* Ensure help icons are positioned right next to panel titles */
-  .help-icon {
-    margin-left: 4px !important; /* Tighter spacing next to title */
-    margin-top: 0 !important; /* Remove vertical offset */
-    vertical-align: baseline !important; /* Align with text baseline */
-  }
+}
+
+/* Global alignment fixes for all viewport sizes */
+
+/* Position help icons immediately next to panel titles */
+.help-icon {
+  margin-left: 4px !important; /* Tighter spacing next to title */
+  margin-top: 0 !important; /* Remove vertical offset */
+  vertical-align: baseline !important; /* Align with text baseline */
+}
+
+/* Fix search bar alignment with toggle buttons */
+.panel-search-container {
+  margin-bottom: 0 !important; /* Remove bottom margin that pushes search bar up */
 }
 
 /* Additional responsive adjustments for smaller screens */
