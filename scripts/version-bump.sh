@@ -71,7 +71,7 @@ done
 
 # Get current version from CLAUDE.md
 get_current_version() {
-    grep -oP "Version.*: \K[0-9]+\.[0-9]+\.[0-9]+-beta" ../../CLAUDE.md | head -1 || echo "1.15.0-beta"
+    grep -o "Version.*: [0-9]*\.[0-9]*\.[0-9]*-beta" ../../CLAUDE.md | head -1 | sed 's/Version.*: //' || echo "1.15.0-beta"
 }
 
 # Bump version based on type
@@ -118,25 +118,31 @@ update_files() {
 
     echo -e "${BLUE}Updating version from ${old_version} to ${new_version}${NC}"
 
-    # Files to update with their patterns
-    declare -A files_patterns=(
-        ["../../CLAUDE.md"]="s/Version.*: [0-9]+\.[0-9]+\.[0-9]+-beta/Version**: ${new_version}-beta/"
-        ["../docker/README.md"]="s/redis-acl-builder:[v0-9.-]*beta/redis-acl-builder:v${new_version}/g"
-    )
-
-    for file in "${!files_patterns[@]}"; do
-        if [[ -f "$file" ]]; then
-            echo -e "  ${YELLOW}→${NC} Updating $file"
-            if [[ "$DRY_RUN" == "false" ]]; then
-                sed -i.bak "${files_patterns[$file]}" "$file"
-                rm -f "$file.bak"
-            else
-                echo -e "    ${BLUE}[DRY RUN]${NC} Would apply: ${files_patterns[$file]}"
-            fi
+    # Update CLAUDE.md
+    local claude_file="../../CLAUDE.md"
+    if [[ -f "$claude_file" ]]; then
+        echo -e "  ${YELLOW}→${NC} Updating $claude_file"
+        if [[ "$DRY_RUN" == "false" ]]; then
+            sed -i.bak "s/Version.*: [0-9]*\.[0-9]*\.[0-9]*-beta/Version**: ${new_version}/" "$claude_file"
+            rm -f "$claude_file.bak"
         else
-            echo -e "  ${RED}⚠${NC} File not found: $file"
+            echo -e "    ${BLUE}[DRY RUN]${NC} Would update version to: ${new_version}"
         fi
-    done
+    else
+        echo -e "  ${RED}⚠${NC} File not found: $claude_file"
+    fi
+
+    # Update Docker README if it exists
+    local readme_file="../docker/README.md"
+    if [[ -f "$readme_file" ]]; then
+        echo -e "  ${YELLOW}→${NC} Updating $readme_file"
+        if [[ "$DRY_RUN" == "false" ]]; then
+            sed -i.bak "s/redis-acl-builder:[v0-9.-]*beta/redis-acl-builder:v${new_version}/g" "$readme_file"
+            rm -f "$readme_file.bak"
+        else
+            echo -e "    ${BLUE}[DRY RUN]${NC} Would update Docker tags to: v${new_version}"
+        fi
+    fi
 }
 
 # Create git tag
