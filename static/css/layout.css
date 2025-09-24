@@ -490,7 +490,7 @@
 @media (max-width: 1200px) {
   .three-column-layout {
     grid-template-columns: 1fr;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm); /* Reduced from var(--spacing-md) for tighter mobile spacing */
     height: auto; /* Allow natural height expansion for stacked layout */
   }
 
@@ -521,6 +521,16 @@
     max-width: 100% !important;
     margin: 0 !important;
     padding: var(--spacing-sm) !important;
+  }
+
+  /* Hide panel drag buttons in stacked layout - they serve no purpose */
+  .panel-drag-handle {
+    display: none !important;
+  }
+
+  /* Reduce header spacing */
+  header {
+    margin-bottom: var(--spacing-sm) !important;
   }
 }
 
@@ -624,13 +634,15 @@
 @media (max-width: 1200px) {
   .testing-container {
     grid-template-columns: 1fr;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm); /* Reduced from var(--spacing-md) for tighter mobile spacing */
+    margin-top: var(--spacing-sm); /* Reduced margin from top for tighter layout */
   }
 }
 
 /* Additional responsive adjustments for smaller screens */
 @media (max-width: 768px) {
   .testing-container {
-    gap: var(--spacing-sm);
+    gap: var(--spacing-xs); /* Even tighter spacing on very small screens */
+    margin-top: var(--spacing-xs);
   }
 }
