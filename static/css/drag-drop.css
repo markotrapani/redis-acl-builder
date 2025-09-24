@@ -364,8 +364,8 @@
     /* Removed system preference dark mode panel hover shadow effects */
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Responsive adjustments - only for very small screens */
+@media (max-width: 480px) {
     .panel-drag-handle {
         font-size: 16px;
         margin-right: 6px;

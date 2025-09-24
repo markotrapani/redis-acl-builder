@@ -1,6 +1,6 @@
 /* Redis Enterprise ACL Builder - Layout Styles */
 
-/* Panel Container */
+/* Panel Container - consolidated with resizable positioning */
 .panel-container {
   background: var(--gray-300);
   border-radius: var(--radius-lg);
@@ -8,11 +8,16 @@
   padding: 8px;
   margin: var(--spacing-xs) auto;
   max-width: calc(var(--container-width, 1400px) + 16px); /* Base container width + 8px padding on each side */
-  position: relative;
   border: 1px solid var(--border-light);
   overflow: visible;
-  /* Ensure container height adapts to content */
-  min-height: auto;
+  min-height: auto; /* Ensure container height adapts to content */
+
+  /* Consolidated positioning from resizable.css */
+  position: var(--saved-container-position, relative);
+  left: var(--saved-container-left, auto);
+  top: var(--saved-container-top, auto);
+  transition: max-width 0.1s ease-out;
+  opacity: var(--container-opacity, 0); /* Hide initially to prevent position flash */
 }
 
 /* Light mode panel container styling */
@@ -39,22 +44,7 @@
   transition: max-width 0.1s ease-out;
 }
 
-/* Responsive panel container */
-@media (max-width: 768px) {
-  .panel-container {
-    margin: var(--spacing-md);
-    padding: var(--spacing-md);
-    border-radius: var(--radius-lg);
-  }
-}
-
-@media (max-width: 480px) {
-  .panel-container {
-    margin: var(--spacing-sm);
-    padding: var(--spacing-sm);
-    border-radius: var(--radius-md);
-  }
-}
+/* Responsive panel container rules removed - redundant with 1200px complete override */
 
 /* Three Column Layout */
 .three-column-layout {
@@ -518,6 +508,13 @@
     position: relative !important;
     left: auto !important;
     top: auto !important;
+    cursor: default !important; /* Consolidated from resizable.css */
+  }
+
+  /* Hide any resize-related visual indicators - consolidated from resizable.css */
+  .panel-container::before,
+  .panel-container::after {
+    display: none !important;
   }
 
   /* Make inner container flush with viewport edges */
@@ -530,6 +527,12 @@
   /* Hide panel drag buttons in stacked layout - they serve no purpose */
   .panel-drag-handle {
     display: none !important;
+  }
+
+  /* Fix h2 layout when drag handles are hidden - prevent space-between from separating help icon */
+  .panel h2 {
+    justify-content: flex-start !important;
+    gap: var(--spacing-xs) !important;
   }
 
   /* Reduce header spacing */
@@ -558,19 +561,19 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 480px) {
   .main-content {
     grid-template-columns: 1fr;
   }
-  
+
   .inner-container {
     padding: var(--spacing-md);
   }
-  
+
   .panel {
     padding: var(--spacing-lg);
   }
-  
+
   h1 {
     font-size: 2em;
   }
@@ -662,15 +665,16 @@
     margin-top: var(--spacing-sm); /* Reduced margin from top for tighter layout */
   }
 
-  /* Increase testing panel height for proper form field layout in stacked mode */
+  /* Let testing panels size naturally based on content in stacked mode */
   .test-section {
     height: auto !important; /* Remove fixed height constraint */
-    min-height: 220px !important; /* Increase minimum height for form content */
+    min-height: unset !important; /* Remove artificial minimum height */
     max-height: none !important; /* Allow natural expansion */
+    margin-bottom: 0 !important; /* Remove bottom margin to eliminate extra space */
   }
 
-  /* Fix search button alignment with input fields */
-  .test-command-input {
+  /* Fix search button alignment with input fields - only affect search inputs, not form inputs */
+  .panel-search-container .test-command-input {
     height: 26px !important; /* Match search button height exactly */
     line-height: 1 !important; /* Normalize line height for alignment */
     padding: 4px 6px !important; /* Adjust padding to maintain 26px total height */
@@ -683,10 +687,75 @@
   }
 }
 
-/* Additional responsive adjustments for smaller screens */
-@media (max-width: 768px) {
+/* Mobile-specific overrides to fix conflicts with 1200px rules */
+@media (max-width: 480px) {
+  /* Fix version info alignment - force inline layout for mobile */
+  .version-info {
+    flex-direction: row !important; /* Force horizontal layout */
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: var(--spacing-sm) !important;
+  }
+
+  /* Keep inline action buttons aligned with version text */
+  .inline-action-buttons {
+    align-self: center !important; /* Override any flex-end positioning */
+    flex-shrink: 0 !important;
+  }
+
+  /* Fix header alignment - override base.css 480px rules */
+  .header-content {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+  }
+
+  /* Ensure header nav positioning works on mobile */
+  .header-nav {
+    align-self: flex-end !important;
+    margin-top: 0 !important;
+    margin-bottom: var(--spacing-sm) !important;
+    order: -1 !important;
+  }
+
+  /* Keep question mark tooltips next to titles on mobile - stronger specificity */
+  .panel h2,
+  .acl-config-panel h2,
+  .blocked-commands-panel h2,
+  .granted-commands-panel h2 {
+    justify-content: flex-start !important;
+    gap: var(--spacing-xs) !important;
+    align-items: center !important;
+  }
+
+  /* Fix search container alignment - reduce excessive spacing */
+  .panel-search-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--spacing-sm) !important;
+    margin-bottom: var(--spacing-xs) !important; /* Reduced from spacing-sm */
+    margin-top: 0 !important; /* Remove any top margin */
+  }
+
+  /* Remove unnecessary margins from search toggle and link buttons */
+  .search-mode-toggle,
+  .search-link-toggle {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Let form field inputs size naturally - remove any artificial constraints */
+  .test-command-input:not(.panel-search-container .test-command-input) {
+    height: auto !important; /* Remove any height restrictions */
+    line-height: normal !important; /* Use normal line height */
+    padding: 9px !important; /* Match rule-input comfortable padding */
+    font-size: 14px !important; /* Ensure readable font size */
+    min-height: auto !important; /* Let natural height determine size */
+  }
+
+  /* Testing container mobile spacing */
   .testing-container {
-    gap: var(--spacing-xs); /* Even tighter spacing on very small screens */
+    gap: var(--spacing-xs);
     margin-top: var(--spacing-xs);
   }
 }

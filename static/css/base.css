@@ -488,14 +488,14 @@ header {
   }
 }
 
-/* Responsive header */
-@media (max-width: 768px) {
+/* Responsive header - only for very small screens */
+@media (max-width: 480px) {
   .header-content {
     flex-direction: column;
     align-items: center;
     gap: var(--spacing-md);
   }
-  
+
   .header-nav {
     margin-top: 0;
   }

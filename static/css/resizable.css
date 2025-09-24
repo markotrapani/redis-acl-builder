@@ -1,14 +1,6 @@
 /* Redis Enterprise ACL Builder - Resizable Container Styles */
 
-/* Panel container positioning for resize handles */
-.panel-container {
-    position: var(--saved-container-position, relative);
-    left: var(--saved-container-left, auto);
-    top: var(--saved-container-top, auto);
-    transition: max-width 0.1s ease-out;
-    /* Hide initially to prevent position flash, show after positioning */
-    opacity: var(--container-opacity, 0);
-}
+/* Panel container positioning rules moved to layout.css for consolidation */
 
 /* Resize handles base styling - invisible but interactive */
 .resize-handle {
@@ -558,8 +550,8 @@ body.resizing * {
     transition: height 0.2s ease-out;
 }
 
-/* Handle visibility on different screen sizes */
-@media (max-width: 768px) {
+/* Handle visibility on different screen sizes - only for very small screens */
+@media (max-width: 480px) {
     .resize-handle {
         width: 40px;
         height: 40px;
@@ -628,16 +620,7 @@ body.resizing * {
         cursor: default !important;
     }
 
-    /* Ensure panel container doesn't respond to resize interactions */
-    .panel-container {
-        cursor: default !important;
-    }
-
-    /* Hide any resize-related visual indicators */
-    .panel-container::before,
-    .panel-container::after {
-        display: none !important;
-    }
+    /* Panel container responsive rules moved to layout.css for consolidation */
 }
 
 /* Clean, minimal styling without visual clutter */
@@ -675,8 +658,7 @@ body.resizing * {
 
 /* Responsive behavior styles */
 .resize-controls-disabled {
-    /* Visual indicator that resize controls are disabled */
-    filter: contrast(0.8) brightness(0.9);
+    /* Visual indicator removed - no filter effects */
 }
 
 .resize-controls-disabled .resize-handle,

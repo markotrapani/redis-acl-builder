@@ -432,8 +432,8 @@
   }
 }
 
-/* Responsive grid adjustments */
-@media (max-width: 768px) {
+/* Responsive grid adjustments - only for very small screens */
+@media (max-width: 480px) {
   .command-grid,
   .category-commands {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));

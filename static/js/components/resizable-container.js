@@ -353,6 +353,12 @@ const ResizableContainer = {
      * Setup event listeners for resize handles and drag functionality
      */
     setupEventListeners() {
+        // Skip event listener setup if handles don't exist (responsive mode)
+        if (!this.elements.bottomRightHandle) {
+            console.log('📱 Skipping event listener setup - no resize handles in responsive mode');
+            return;
+        }
+
         // Bottom-right handle (both dimensions)
         this.elements.bottomRightHandle.addEventListener('mousedown', (e) => {
             this.startResize(e, 'both');
