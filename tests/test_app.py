@@ -448,12 +448,12 @@ class TestFlaskApp(unittest.TestCase):
         
         for endpoint in endpoints:
             with self.subTest(endpoint=endpoint):
-                response = self.client.post(endpoint, data='invalid json', 
+                response = self.client.post(endpoint, data='invalid json',
                                           content_type='application/json')
                 self.assertEqual(response.status_code, 400)
                 data = json.loads(response.data)
                 self.assertTrue(data['error'])
-                self.assertIn('Invalid or missing JSON data', data['message'])
+                self.assertIn('Invalid request data', data['message'])
     
     def test_configuration_constants(self):
         """Test that configuration constants are properly used."""

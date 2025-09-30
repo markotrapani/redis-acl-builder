@@ -9,6 +9,7 @@ import logging
 import sys
 import os
 from typing import Dict, Any, Tuple, Union, List, cast
+from pydantic import BaseModel, ValidationError
 
 # Add the project directory to Python path for helper imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -16,6 +17,18 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Import our helper modules
 from helpers.data_loader import get_redis_data, build_command_indexes
 from helpers.acl_parser import ACLParser
+
+# Import Pydantic models
+from models.api_models import (
+    ParseACLRequest, ParseACLResponse,
+    TestCommandRequest, TestCommandResponse,
+    CommandInfoRequest, CommandInfoResponse,
+    CategoriesResponse,
+    SearchCommandsRequest, SearchCommandsResponse, CommandSearchResult,
+    ValidateRuleRequest, ValidateRuleResponse,
+    AnalyzeRedundancyRequest, AnalyzeRedundancyResponse,
+    ErrorResponse, HealthResponse
+)
 
 # Configuration constants
 DEFAULT_PORT = int(os.getenv('FLASK_PORT', '5001'))
@@ -56,21 +69,22 @@ def handle_api_error(error_msg: str, status_code: int = 400) -> Tuple[Any, int]:
         'status_code': status_code
     }), status_code
 
-def validate_request_json(request: Request) -> Dict[str, Any]:
-    """Extract and validate JSON from request."""
+def validate_pydantic_request(model_class: type[BaseModel]) -> Any:
+    """Validate request JSON using Pydantic model."""
     try:
         data = request.get_json()
         if not data:
             raise ValueError("No JSON data provided")
-        return data
-    except Exception:
-        raise ValueError("Invalid or missing JSON data")
-
-def validate_redis_version(version: str) -> str:
-    """Validate Redis version parameter."""
-    if version not in PARSERS:
-        raise ValueError(f"Invalid Redis version: {version}")
-    return version
+        return model_class(**data)
+    except ValidationError as e:
+        # Format Pydantic validation errors
+        errors = []
+        for error in e.errors():
+            field = '.'.join(str(x) for x in error['loc'])
+            errors.append(f"{field}: {error['msg']}")
+        raise ValueError(f"Validation error: {'; '.join(errors)}")
+    except Exception as e:
+        raise ValueError(f"Invalid request data: {str(e)}")
 
 # Routes
 @app.route('/')
@@ -87,19 +101,17 @@ def info() -> str:
 def api_parse() -> Union[Response, Tuple[Response, int]]:
     """Parse ACL rule and return granted commands."""
     try:
-        data = validate_request_json(request)
-        rule = data.get('rule', '')
-        version = validate_redis_version(data.get('version', 'redis7'))
-        
-        parser = get_parser(version)
-        
+        req_data = validate_pydantic_request(ParseACLRequest)
+
+        parser = get_parser(req_data.version)
+
         # Validate rule syntax
-        is_valid, errors = parser.validate_rule_syntax(rule)
+        is_valid, errors = parser.validate_rule_syntax(req_data.rule)
         if not is_valid:
             return handle_api_error(f"Invalid ACL rule: {'; '.join(errors)}")
-        
+
         # Parse and evaluate rule
-        parsed_rule = parser.parse_acl_rule(rule)
+        parsed_rule = parser.parse_acl_rule(req_data.rule)
         granted_commands, _explanations = parser.evaluate_command_permissions(parsed_rule)
         
         # Group commands by category for display
@@ -123,7 +135,7 @@ def api_parse() -> Union[Response, Tuple[Response, int]]:
             'total_available': len(cast(Dict[str, Any], parser_data['commands'])),
             'parsed_rule': parsed_rule,
             'impact_summary': impact_summary,
-            'version': version
+            'version': req_data.version
         })
         
     except ValueError as e:
@@ -136,32 +148,26 @@ def api_parse() -> Union[Response, Tuple[Response, int]]:
 def api_test_command() -> Union[Response, Tuple[Response, int]]:
     """Test if specific command is allowed."""
     try:
-        data = validate_request_json(request)
-        rule = data.get('rule', '')
-        command = data.get('command', '').strip()
-        version = validate_redis_version(data.get('version', 'redis7'))
-        
-        if not command:
-            raise ValueError("No command specified")
-        
-        parser = get_parser(version)
-        
+        req_data = validate_pydantic_request(TestCommandRequest)
+
+        parser = get_parser(req_data.version)
+
         # Validate rule syntax
-        is_valid, errors = parser.validate_rule_syntax(rule)
+        is_valid, errors = parser.validate_rule_syntax(req_data.rule)
         if not is_valid:
             return handle_api_error(f"Invalid ACL rule: {'; '.join(errors)}")
-        
+
         # Parse rule and test command
-        parsed_rule = parser.parse_acl_rule(rule)
-        is_granted, explanation, categories = parser.test_command_access(command, parsed_rule)
-        
+        parsed_rule = parser.parse_acl_rule(req_data.rule)
+        is_granted, explanation, categories = parser.test_command_access(req_data.command, parsed_rule)
+
         return jsonify({
             'success': True,
-            'command': command.upper(),
+            'command': req_data.command.upper(),
             'is_granted': is_granted,
             'explanation': explanation,
             'categories': categories,
-            'version': version
+            'version': req_data.version
         })
         
     except ValueError as e:
@@ -174,22 +180,17 @@ def api_test_command() -> Union[Response, Tuple[Response, int]]:
 def api_command_info() -> Union[Response, Tuple[Response, int]]:
     """Get information about a command."""
     try:
-        data = validate_request_json(request)
-        command = data.get('command', '').strip()
-        version = validate_redis_version(data.get('version', 'redis7'))
-        
-        if not command:
-            raise ValueError("No command specified")
-        
-        parser = get_parser(version)
-        categories = parser.get_command_categories(command)
-        
+        req_data = validate_pydantic_request(CommandInfoRequest)
+
+        parser = get_parser(req_data.version)
+        categories = parser.get_command_categories(req_data.command)
+
         return jsonify({
             'success': True,
-            'command': command.upper(),
+            'command': req_data.command.upper(),
             'categories': categories,
             'exists': len(categories) > 0,
-            'version': version
+            'version': req_data.version
         })
         
     except ValueError as e:
@@ -202,11 +203,13 @@ def api_command_info() -> Union[Response, Tuple[Response, int]]:
 def api_categories() -> Union[Response, Tuple[Response, int]]:
     """Get all available categories for a Redis version."""
     try:
-        version = validate_redis_version(request.args.get('version', 'redis7'))
-        
+        version = request.args.get('version', 'redis8')
+        if version not in PARSERS:
+            raise ValueError(f'Invalid Redis version: {version}. Must be "redis7" or "redis8"')
+
         parser = get_parser(version)
         category_info = parser.get_category_info()
-        
+
         return jsonify({
             'success': True,
             'version': version,
@@ -225,19 +228,13 @@ def api_categories() -> Union[Response, Tuple[Response, int]]:
 def api_search_commands() -> Union[Response, Tuple[Response, int]]:
     """Search for commands matching a pattern."""
     try:
-        data = validate_request_json(request)
-        pattern = data.get('pattern', '').strip()
-        version = validate_redis_version(data.get('version', 'redis7'))
-        limit = data.get('limit', DEFAULT_SEARCH_LIMIT)  # Limit results to avoid overwhelming UI
-        
-        if not pattern:
-            raise ValueError("No search pattern specified")
-        
-        parser = get_parser(version)
-        matching_commands = parser.search_commands(pattern)
-        
+        req_data = validate_pydantic_request(SearchCommandsRequest)
+
+        parser = get_parser(req_data.version)
+        matching_commands = parser.search_commands(req_data.pattern)
+
         # Limit results and add category info
-        limited_results = matching_commands[:limit]
+        limited_results = matching_commands[:req_data.limit]
         results_with_categories: List[Dict[str, Any]] = []
 
         for cmd in limited_results:
@@ -245,14 +242,14 @@ def api_search_commands() -> Union[Response, Tuple[Response, int]]:
                 'command': cmd,
                 'categories': parser.get_command_categories(cmd)
             })
-        
+
         return jsonify({
             'success': True,
-            'pattern': pattern,
+            'pattern': req_data.pattern,
             'results': results_with_categories,
             'total_matches': len(matching_commands),
             'showing': len(limited_results),
-            'version': version
+            'version': req_data.version
         })
         
     except ValueError as e:
@@ -265,19 +262,17 @@ def api_search_commands() -> Union[Response, Tuple[Response, int]]:
 def api_validate_rule() -> Union[Response, Tuple[Response, int]]:
     """Validate ACL rule syntax."""
     try:
-        data = validate_request_json(request)
-        rule = data.get('rule', '')
-        version = validate_redis_version(data.get('version', 'redis7'))
-        
-        parser = get_parser(version)
-        is_valid, errors = parser.validate_rule_syntax(rule)
-        
+        req_data = validate_pydantic_request(ValidateRuleRequest)
+
+        parser = get_parser(req_data.version)
+        is_valid, errors = parser.validate_rule_syntax(req_data.rule)
+
         return jsonify({
             'success': True,
-            'rule': rule,
+            'rule': req_data.rule,
             'is_valid': is_valid,
             'errors': errors,
-            'version': version
+            'version': req_data.version
         })
         
     except ValueError as e:
@@ -290,17 +285,15 @@ def api_validate_rule() -> Union[Response, Tuple[Response, int]]:
 def api_analyze_redundancy() -> Union[Response, Tuple[Response, int]]:
     """Analyze ACL rule for redundant terms and optimization opportunities."""
     try:
-        data = validate_request_json(request)
-        rule = data.get('rule', '')
-        version = validate_redis_version(data.get('version', 'redis7'))
-        
-        parser = get_parser(version)
-        analysis = parser.analyze_rule_redundancy(rule)
-        
+        req_data = validate_pydantic_request(AnalyzeRedundancyRequest)
+
+        parser = get_parser(req_data.version)
+        analysis = parser.analyze_rule_redundancy(req_data.rule)
+
         return jsonify({
             'success': True,
-            'rule': rule,
-            'version': version,
+            'rule': req_data.rule,
+            'version': req_data.version,
             'analysis': analysis
         })
         
