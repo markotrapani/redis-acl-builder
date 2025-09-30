@@ -65,6 +65,13 @@ const API = {
     },
 
     /**
+     * Optimize ACL rule to find shortest equivalent representation
+     */
+    async optimizeRule(rule, version) {
+        return this.makeCall('/api/optimize-rule', { rule, version });
+    },
+
+    /**
      * Search commands
      */
     async searchCommands(pattern, version, limit = 50) {

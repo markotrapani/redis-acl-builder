@@ -148,24 +148,54 @@ const RuleManager = {
      */
     async analyzeRedundancy() {
         const rule = Utils.normalizeACLRule(DOMElements.aclRuleInput.value.trim());
-        
+
         // Skip analysis for empty rules only
         if (!rule || rule.trim() === '') {
             this.hideRedundancyWarnings();
             return;
         }
-        
+
         try {
             const response = await API.analyzeRedundancy(rule, AppState.currentVersion);
-            
+
             if (response.success && response.analysis) {
-                this.displayRedundancyWarnings(response.analysis);
+                // Check for optimization opportunities
+                await this.checkForOptimization(rule, response.analysis);
             } else {
                 this.hideRedundancyWarnings();
             }
         } catch (error) {
             console.error('Redundancy analysis failed:', error);
             this.hideRedundancyWarnings();
+        }
+    },
+
+    /**
+     * Check for optimization opportunities
+     */
+    async checkForOptimization(rule, redundancyAnalysis) {
+        try {
+            const optimizeResponse = await API.optimizeRule(rule, AppState.currentVersion);
+
+            if (optimizeResponse.success && optimizeResponse.savings > 0) {
+                // Add optimization suggestion to the redundancy analysis
+                const optimizationSuggestion = `Saves ${optimizeResponse.savings} term${optimizeResponse.savings > 1 ? 's' : ''}\nSimplified rule: ${optimizeResponse.optimized_rule}`;
+
+                if (!redundancyAnalysis.suggestions) {
+                    redundancyAnalysis.suggestions = [];
+                }
+
+                // Add optimization suggestion at the beginning
+                redundancyAnalysis.suggestions.unshift(optimizationSuggestion);
+                redundancyAnalysis.has_redundancy = true;
+            }
+
+            // Display combined warnings and suggestions
+            this.displayRedundancyWarnings(redundancyAnalysis);
+        } catch (error) {
+            console.error('Optimization check failed:', error);
+            // Still display redundancy warnings even if optimization fails
+            this.displayRedundancyWarnings(redundancyAnalysis);
         }
     },
     
@@ -186,6 +216,22 @@ const RuleManager = {
         warningsList.innerHTML = '';
         suggestionsList.innerHTML = '';
 
+        // Determine if we have actual redundancy or just optimization
+        const hasRedundantTerms = analysis.warnings && analysis.warnings.length > 0;
+        const hasOptimization = analysis.suggestions && analysis.suggestions.some(s => s.startsWith('Saves ') && s.includes('term'));
+
+        // Update header text based on what we're showing
+        const headerElement = warningsContainer.querySelector('.redundancy-header h4');
+        if (headerElement) {
+            if (hasRedundantTerms) {
+                headerElement.textContent = '⚠️ Redundant Terms Detected:';
+            } else if (hasOptimization) {
+                headerElement.textContent = '💡 Rule Optimization Available:';
+            } else {
+                headerElement.textContent = '💡 Suggestions:';
+            }
+        }
+
         // Add warnings
         if (analysis.warnings && analysis.warnings.length > 0) {
             analysis.warnings.forEach(warning => {
@@ -205,7 +251,9 @@ const RuleManager = {
 
                 if (suggestion.includes('Simplified rule:')) {
                     const parts = suggestion.split('Simplified rule: ');
-                    suggestionDiv.innerHTML = `${parts[0]}Simplified rule: <span class="simplified-rule">${parts[1]}</span>`;
+                    // Convert newlines to <br> tags in the first part
+                    const formattedFirstPart = parts[0].replace(/\n/g, '<br>');
+                    suggestionDiv.innerHTML = `${formattedFirstPart}Simplified rule: <span class="simplified-rule">${parts[1]}</span>`;
 
                     // Make simplified rule clickable
                     const ruleSpan = suggestionDiv.querySelector('.simplified-rule');

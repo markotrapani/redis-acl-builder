@@ -661,6 +661,233 @@ class ACLParser:
             'has_redundancy': len(redundant_terms) > 0 or len(warnings) > 0
         }
 
+    def optimize_rule(self, rule: str) -> Dict[str, Any]:
+        """
+        Find the shortest equivalent ACL rule representation.
+
+        This method analyzes the given ACL rule and finds alternative representations
+        that grant the exact same set of commands but with fewer terms.
+
+        Args:
+            rule (str): The ACL rule to optimize
+
+        Returns:
+            dict: Optimization results including:
+                - original_rule: The input rule
+                - original_term_count: Number of terms in original
+                - optimized_rule: Shortest equivalent rule found
+                - optimized_term_count: Number of terms in optimized
+                - savings: Number of terms saved
+                - granted_commands: Final set of granted commands
+                - explanation: Description of the optimization
+        """
+        if not rule.strip():
+            return {
+                'original_rule': rule,
+                'optimized_rule': rule,
+                'original_term_count': 0,
+                'optimized_term_count': 0,
+                'savings': 0,
+                'granted_commands': [],
+                'explanation': 'Empty rule grants no commands'
+            }
+
+        try:
+            # Parse the original rule to get the final command set
+            parsed = self.parse_acl_rule(rule)
+            granted_commands, _ = self.evaluate_command_permissions(parsed)
+            granted_set = set(granted_commands)
+
+            if not granted_set:
+                return {
+                    'original_rule': rule,
+                    'optimized_rule': '',
+                    'original_term_count': len(rule.split()),
+                    'optimized_term_count': 0,
+                    'savings': len(rule.split()),
+                    'granted_commands': [],
+                    'explanation': 'Rule grants no commands - optimized to empty rule'
+                }
+
+            # Count terms in original rule (exclude key patterns)
+            original_tokens = [t for t in rule.split() if not t.startswith('~')]
+            original_term_count = len(original_tokens)
+
+            # Find all possible representations
+            representations = []
+
+            # 1. Try pure category grants
+            for category, commands in self.data['categories'].items():
+                cat_set = set(commands)
+                if cat_set == granted_set:
+                    representations.append({
+                        'rule': f'+@{category}',
+                        'term_count': 1,
+                        'type': 'pure_category',
+                        'explanation': f'Commands match exactly the @{category} category'
+                    })
+
+            # 2. Try category with exclusions
+            for category, commands in self.data['categories'].items():
+                cat_set = set(commands)
+                if granted_set.issubset(cat_set) and granted_set:
+                    excluded = cat_set - granted_set
+                    if excluded:
+                        # Build exclusion rule
+                        exclusions = sorted(excluded)
+                        exclusion_terms = [f'-{cmd}' for cmd in exclusions]
+                        term_count = 1 + len(exclusion_terms)  # +@category + exclusions
+
+                        if term_count < original_term_count:
+                            rule_str = f'+@{category} ' + ' '.join(exclusion_terms)
+                            representations.append({
+                                'rule': rule_str,
+                                'term_count': term_count,
+                                'type': 'category_with_exclusions',
+                                'explanation': f'Grant @{category} and exclude {len(exclusions)} commands'
+                            })
+
+            # 3. Try individual command grants
+            if len(granted_set) < original_term_count:
+                command_terms = sorted([f'+{cmd}' for cmd in granted_set])
+                representations.append({
+                    'rule': ' '.join(command_terms),
+                    'term_count': len(command_terms),
+                    'type': 'individual_commands',
+                    'explanation': f'List all {len(granted_set)} commands individually'
+                })
+
+            # 4. Try multiple category approach (find minimal set of categories that cover all commands)
+            covering_categories = self._find_minimal_category_cover(granted_set)
+            if covering_categories:
+                cat_terms = [f'+@{cat}' for cat in covering_categories['categories']]
+                excl_terms = [f'-{cmd}' for cmd in covering_categories.get('exclusions', [])]
+                all_terms = cat_terms + excl_terms
+                term_count = len(all_terms)
+
+                if term_count < original_term_count:
+                    representations.append({
+                        'rule': ' '.join(all_terms),
+                        'term_count': term_count,
+                        'type': 'multiple_categories',
+                        'explanation': f'Combine {len(cat_terms)} categories with {len(excl_terms)} exclusions'
+                    })
+
+            # Find the best representation (fewest terms)
+            if not representations:
+                # No better representation found
+                return {
+                    'original_rule': rule,
+                    'optimized_rule': rule,
+                    'original_term_count': original_term_count,
+                    'optimized_term_count': original_term_count,
+                    'savings': 0,
+                    'granted_commands': sorted(list(granted_set)),
+                    'explanation': 'No shorter equivalent representation found'
+                }
+
+            best = min(representations, key=lambda r: r['term_count'])
+
+            if best['term_count'] >= original_term_count:
+                # No improvement
+                return {
+                    'original_rule': rule,
+                    'optimized_rule': rule,
+                    'original_term_count': original_term_count,
+                    'optimized_term_count': original_term_count,
+                    'savings': 0,
+                    'granted_commands': sorted(list(granted_set)),
+                    'explanation': 'Current rule is already optimal'
+                }
+
+            return {
+                'original_rule': rule,
+                'optimized_rule': best['rule'],
+                'original_term_count': original_term_count,
+                'optimized_term_count': best['term_count'],
+                'savings': original_term_count - best['term_count'],
+                'granted_commands': sorted(list(granted_set)),
+                'explanation': best['explanation'],
+                'optimization_type': best['type']
+            }
+
+        except Exception as e:
+            return {
+                'original_rule': rule,
+                'optimized_rule': rule,
+                'original_term_count': len(rule.split()),
+                'optimized_term_count': len(rule.split()),
+                'savings': 0,
+                'granted_commands': [],
+                'error': str(e),
+                'explanation': f'Error during optimization: {str(e)}'
+            }
+
+    def _find_minimal_category_cover(self, target_commands: Set[str]) -> Dict[str, Any]:
+        """
+        Find the minimal set of categories that covers the target commands.
+
+        Uses a greedy algorithm to find a small (not necessarily minimal) set of categories
+        that covers all target commands with the fewest total terms (categories + exclusions).
+
+        Args:
+            target_commands: Set of commands to cover
+
+        Returns:
+            dict: Contains 'categories' list and 'exclusions' list
+        """
+        if not target_commands:
+            return {'categories': [], 'exclusions': []}
+
+        remaining = target_commands.copy()
+        selected_categories = []
+        total_exclusions = set()
+
+        # Greedy approach: repeatedly select the category that covers the most remaining commands
+        # with the best ratio of (commands_covered / total_terms_added)
+        while remaining:
+            best_category = None
+            best_score = -1
+            best_coverage = set()
+            best_exclusions = set()
+
+            for category, commands in self.data['categories'].items():
+                cat_set = set(commands)
+                coverage = remaining.intersection(cat_set)
+                if not coverage:
+                    continue
+
+                # Calculate how many commands from this category we'd need to exclude
+                unwanted = cat_set - target_commands
+
+                # Score = coverage / (1 + exclusions needed)
+                # Prefer categories with high coverage and low exclusions
+                score = len(coverage) / (1 + len(unwanted))
+
+                if score > best_score:
+                    best_score = score
+                    best_category = category
+                    best_coverage = coverage
+                    best_exclusions = unwanted
+
+            if not best_category:
+                # Couldn't find any category to help - add remaining as individual commands
+                break
+
+            selected_categories.append(best_category)
+            remaining -= best_coverage
+            total_exclusions.update(best_exclusions)
+
+        # If we still have remaining commands, this approach didn't cover everything
+        if remaining:
+            # Fall back to individual commands for remaining
+            return {'categories': [], 'exclusions': []}
+
+        return {
+            'categories': selected_categories,
+            'exclusions': sorted(list(total_exclusions))
+        }
+
     def _is_legitimate_security_pattern(self, command_rules: List[Dict[str, str]], current_index: int, current_token: Dict[str, str]) -> bool:
         """
         Detect if the current inclusion rule is part of a legitimate security pattern.

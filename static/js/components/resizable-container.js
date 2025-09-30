@@ -281,7 +281,6 @@ const ResizableContainer = {
     createResizeHandles() {
         // Skip creating resize handles in responsive mode
         if (window.innerWidth <= 1200) {
-            console.log('📱 Skipping resize handle creation in responsive mode');
             return;
         }
         // Bottom-right handle (both width and height)
@@ -355,7 +354,6 @@ const ResizableContainer = {
     setupEventListeners() {
         // Skip event listener setup if handles don't exist (responsive mode)
         if (!this.elements.bottomRightHandle) {
-            console.log('📱 Skipping event listener setup - no resize handles in responsive mode');
             return;
         }
 
@@ -977,8 +975,6 @@ const ResizableContainer = {
      * Handle viewport changes - main responsive logic
      */
     handleViewportChange() {
-        console.log('🔄 Viewport change detected');
-
         const previousViewport = { ...this.responsive.viewport };
         this.updateViewportTracking();
 
@@ -987,15 +983,11 @@ const ResizableContainer = {
         const heightChange = Math.abs(this.responsive.viewport.height - previousViewport.height);
 
         if (widthChange < 10 && heightChange < 10) {
-            console.log('📏 Viewport change too small, ignoring');
             return; // Ignore minor changes
         }
 
-        console.log(`📐 Viewport changed: ${previousViewport.width}x${previousViewport.height} → ${this.responsive.viewport.width}x${this.responsive.viewport.height}`);
-
         // Check if we should respect user intent
         if (this.shouldRespectUserIntent()) {
-            console.log('⏰ Respecting user intent, skipping auto-adjustment');
             return;
         }
 
@@ -1003,10 +995,7 @@ const ResizableContainer = {
         const adjustments = this.calculateResponsiveAdjustments();
 
         if (adjustments.needed) {
-            console.log('✨ Applying responsive adjustments:', adjustments);
             this.applyResponsiveAdjustments(adjustments);
-        } else {
-            console.log('✅ No responsive adjustments needed');
         }
 
         // Update resize controls state based on viewport constraints
@@ -1107,10 +1096,8 @@ const ResizableContainer = {
             this.responsive.viewportConstrained = shouldDisableControls;
 
             if (shouldDisableControls) {
-                console.log(`🚫 Disabling resize controls - viewport too small (max allowed: ${maxAllowedWidth}px, min required: ${this.defaults.minWidth}px)`);
                 this.disableResizeControls();
             } else {
-                console.log('✅ Enabling resize controls - viewport allows normal operation');
                 this.enableResizeControls();
             }
         }
@@ -1211,8 +1198,6 @@ const ResizableContainer = {
         const isResponsive = currentWidth <= 1200;
 
         if (wasResponsive !== isResponsive) {
-            console.log(`🔄 Switching positioning strategy: ${isResponsive ? 'fixed → relative' : 'relative → fixed'}`);
-
             const currentRect = this.elements.panelContainer.getBoundingClientRect();
 
             if (isResponsive) {
@@ -1221,7 +1206,6 @@ const ResizableContainer = {
                 this.elements.panelContainer.style.left = 'auto';
                 this.elements.panelContainer.style.top = 'auto';
                 this.elements.panelContainer.style.margin = 'var(--spacing-xs) auto';
-                console.log('📱 Switched to relative positioning for scrolling');
             } else {
                 // Switching back to desktop mode - use fixed positioning
                 applyPositioningStyles(
@@ -1230,7 +1214,6 @@ const ResizableContainer = {
                     `${currentRect.top}px`,
                     { useImportant: false, includeTransform: true }
                 );
-                console.log('🖥️ Switched to fixed positioning for desktop');
             }
         }
     }

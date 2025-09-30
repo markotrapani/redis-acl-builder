@@ -19,16 +19,17 @@ const InteractiveACLBuilder = {
         blockedCommands: new Set(),
         blockedCategories: new Set(),
         keyPatterns: new Set(),          // Store key patterns like ~*, ~user:*, etc.
-        
+
         // New ordered structure for rule generation
         orderedTerms: [],                // Array of {type: 'category|command|keypattern', operation: 'grant|block', value: string}
-        
+
         allCategories: [],
         allCommands: [],
         isInitialized: false,
         lastGeneratedRule: '',           // Track the last rule we generated
         hasManualChanges: false,         // Track if user made manual changes
-        lastValidRule: ''                // Track the last valid rule for testing purposes
+        lastValidRule: '',               // Track the last valid rule for testing purposes
+        shouldComprehensiveOptimize: false  // Track if comprehensive optimization should run after render
     },
 
     // DOM elements for three-column layout
@@ -187,6 +188,9 @@ const InteractiveACLBuilder = {
         this.state.orderedTerms = this.StateManager.removeTermsByCategory(this.state.orderedTerms, category);
         this.StateManager.addTerm(this.state.orderedTerms, 'category', 'grant', category);
 
+        // Mark that we should check for comprehensive optimization after render
+        this.state.shouldComprehensiveOptimize = true;
+
         // Check if granting this category triggers auto-simplification (like all categories -> @all)
         await this.finalizeStateChange();
     },
@@ -199,6 +203,9 @@ const InteractiveACLBuilder = {
         this.StateManager.toggleCategoryState(this.state, category, 'block');
         this.state.orderedTerms = this.StateManager.removeTermsByCategory(this.state.orderedTerms, category);
         this.StateManager.addTerm(this.state.orderedTerms, 'category', 'block', category);
+
+        // Mark that we should check for comprehensive optimization after render
+        this.state.shouldComprehensiveOptimize = true;
 
         // Check if blocking this category triggers auto-simplification (like cancelled @all)
         await this.finalizeStateChange();
@@ -967,6 +974,9 @@ const InteractiveACLBuilder = {
         this.state.orderedTerms = this.StateManager.removeTermsByCommand(this.state.orderedTerms, command);
         this.StateManager.addTerm(this.state.orderedTerms, 'command', 'grant', command);
 
+        // Mark that we should check for comprehensive optimization after render
+        this.state.shouldComprehensiveOptimize = true;
+
         // Check if this command completes a category and auto-simplify if so
         await this.finalizeStateChange();
     },
@@ -1267,6 +1277,12 @@ const InteractiveACLBuilder = {
             // Remove loading covers with smooth fade animation
             // Note: Scrollbar space is now always reserved via CSS overflow-y: scroll
             this.removeLoadingAnimation();
+
+            // Check for comprehensive optimization if requested (after render completes)
+            if (this.state.shouldComprehensiveOptimize) {
+                this.state.shouldComprehensiveOptimize = false;
+                await this.checkAndAutoOptimize();
+            }
         }, 50); // Reduced since we now use proper frame timing for overlay removal
     },
 
@@ -2843,6 +2859,9 @@ const InteractiveACLBuilder = {
         );
         this.state.orderedTerms.push({ type: 'command', operation: 'block', value: command });
 
+        // Mark that we should check for comprehensive optimization after render
+        this.state.shouldComprehensiveOptimize = true;
+
         // Check if this command completes a category block and auto-simplify if so
         await this.finalizeStateChange();
     },
@@ -3153,6 +3172,44 @@ const InteractiveACLBuilder = {
 
         // Show success notification
         this.showOptimizationNotification(`Auto-optimized: replaced ${count} command blocks with "-@${category}"`, 'success');
+    },
+
+    /**
+     * Check for comprehensive optimization opportunities and auto-apply
+     * Only called when shouldComprehensiveOptimize flag is true (button clicks)
+     */
+    async checkAndAutoOptimize() {
+        const currentRule = this.elements.aclRuleInput.value.trim();
+
+        // Skip optimization for empty rules
+        if (!currentRule) {
+            return;
+        }
+
+        try {
+            const optimizeResponse = await API.optimizeRule(currentRule, AppState.currentVersion);
+
+            if (optimizeResponse.success && optimizeResponse.savings > 0) {
+                // Auto-apply the optimization for button clicks
+                const optimizedRule = optimizeResponse.optimized_rule;
+
+                // Update the textarea
+                this.elements.aclRuleInput.value = optimizedRule;
+                this.state.lastGeneratedRule = optimizedRule;
+
+                // Show notification about the optimization
+                this.showOptimizationNotification(
+                    `Auto-optimized: Saved ${optimizeResponse.savings} term${optimizeResponse.savings > 1 ? 's' : ''} (${optimizeResponse.original_term_count} → ${optimizeResponse.optimized_term_count})`,
+                    'success'
+                );
+
+                // Sync the optimized rule back to the builder state
+                await this.syncFromRuleText();
+            }
+        } catch (error) {
+            console.error('Auto-optimization check failed:', error);
+            // Silently fail - don't disrupt user experience
+        }
     },
 
     /**

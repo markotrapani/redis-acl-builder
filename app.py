@@ -27,6 +27,7 @@ from models.api_models import (
     SearchCommandsRequest, SearchCommandsResponse, CommandSearchResult,
     ValidateRuleRequest, ValidateRuleResponse,
     AnalyzeRedundancyRequest, AnalyzeRedundancyResponse,
+    OptimizeRuleRequest, OptimizeRuleResponse,
     ErrorResponse, HealthResponse
 )
 
@@ -301,6 +302,34 @@ def api_analyze_redundancy() -> Union[Response, Tuple[Response, int]]:
         return handle_api_error(str(e))
     except Exception as e:
         logger.error(f"Error in api_analyze_redundancy: {str(e)}")
+        return handle_api_error(f"Internal error: {str(e)}", 500)
+
+@app.route('/api/optimize-rule', methods=['POST'])
+def api_optimize_rule() -> Union[Response, Tuple[Response, int]]:
+    """Find the shortest equivalent ACL rule representation."""
+    try:
+        req_data = validate_pydantic_request(OptimizeRuleRequest)
+
+        parser = get_parser(req_data.version)
+        optimization = parser.optimize_rule(req_data.rule)
+
+        return jsonify({
+            'success': True,
+            'original_rule': optimization['original_rule'],
+            'optimized_rule': optimization['optimized_rule'],
+            'original_term_count': optimization['original_term_count'],
+            'optimized_term_count': optimization['optimized_term_count'],
+            'savings': optimization['savings'],
+            'granted_commands': optimization['granted_commands'],
+            'explanation': optimization['explanation'],
+            'optimization_type': optimization.get('optimization_type'),
+            'version': req_data.version
+        })
+
+    except ValueError as e:
+        return handle_api_error(str(e))
+    except Exception as e:
+        logger.error(f"Error in api_optimize_rule: {str(e)}")
         return handle_api_error(f"Internal error: {str(e)}", 500)
 
 @app.route('/health')

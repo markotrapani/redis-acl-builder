@@ -89,6 +89,11 @@ class AnalyzeRedundancyRequest(RedisVersionMixin):
     rule: str = Field(description="ACL rule to analyze")
 
 
+class OptimizeRuleRequest(RedisVersionMixin):
+    """Request model for /api/optimize-rule endpoint"""
+    rule: str = Field(description="ACL rule to optimize")
+
+
 # === Response Models ===
 
 class ErrorResponse(BaseModel):
@@ -174,6 +179,20 @@ class AnalyzeRedundancyResponse(BaseModel):
     rule: str = Field(description="Rule that was analyzed")
     version: str = Field(description="Redis version used")
     analysis: Dict[str, Any] = Field(description="Redundancy analysis results")
+
+
+class OptimizeRuleResponse(BaseModel):
+    """Response model for /api/optimize-rule endpoint"""
+    success: bool = Field(default=True)
+    original_rule: str = Field(description="Original ACL rule")
+    optimized_rule: str = Field(description="Optimized ACL rule")
+    original_term_count: int = Field(description="Number of terms in original rule")
+    optimized_term_count: int = Field(description="Number of terms in optimized rule")
+    savings: int = Field(description="Number of terms saved")
+    granted_commands: List[str] = Field(description="Commands granted by the rule")
+    explanation: str = Field(description="Explanation of the optimization")
+    optimization_type: Optional[str] = Field(default=None, description="Type of optimization applied")
+    version: str = Field(description="Redis version used")
 
 
 class HealthResponse(BaseModel):
