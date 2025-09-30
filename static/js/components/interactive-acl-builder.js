@@ -1508,9 +1508,10 @@ const InteractiveACLBuilder = {
 
                 }
             }
-            
-            // Update the granted categories header
-            this.updateCategorySectionHeader('granted', effectivelyGrantedCategories.length);
+
+            // Update the granted categories header (exclude @all from count as it's a pseudo-category)
+            const grantedCategoryCount = effectivelyGrantedCategories.filter(cat => cat !== 'all').length;
+            this.updateCategorySectionHeader('granted', grantedCategoryCount);
         }
 
         // Render available categories as clickable buttons
@@ -1695,10 +1696,11 @@ const InteractiveACLBuilder = {
                 message.textContent = 'No categories available';
                 this.elements.blockedCategoriesButtons.appendChild(message);
             }
-            
-            // Update the blocked categories header
-            const categoryCount = effectivelyBlockedCategories.length + availableCategories.length;
-            this.updateCategorySectionHeader('blocked', categoryCount);
+
+            // Update the blocked categories header (exclude @all from count as it's a pseudo-category)
+            const blockedCategoryCount = effectivelyBlockedCategories.filter(cat => cat !== 'all').length +
+                                         availableCategories.filter(cat => cat !== 'all').length;
+            this.updateCategorySectionHeader('blocked', blockedCategoryCount);
         }
     },
 
