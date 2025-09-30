@@ -110,7 +110,7 @@ const API = {
      */
     async getAllCommands(version) {
         const fullRuleResponse = await this.parseRule('+@all', version);
-        
+
         if (fullRuleResponse && fullRuleResponse.grouped_commands) {
             // Extract all commands from all categories
             const allCommands = new Set();
@@ -119,8 +119,15 @@ const API = {
             });
             return Array.from(allCommands).sort();
         }
-        
+
         return [];
+    },
+
+    /**
+     * Test command+key access (integrated testing)
+     */
+    async testCommandKey(rule, command, key, version) {
+        return this.makeCall('/api/test-command-key', { rule, command, key, version });
     }
 };
 

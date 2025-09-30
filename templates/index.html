@@ -471,17 +471,22 @@
         <!-- Dual Testing Interface -->
         <div class="testing-container">
             <!-- Command Tester -->
-            <section class="panel test-section command-test-section">
-                <h2>🧪 Command Tester</h2>
+            <section class="panel test-section command-test-section" id="command-tester-panel">
+                <h2>
+                    🧪 Command Tester
+                    <button type="button" id="command-integrate-btn" class="integrate-toggle-btn" title="Switch to Integrated Mode - test command + key together">
+                        🔗
+                    </button>
+                </h2>
                 <p class="text-muted mb-2">Test if a specific command is allowed by your current ACL rule:</p>
-                
+
                 <div id="testResult" role="region" aria-label="Test results" aria-live="polite"></div>
-                
+
                 <div class="test-input-group">
-                    <input 
-                        type="text" 
-                        id="testCommand" 
-                        class="test-command-input" 
+                    <input
+                        type="text"
+                        id="testCommand"
+                        class="test-command-input"
                         placeholder="Enter command to test (eg. GET, SET, FLUSHDB) ..."
                         aria-label="Command to test"
                         autocomplete="off"
@@ -494,17 +499,22 @@
             </section>
 
             <!-- Keyspace Tester -->
-            <section class="panel test-section keyspace-test-section">
-                <h2>🔑 Keyspace Tester</h2>
+            <section class="panel test-section keyspace-test-section" id="keyspace-tester-panel">
+                <h2>
+                    🔑 Keyspace Tester
+                    <button type="button" id="keyspace-integrate-btn" class="integrate-toggle-btn" title="Switch to Integrated Mode - test command + key together">
+                        🔗
+                    </button>
+                </h2>
                 <p class="text-muted mb-2">Test if a specific key name is allowed by your current ACL rule:</p>
-                
+
                 <div id="testKeyspaceResult" role="region" aria-label="Keyspace test results" aria-live="polite"></div>
-                
+
                 <div class="test-input-group">
-                    <input 
-                        type="text" 
-                        id="testKeyspace" 
-                        class="test-command-input" 
+                    <input
+                        type="text"
+                        id="testKeyspace"
+                        class="test-command-input"
                         placeholder="Enter key name to test (eg. user:123, cache:*) ..."
                         aria-label="Key pattern to test"
                         autocomplete="off"
@@ -514,6 +524,50 @@
                         CHECK<br>KEY NAME
                     </button>
                 </div>
+            </section>
+
+            <!-- Integrated Command + Key Tester (hidden by default) -->
+            <section class="panel test-section integrated-test-section" id="integrated-tester-panel" style="display: none;">
+                <h2>
+                    🔗 Integrated Command + Key Tester
+                    <button type="button" id="split-mode-btn" class="inline-action-button split-mode-button" title="Split back to separate Command and Keyspace testers">
+                        ✕
+                    </button>
+                </h2>
+                <p class="text-muted mb-2">Test both command permission AND key pattern access together:</p>
+
+                <!-- Hint badge for key permissions -->
+                <div id="key-permission-hint" class="integrated-hint-badge" style="display: none;">
+                    💡 Your ACL uses key permissions (%R~, %W~, %RW~) - perfect for integrated testing!
+                </div>
+
+                <div id="integratedTestResult" role="region" aria-label="Integrated test results" aria-live="polite"></div>
+
+                <div class="integrated-test-form">
+                    <input
+                        type="text"
+                        id="integratedCommand"
+                        class="test-command-input integrated-command-input"
+                        placeholder="Command (e.g., GET, SET)"
+                        aria-label="Command to test"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <input
+                        type="text"
+                        id="integratedKey"
+                        class="test-command-input integrated-key-input"
+                        placeholder="Key (e.g., cache:user:123)"
+                        aria-label="Key name to test"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <button type="button" id="integrated-test-btn" class="test-button integrated-test-button" aria-label="Test command and key access together" disabled>
+                        TEST COMMAND<br>+ KEY
+                    </button>
+                </div>
+
+                <p class="integrated-hint-text">💡 Testing both command permission AND key pattern access</p>
             </section>
             </div>
         </div>

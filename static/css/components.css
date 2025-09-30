@@ -2017,3 +2017,264 @@ button.test-button[disabled] {
     transform: translateY(0);
   }
 }
+
+/* ================================
+   Integrated Command + Key Tester
+   ================================ */
+
+/* Toggle buttons in separate panels - match inline-action-button style with purple gradient */
+.integrate-toggle-btn {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  padding: 4px 8px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #764ba2;
+}
+
+.integrate-toggle-btn:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4);
+}
+
+.integrate-toggle-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+/* Integrated tester panel - match existing test section styling */
+.integrated-test-section {
+  grid-column: 1 / -1;
+  /* Use same background as other test sections */
+}
+
+/* Split mode button - match inline-action-button style with purple gradient */
+.split-mode-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #764ba2;
+}
+
+.split-mode-button:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Hint badge */
+.integrated-hint-badge {
+  background: var(--warning-bg, rgba(255, 235, 59, 0.1));
+  border: 1px solid var(--warning-border, rgba(255, 235, 59, 0.3));
+  color: var(--text-color);
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+}
+
+/* Integrated test form - inline layout like existing test sections */
+.integrated-test-form {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  margin-top: 10px;
+}
+
+.integrated-command-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.integrated-key-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Integrated test button - match existing test button styling */
+.integrated-test-button {
+  flex-shrink: 0;
+  min-width: 120px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Hint text */
+.integrated-hint-text {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* Integrated result display */
+.integrated-result {
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: var(--radius-md);
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+}
+
+.integrated-result.success {
+  border-left: 4px solid var(--success-color, #28a745);
+  background: var(--success-bg, rgba(40, 167, 69, 0.05));
+}
+
+.integrated-result.error {
+  border-left: 4px solid var(--error-color, #dc3545);
+  background: var(--error-bg, rgba(220, 53, 69, 0.05));
+}
+
+.integrated-result .result-header {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.integrated-result.success .result-header {
+  color: var(--success-color, #28a745);
+}
+
+.integrated-result.error .result-header {
+  color: var(--error-color, #dc3545);
+}
+
+/* Breakdown section */
+.breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.check-item {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  border-left: 3px solid transparent;
+}
+
+.check-item.pass {
+  background: var(--success-bg, rgba(40, 167, 69, 0.08));
+  border-left-color: var(--success-color, #28a745);
+  color: var(--text-color);
+}
+
+.check-item.fail {
+  background: var(--error-bg, rgba(220, 53, 69, 0.08));
+  border-left-color: var(--error-color, #dc3545);
+  color: var(--text-color);
+}
+
+.check-item strong {
+  font-weight: 600;
+}
+
+.check-item .categories {
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 4px;
+  display: block;
+  font-size: 0.85rem;
+}
+
+.check-item .pattern-match {
+  color: var(--text-muted);
+  display: block;
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+
+.check-item .pattern-match code {
+  background: var(--code-bg, rgba(0, 0, 0, 0.05));
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: 0.9em;
+  color: var(--code-color, #d63384);
+}
+
+.permission-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 600;
+  margin-left: 6px;
+}
+
+.permission-badge.read-only {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.permission-badge.write-only {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.permission-badge.read-write {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+/* Explanation text */
+.integrated-result .explanation {
+  margin-top: 12px;
+  padding: 10px;
+  background: var(--code-bg, rgba(0, 0, 0, 0.03));
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* Loading state */
+.integrated-result .loading {
+  text-align: center;
+  padding: 15px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Light mode specific adjustments */
+[data-theme="light"] .check-item .pattern-match code {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .integrated-result .explanation {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .integrate-toggle-btn {
+    position: static;
+    margin-left: auto;
+  }
+
+  .integrated-test-form {
+    flex-direction: column;
+  }
+
+  .integrated-command-input,
+  .integrated-key-input {
+    min-width: unset;
+  }
+
+  .integrated-test-button {
+    min-width: unset;
+  }
+}

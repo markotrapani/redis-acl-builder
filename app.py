@@ -28,6 +28,7 @@ from models.api_models import (
     ValidateRuleRequest, ValidateRuleResponse,
     AnalyzeRedundancyRequest, AnalyzeRedundancyResponse,
     OptimizeRuleRequest, OptimizeRuleResponse,
+    TestCommandKeyRequest, TestCommandKeyResponse,
     ErrorResponse, HealthResponse
 )
 
@@ -330,6 +331,62 @@ def api_optimize_rule() -> Union[Response, Tuple[Response, int]]:
         return handle_api_error(str(e))
     except Exception as e:
         logger.error(f"Error in api_optimize_rule: {str(e)}")
+        return handle_api_error(f"Internal error: {str(e)}", 500)
+
+@app.route('/api/test-command-key', methods=['POST'])
+def api_test_command_key() -> Union[Response, Tuple[Response, int]]:
+    """Test if a command on a specific key is allowed (integrated command+key testing)."""
+    try:
+        req_data = validate_pydantic_request(TestCommandKeyRequest)
+
+        parser = get_parser(req_data.version)
+
+        # Validate rule syntax
+        is_valid, errors = parser.validate_rule_syntax(req_data.rule)
+        if not is_valid:
+            return handle_api_error(f"Invalid ACL rule: {'; '.join(errors)}")
+
+        # Parse rule
+        parsed_rule = parser.parse_acl_rule(req_data.rule)
+
+        # Test command permission
+        is_command_granted, command_explanation, command_categories = parser.test_command_access(req_data.command, parsed_rule)
+
+        # Test key access
+        is_allowed, key_reason, matched_pattern, permission_type = parser.test_key_access(
+            req_data.key, req_data.command, parsed_rule
+        )
+
+        # Determine overall access
+        key_access_granted = is_allowed
+        overall_allowed = is_command_granted and is_allowed
+
+        # Build comprehensive explanation
+        if not is_command_granted:
+            reason = f"Command {req_data.command.upper()} is not granted by ACL rule. {command_explanation}"
+        elif not is_allowed:
+            reason = f"Command {req_data.command.upper()} is granted, but key access denied: {key_reason}"
+        else:
+            reason = f"✅ Access granted: {command_explanation} AND {key_reason}"
+
+        return jsonify({
+            'success': True,
+            'command': req_data.command.upper(),
+            'key': req_data.key,
+            'is_allowed': overall_allowed,
+            'command_granted': is_command_granted,
+            'key_access_granted': key_access_granted,
+            'reason': reason,
+            'matched_pattern': matched_pattern,
+            'permission_type': permission_type,
+            'command_categories': command_categories,
+            'version': req_data.version
+        })
+
+    except ValueError as e:
+        return handle_api_error(str(e))
+    except Exception as e:
+        logger.error(f"Error in api_test_command_key: {str(e)}")
         return handle_api_error(f"Internal error: {str(e)}", 500)
 
 @app.route('/health')

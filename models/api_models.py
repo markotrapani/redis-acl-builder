@@ -94,6 +94,31 @@ class OptimizeRuleRequest(RedisVersionMixin):
     rule: str = Field(description="ACL rule to optimize")
 
 
+class TestCommandKeyRequest(RedisVersionMixin):
+    """Request model for /api/test-command-key endpoint - integrated command+key testing"""
+    rule: str = Field(description="ACL rule to evaluate")
+    command: str = Field(description="Redis command (e.g., GET, SET)", min_length=1)
+    key: str = Field(description="Key name to test (e.g., user:123, cache:*)", min_length=1)
+
+    @field_validator('command')
+    @classmethod
+    def validate_command(cls, v: str) -> str:
+        """Validate and normalize command"""
+        v = v.strip()
+        if not v:
+            raise ValueError('Command cannot be empty')
+        return v
+
+    @field_validator('key')
+    @classmethod
+    def validate_key(cls, v: str) -> str:
+        """Validate and normalize key"""
+        v = v.strip()
+        if not v:
+            raise ValueError('Key cannot be empty')
+        return v
+
+
 # === Response Models ===
 
 class ErrorResponse(BaseModel):
@@ -200,3 +225,18 @@ class HealthResponse(BaseModel):
     status: str = Field(description="Health status")
     redis_versions: List[str] = Field(description="Supported Redis versions")
     total_commands: Dict[str, int] = Field(description="Command counts per version")
+
+
+class TestCommandKeyResponse(BaseModel):
+    """Response model for /api/test-command-key endpoint - integrated command+key testing"""
+    success: bool = Field(default=True)
+    command: str = Field(description="Command that was tested")
+    key: str = Field(description="Key that was tested")
+    is_allowed: bool = Field(description="Whether the command on this key is allowed")
+    command_granted: bool = Field(description="Whether the command itself is granted by ACL")
+    key_access_granted: bool = Field(description="Whether the key pattern allows this access")
+    reason: str = Field(description="Human-readable explanation")
+    matched_pattern: Optional[str] = Field(default=None, description="Key pattern that matched (if any)")
+    permission_type: Optional[str] = Field(default=None, description="Permission type (read-only, write-only, read-write)")
+    command_categories: List[str] = Field(description="Categories the command belongs to")
+    version: str = Field(description="Redis version used")

@@ -17,6 +17,7 @@ import SearchManager from './components/search-manager.js';
 import ResizableContainer from './components/resizable-container.js';
 import SavedRules from './components/saved-rules.js';
 import DragDropPanels from './components/drag-drop-panels.js';
+import IntegratedTester from './components/integrated-tester.js';
 import EventHandlers from './handlers/event-handlers.js';
 
 // Application main object
@@ -53,6 +54,9 @@ const App = {
 
             // Initialize saved rules system
             SavedRules.init();
+
+            // Initialize integrated command+key tester
+            IntegratedTester.initIntegratedTester();
 
             // Clean up saved rule reference (already handled by init)
             if (this.savedRuleToSync) {

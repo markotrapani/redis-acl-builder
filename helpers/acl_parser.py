@@ -3,12 +3,47 @@
 Redis ACL Parser - Parse and evaluate Redis ACL rules
 """
 
-from typing import Dict, List, Set, Tuple, Any
+from typing import Dict, List, Set, Tuple, Any, Optional
 import fnmatch
 import re
 
 class ACLParser:
     """Parse and evaluate Redis ACL rules."""
+
+    # Command classification for key permission validation
+    # These classify commands by their read/write behavior
+    READ_COMMANDS = {
+        'get', 'mget', 'strlen', 'getrange', 'getbit', 'hget', 'hmget',
+        'hgetall', 'hkeys', 'hvals', 'hlen', 'hscan', 'lrange', 'lindex',
+        'llen', 'lpos', 'scard', 'smembers', 'sismember', 'smismember',
+        'srandmember', 'sscan', 'zrange', 'zrangebyscore', 'zrangebylex',
+        'zrevrange', 'zrevrangebyscore', 'zrevrangebylex', 'zcard', 'zscore',
+        'zrank', 'zrevrank', 'zcount', 'zlexcount', 'zscan', 'type', 'exists',
+        'ttl', 'pttl', 'dump', 'scan', 'keys', 'randomkey', 'dbsize',
+        'memory', 'object', 'touch', 'wait', 'geohash', 'geopos', 'geodist',
+        'georadius', 'georadiusbymember', 'pfcount', 'bitcount', 'bitpos',
+        'xlen', 'xrange', 'xrevrange', 'xread', 'xpending', 'xinfo'
+    }
+
+    WRITE_COMMANDS = {
+        'set', 'setnx', 'setex', 'psetex', 'mset', 'msetnx', 'append',
+        'setrange', 'setbit', 'incr', 'decr', 'incrby', 'decrby',
+        'incrbyfloat', 'hset', 'hsetnx', 'hmset', 'hincrby', 'hincrbyfloat',
+        'hdel', 'lpush', 'lpushx', 'rpush', 'rpushx', 'lpop', 'rpop',
+        'lset', 'ltrim', 'lrem', 'linsert', 'blpop', 'brpop', 'brpoplpush',
+        'sadd', 'srem', 'spop', 'smove', 'zadd', 'zrem', 'zincrby',
+        'zremrangebyscore', 'zremrangebyrank', 'zremrangebylex', 'del',
+        'unlink', 'expire', 'expireat', 'pexpire', 'pexpireat', 'persist',
+        'rename', 'renamenx', 'move', 'copy', 'restore', 'sort', 'flushdb',
+        'flushall', 'save', 'bgsave', 'bgrewriteaof', 'shutdown', 'geoadd',
+        'georadius_ro', 'pfadd', 'pfmerge', 'bitop', 'bitfield',
+        'xadd', 'xtrim', 'xdel', 'xack', 'xclaim', 'xgroup', 'xsetid'
+    }
+
+    READ_WRITE_COMMANDS = {
+        'getset', 'getdel', 'getex', 'rpoplpush', 'lmove', 'blmove',
+        'smove', 'zpopmin', 'zpopmax', 'bzpopmin', 'bzpopmax'
+    }
 
     def __init__(self, redis_data: Dict, redis_version: str = 'redis7'):
         """
@@ -23,7 +58,39 @@ class ACLParser:
         
         if not self.data.get('commands'):
             raise ValueError(f"Command index not built for {redis_version}")
-    
+
+    def parse_key_permission(self, token: str) -> Tuple[str, str]:
+        """
+        Parse key permission token into permission type and pattern.
+
+        Supports Redis 7.0+ key permission syntax:
+        - ~pattern: Read-write access (traditional)
+        - %R~pattern: Read-only access
+        - %W~pattern: Write-only access
+        - %RW~pattern: Read-write access (alias for ~)
+
+        Args:
+            token: Key permission token (e.g., '~cache:*', '%R~logs:*')
+
+        Returns:
+            Tuple of (permission_type, pattern)
+            - permission_type: 'read-write', 'read-only', or 'write-only'
+            - pattern: The key pattern (e.g., 'cache:*')
+
+        Raises:
+            ValueError: If token doesn't start with ~ or %
+        """
+        if token.startswith('%R~'):
+            return ('read-only', token[3:])
+        elif token.startswith('%W~'):
+            return ('write-only', token[3:])
+        elif token.startswith('%RW~'):
+            return ('read-write', token[4:])
+        elif token.startswith('~'):
+            return ('read-write', token[1:])
+        else:
+            raise ValueError(f"Invalid key permission token: {token}")
+
     def parse_acl_rule(self, rule: str) -> Dict[str, Any]:
         """
         Parse ACL rule into structured format.
@@ -94,14 +161,19 @@ class ACLParser:
                         'original_token': token
                     })
             
-            elif token.startswith('~'):
-                # Key pattern rule
-                pattern = token[1:]
-                parsed['key_rules'].append({
-                    'type': 'allow',  # ~ always allows access to keys
-                    'pattern': pattern,
-                    'original_token': token
-                })
+            elif token.startswith('~') or token.startswith('%'):
+                # Key pattern rule (supports ~, %R~, %W~, %RW~)
+                try:
+                    permission_type, pattern = self.parse_key_permission(token)
+                    parsed['key_rules'].append({
+                        'type': 'allow',  # Key patterns always grant access
+                        'permission': permission_type,  # 'read-write', 'read-only', 'write-only'
+                        'pattern': pattern,
+                        'original_token': token
+                    })
+                except ValueError as e:
+                    # Invalid key permission token, skip it
+                    pass
         
         return parsed
     
@@ -229,7 +301,88 @@ class ACLParser:
             categories = self.data['commands'].get(command_lower, [])
         
         return categories
-    
+
+    def test_key_access(self, key: str, command: str, parsed_rule: Dict[str, Any]) -> Tuple[bool, str, Optional[str], Optional[str]]:
+        """
+        Test if a command on a specific key is allowed by the ACL rule.
+
+        This validates both:
+        1. Command permission (is the command allowed?)
+        2. Key permission (does the key match a pattern with appropriate read/write access?)
+
+        Args:
+            key: The key name to test (e.g., 'user:123', 'analytics:session:abc')
+            command: The Redis command (e.g., 'GET', 'SET')
+            parsed_rule: Parsed ACL rule from parse_acl_rule()
+
+        Returns:
+            Tuple of (is_allowed, reason, matched_pattern, permission_type)
+            - is_allowed: True if command on key is allowed
+            - reason: Human-readable explanation
+            - matched_pattern: The key pattern that matched (None if no match)
+            - permission_type: 'read-only', 'write-only', 'read-write' (None if no match)
+
+        Example:
+            >>> test_key_access('analytics:user:123', 'GET', parsed)
+            (True, 'Key matches read-only pattern analytics:*', 'analytics:*', 'read-only')
+
+            >>> test_key_access('analytics:user:123', 'SET', parsed)
+            (False, 'Key requires read-only access, SET requires write permission', 'analytics:*', 'read-only')
+        """
+        command_lower = command.lower()
+
+        # If no key rules, deny access (Redis default)
+        if not parsed_rule.get('key_rules'):
+            return False, "No key patterns defined in ACL rule", None, None
+
+        # Classify the command
+        is_read_cmd = command_lower in self.READ_COMMANDS
+        is_write_cmd = command_lower in self.WRITE_COMMANDS
+        is_read_write_cmd = command_lower in self.READ_WRITE_COMMANDS
+
+        # Determine what access the command needs
+        if is_read_write_cmd:
+            needs_read = True
+            needs_write = True
+        elif is_read_cmd:
+            needs_read = True
+            needs_write = False
+        elif is_write_cmd:
+            needs_read = False
+            needs_write = True
+        else:
+            # Unknown command classification - be conservative and require both
+            needs_read = True
+            needs_write = True
+
+        # Check each key rule
+        for key_rule in parsed_rule['key_rules']:
+            pattern = key_rule['pattern']
+            permission = key_rule.get('permission', 'read-write')  # Default to read-write for backward compatibility
+
+            # Check if key matches this pattern (glob-style matching)
+            if fnmatch.fnmatch(key, pattern):
+                # Key matches - check if permission type allows this command
+                has_read = permission in ('read-only', 'read-write')
+                has_write = permission in ('write-only', 'read-write')
+
+                # Check if permission matches command needs
+                if needs_read and not has_read:
+                    return False, f"Key pattern '{pattern}' is write-only, {command} requires read permission", pattern, permission
+                if needs_write and not has_write:
+                    return False, f"Key pattern '{pattern}' is read-only, {command} requires write permission", pattern, permission
+
+                # Permission matches!
+                permission_display = {
+                    'read-only': 'read-only (%R~)',
+                    'write-only': 'write-only (%W~)',
+                    'read-write': 'read-write (~)'
+                }[permission]
+                return True, f"Key matches {permission_display} pattern '{pattern}'", pattern, permission
+
+        # No matching pattern
+        return False, f"Key '{key}' does not match any allowed patterns", None, None
+
     def validate_rule_syntax(self, rule: str) -> Tuple[bool, List[str]]:
         """
         Validate ACL rule syntax and return any errors.
