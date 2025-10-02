@@ -200,13 +200,20 @@
                             // Only hide testing container if it actually needs reordering
                             document.documentElement.style.setProperty('--testers-opacity', '0');
                             window._testersHidden = true;
+                        } else {
+                            // Testers are in default position - ensure opacity is 1 immediately
+                            document.documentElement.style.setProperty('--testers-opacity', '1');
                         }
                     } catch (e) {
                         console.warn('Failed to parse saved tester order:', e);
                         window._initialTesterOrder = ['command-tester-panel', 'keyspace-tester-panel', 'integrated-tester-panel'];
+                        // Fallback to default - ensure opacity is 1
+                        document.documentElement.style.setProperty('--testers-opacity', '1');
                     }
                 } else {
                     window._initialTesterOrder = ['command-tester-panel', 'keyspace-tester-panel', 'integrated-tester-panel'];
+                    // No saved order means default position - ensure opacity is 1 immediately
+                    document.documentElement.style.setProperty('--testers-opacity', '1');
                 }
 
             } catch (e) {

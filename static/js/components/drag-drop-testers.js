@@ -181,9 +181,9 @@ const DragDropTesters = {
             document.documentElement.style.setProperty('--testers-opacity', '1');
             window._testersHidden = false;
         } else {
-            // Ensure CSS variable is cleared if testers were never hidden (default position)
-            // This prevents flash on reload when testers are already in correct position
-            document.documentElement.style.removeProperty('--testers-opacity');
+            // Testers in default position - ensure opacity is explicitly set to 1
+            // This prevents flash by overriding any stale CSS variable values
+            document.documentElement.style.setProperty('--testers-opacity', '1');
         }
     },
 
