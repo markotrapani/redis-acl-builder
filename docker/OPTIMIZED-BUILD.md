@@ -110,7 +110,7 @@ docker/
 
 ```bash
 # Standard optimized build
-docker build -t redis-acl-builder:v1.9.0-beta .
+docker build -t redis-acl-builder:1.9.0-beta .
 
 # Docker Compose (with build context)
 docker-compose up -d

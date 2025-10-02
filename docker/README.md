@@ -27,7 +27,7 @@ open http://localhost:7380
 docker pull markotrapani608/redis-acl-builder:latest
 
 # Specific version
-docker pull markotrapani608/redis-acl-builder:v1.21.0-beta
+docker pull markotrapani608/redis-acl-builder:1.21.0-beta
 
 # Beta releases
 docker pull markotrapani608/redis-acl-builder:beta

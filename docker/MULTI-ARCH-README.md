@@ -66,7 +66,7 @@ The multi-arch build script (`build-multi-arch.sh`) performs:
 
 ```bash
 # After running build-multi-arch.sh
-docker run -d -p 7380:7380 --name redis-acl-builder redis-acl-builder:v1.21.0-beta
+docker run -d -p 7380:7380 --name redis-acl-builder redis-acl-builder:1.21.0-beta
 ```
 
 ### Push to Registry (Multi-Arch)
@@ -75,19 +75,19 @@ docker run -d -p 7380:7380 --name redis-acl-builder redis-acl-builder:v1.21.0-be
 # Build and push to Docker Hub (requires login)
 docker buildx build \
   --platform=linux/amd64,linux/arm64 \
-  --tag YOUR_USERNAME/redis-acl-builder:v1.21.0-beta \
+  --tag YOUR_USERNAME/redis-acl-builder:1.21.0-beta \
   --push \
   -f Dockerfile ..
 
 # Pull and run on any supported architecture
-docker run -d -p 7380:7380 YOUR_USERNAME/redis-acl-builder:v1.21.0-beta
+docker run -d -p 7380:7380 YOUR_USERNAME/redis-acl-builder:1.21.0-beta
 ```
 
 ### Inspect Multi-Arch Manifest
 
 ```bash
 # View architecture details of a multi-arch image
-docker buildx imagetools inspect redis-acl-builder:v1.21.0-beta-multiarch
+docker buildx imagetools inspect redis-acl-builder:1.21.0-beta-multiarch
 ```
 
 ## Cross-Platform Compatibility

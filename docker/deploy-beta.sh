@@ -35,7 +35,7 @@ fi
 # Build the optimized Docker image (multi-stage Alpine build: ~110MB vs 1.23GB)
 echo "🔨 Building optimized Docker image (multi-stage Alpine build with Python 3.13)..."
 echo "   📦 Target size: ~110MB (91% reduction from 1.23GB, improved security)"
-docker build -t redis-acl-builder:v1.21.0-beta -f Dockerfile ..
+docker build -t redis-acl-builder:1.21.0-beta -f Dockerfile ..
 
 # Run the container
 echo "🐳 Starting Redis ACL Builder container..."
@@ -43,7 +43,7 @@ docker run -d \
     --name redis-acl-builder \
     -p 7380:7380 \
     --restart unless-stopped \
-    redis-acl-builder:v1.21.0-beta
+    redis-acl-builder:1.21.0-beta
 
 # Wait for container to be healthy
 echo "⏳ Waiting for application to start..."

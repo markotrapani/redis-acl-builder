@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version 1.21.2-beta** - Testing Section Flash Fix
+**Version v1.21.3-beta** - Version Prefix Standardization
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -69,16 +69,26 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
-## ✨ What's New in 1.21.2-beta
+## ✨ What's New in v1.21.3-beta
 
-### Testing Section Flash Fix
+### Version Prefix Standardization
+
+- **📐 Consistent Versioning**: Standardized version prefix usage across all documentation
+- **🏷️ Git Tags**: All git tags use `v` prefix (v1.21.3-beta)
+- **🐳 Docker Tags**: All Docker image tags use no prefix (1.21.3-beta)
+- **📚 Documentation**: Clear separation between git and Docker version references
+- **🧹 Cleanup**: Removed inconsistent `1.16.0-beta` tag, replaced with `v1.16.0-beta`
+
+### Previous Release (v1.21.2-beta)
+
+#### Testing Section Flash Fix
 
 - **✨ Zero Flash Rendering**: Eliminated visual flash when testing panels are in custom order
 - **🎯 CSS Order Properties**: Uses flexbox `order` property set by inline script for instant correct rendering
 - **🚀 Performance**: Testing sections now render in correct order from the first frame
 - **🔧 Smart Detection**: Only applies ordering when panels differ from default position
 
-### Previous Release (1.21.1-beta)
+### Previous Release (v1.21.1-beta)
 
 #### Docker Build Performance Optimization
 
@@ -506,7 +516,7 @@ docker stop redis-acl-builder 2>/dev/null; docker rm redis-acl-builder 2>/dev/nu
 
 ```bash
 # Specific version
-docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:v1.12.0-beta
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:1.12.0-beta
 
 # Custom port mapping
 docker run -d --name redis-acl-builder -p 8080:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
