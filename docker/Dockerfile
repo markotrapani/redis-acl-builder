@@ -12,10 +12,11 @@ RUN apk upgrade --no-cache
 # Install runtime dependencies (curl for health checks)
 RUN apk add --no-cache curl
 
-# Install Python dependencies (all pure Python - no compilation required)
-COPY requirements.txt .
+# Install Python dependencies (production only - no test/dev dependencies)
+# This significantly speeds up multi-arch builds by excluding coverage (20-50s savings)
+COPY requirements-prod.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements-prod.txt
 
 # Set working directory
 WORKDIR /app

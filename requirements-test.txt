@@ -1,0 +1,14 @@
+# Redis ACL Builder - Testing Dependencies
+# Used for local development and CI/CD testing
+# Install with: pip install -r requirements.txt -r requirements-test.txt
+
+# === TESTING DEPENDENCIES ===
+# Testing framework
+pytest==7.4.3
+pytest-flask==1.3.0
+pytest-mock==3.14.0   # Mocking support for pytest
+coverage==7.6.9       # Code coverage with ARM64 wheel support (upgraded from 7.3.2)
+
+# Development utilities
+wheel>=0.37.0         # For building packages
+setuptools>=65.0.0    # Package management

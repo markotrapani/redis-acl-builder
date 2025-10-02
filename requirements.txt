@@ -1,33 +1,14 @@
-# Redis ACL Builder - All Dependencies
-# Single file for both development and production use
+# Redis ACL Builder - Complete Development Environment
+# Install all dependencies for local development and testing
+#
+# Usage:
+#   pip install -r requirements.txt
+#
+# This file includes both production and testing dependencies.
+# For Docker production builds, see requirements-prod.txt
 
-# === PRODUCTION DEPENDENCIES ===
-# Core Flask web framework
-Flask==3.0.0
-Werkzeug==3.1.3
+# Production dependencies
+-r requirements-prod.txt
 
-# Production WSGI server
-gunicorn==23.0.0
-
-# Flask core dependencies (explicit for clarity)
-click>=8.0.0          # CLI support (Flask dependency)
-itsdangerous>=2.0.0   # Security utilities (Flask dependency)
-Jinja2>=3.0.0         # Template engine (Flask dependency)
-MarkupSafe>=2.1.0     # Safe string handling (Jinja2 dependency)
-
-# API validation with Pydantic
-pydantic==2.10.4      # Type-safe API contracts and validation
-annotated-types>=0.6.0 # Pydantic dependency
-pydantic-core==2.27.2  # Pydantic core functionality
-typing-extensions>=4.12.2 # Type hints support
-
-# === DEVELOPMENT & TESTING DEPENDENCIES ===
-# Testing framework
-pytest==7.4.3
-pytest-flask==1.3.0
-pytest-mock==3.14.0   # Mocking support for pytest
-coverage==7.3.2
-
-# Development utilities
-wheel>=0.37.0         # For building packages
-setuptools>=65.0.0    # Package management
+# Testing dependencies
+-r requirements-test.txt
