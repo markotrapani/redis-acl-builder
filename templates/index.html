@@ -16,6 +16,7 @@
                 let savedDimensions = null;
                 let savedPosition = null;
                 let savedPanelOrder = null;
+                let savedTesterOrder = null;
 
                 try {
                     savedTheme = localStorage.getItem('theme');
@@ -23,6 +24,7 @@
                     savedDimensions = localStorage.getItem('redis-acl-builder-dimensions');
                     savedPosition = localStorage.getItem('redis-acl-builder-position');
                     savedPanelOrder = localStorage.getItem('redis-acl-builder-panel-order');
+                    savedTesterOrder = localStorage.getItem('redis-acl-builder-tester-order');
 
                 } catch (e) {
                     // localStorage might be blocked in some environments
@@ -187,6 +189,25 @@
                     window._initialPanelOrder = ['acl-config-panel', 'blocked-commands-panel', 'granted-commands-panel'];
                 }
 
+                // Set tester order immediately to prevent flash
+                if (savedTesterOrder) {
+                    try {
+                        window._initialTesterOrder = JSON.parse(savedTesterOrder);
+                        // Check if reordering is actually needed
+                        const defaultTesterOrder = ['command-tester-panel', 'keyspace-tester-panel', 'integrated-tester-panel'];
+                        const needsTesterReordering = JSON.stringify(window._initialTesterOrder) !== JSON.stringify(defaultTesterOrder);
+                        if (needsTesterReordering) {
+                            // Only hide testing container if it actually needs reordering
+                            document.documentElement.style.setProperty('--testers-opacity', '0');
+                            window._testersHidden = true;
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse saved tester order:', e);
+                        window._initialTesterOrder = ['command-tester-panel', 'keyspace-tester-panel', 'integrated-tester-panel'];
+                    }
+                } else {
+                    window._initialTesterOrder = ['command-tester-panel', 'keyspace-tester-panel', 'integrated-tester-panel'];
+                }
 
             } catch (e) {
                 // Ultimate fallback - force defaults
@@ -474,27 +495,30 @@
             <section class="panel test-section command-test-section" id="command-tester-panel">
                 <h2>
                     🧪 Command Tester
-                    <button type="button" id="command-integrate-btn" class="integrate-toggle-btn" title="Switch to Integrated Mode - test command + key together">
-                        🔗
-                    </button>
+                    <div class="tester-drag-handle" draggable="true" title="Drag to reorder testing sections">⋮⋮</div>
                 </h2>
-                <p class="text-muted mb-2">Test if a specific command is allowed by your current ACL rule:</p>
+                <p class="text-muted mb-2">
+                    <button type="button" id="command-integrate-btn" class="integrate-toggle-btn" title="Switch to Integrated Mode - test command + key together">
+                        ⛓️‍💥
+                    </button>
+                    Test if a specific command is allowed by your current ACL rule:
+                </p>
 
                 <div id="testResult" role="region" aria-label="Test results" aria-live="polite"></div>
 
                 <div class="test-input-group">
-                    <input
-                        type="text"
-                        id="testCommand"
-                        class="test-command-input"
-                        placeholder="Enter command to test (eg. GET, SET, FLUSHDB) ..."
-                        aria-label="Command to test"
-                        autocomplete="off"
-                        spellcheck="false"
-                    >
-                    <button type="button" class="test-button command-test-button" onclick="testCommand()" aria-label="Test the entered command" disabled>
-                        CHECK COMMAND
-                    </button>
+                        <input
+                            type="text"
+                            id="testCommand"
+                            class="test-command-input"
+                            placeholder="Enter command to test (eg. GET, SET, FLUSHDB) ..."
+                            aria-label="Command to test"
+                            autocomplete="off"
+                            spellcheck="false"
+                        >
+                        <button type="button" class="test-button command-test-button" onclick="testCommand()" aria-label="Test the entered command" disabled>
+                            CHECK COMMAND
+                        </button>
                 </div>
             </section>
 
@@ -502,27 +526,30 @@
             <section class="panel test-section keyspace-test-section" id="keyspace-tester-panel">
                 <h2>
                     🔑 Keyspace Tester
-                    <button type="button" id="keyspace-integrate-btn" class="integrate-toggle-btn" title="Switch to Integrated Mode - test command + key together">
-                        🔗
-                    </button>
+                    <div class="tester-drag-handle" draggable="true" title="Drag to reorder testing sections">⋮⋮</div>
                 </h2>
-                <p class="text-muted mb-2">Test if a specific key name is allowed by your current ACL rule:</p>
+                <p class="text-muted mb-2">
+                    <button type="button" id="keyspace-integrate-btn" class="integrate-toggle-btn" title="Switch to Integrated Mode - test command + key together">
+                        ⛓️‍💥
+                    </button>
+                    Test if a specific key name is allowed by your current ACL rule:
+                </p>
 
                 <div id="testKeyspaceResult" role="region" aria-label="Keyspace test results" aria-live="polite"></div>
 
                 <div class="test-input-group">
-                    <input
-                        type="text"
-                        id="testKeyspace"
-                        class="test-command-input"
-                        placeholder="Enter key name to test (eg. user:123, cache:abc) ..."
-                        aria-label="Key pattern to test"
-                        autocomplete="off"
-                        spellcheck="false"
-                    >
-                    <button type="button" class="test-button keyspace-test-button" onclick="testKeyspace()" aria-label="Test the entered key name" disabled>
-                        CHECK<br>KEY NAME
-                    </button>
+                        <input
+                            type="text"
+                            id="testKeyspace"
+                            class="test-command-input"
+                            placeholder="Enter key name to test (eg. user:123, cache:abc) ..."
+                            aria-label="Key pattern to test"
+                            autocomplete="off"
+                            spellcheck="false"
+                        >
+                        <button type="button" class="test-button keyspace-test-button" onclick="testKeyspace()" aria-label="Test the entered key name" disabled>
+                            CHECK<br>KEY NAME
+                        </button>
                 </div>
             </section>
 
@@ -530,11 +557,13 @@
             <section class="panel test-section integrated-test-section" id="integrated-tester-panel" style="display: none;">
                 <h2>
                     🔗 Integrated Command + Keyspace Tester
-                    <button type="button" id="split-mode-btn" class="inline-action-button split-mode-button" title="Split back to separate Command and Keyspace testers">
-                        ✕
-                    </button>
                 </h2>
-                <p class="text-muted mb-2">Test command permissions + keyspace access together:</p>
+                <p class="text-muted mb-2">
+                    <button type="button" id="split-mode-btn" class="inline-action-button split-mode-button" title="Split back to separate Command and Keyspace testers">
+                        🔗
+                    </button>
+                    Test command permissions + keyspace access together:
+                </p>
 
                 <!-- Hint badge for key permissions -->
                 <div id="key-permission-hint" class="integrated-hint-badge" style="display: none;">

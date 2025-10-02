@@ -17,6 +17,7 @@ import SearchManager from './components/search-manager.js';
 import ResizableContainer from './components/resizable-container.js';
 import SavedRules from './components/saved-rules.js';
 import DragDropPanels from './components/drag-drop-panels.js';
+import DragDropTesters from './components/drag-drop-testers.js';
 import IntegratedTester from './components/integrated-tester.js';
 import EventHandlers from './handlers/event-handlers.js';
 
@@ -32,6 +33,9 @@ const App = {
 
             // Initialize drag-and-drop panel reordering system early (to prevent pop-in)
             DragDropPanels.init();
+
+            // Initialize drag-and-drop testing section reordering system
+            DragDropTesters.init();
 
             // Clean up deprecated localStorage keys
             Storage.cleanupDeprecatedKeys();
@@ -353,9 +357,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Make App accessible globally for cross-module communication
     window.App = App;
 
-    // Expose InteractiveACLBuilder and DragDropPanels for debugging
+    // Expose InteractiveACLBuilder, DragDropPanels, and DragDropTesters for debugging
     window.InteractiveACLBuilder = InteractiveACLBuilder;
     window.DragDropPanels = DragDropPanels;
+    window.DragDropTesters = DragDropTesters;
 
     App.init();
     // Check scroll need after layout settles
@@ -415,6 +420,15 @@ window.resetPanelLayout = () => {
         DragDropPanels.resetToDefault();
     } else {
         Utils.showNotification('Panel system not initialized', 'error');
+    }
+};
+
+// Global function to reset tester layout to default
+window.resetTesterLayout = () => {
+    if (window.DragDropTesters && window.DragDropTesters.state.isInitialized) {
+        DragDropTesters.resetToDefault();
+    } else {
+        Utils.showNotification('Tester system not initialized', 'error');
     }
 };
 

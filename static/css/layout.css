@@ -603,6 +603,8 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px; /* Reduced from var(--spacing-md) = 15px for vertical compaction */
   margin-top: 12px; /* Reduced from var(--spacing-md) = 15px for vertical compaction */
+  /* Use CSS variable to control opacity for flash prevention (no transition for instant appearance) */
+  opacity: var(--testers-opacity, 1);
 }
 
 .test-section {

@@ -2084,11 +2084,17 @@ button.test-button[disabled] {
    Integrated Command + Keyspace Tester
    ================================ */
 
+/* Adjust spacing for test section description paragraphs */
+.test-section .text-muted.mb-2 {
+  margin-top: 8px; /* Add spacing between header and integrate/split buttons */
+  margin-bottom: 12px; /* Match spacing between Clear/Copy/Save buttons and textarea */
+}
+
 /* Toggle buttons in separate panels - match inline-action-button style with purple gradient */
 .integrate-toggle-btn {
-  position: absolute;
-  right: 15px;
-  top: 15px;
+  /* Float right within the paragraph */
+  float: right;
+  margin-left: 10px;
   padding: 4px 8px;
   border: 2px solid transparent;
   border-radius: var(--radius-sm);
@@ -2138,6 +2144,9 @@ button.test-button[disabled] {
 
 /* Split mode button - match inline-action-button style with purple gradient */
 .split-mode-button {
+  /* Float right within the paragraph */
+  float: right;
+  margin-left: 10px;
   background: linear-gradient(135deg, #9575cd, #7e57c2);
   color: white;
   border-color: #7e57c2;
@@ -2413,11 +2422,6 @@ button.test-button[disabled] {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .integrate-toggle-btn {
-    position: static;
-    margin-left: auto;
-  }
-
   .integrated-test-form {
     flex-direction: column;
   }

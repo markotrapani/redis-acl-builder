@@ -59,10 +59,22 @@ const RuleManager = {
      */
     async parseRuleInternal(skipRedundancyAnalysis = false, showErrorNotifications = true) {
         if (AppState.isLoading) return;
-        
+
         const rawRule = DOMElements.aclRuleInput.value.trim();
         const rule = Utils.normalizeACLRule(rawRule);
-        
+
+        // If rule is empty, clear results and return early (no error)
+        if (!rule || rule.length === 0) {
+            if (DOMElements.commandResults) {
+                DOMElements.commandResults.innerHTML = '';
+            }
+            if (DOMElements.resultsSummary) {
+                DOMElements.resultsSummary.style.display = 'none';
+            }
+            this.hideRedundancyWarnings();
+            return;
+        }
+
         // Update the textarea with normalized rule if it changed
         if (rule !== rawRule) {
             // Preserve cursor position during normalization
@@ -79,7 +91,7 @@ const RuleManager = {
             // Update character counter
             Utils.executeEventHandler('updateCharacterCounterProgrammatically', DOMElements.aclRuleInput);
         }
-        
+
         // Validate ACL rule syntax first
         const validation = await Utils.validateACLRule(rule);
         if (!validation.valid) {

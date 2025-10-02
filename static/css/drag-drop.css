@@ -1,6 +1,7 @@
 /**
  * Drag and Drop Panel Reordering Styles
  * Visual feedback and animations for panel reordering system
+ * Includes both main three-column panels and testing sections
  */
 
 /* Panel Header Layout for Drag Handles */
@@ -10,8 +11,28 @@
     justify-content: space-between;
 }
 
-/* Drag Handle Styling */
+/* Drag Handle Styling - Main Panels */
 .panel-drag-handle {
+    display: inline-block;
+    cursor: grab;
+    color: var(--text-muted);
+    font-size: 22px;
+    line-height: 1;
+    margin-left: auto;
+    padding: 6px 8px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    user-select: none;
+    vertical-align: middle;
+    font-family: monospace;
+    font-weight: bold;
+    background: var(--background-hover);
+    border: 1px solid var(--border);
+    text-align: center;
+}
+
+/* Drag Handle Styling - Testing Sections */
+.tester-drag-handle {
     display: inline-block;
     cursor: grab;
     color: var(--text-muted);
@@ -396,18 +417,228 @@
 }
 
 /* Focus states for keyboard accessibility */
-.panel-drag-handle:focus {
+.panel-drag-handle:focus,
+.tester-drag-handle:focus {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
 }
 
 /* Touch device optimizations */
 @media (hover: none) and (pointer: coarse) {
-    .panel-drag-handle {
+    .panel-drag-handle,
+    .tester-drag-handle {
         font-size: 28px;
         padding: 8px 12px;
         margin-left: 8px;
     }
 
     /* Hover effects already removed globally */
+}
+
+/* ========================================
+   TESTING SECTION DRAG-AND-DROP STYLES
+   ======================================== */
+
+/* Testing section drag states */
+.test-section.tester-dragging {
+    transform: translateX(12px) translateY(-12px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+    z-index: 1000;
+    transition: none !important;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Testing section placeholder during drag */
+.test-section.tester-drag-placeholder {
+    opacity: 0.7;
+    transform: scale(0.98);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 2px dashed var(--primary);
+    transition: all 0.2s ease;
+    z-index: 1000;
+    position: relative;
+}
+
+/* Testing section drop zone */
+.test-section.tester-drop-zone {
+    border: 2px solid var(--primary);
+    background: var(--primary-bg);
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+    box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.3);
+}
+
+/* Testing section swap animation */
+.test-section.tester-swap-animation {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Testing section preview position during drag */
+.test-section.tester-preview-position {
+    transition: transform 0.15s ease-out;
+}
+
+/* Testing section room-making effects */
+.test-section.tester-make-room-left {
+    transform: translateX(-20px);
+    transition: transform 0.3s ease;
+}
+
+.test-section.tester-make-room-right {
+    transform: translateX(20px);
+    transition: transform 0.3s ease;
+}
+
+/* Global tester drag state */
+.tester-drag-active {
+    cursor: grabbing;
+}
+
+/* Disable hover effects on all elements during tester drag */
+.tester-drag-active button:hover,
+.tester-drag-active .test-button:hover,
+.tester-drag-active .integrate-toggle-btn:hover,
+.tester-drag-active input:hover,
+.tester-drag-active textarea:hover {
+    background: inherit !important;
+    border-color: inherit !important;
+    color: inherit !important;
+    transform: none !important;
+    box-shadow: inherit !important;
+}
+
+/* Override disabled button cursors during tester drag */
+.tester-drag-active button:disabled,
+.tester-drag-active button[disabled],
+.tester-drag-active input:disabled,
+.tester-drag-active input[disabled] {
+    cursor: grabbing !important;
+}
+
+/* Active drag handle state for testing sections */
+.tester-drag-handle:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+    color: var(--text);
+    background: var(--primary-bg);
+    border-color: var(--primary);
+}
+
+/* Theme-specific testing section drag styles - Light mode */
+[data-theme="light"] .tester-drag-handle {
+    color: var(--gray-600);
+}
+
+[data-theme="light"] .tester-drag-handle:active {
+    color: var(--gray-800);
+    background: rgba(59, 130, 246, 0.1);
+    border-color: var(--blue-500);
+}
+
+[data-theme="light"] .test-section.tester-drag-placeholder {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .test-section.tester-drop-zone {
+    border-color: var(--blue-500);
+    background: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+/* Theme-specific testing section drag styles - Dark mode */
+[data-theme="dark"] .tester-drag-handle {
+    color: var(--gray-400);
+}
+
+[data-theme="dark"] .tester-drag-handle:active {
+    color: var(--gray-200);
+    background: rgba(96, 165, 250, 0.15);
+    border-color: var(--blue-400);
+}
+
+[data-theme="dark"] .test-section.tester-drag-placeholder {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .test-section.tester-drop-zone {
+    border-color: var(--blue-400);
+    background: rgba(96, 165, 250, 0.15);
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+}
+
+/* System preference fallbacks for testing sections */
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme]) .tester-drag-handle {
+        color: #6b7280;
+    }
+
+    :root:not([data-theme]) .tester-drag-handle:active {
+        color: #1f2937;
+        background: rgba(59, 130, 246, 0.1);
+        border-color: #3b82f6;
+    }
+
+    :root:not([data-theme]) .test-section.tester-drag-placeholder {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        border-color: #3b82f6;
+    }
+
+    :root:not([data-theme]) .test-section.tester-drop-zone {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) .tester-drag-handle {
+        color: #9ca3af;
+    }
+
+    :root:not([data-theme]) .tester-drag-handle:active {
+        color: #e5e7eb;
+        background: rgba(96, 165, 250, 0.15);
+        border-color: #60a5fa;
+    }
+
+    :root:not([data-theme]) .test-section.tester-drag-placeholder {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        border-color: #60a5fa;
+    }
+
+    :root:not([data-theme]) .test-section.tester-drop-zone {
+        border-color: #60a5fa;
+        background: rgba(96, 165, 250, 0.15);
+        box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+    }
+}
+
+/* Responsive adjustments for testing sections */
+@media (max-width: 480px) {
+    .tester-drag-handle {
+        font-size: 16px;
+        margin-right: 6px;
+        padding: 3px;
+    }
+
+    .test-section.tester-drag-placeholder {
+        transform: scale(0.95);
+    }
+
+    .test-section.tester-drop-zone {
+        transform: scale(1.01);
+    }
+}
+
+/* Accessibility improvements for testing sections */
+@media (prefers-reduced-motion: reduce) {
+    .tester-drag-handle,
+    .test-section.tester-dragging,
+    .test-section.tester-drag-placeholder,
+    .test-section.tester-drop-zone,
+    .test-section.tester-swap-animation,
+    .test-section.tester-preview-position {
+        transition: none;
+    }
 }
