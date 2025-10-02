@@ -79,7 +79,7 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 
 ### Previous Release (v1.20.0-beta)
 
-**Rule Selectors - Complete Frontend & Backend Support**
+#### Rule Selectors - Complete Frontend & Backend Support
 
 - Full UI integration for selector syntax with proper command display
 - Real-time validation with "Selector #1:" error prefixes
@@ -87,7 +87,7 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - Perfect selector isolation with informative error messages
 - OR logic implementation
 
-**Advanced Key Permissions - Bug Fixes & Improvements**
+#### Advanced Key Permissions - Bug Fixes & Improvements
 
 - Full keyspace access fix (no key patterns = access to all keys)
 - Better error messages for permission type mismatches
