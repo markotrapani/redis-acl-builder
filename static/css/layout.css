@@ -87,6 +87,7 @@
   height: auto;
   min-height: 175px; /* Reduced from 190px for vertical compaction */
   max-height: 175px; /* Prevent expansion beyond this */
+  background: var(--surface); /* Solid background for opacity visibility */
 }
 
 /* Column-specific panel styling */

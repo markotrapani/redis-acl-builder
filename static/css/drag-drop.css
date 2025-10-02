@@ -445,7 +445,7 @@
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
     z-index: 1000;
     transition: none !important;
-    opacity: 0.7;
+    opacity: 0.7; /* Dimmed appearance for visual feedback */
     pointer-events: none;
 }
 
@@ -499,13 +499,20 @@
 .tester-drag-active button:hover,
 .tester-drag-active .test-button:hover,
 .tester-drag-active .integrate-toggle-btn:hover,
+.tester-drag-active .split-mode-button:hover,
+.tester-drag-active .inline-action-button:hover,
+.tester-drag-active .category-button:hover,
+.tester-drag-active .command-button:hover,
 .tester-drag-active input:hover,
-.tester-drag-active textarea:hover {
+.tester-drag-active textarea:hover,
+.tester-drag-active select:hover,
+.tester-drag-active a:hover {
     background: inherit !important;
     border-color: inherit !important;
     color: inherit !important;
     transform: none !important;
     box-shadow: inherit !important;
+    cursor: grabbing !important;
 }
 
 /* Override disabled button cursors during tester drag */
