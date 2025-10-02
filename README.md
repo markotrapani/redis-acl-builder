@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version 1.16.0-beta** - Docker Maintenance Infrastructure & Enhanced DevOps Tooling
+**Version 1.18.0-beta** - Enterprise Type Safety & Advanced Key Permissions
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -69,18 +69,30 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
-## ✨ What's New in v1.16.0-beta
+## ✨ What's New in v1.18.0-beta
 
-### Docker Maintenance Infrastructure & Enhanced DevOps Tooling
+### Complete Pydantic API Migration & Zero Type Warnings
 
-- **🛠️ Comprehensive Docker Tag Management**: New `docker-tag-maintenance.sh` script with full API-based tag operations
-- **🎯 Pattern-Based Tag Filtering**: List, filter, and delete tags using powerful regex patterns (e.g., `^v`, `.*-experimental$`)
-- **🔒 Secure API Integration**: Uses existing `DOCKERHUB_TOKEN` GitHub secret with proper authentication flow
-- **⚡ Interactive Operations**: Confirmation prompts and dry-run capabilities for safe tag management
-- **📞 Direct Developer Contact**: Easy access to Marko Trapani (<marko.trapani@redis.com>) for questions and feedback
-- **🔄 Docker Hub Description Sync**: Automated README synchronization ensuring Docker Hub shows current version info
-- **📋 Enhanced Support Flow**: Comprehensive support section with technical diagnostics and deployment resources
-- **🔧 Version Reference Cleanup**: Fixed outdated version references throughout documentation
+- **🔒 Type-Safe APIs**: Migrated all API endpoints to use Pydantic models for request/response validation
+- **✅ Zero Warnings**: Eliminated all Pylance type checking warnings across the entire codebase
+- **📝 Enhanced Validation**: Explicit type annotations for error handling and nested data structures
+- **🎯 Consistent Responses**: ErrorResponse, HealthResponse, and endpoint-specific models fully integrated
+
+### Advanced Key Permissions Support (Redis 7.0+)
+
+- **🔑 Read-Only Keys**: `%R~pattern` syntax for read-only key access
+- **✏️ Write-Only Keys**: `%W~pattern` syntax for write-only key access
+- **🔄 Read-Write Keys**: `%RW~pattern` syntax (alias for traditional `~pattern`)
+- **🧹 Smart Optimization**: ACL rule optimization preserves key patterns during simplification
+- **✨ Enhanced Validation**: Full support for all key permission prefix types
+
+### Enhanced Testing Interface & UX Improvements
+
+- **🎬 Smooth Animations**: Test results slide up from button on appear, slide down on dismiss
+- **⏱️ Auto-Dismiss**: 15-second timeout for integrated tester with manual close option
+- **💾 Mode Persistence**: localStorage saves integrated/split tester mode preference
+- **🎨 Light Mode Polish**: Pastel gradient buttons with improved accessibility
+- **📝 Better Labels**: Enhanced placeholder text and ARIA labels throughout
 
 ### Documentation Synchronization & Docker Hub Integration (v1.15.10-beta)
 
