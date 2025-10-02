@@ -197,23 +197,18 @@
                         const defaultTesterOrder = ['command-tester-panel', 'keyspace-tester-panel', 'integrated-tester-panel'];
                         const needsTesterReordering = JSON.stringify(window._initialTesterOrder) !== JSON.stringify(defaultTesterOrder);
                         if (needsTesterReordering) {
-                            // Only hide testing container if it actually needs reordering
-                            document.documentElement.style.setProperty('--testers-opacity', '0');
-                            window._testersHidden = true;
-                        } else {
-                            // Testers are in default position - ensure opacity is 1 immediately
-                            document.documentElement.style.setProperty('--testers-opacity', '1');
+                            // Set CSS order properties immediately so DOM renders in correct order
+                            window._initialTesterOrder.forEach((testerId, index) => {
+                                document.documentElement.style.setProperty(`--${testerId}-order`, index);
+                            });
+                            window._testersReordered = true;
                         }
                     } catch (e) {
                         console.warn('Failed to parse saved tester order:', e);
                         window._initialTesterOrder = ['command-tester-panel', 'keyspace-tester-panel', 'integrated-tester-panel'];
-                        // Fallback to default - ensure opacity is 1
-                        document.documentElement.style.setProperty('--testers-opacity', '1');
                     }
                 } else {
                     window._initialTesterOrder = ['command-tester-panel', 'keyspace-tester-panel', 'integrated-tester-panel'];
-                    // No saved order means default position - ensure opacity is 1 immediately
-                    document.documentElement.style.setProperty('--testers-opacity', '1');
                 }
 
             } catch (e) {

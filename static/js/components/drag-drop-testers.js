@@ -175,16 +175,6 @@ const DragDropTesters = {
 
         // Update tester order to match actual DOM order
         this.state.testerOrder = this.elements.testers.map(t => t.id);
-
-        // Show testers now that they're in the correct order (prevent flash)
-        if (window._testersHidden) {
-            document.documentElement.style.setProperty('--testers-opacity', '1');
-            window._testersHidden = false;
-        } else {
-            // Testers in default position - ensure opacity is explicitly set to 1
-            // This prevents flash by overriding any stale CSS variable values
-            document.documentElement.style.setProperty('--testers-opacity', '1');
-        }
     },
 
     /**

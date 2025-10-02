@@ -605,7 +605,21 @@
   gap: 12px; /* Reduced from var(--spacing-md) = 15px for vertical compaction */
   margin-top: 12px; /* Reduced from var(--spacing-md) = 15px for vertical compaction */
   /* Use CSS variable to control opacity for flash prevention (no transition for instant appearance) */
+  /* Default to 1 (visible) - only hidden by inline script when reordering needed */
   opacity: var(--testers-opacity, 1);
+}
+
+/* Individual tester panel ordering - set by inline script to prevent reorder flash */
+#command-tester-panel {
+  order: var(--command-tester-panel-order, 0);
+}
+
+#keyspace-tester-panel {
+  order: var(--keyspace-tester-panel-order, 1);
+}
+
+#integrated-tester-panel {
+  order: var(--integrated-tester-panel-order, 2);
 }
 
 .test-section {
