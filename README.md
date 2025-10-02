@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version v1.21.3-beta** - Version Prefix Standardization
+**Version v1.21.4-beta** - Testing Panel Drag-Drop Fix
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -69,9 +69,19 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
-## ✨ What's New in v1.21.3-beta
+## ✨ What's New in v1.21.4-beta
 
-### Version Prefix Standardization
+### Testing Panel Drag-Drop Fix
+
+- **🐛 Critical Regression Fix**: Fixed testing panel drag-drop not updating positions in real-time
+- **🎯 CSS Order Only**: Removed conflicting DOM manipulation, now purely uses CSS flexbox `order` properties
+- **✨ Instant Updates**: Testing panels now reorder immediately when dragged (no refresh needed)
+- **🔄 Flash Prevention Preserved**: Maintains zero-flash page load from v1.21.2-beta
+- **🎨 Clean Architecture**: Drag-drop system now fully compatible with inline script flash prevention
+
+### Previous Release (v1.21.3-beta)
+
+#### Version Prefix Standardization
 
 - **📐 Consistent Versioning**: Standardized version prefix usage across all documentation
 - **🏷️ Git Tags**: All git tags use `v` prefix (v1.21.3-beta)

@@ -138,18 +138,17 @@ const DragDropTesters = {
     },
 
     /**
-     * Apply the current tester order to the DOM
+     * Apply the current tester order using CSS order properties
+     * No DOM manipulation needed - CSS flexbox order handles visual positioning
      */
     applyTesterOrder() {
-        const container = this.elements.testingContainer;
-
         // Store original positions for reference
         this.state.originalPositions.clear();
         this.elements.testers.forEach((tester, index) => {
             this.state.originalPositions.set(tester, index);
         });
 
-        // Reorder testers based on saved order
+        // Reorder internal state to match saved order
         const reorderedTesters = [];
         this.state.testerOrder.forEach(testerId => {
             const tester = this.elements.testers.find(t => t.id === testerId);
@@ -165,16 +164,25 @@ const DragDropTesters = {
             }
         });
 
-        // Re-append testers in the correct order
-        reorderedTesters.forEach(tester => {
-            container.appendChild(tester);
-        });
-
-        // Update elements.testers to match new order
+        // Update elements.testers to match new order (internal state only, no DOM changes)
         this.elements.testers = reorderedTesters;
 
-        // Update tester order to match actual DOM order
+        // Update tester order to match actual order
         this.state.testerOrder = this.elements.testers.map(t => t.id);
+
+        // Update CSS order properties for visual rendering
+        // This is what actually controls the visual order on screen
+        this.updateCSSOrderProperties();
+    },
+
+    /**
+     * Update CSS order properties to match current tester order
+     * This ensures testers render in correct visual order using flexbox order
+     */
+    updateCSSOrderProperties() {
+        this.state.testerOrder.forEach((testerId, index) => {
+            document.documentElement.style.setProperty(`--${testerId}-order`, index);
+        });
     },
 
     /**
@@ -458,32 +466,22 @@ const DragDropTesters = {
         this.state.testerOrder.splice(insertPosition, 0, draggedTesterId);
         this.elements.testers.splice(insertPosition, 0, draggedTesterElement);
 
-        // Add animation class before DOM manipulation
+        // Add animation class for visual feedback
         this.elements.testers.forEach(tester => tester.classList.add('tester-swap-animation'));
 
-        // Use requestAnimationFrame to ensure smooth animation
-        requestAnimationFrame(() => {
-            // Rebuild DOM in new order
-            this.elements.testers.forEach((tester, index) => {
-                container.appendChild(tester);
+        // Update CSS order properties immediately for visual rendering
+        // No need to manipulate DOM - CSS flexbox order handles visual positioning
+        this.updateCSSOrderProperties();
+
+        // Save the new order
+        this.saveTesterOrder();
+
+        // Remove animation class after animation completes
+        setTimeout(() => {
+            this.elements.testers.forEach(tester => {
+                tester.classList.remove('tester-swap-animation');
             });
-
-            // Save the new order
-            this.saveTesterOrder();
-
-            // Refresh drag handle references
-            this.updateDragHandleReferences();
-
-            // Refresh event listeners
-            this.setupDragHandleListeners();
-
-            // Remove animation class after animation completes
-            setTimeout(() => {
-                this.elements.testers.forEach(tester => {
-                    tester.classList.remove('tester-swap-animation');
-                });
-            }, 300);
-        });
+        }, 300);
     },
 
     /**
