@@ -6,7 +6,7 @@
 
 set -e
 
-echo "🧪 Redis ACL Builder Multi-Architecture Test v1.14.1-beta"
+echo "🧪 Redis ACL Builder Multi-Architecture Test v1.20.0-beta"
 echo "=========================================================="
 
 # Check if Docker Buildx is available
@@ -28,7 +28,7 @@ docker buildx use $BUILDER_NAME
 
 # Define image details
 IMAGE_NAME="redis-acl-builder"
-IMAGE_TAG="v1.14.1-beta"
+IMAGE_TAG="v1.20.0-beta"
 
 echo ""
 echo "🔨 Testing AMD64 architecture build..."

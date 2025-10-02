@@ -6,7 +6,7 @@
 
 set -e
 
-echo "🚀 Redis ACL Builder Multi-Architecture Build v1.14.1-beta"
+echo "🚀 Redis ACL Builder Multi-Architecture Build v1.20.0-beta"
 echo "============================================================"
 
 # Check if Docker is installed
@@ -44,7 +44,7 @@ docker buildx inspect --bootstrap
 
 # Define the image name and tag
 IMAGE_NAME="redis-acl-builder"
-IMAGE_TAG="v1.14.1-beta"
+IMAGE_TAG="v1.20.0-beta"
 FULL_IMAGE_NAME="$IMAGE_NAME:$IMAGE_TAG"
 
 # Build for multiple architectures

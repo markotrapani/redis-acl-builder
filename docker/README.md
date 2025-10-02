@@ -1,6 +1,6 @@
 # Redis ACL Builder - Docker Deployment
 
-This folder contains all Docker-related files for the Redis ACL Builder v1.16.0-beta.
+This folder contains all Docker-related files for the Redis ACL Builder v1.20.0-beta.
 
 ## 📁 Contents
 
