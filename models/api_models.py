@@ -29,9 +29,10 @@ class ParseACLRequest(RedisVersionMixin):
     @field_validator('rule')
     @classmethod
     def validate_rule(cls, v: str) -> str:
-        """Validate rule is a string"""
-        if not isinstance(v, str):
-            raise ValueError('Rule must be a string')
+        """Validate rule is not empty"""
+        # Pydantic already validates type; just ensure non-empty
+        if not v.strip():
+            raise ValueError('Rule cannot be empty')
         return v
 
 
