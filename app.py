@@ -131,16 +131,14 @@ def api_parse() -> Union[Response, Tuple[Response, int]]:
         # Get rule impact summary
         impact_summary = parser.get_rule_impact_summary(parsed_rule)
 
-        # Extract tokens from parsed rule for response (Pydantic expects List[str])
-        rule_tokens: List[str] = req_data.rule.strip().split() if req_data.rule.strip() else []
-
+        # Return the actual parsed rule structure with root_permissions and selectors
         response = ParseACLResponse(
             success=True,
             granted_commands=sorted(list(granted_commands)),
             grouped_commands=grouped_commands,
             total_granted=len(granted_commands),
             total_available=len(cast(Dict[str, Any], parser_data['commands'])),
-            parsed_rule=rule_tokens,
+            parsed_rule=parsed_rule,
             impact_summary=impact_summary,
             version=req_data.version
         )

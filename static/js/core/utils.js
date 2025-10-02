@@ -221,52 +221,69 @@ const Utils = {
             console.warn('Could not fetch commands for validation, skipping command validation');
         }
 
-        for (const token of tokens) {
+        // Parse selectors and extract tokens for validation
+        // Selectors are marked with parentheses: (+@read -get)
+        let selectorNumber = 0;
+        let inSelector = false;
+
+        for (let i = 0; i < tokens.length; i++) {
+            let token = tokens[i];
             if (token === '') continue;
 
-            // Skip parentheses tokens (already validated above)
-            if (token === '(' || token === ')' || token.startsWith('(') || token.endsWith(')')) {
-                // Handle tokens with attached parentheses like "(+GET" or "+GET)"
-                let cleanToken = token.replace(/^\(+/, '').replace(/\)+$/, '');
-                if (cleanToken === '') continue; // Just parentheses, already validated
-                // Recursively validate the clean token by checking it in the next iteration
-                // For now, skip - the backend will catch any issues
-                continue;
+            // Track when we enter/exit selectors
+            if (token === '(' || token.startsWith('(')) {
+                selectorNumber++;
+                inSelector = true;
+                // Strip opening parenthesis and continue processing
+                if (token === '(') continue;
+                token = token.substring(1);
             }
+
+            if (token === ')' || token.endsWith(')')) {
+                inSelector = false;
+                // Strip closing parenthesis and continue processing
+                if (token === ')') continue;
+                token = token.substring(0, token.length - 1);
+            }
+
+            // Now validate the token (with selector context)
+            const contextPrefix = inSelector ? `Selector #${selectorNumber}: ` : '';
+
+            if (token === '') continue;
 
             // Check if token starts with +, -, or ~
             if (token.startsWith('+') || token.startsWith('-')) {
                 // Command/category rule: +@category, +command, -@category, -command
                 const content = token.slice(1);
                 if (content === '') {
-                    errors.push(`Invalid operator token: "${token}" - Missing content after operator`);
+                    errors.push(`${contextPrefix}Invalid operator token: "${token}" - Missing content after operator`);
                     continue;
                 }
-                
+
                 // Check for spaces within the token (should not happen after split, but safety check)
                 if (content.includes(' ')) {
-                    errors.push(`Invalid rule syntax: "${token}" - No spaces allowed within operator terms`);
+                    errors.push(`${contextPrefix}Invalid rule syntax: "${token}" - No spaces allowed within operator terms`);
                     continue;
                 }
-                
+
                 // Validate category syntax (@category)
                 if (content.startsWith('@')) {
                     const categoryName = content.slice(1);
                     if (categoryName === '') {
-                        errors.push(`Invalid category syntax: "${token}"- Missing category name after @`);
+                        errors.push(`${contextPrefix}Invalid category syntax: "${token}"- Missing category name after @`);
                     } else if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(categoryName)) {
-                        errors.push(`Invalid category syntax: "${token}"- Category name must be alphanumeric`);
+                        errors.push(`${contextPrefix}Invalid category syntax: "${token}"- Category name must be alphanumeric`);
                     } else if (validCategories.size > 0 && categoryName !== 'all' && !validCategories.has(categoryName)) {
-                        errors.push(`Invalid category: "${token}"- Category "${categoryName}" does not exist in ${this.formatVersionName(AppState.currentVersion)}`);
+                        errors.push(`${contextPrefix}Unknown category: ${categoryName}`);
                     }
                 }
                 // Validate command syntax (alphanumeric with special chars for Redis commands)
                 else if (!/^[a-zA-Z][a-zA-Z0-9._|-]*$/.test(content)) {
-                    errors.push(`Invalid command syntax: "${token}" - Command name contains invalid characters`);
+                    errors.push(`${contextPrefix}Invalid command syntax: "${token}" - Command name contains invalid characters`);
                 }
                 // Check if command exists in Redis (if we have the commands list)
                 else if (validCommands.size > 0 && !validCommands.has(content.toLowerCase())) {
-                    errors.push(`Invalid command: "${token}" - Command "${content}" does not exist in ${this.formatVersionName(AppState.currentVersion)}`);
+                    errors.push(`${contextPrefix}Invalid command: "${token}" - Command "${content}" does not exist in ${this.formatVersionName(AppState.currentVersion)}`);
                 }
             }
             else if (token.startsWith('~') || token.startsWith('%')) {
@@ -284,24 +301,24 @@ const Utils = {
                     pattern = token.slice(1); // Traditional read-write
                 } else {
                     // Invalid % prefix (must be %R~, %W~, or %RW~)
-                    errors.push(`Invalid key permission syntax: "${token}" - Use %R~, %W~, %RW~, or ~`);
+                    errors.push(`${contextPrefix}Invalid key permission syntax: "${token}" - Use %R~, %W~, %RW~, or ~`);
                     continue;
                 }
 
                 if (pattern === '') {
-                    errors.push(`Invalid keyspace syntax: "${token}" - Missing pattern after key permission prefix`);
+                    errors.push(`${contextPrefix}Invalid keyspace syntax: "${token}" - Missing pattern after key permission prefix`);
                     continue;
                 }
 
                 // Check for spaces within the pattern
                 if (pattern.includes(' ')) {
-                    errors.push(`Invalid keyspace syntax: "${token}" - No spaces allowed in keyspace patterns`);
+                    errors.push(`${contextPrefix}Invalid keyspace syntax: "${token}" - No spaces allowed in keyspace patterns`);
                     continue;
                 }
 
                 // Basic pattern validation (allow alphanumeric, wildcards, colons, etc.)
                 if (!/^[a-zA-Z0-9:*?[\]{}._-]+$/.test(pattern)) {
-                    errors.push(`Invalid keyspace pattern: "${token}" - Pattern contains invalid characters`);
+                    errors.push(`${contextPrefix}Invalid keyspace pattern: "${token}" - Pattern contains invalid characters`);
                 }
             }
             else if (token.startsWith('&')) {
@@ -309,19 +326,19 @@ const Utils = {
                 const pattern = token.slice(1);
 
                 if (pattern === '') {
-                    errors.push(`Invalid channel syntax: "${token}" - Missing pattern after &`);
+                    errors.push(`${contextPrefix}Invalid channel syntax: "${token}" - Missing pattern after &`);
                     continue;
                 }
 
                 // Check for spaces within the pattern
                 if (pattern.includes(' ')) {
-                    errors.push(`Invalid channel syntax: "${token}" - No spaces allowed in channel patterns`);
+                    errors.push(`${contextPrefix}Invalid channel syntax: "${token}" - No spaces allowed in channel patterns`);
                     continue;
                 }
 
                 // Basic pattern validation (allow alphanumeric, wildcards, colons, etc.)
                 if (!/^[a-zA-Z0-9:*?[\]{}._-]+$/.test(pattern)) {
-                    errors.push(`Invalid channel pattern: "${token}" - Pattern contains invalid characters`);
+                    errors.push(`${contextPrefix}Invalid channel pattern: "${token}" - Pattern contains invalid characters`);
                 }
 
                 // Note: Channel patterns are accepted but not validated for access
@@ -329,7 +346,7 @@ const Utils = {
             }
             else {
                 // Invalid token - doesn't start with +, -, ~, %, or &
-                errors.push(`Invalid rule syntax: "${token}" - Terms must start with +, -, ~, %, or & operators`);
+                errors.push(`${contextPrefix}Invalid rule syntax: "${token}" - Terms must start with +, -, ~, %, or & operators`);
             }
         }
 

@@ -181,9 +181,6 @@ async function testIntegrated() {
         return;
     }
 
-    // Show loading state
-    integratedResultDiv.innerHTML = '<div class="loading">Testing command + key access...</div>';
-
     try {
         const result = await API.testCommandKey(rule, command, key, AppState.currentVersion);
         showIntegratedResult(result, false);

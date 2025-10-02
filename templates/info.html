@@ -239,8 +239,7 @@
                     <li>Link search bars (🔗) to synchronize filtering across blocked and granted columns</li>
                     <li>Toggle between fuzzy (≈) and exact (=) search modes for precise filtering</li>
                     <li>Test with real application commands using the Command Tester</li>
-                    <li>Validate key patterns with the Keyspace Tester using glob patterns (*, ?, [abc], [a-z])</li>
-                    <li>Use dismissible test results with auto-timeout for efficient testing workflow</li>
+                    <li>Validate key pattern matching against actual key names using the Keyspace Tester</li>
                     <li>Save frequently used ACL patterns for quick reuse</li>
                 </ul>
             </section>
@@ -273,16 +272,13 @@
                     <li><strong>Left Panel (❌)</strong> - Blocked Commands (click to grant access)</li>
                     <li><strong>Center Panel (📝)</strong> - ACL Rule Configuration with syntax examples and validation</li>
                     <li><strong>Right Panel (✅)</strong> - Granted Commands (click to revoke access)</li>
-                    <li><strong>Bottom Panels (🧪🔑)</strong> - Dual Testing Interface: Command Tester and Keyspace Tester</li>
-                </ul>
-                
-                <h3>🎨 Theme Support</h3>
-                <ul>
-                    <li><strong>Light Mode:</strong> Clean, professional light theme with high contrast</li>
-                    <li><strong>Dark Mode:</strong> Modern dark theme optimized for low-light environments</li>
-                    <li><strong>Auto-Detection:</strong> Respects system theme preferences by default</li>
-                    <li><strong>Manual Override:</strong> Theme toggle button for explicit user choice</li>
-                    <li><strong>Persistence:</strong> Theme preference saved in browser localStorage</li>
+                    <li><strong>Bottom Panels (🧪🔑)</strong> - Dual Testing Interface with two modes:
+                        <ul>
+                            <li><strong>Split Mode (Default):</strong> Separate Command Tester and Keyspace Tester panels</li>
+                            <li><strong>Integrated Mode:</strong> Combined Command + Key testing in a single unified interface</li>
+                        </ul>
+                    </li>
+                    <li><strong>Customizable Layout:</strong> Drag panels to reorder, resize panels by dragging edges/corners, toggle between split and integrated testing modes</li>
                 </ul>
             </section>
 
@@ -319,8 +315,13 @@
                 </div>
                 
                 <p><strong>💡 TIP:</strong> Use the Keyspace Tester to validate complex patterns like <code>user:[0-9]*:session</code> against actual key names before deployment.</p>
+            </section>
 
-                <h4>Advanced Key Permissions (Redis 7.0+)</h4>
+            <!-- Advanced Features -->
+            <section class="info-section">
+                <h2>🚀 Advanced Features</h2>
+
+                <h4>Advanced Key Permissions</h4>
                 <div class="syntax-example">
 %R~user:*        # Read-only access to user:* keys<br>
 %W~cache:*       # Write-only access to cache:* keys<br>
@@ -332,16 +333,16 @@
 
                 <h4>Pub/Sub Channel Patterns</h4>
                 <div class="syntax-example">
-&*               # Access to all pub/sub channels<br>
-&notifications:* # Access to notification channels<br>
-&events:* &logs:* # Multiple channel patterns<br>
+&amp;*               # Access to all pub/sub channels<br>
+&amp;notifications:* # Access to notification channels<br>
+&amp;events:* &amp;logs:* # Multiple channel patterns<br>
 <br>
-+@read +@pubsub &alerts:* ~data:* # Commands + channel + key patterns<br>
++@read +@pubsub &amp;alerts:* ~data:* # Commands + channel + key patterns<br>
                 </div>
 
                 <p><strong>⚠️ NOTE:</strong> Channel patterns (&) are parsed and preserved but cannot be tested in the UI. The app validates syntax but does not test pub/sub channel access permissions.</p>
 
-                <h4>Rule Selectors (Redis 7.0+)</h4>
+                <h4>Rule Selectors</h4>
                 <p>Selectors allow you to define multiple independent permission sets in a single ACL rule. A command is allowed if <strong>either</strong> the root permissions OR any selector grants it. Each selector creates an isolated permission context - commands granted by a selector can only access key patterns defined in that same selector.</p>
 
                 <div class="syntax-example">
@@ -364,7 +365,11 @@
 
                 <p><strong>🔑 Key Concept:</strong> Selector isolation means each permission set is self-contained. In <code>+@read ~user:* (+@write ~logs:*)</code>, GET can access user:* keys (root) but NOT logs:* keys (selector), and SET can access logs:* keys (selector) but NOT user:* keys (root).</p>
 
+                <br>
+
                 <p><strong>📊 Selector vs. Key Permissions:</strong> Selectors <code>(+@read ~key1)</code> create mutually exclusive permission sets (choose one), while key permissions <code>%R~key1 %W~key2</code> combine within the same set (mix and match). For multi-key commands like COPY, use key permissions (<code>+@all ~dest:* %R~source:*</code>) instead of selectors.</p>
+
+                <br>
 
                 <h4>Complete Rule Examples</h4>
                 <div class="syntax-example">
@@ -626,38 +631,9 @@ docker rm redis-acl-builder
                 </ul>
             </section>
 
-            <!-- What's New Section -->
-            <section>
-                <h2>✨ What's New in v1.13.0-beta</h2>
-
-                <h3>🎨 Enhanced Light Mode Experience</h3>
-                <ul>
-                    <li><strong>Adaptive SVG Background:</strong> Dynamic background inversion for light mode using CSS filters</li>
-                    <li><strong>Optimized Contrast:</strong> Fine-tuned brightness(0.85) contrast(1.8) for perfect geometric pattern visibility</li>
-                    <li><strong>Enhanced Container Shadows:</strong> Prominent shadows for excellent depth perception in light mode</li>
-                    <li><strong>CSS Performance:</strong> Hardware-accelerated filters with pseudo-element layering for clean separation</li>
-                </ul>
-
-                <h3>🧹 Code Quality Improvements</h3>
-                <ul>
-                    <li><strong>Eliminated Duplicate Code:</strong> Consolidated 5 duplicate positioning functions into reusable helper</li>
-                    <li><strong>CSS Optimization:</strong> Merged duplicate selectors and removed obsolete edge handle CSS rules</li>
-                    <li><strong>Debug Cleanup:</strong> Removed all debug console.log statements while preserving legitimate logging</li>
-                    <li><strong>Enhanced Documentation:</strong> Comprehensive analysis of test files identifying redundancy opportunities</li>
-                </ul>
-
-                <h3>🏗️ Technical Enhancements</h3>
-                <ul>
-                    <li><strong>Background Layer Management:</strong> Proper z-index layering with ::before pseudo-elements</li>
-                    <li><strong>Filter Chain Optimization:</strong> Ideal light mode appearance with professional shadow depth</li>
-                    <li><strong>Modular Architecture:</strong> Consolidated style application patterns for better maintainability</li>
-                    <li><strong>Performance Optimizations:</strong> Reduced code duplication and improved rendering efficiency</li>
-                </ul>
-            </section>
-
             <!-- Back to Application -->
             <div style="text-align: center; margin-top: var(--spacing-xxl);">
-                <a href="/" class="test-button" style="text-decoration: none;">
+                <a href="/" class="test-button" style="text-decoration: none; background: var(--red-gradient); border-color: var(--primary-color); box-shadow: var(--red-shadow);">
                     🔐 Start Building ACL Rules
                 </a>
             </div>

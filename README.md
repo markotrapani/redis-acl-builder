@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version 1.18.0-beta** - Enterprise Type Safety & Advanced Key Permissions
+**Version 1.20.0-beta** - Rule Selectors with Complete UI Support
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -69,37 +69,35 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
-## ✨ What's New in v1.18.0-beta
+## ✨ What's New in v1.20.0-beta
 
-### Complete Pydantic API Migration & Zero Type Warnings
+### Rule Selectors - Complete Frontend & Backend Support
 
-- **🔒 Type-Safe APIs**: Migrated all API endpoints to use Pydantic models for request/response validation
-- **✅ Zero Warnings**: Eliminated all Pylance type checking warnings across the entire codebase
-- **📝 Enhanced Validation**: Explicit type annotations for error handling and nested data structures
-- **🎯 Consistent Responses**: ErrorResponse, HealthResponse, and endpoint-specific models fully integrated
+- **🎯 Full UI Integration**: Commands granted by selectors now properly displayed in granted commands panel
+- **✅ Frontend Validation**: Real-time validation for selectors with "Selector #1:" error prefixes
+- **🔍 Enhanced Testing**: Integrated tester shows which selector granted command/key access
+- **🛡️ Selector Isolation**: Perfect isolation between root and selector key patterns with informative error messages
+- **📊 OR Logic**: Commands granted if EITHER root OR any selector permits them
 
-### Advanced Key Permissions Support (Redis 7.0+)
+### Advanced Key Permissions - Bug Fixes & Improvements
 
-- **🔑 Read-Only Keys**: `%R~pattern` syntax for read-only key access
-- **✏️ Write-Only Keys**: `%W~pattern` syntax for write-only key access
-- **🔄 Read-Write Keys**: `%RW~pattern` syntax (alias for traditional `~pattern`)
-- **🧹 Smart Optimization**: ACL rule optimization preserves key patterns during simplification
-- **✨ Enhanced Validation**: Full support for all key permission prefix types
+- **🔧 Full Keyspace Access Fix**: No key patterns now correctly grants access to all keys (Redis default)
+- **💬 Better Error Messages**: Permission type mismatches show specific reasons (e.g., "read-only pattern, write command required")
+- **🎯 Smart Isolation Hints**: Selector isolation hints only shown when selectors exist and are relevant
+- **✨ Read-Write Commands**: Proper handling of commands like GETSET that require both read and write permissions
 
-### Enhanced Testing Interface & UX Improvements
+### Info Page Enhancements
 
-- **🎬 Smooth Animations**: Test results slide up from button on appear, slide down on dismiss
-- **⏱️ Auto-Dismiss**: 15-second timeout for integrated tester with manual close option
-- **💾 Mode Persistence**: localStorage saves integrated/split tester mode preference
-- **🎨 Light Mode Polish**: Pastel gradient buttons with improved accessibility
-- **📝 Better Labels**: Enhanced placeholder text and ARIA labels throughout
+- **📚 Visual Separation**: Clear distinction between "Redis ACL Basics" and "Advanced Features" sections
+- **🎨 Improved Formatting**: Better spacing, fixed pub/sub channel display (`&` character escaping)
+- **🧹 Content Cleanup**: Removed version suffixes and changelog content for cleaner documentation
+- **🔴 Button Styling**: Fixed red gradient button styling issues
 
-### Pub/Sub Channel Pattern Support
+### Developer Experience Improvements
 
-- **📢 Channel Patterns**: Parse and preserve `&` channel patterns (e.g., `&*`, `&channel:*`)
-- **✅ Syntax Validation**: Full validation for channel pattern syntax
-- **💾 Pattern Preservation**: Patterns preserved in ACL rules for display and export
-- **⚠️ No Access Testing**: App cannot test pub/sub channel permissions (preserve-only approach)
+- **🗑️ Code Cleanup**: Removed unnecessary loading state code in integrated tester
+- **🎨 CSS Fixes**: Fixed button styling conflicts between test buttons
+- **📝 Better Documentation**: Enhanced interface layout documentation with customization details
 
 ### Documentation Synchronization & Docker Hub Integration (v1.15.10-beta)
 

@@ -24,6 +24,9 @@ const InteractiveACLBuilder = {
         // New ordered structure for rule generation
         orderedTerms: [],                // Array of {type: 'category|command|keypattern', operation: 'grant|block', value: string}
 
+        // Rule Selectors (Redis 7.0+) - parentheses-based independent permission sets
+        selectors: [],                   // Array of selector objects, each containing orderedTerms, keyPatterns, channelPatterns
+
         allCategories: [],
         allCommands: [],
         isInitialized: false,
@@ -897,21 +900,58 @@ const InteractiveACLBuilder = {
     },
 
     /**
+     * Remove a category or command term from all selectors
+     * If selector becomes empty after removal, remove the entire selector
+     * @param {string} type - 'category' or 'command'
+     * @param {string} value - Category or command name
+     */
+    removeFromSelectors(type, value) {
+        // Filter selectors, removing the term and empty selectors
+        this.state.selectors = this.state.selectors.filter(selector => {
+            // Remove the term from this selector's orderedTerms
+            selector.orderedTerms = selector.orderedTerms.filter(term =>
+                !(term.type === type && term.value === value)
+            );
+
+            // Also update the selector's Sets
+            if (type === 'category') {
+                selector.grantedCategories.delete(value);
+                selector.blockedCategories.delete(value);
+            } else if (type === 'command') {
+                selector.grantedCommands.delete(value);
+                selector.blockedCommands.delete(value);
+            }
+
+            // Check if selector has any command/category terms left
+            const hasCommandTerms = selector.orderedTerms.some(term =>
+                term.type === 'category' || term.type === 'command'
+            );
+
+            // Keep selector only if it still has command/category terms
+            // (key patterns alone don't make sense without permissions)
+            return hasCommandTerms;
+        });
+    },
+
+    /**
      * Toggle a category between granted and blocked
      */
     async toggleCategory(category) {
         const wasExplicitlyGranted = this.state.grantedCategories.has(category);
         const wasBlocked = this.state.blockedCategories.has(category);
-        
+
         // Check if category would be granted via @all (ignoring current blocks)
         const hasAllGrant = this.state.grantedCategories.has('all');
         const isGrantedViaAll = hasAllGrant && !wasExplicitlyGranted;
-        
-        // Remove any existing entries for this category first
-        this.state.orderedTerms = this.state.orderedTerms.filter(term => 
+
+        // Remove any existing entries for this category from root orderedTerms
+        this.state.orderedTerms = this.state.orderedTerms.filter(term =>
             !(term.type === 'category' && term.value === category)
         );
-        
+
+        // Also remove from all selectors (and remove empty selectors)
+        this.removeFromSelectors('category', category);
+
         if (wasExplicitlyGranted) {
             // Move from explicitly granted to available (remove from granted)
             this.state.grantedCategories.delete(category);
@@ -988,16 +1028,19 @@ const InteractiveACLBuilder = {
     async toggleCommand(command) {
         const wasExplicitlyGranted = this.state.grantedCommands.has(command);
         const wasBlocked = this.state.blockedCommands.has(command);
-        
+
         // Check if command is granted via categories (like @all)
         const grantedViaCategories = await this.getCommandsGrantedByCategories();
         const isGrantedViaCategory = grantedViaCategories.includes(command);
-        
-        // Remove any existing entries for this command first
-        this.state.orderedTerms = this.state.orderedTerms.filter(term => 
+
+        // Remove any existing entries for this command from root orderedTerms
+        this.state.orderedTerms = this.state.orderedTerms.filter(term =>
             !(term.type === 'command' && term.value === command)
         );
-        
+
+        // Also remove from all selectors (and remove empty selectors)
+        this.removeFromSelectors('command', command);
+
         if (wasExplicitlyGranted) {
             // Move from explicitly granted to available (remove from granted)
             this.state.grantedCommands.delete(command);
@@ -2163,8 +2206,59 @@ const InteractiveACLBuilder = {
                 return { [category]: 'blocked' };
             }
 
-            // For implicit partial detection, we need to check if commands are granted through individual commands
-            // vs through category grants
+            // Check if this category is granted in root (global) vs selectors (scoped)
+            let grantedInRoot = false;
+            let grantedInSelectors = false;
+
+            // Check root_permissions.command_rules for global category grant
+            if (this.lastApiResponse?.parsed_rule?.root_permissions?.command_rules) {
+                grantedInRoot = this.lastApiResponse.parsed_rule.root_permissions.command_rules.some(rule =>
+                    rule.target === 'category' && rule.type === 'allow' && rule.value === category
+                );
+            }
+
+            // Check selectors for scoped category grants
+            if (this.lastApiResponse?.parsed_rule?.selectors) {
+                grantedInSelectors = this.lastApiResponse.parsed_rule.selectors.some(selector =>
+                    selector.command_rules?.some(rule =>
+                        rule.target === 'category' && rule.type === 'allow' && rule.value === category
+                    )
+                );
+            }
+
+            // If granted as a category (in root or selectors), check for exclusions
+            if (grantedInRoot || grantedInSelectors) {
+                // Check if there are any -command exclusions for this category
+                let hasExclusions = false;
+
+                // Check root_permissions for exclusions
+                if (this.lastApiResponse?.parsed_rule?.root_permissions?.command_rules) {
+                    hasExclusions = this.lastApiResponse.parsed_rule.root_permissions.command_rules.some(rule =>
+                        rule.target === 'command' && rule.type === 'deny' &&
+                        categoryCommands.includes(rule.value)
+                    );
+                }
+
+                // Check selectors for exclusions
+                if (!hasExclusions && this.lastApiResponse?.parsed_rule?.selectors) {
+                    hasExclusions = this.lastApiResponse.parsed_rule.selectors.some(selector =>
+                        selector.command_rules?.some(rule =>
+                            rule.target === 'command' && rule.type === 'deny' &&
+                            categoryCommands.includes(rule.value)
+                        )
+                    );
+                }
+
+                // If granted via +@category with no exclusions, it's fully granted
+                // Even if scoped to specific keys via selectors
+                if (!hasExclusions) {
+                    return { [category]: 'fully-granted' };
+                } else {
+                    return { [category]: 'partial' };
+                }
+            }
+
+            // Not granted as category - check if granted through individual commands
             const isExplicitlyGranted = this.state.grantedCategories.has(category);
 
             if (!isExplicitlyGranted) {
@@ -2191,13 +2285,28 @@ const InteractiveACLBuilder = {
                     const individuallyGrantedCommands = new Set();
                     const individuallyBlockedCommands = new Set();
 
-                    // Get individual command grants and blocks from the parsed rule
+                    // Get individual command grants and blocks from the parsed rule (root level)
                     if (this.lastApiResponse && this.lastApiResponse.parsed_rule && this.lastApiResponse.parsed_rule.command_rules) {
                         this.lastApiResponse.parsed_rule.command_rules.forEach(rule => {
                             if (rule.target === 'command' && rule.type === 'allow') {
                                 individuallyGrantedCommands.add(rule.value);
                             } else if (rule.target === 'command' && rule.type === 'deny') {
                                 individuallyBlockedCommands.add(rule.value);
+                            }
+                        });
+                    }
+
+                    // Also check selectors for individual command grants/blocks
+                    if (this.lastApiResponse && this.lastApiResponse.parsed_rule && this.lastApiResponse.parsed_rule.selectors) {
+                        this.lastApiResponse.parsed_rule.selectors.forEach(selector => {
+                            if (selector.command_rules) {
+                                selector.command_rules.forEach(rule => {
+                                    if (rule.target === 'command' && rule.type === 'allow') {
+                                        individuallyGrantedCommands.add(rule.value);
+                                    } else if (rule.target === 'command' && rule.type === 'deny') {
+                                        individuallyBlockedCommands.add(rule.value);
+                                    }
+                                });
                             }
                         });
                     }
@@ -2223,6 +2332,30 @@ const InteractiveACLBuilder = {
 
                     // If all commands are granted, check if they're granted individually or through categories
                     if (totalGranted === categoryCommands.length) {
+                        // Check if this category is granted via a category rule in root or selectors
+                        let grantedAsCategory = false;
+
+                        // Check root command_rules for category grant
+                        if (this.lastApiResponse?.parsed_rule?.command_rules) {
+                            grantedAsCategory = this.lastApiResponse.parsed_rule.command_rules.some(rule =>
+                                rule.target === 'category' && rule.type === 'allow' && rule.value === category
+                            );
+                        }
+
+                        // Check selectors for category grant
+                        if (!grantedAsCategory && this.lastApiResponse?.parsed_rule?.selectors) {
+                            grantedAsCategory = this.lastApiResponse.parsed_rule.selectors.some(selector =>
+                                selector.command_rules?.some(rule =>
+                                    rule.target === 'category' && rule.type === 'allow' && rule.value === category
+                                )
+                            );
+                        }
+
+                        // If granted as category (+@foo) in root or selector, it's fully granted
+                        if (grantedAsCategory) {
+                            return { [category]: 'fully-granted' };
+                        }
+
                         // Only mark as fully-granted if there are individual command grants to work with
                         // Otherwise, they're granted through other categories and should not show as actionable
                         if (individuallyGrantedInCategory > 0) {
@@ -3433,7 +3566,7 @@ const InteractiveACLBuilder = {
 
     /**
      * Generate optimized ACL rule from current state
-     * Terms are ordered: inclusions first, then exclusions, then key patterns (~)
+     * Terms are ordered: inclusions first, then exclusions, then key patterns (~), then selectors
      * Within each group, preserve insertion order rather than alphabetical sorting
      */
     async generateOptimizedRule() {
@@ -3442,7 +3575,7 @@ const InteractiveACLBuilder = {
         // Check if we have any inclusion terms for optimization logic
         const hasInclusions = this.state.grantedCategories.size > 0 || this.state.grantedCommands.size > 0;
         let grantedCommands = null;
-        
+
         if (hasInclusions) {
             // Get all commands that would be granted by the inclusion terms
             grantedCommands = await this.getCommandsGrantedByInclusions();
@@ -3471,7 +3604,7 @@ const InteractiveACLBuilder = {
             }
         });
 
-        // Key patterns (~) - these should always come last
+        // Key patterns (~) - these should come after command/category terms
         if (this.state.keyPatterns) {
             Array.from(this.state.keyPatterns).forEach(pattern => {
                 parts.push(pattern);
@@ -3483,6 +3616,41 @@ const InteractiveACLBuilder = {
             Array.from(this.state.channelPatterns).forEach(pattern => {
                 parts.push(pattern);
             });
+        }
+
+        // Selectors - these come last
+        if (this.state.selectors && this.state.selectors.length > 0) {
+            for (const selector of this.state.selectors) {
+                const selectorParts = [];
+
+                // Process selector's ordered terms
+                selector.orderedTerms.forEach(term => {
+                    if (term.type === 'category') {
+                        selectorParts.push(term.operation === 'grant' ? `+@${term.value}` : `-@${term.value}`);
+                    } else if (term.type === 'command') {
+                        selectorParts.push(term.operation === 'grant' ? `+${term.value}` : `-${term.value}`);
+                    }
+                });
+
+                // Add selector's key patterns
+                if (selector.keyPatterns) {
+                    Array.from(selector.keyPatterns).forEach(pattern => {
+                        selectorParts.push(pattern);
+                    });
+                }
+
+                // Add selector's channel patterns
+                if (selector.channelPatterns) {
+                    Array.from(selector.channelPatterns).forEach(pattern => {
+                        selectorParts.push(pattern);
+                    });
+                }
+
+                // Only add selector if it has content
+                if (selectorParts.length > 0) {
+                    parts.push(`(${selectorParts.join(' ')})`);
+                }
+            }
         }
 
         return parts.join(' ');
@@ -3569,6 +3737,105 @@ const InteractiveACLBuilder = {
     },
 
     /**
+     * Extract selectors from ACL rule (matches backend _extract_selectors logic)
+     * @param {string} rule - Full ACL rule string
+     * @returns {Object} - { rootRule: string, selectors: string[] }
+     */
+    extractSelectors(rule) {
+        const selectors = [];
+        let currentPos = 0;
+        let rootParts = [];
+        let depth = 0;
+        let currentSelector = '';
+
+        for (let i = 0; i < rule.length; i++) {
+            const char = rule[i];
+
+            if (char === '(') {
+                if (depth === 0) {
+                    // Start of new selector - save root part before this
+                    rootParts.push(rule.substring(currentPos, i));
+                    currentPos = i + 1;
+                    currentSelector = '';
+                }
+                depth++;
+            } else if (char === ')') {
+                depth--;
+                if (depth === 0) {
+                    // End of selector
+                    currentSelector = rule.substring(currentPos, i);
+                    selectors.push(currentSelector.trim());
+                    currentPos = i + 1;
+                }
+            }
+        }
+
+        // Add remaining root part
+        if (currentPos < rule.length) {
+            rootParts.push(rule.substring(currentPos));
+        }
+
+        const rootRule = rootParts.join(' ').trim();
+        return { rootRule, selectors };
+    },
+
+    /**
+     * Parse permission set (either root or selector) into orderedTerms structure
+     * @param {string} permissionSet - Space-separated ACL terms
+     * @returns {Object} - { orderedTerms: [], keyPatterns: Set, channelPatterns: Set, grantedCategories: Set, ... }
+     */
+    parsePermissionSet(permissionSet) {
+        const tokens = permissionSet.split(/\s+/).filter(token => token.length > 0);
+        const orderedTerms = [];
+        const grantedCategories = new Set();
+        const blockedCategories = new Set();
+        const grantedCommands = new Set();
+        const blockedCommands = new Set();
+        const keyPatterns = new Set();
+        const channelPatterns = new Set();
+
+        for (const token of tokens) {
+            if (token.startsWith('+@')) {
+                // Granted category
+                const category = token.substring(2);
+                grantedCategories.add(category);
+                orderedTerms.push({ type: 'category', operation: 'grant', value: category });
+            } else if (token.startsWith('-@')) {
+                // Blocked category
+                const category = token.substring(2);
+                blockedCategories.add(category);
+                orderedTerms.push({ type: 'category', operation: 'block', value: category });
+            } else if (token.startsWith('+') && !token.startsWith('+@')) {
+                // Granted command
+                const command = token.substring(1);
+                grantedCommands.add(command);
+                orderedTerms.push({ type: 'command', operation: 'grant', value: command });
+            } else if (token.startsWith('-') && !token.startsWith('-@')) {
+                // Blocked command
+                const command = token.substring(1);
+                blockedCommands.add(command);
+                orderedTerms.push({ type: 'command', operation: 'block', value: command });
+            } else if (token.startsWith('~') || token.startsWith('%')) {
+                // Key pattern
+                keyPatterns.add(token);
+            } else if (token.startsWith('&')) {
+                // Channel pattern
+                channelPatterns.add(token);
+            }
+        }
+
+        return {
+            orderedTerms,
+            grantedCategories,
+            blockedCategories,
+            grantedCommands,
+            blockedCommands,
+            keyPatterns,
+            channelPatterns
+        };
+    },
+
+    /**
      * Sync manual rule text changes to the interactive display
      * @param {boolean} isRestoration - True if this is called during localStorage restoration
      */
@@ -3579,7 +3846,7 @@ const InteractiveACLBuilder = {
 
         const rawRuleText = this.elements.aclRuleInput.value.trim();
         const ruleText = Utils.normalizeACLRule(rawRuleText);
-        
+
         // Update the textarea with normalized rule if it changed
         if (ruleText !== rawRuleText) {
             // Preserve cursor position before updating textarea value
@@ -3602,7 +3869,7 @@ const InteractiveACLBuilder = {
                 { method: 'updateActionButtonStates', args: [] }
             ]);
         }
-        
+
         // Syncing rule text to interactive display
 
         try {
@@ -3610,7 +3877,7 @@ const InteractiveACLBuilder = {
             const validation = await Utils.validateACLRule(ruleText);
             if (!validation.valid) {
                 const firstError = validation.errors[0];
-                
+
                 // During restoration, don't show error notifications but show Submit Changes button
                 if (isRestoration) {
                     // Show submit button since there's a mismatch between textarea and interactive builder
@@ -3623,7 +3890,7 @@ const InteractiveACLBuilder = {
                 }
                 return;
             }
-            
+
             // Reset state
             this.state.grantedCategories.clear();
             this.state.grantedCommands.clear();
@@ -3633,6 +3900,7 @@ const InteractiveACLBuilder = {
             this.state.keyPatterns.clear();
             this.state.channelPatterns.clear();
             this.state.orderedTerms = []; // Reset ordered terms
+            this.state.selectors = []; // Reset selectors
 
             // Parse the rule using actual ACL logic to get real granted/blocked commands
             // Always make API call, even for empty rules, to get accurate granted commands
@@ -3647,73 +3915,55 @@ const InteractiveACLBuilder = {
                     // Parse rule tokens to determine what was explicitly granted
                     // Handle empty rules gracefully
                     if (ruleText) {
-                        const tokens = ruleText.split(/\s+/).filter(token => token.length > 0);
-                        const grantedCategories = new Set();
-                        const blockedCategories = new Set();
-                        const explicitlyGrantedCommands = new Set();
-                        const orderedTerms = [];
-                        
-                        // Parse the rule to find explicitly granted/blocked categories and commands
-                        // and build orderedTerms to preserve the rule structure
-                        for (const token of tokens) {
-                            if (token.startsWith('+@')) {
-                                // Granted category
-                                const category = token.substring(2);
-                                grantedCategories.add(category);
-                                orderedTerms.push({ type: 'category', operation: 'grant', value: category });
-                            } else if (token.startsWith('-@')) {
-                                // Blocked category
-                                const category = token.substring(2);
-                                blockedCategories.add(category);
-                                orderedTerms.push({ type: 'category', operation: 'block', value: category });
-                            } else if (token.startsWith('+') && !token.startsWith('+@')) {
-                                // Granted command
-                                const command = token.substring(1);
-                                explicitlyGrantedCommands.add(command);
-                                orderedTerms.push({ type: 'command', operation: 'grant', value: command });
-                            } else if (token.startsWith('-') && !token.startsWith('-@')) {
-                                // Blocked command
-                                const command = token.substring(1);
-                                orderedTerms.push({ type: 'command', operation: 'block', value: command });
-                            }
-                        }
-                        
-                        // Parse key patterns (~, %R~, %W~, %RW~) and channel patterns (&)
-                        this.state.keyPatterns.clear();
-                        this.state.channelPatterns.clear();
-                        for (const token of tokens) {
-                            if (token.startsWith('~') || token.startsWith('%')) {
-                                this.state.keyPatterns.add(token);
-                            } else if (token.startsWith('&')) {
-                                this.state.channelPatterns.add(token);
-                            }
-                        }
-                        
-                        // Update state based on actual rule parsing and API results
-                        this.state.grantedCategories = grantedCategories;
-                        this.state.grantedCommands = explicitlyGrantedCommands;
+                        // Extract selectors from the rule
+                        const { rootRule, selectors: selectorStrings } = this.extractSelectors(ruleText);
 
-                        // Only store explicitly blocked categories and commands (from rule tokens)
-                        this.state.blockedCategories = blockedCategories;
-                        // Parse explicitly blocked commands from rule tokens
-                        const explicitlyBlockedCommands = new Set();
-                        for (const token of tokens) {
-                            if (token.startsWith('-') && !token.startsWith('-@')) {
-                                const command = token.substring(1);
-                                explicitlyBlockedCommands.add(command);
-                            }
+                        // Parse root permissions
+                        const rootPerms = this.parsePermissionSet(rootRule);
+
+                        // Update root state
+                        this.state.grantedCategories = rootPerms.grantedCategories;
+                        this.state.grantedCommands = rootPerms.grantedCommands;
+                        this.state.blockedCategories = rootPerms.blockedCategories;
+                        this.state.blockedCommands = rootPerms.blockedCommands;
+                        this.state.keyPatterns = rootPerms.keyPatterns;
+                        this.state.channelPatterns = rootPerms.channelPatterns;
+                        this.state.orderedTerms = rootPerms.orderedTerms;
+
+                        // Parse each selector
+                        this.state.selectors = [];
+                        for (const selectorStr of selectorStrings) {
+                            const selectorPerms = this.parsePermissionSet(selectorStr);
+                            this.state.selectors.push({
+                                orderedTerms: selectorPerms.orderedTerms,
+                                grantedCategories: selectorPerms.grantedCategories,
+                                grantedCommands: selectorPerms.grantedCommands,
+                                blockedCategories: selectorPerms.blockedCategories,
+                                blockedCommands: selectorPerms.blockedCommands,
+                                keyPatterns: selectorPerms.keyPatterns,
+                                channelPatterns: selectorPerms.channelPatterns
+                            });
                         }
-                        this.state.blockedCommands = explicitlyBlockedCommands;
-                        
-                        // Preserve the ordered terms from the original rule
-                        this.state.orderedTerms = orderedTerms;
+
+                        // Update legacy Sets to include selector content for category button detection
+                        // Merge selector categories and commands into root state Sets for UI display
+                        for (const selector of this.state.selectors) {
+                            // Add granted categories from selector
+                            selector.grantedCategories.forEach(cat => this.state.grantedCategories.add(cat));
+                            // Add granted commands from selector
+                            selector.grantedCommands.forEach(cmd => this.state.grantedCommands.add(cmd));
+                            // Don't merge blocked items - we only want to show granted items from selectors
+                        }
                     } else {
                         // Empty rule - clear all state
                         this.state.grantedCategories.clear();
                         this.state.grantedCommands.clear();
                         this.state.blockedCategories.clear();
                         this.state.blockedCommands.clear();
+                        this.state.keyPatterns.clear();
+                        this.state.channelPatterns.clear();
                         this.state.orderedTerms = [];
+                        this.state.selectors = [];
                     }
                 } else {
                     // Fallback to simple text parsing if API fails

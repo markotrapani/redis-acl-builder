@@ -289,37 +289,32 @@ class ACLParser:
     def evaluate_command_permissions(self, parsed_rule: Dict[str, Any]) -> Tuple[Set[str], Dict[str, str]]:
         """
         Evaluate which commands are granted by the ACL rule.
-        
+
+        With selectors: Command is granted if EITHER root OR any selector grants it (OR logic).
+
         Args:
             parsed_rule: Output from parse_acl_rule()
-            
+
         Returns:
             Tuple of (granted_commands, explanations)
                 granted_commands: Set of command names that are allowed
                 explanations: Dict mapping command -> explanation string
         """
         # Start with empty permissions (Redis default is no access)
-        # Empty ACL rule should block all commands
-        if not parsed_rule['command_rules']:
-            # No rules = block all commands
-            granted = set()
-            explanations = {}
-            return granted, explanations
-        
         granted = set()
         explanations = {}
         rule_history = {}  # Track which rule affected each command
-        
-        # Process command rules left-to-right (Redis precedence)
+
+        # Process ROOT command rules left-to-right (Redis precedence)
         for i, rule in enumerate(parsed_rule['command_rules']):
             if rule.get('error'):
                 continue  # Skip invalid rules
-                
+
             if rule['target'] == 'category':
                 category = rule['value']
                 if category in self.data['categories']:
                     category_commands = set(self.data['categories'][category])
-                    
+
                     if rule['type'] == 'allow':
                         granted.update(category_commands)
                         for cmd in category_commands:
@@ -332,7 +327,7 @@ class ACLParser:
                             if cmd in rule_history:
                                 explanations[cmd] += f" (overrides previous rule)"
                             rule_history[cmd] = i
-            
+
             elif rule['target'] == 'command':
                 command = rule['value']
                 if rule['type'] == 'allow':
@@ -346,6 +341,39 @@ class ACLParser:
                         explanation += f" (overrides previous rule)"
                     explanations[command] = explanation
                     rule_history[command] = i
+
+        # Process SELECTORS - commands granted by any selector are added (OR logic)
+        selectors = parsed_rule.get('selectors', [])
+        for selector_idx, selector in enumerate(selectors):
+            selector_granted = set()
+
+            # Process command rules within this selector
+            for rule in selector.get('command_rules', []):
+                if rule.get('error'):
+                    continue
+
+                if rule['target'] == 'category':
+                    category = rule['value']
+                    if category in self.data['categories']:
+                        category_commands = set(self.data['categories'][category])
+
+                        if rule['type'] == 'allow':
+                            selector_granted.update(category_commands)
+                        else:  # deny
+                            selector_granted.difference_update(category_commands)
+
+                elif rule['target'] == 'command':
+                    command = rule['value']
+                    if rule['type'] == 'allow':
+                        selector_granted.add(command)
+                    else:  # deny
+                        selector_granted.discard(command)
+
+            # Add selector-granted commands to overall granted set
+            for cmd in selector_granted:
+                if cmd not in granted:  # Only update explanation if not already granted by root
+                    granted.add(cmd)
+                    explanations[cmd] = f"Granted by Selector #{selector_idx + 1}"
 
         return granted, explanations
     
@@ -530,8 +558,9 @@ class ACLParser:
             context = f"Selector #{selector_index+1}"
 
         # Check key patterns from the appropriate permission set
+        # Redis ACL default: No key patterns = access to all keys
         if not key_rules:
-            return False, f"No key patterns defined in {context}", None, None
+            return True, f"No key restrictions (full keyspace access)", None, 'read-write'
 
         is_allowed, reason, pattern, perm_type = self._check_key_patterns(key, command, key_rules)
         if is_allowed:
@@ -540,7 +569,29 @@ class ACLParser:
                 reason = f"Selector #{selector_index+1}: {reason}"
             return True, reason, pattern, perm_type
 
-        return False, f"Key '{key}' does not match any allowed patterns in {context}", None, None
+        # If _check_key_patterns returned a specific reason (e.g., permission mismatch), use it
+        if reason:
+            return False, reason, pattern, perm_type
+
+        # Build informative error message for "no match" case
+        # Only add isolation hint if selectors exist and could be relevant
+        isolation_hint = ""
+        has_selectors = parsed_rule.get('selectors', [])
+
+        if has_selectors:
+            if selector_index is None:
+                # Command granted by root, but key doesn't match root patterns
+                # Check if selectors have key patterns that might confuse the user
+                selector_has_keys = any(sel.get('key_rules', []) for sel in has_selectors)
+                if selector_has_keys:
+                    isolation_hint = " (selector key patterns are isolated and not accessible from root)"
+            else:
+                # Command granted by selector, but key doesn't match selector patterns
+                # Check if root has key patterns
+                if parsed_rule.get('key_rules', []):
+                    isolation_hint = " (root key patterns are isolated and not accessible from selectors)"
+
+        return False, f"Key '{key}' does not match any allowed patterns in {context}{isolation_hint}", None, None
 
     def validate_rule_syntax(self, rule: str) -> Tuple[bool, List[str]]:
         """
@@ -1067,6 +1118,20 @@ class ACLParser:
         try:
             # Parse the original rule to get the final command set
             parsed = self.parse_acl_rule(rule)
+
+            # Skip optimization for rules with selectors - selectors have complex semantics
+            # that cannot be safely optimized without understanding context isolation
+            if parsed.get('selectors') and len(parsed['selectors']) > 0:
+                return {
+                    'original_rule': rule,
+                    'optimized_rule': rule,
+                    'original_term_count': len(rule.split()),
+                    'optimized_term_count': len(rule.split()),
+                    'savings': 0,
+                    'granted_commands': list(set(self.evaluate_command_permissions(parsed)[0])),
+                    'explanation': 'Rules with selectors cannot be optimized (selectors use context isolation)'
+                }
+
             granted_commands, _ = self.evaluate_command_permissions(parsed)
             granted_set = set(granted_commands)
 

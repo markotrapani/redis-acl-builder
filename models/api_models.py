@@ -135,7 +135,7 @@ class ParseACLResponse(BaseModel):
     grouped_commands: Dict[str, List[str]] = Field(description="Commands grouped by category")
     total_granted: int = Field(description="Total number of granted commands")
     total_available: int = Field(description="Total number of available commands")
-    parsed_rule: List[str] = Field(description="Parsed ACL rule tokens")
+    parsed_rule: Dict[str, Any] = Field(description="Parsed ACL rule structure with root_permissions and selectors")
     impact_summary: Dict[str, Any] = Field(description="Summary of rule impact")
     version: str = Field(description="Redis version used")
 
