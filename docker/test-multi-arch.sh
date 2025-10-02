@@ -6,7 +6,7 @@
 
 set -e
 
-echo "🧪 Redis ACL Builder Multi-Architecture Test v1.20.3-beta"
+echo "🧪 Redis ACL Builder Multi-Architecture Test v1.20.4-beta"
 echo "=========================================================="
 
 # Check if Docker Buildx is available

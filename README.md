@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version 1.20.3-beta** - Rule Selectors with Complete UI Support
+**Version 1.20.4-beta** - Rule Selectors with Complete UI Support
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -69,13 +69,20 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
-## ✨ What's New in v1.20.3-beta
+## ✨ What's New in v1.20.4-beta
 
-### Documentation Accuracy Improvements
+### Critical Docker Bugfix
 
-- **🔧 Configuration Clarity**: Fixed misleading timeout description in Docker documentation
-- **✅ Technical Accuracy**: Clarified Gunicorn worker configuration vs ACL parsing performance
-- **📝 Version Synchronization**: Updated all documentation to v1.20.3-beta
+- **🐛 CRITICAL FIX**: Added missing `models/` directory to Docker image (ModuleNotFoundError resolved)
+- **✅ Production Ready**: Docker image now fully functional with all required Python modules
+- **📝 Version Synchronization**: Updated all documentation to v1.20.4-beta
+
+### Previous Release (v1.20.3-beta)
+
+#### Documentation Accuracy Improvements
+
+- Fixed misleading timeout description in Docker documentation
+- Clarified Gunicorn worker configuration vs ACL parsing performance
 
 ### Previous Release (v1.20.2-beta)
 

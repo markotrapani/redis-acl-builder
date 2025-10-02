@@ -30,6 +30,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Copy only necessary application files (production optimized)
 COPY app.py .
 COPY helpers/ helpers/
+COPY models/ models/
 COPY templates/ templates/
 COPY static/ static/
 
