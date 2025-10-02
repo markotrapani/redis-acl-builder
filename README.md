@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version 1.20.0-beta** - Rule Selectors with Complete UI Support
+**Version 1.20.1-beta** - Rule Selectors with Complete UI Support
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -69,35 +69,30 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
-## ✨ What's New in v1.20.0-beta
+## ✨ What's New in v1.20.1-beta
 
-### Rule Selectors - Complete Frontend & Backend Support
+### Documentation & Roadmap Updates
 
-- **🎯 Full UI Integration**: Commands granted by selectors now properly displayed in granted commands panel
-- **✅ Frontend Validation**: Real-time validation for selectors with "Selector #1:" error prefixes
-- **🔍 Enhanced Testing**: Integrated tester shows which selector granted command/key access
-- **🛡️ Selector Isolation**: Perfect isolation between root and selector key patterns with informative error messages
-- **📊 OR Logic**: Commands granted if EITHER root OR any selector permits them
+- **📋 Roadmap Cleanup**: Streamlined future development priorities
+- **📝 Version Synchronization**: Updated all documentation to v1.20.1-beta
+- **🎯 Focus Refinement**: Clarified near-term vs long-term development goals
 
-### Advanced Key Permissions - Bug Fixes & Improvements
+### Previous Release (v1.20.0-beta)
 
-- **🔧 Full Keyspace Access Fix**: No key patterns now correctly grants access to all keys (Redis default)
-- **💬 Better Error Messages**: Permission type mismatches show specific reasons (e.g., "read-only pattern, write command required")
-- **🎯 Smart Isolation Hints**: Selector isolation hints only shown when selectors exist and are relevant
-- **✨ Read-Write Commands**: Proper handling of commands like GETSET that require both read and write permissions
+**Rule Selectors - Complete Frontend & Backend Support**
 
-### Info Page Enhancements
+- Full UI integration for selector syntax with proper command display
+- Real-time validation with "Selector #1:" error prefixes
+- Enhanced testing showing which selector granted access
+- Perfect selector isolation with informative error messages
+- OR logic implementation
 
-- **📚 Visual Separation**: Clear distinction between "Redis ACL Basics" and "Advanced Features" sections
-- **🎨 Improved Formatting**: Better spacing, fixed pub/sub channel display (`&` character escaping)
-- **🧹 Content Cleanup**: Removed version suffixes and changelog content for cleaner documentation
-- **🔴 Button Styling**: Fixed red gradient button styling issues
+**Advanced Key Permissions - Bug Fixes & Improvements**
 
-### Developer Experience Improvements
-
-- **🗑️ Code Cleanup**: Removed unnecessary loading state code in integrated tester
-- **🎨 CSS Fixes**: Fixed button styling conflicts between test buttons
-- **📝 Better Documentation**: Enhanced interface layout documentation with customization details
+- Full keyspace access fix (no key patterns = access to all keys)
+- Better error messages for permission type mismatches
+- Smart isolation hints only when relevant
+- Proper handling of read-write commands like GETSET
 
 ### Documentation Synchronization & Docker Hub Integration (v1.15.10-beta)
 
