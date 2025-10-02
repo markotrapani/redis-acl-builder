@@ -1,6 +1,6 @@
 # Redis ACL Builder - Docker Deployment
 
-**Version v1.20.1-beta** - Rule Selectors with Complete UI Support
+**Version v1.20.2-beta** - Rule Selectors with Complete UI Support
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced Key Permissions, and an elegant drag-drop interface.
 
@@ -27,7 +27,7 @@ open http://localhost:7380
 docker pull markotrapani608/redis-acl-builder:latest
 
 # Specific version
-docker pull markotrapani608/redis-acl-builder:v1.20.1-beta
+docker pull markotrapani608/redis-acl-builder:v1.20.2-beta
 
 # Beta releases
 docker pull markotrapani608/redis-acl-builder:beta
@@ -45,13 +45,13 @@ docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped mar
 
 ## 🎯 Key Features
 
-### Rule Selectors (Redis 7.0+)
+### Rule Selectors
 - Full UI integration for selector syntax `(+@read ~logs:*)`
 - Perfect isolation between root and selector key patterns
 - OR logic: commands granted if root OR any selector permits
 - Enhanced testing showing which selector granted access
 
-### Advanced Key Permissions (Redis 7.0+)
+### Advanced Key Permissions
 - Read-only keys: `%R~pattern`
 - Write-only keys: `%W~pattern`
 - Read-write keys: `%RW~pattern` or `~pattern`
@@ -101,6 +101,12 @@ curl http://localhost:7380/
 # Restart container
 docker restart redis-acl-builder
 ```
+
+## 📧 Support
+
+For questions about usage, feedback, or to report bugs, please reach out to:
+- **Email**: marko.trapani@redis.com
+- **GitHub Issues**: [Report bugs and feature requests](https://github.com/markotrapani/marko-projects/issues)
 
 ## 📚 Additional Resources
 
