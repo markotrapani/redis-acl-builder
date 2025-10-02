@@ -167,7 +167,7 @@ def api_test_command() -> Union[Response, Tuple[Response, int]]:
 
         # Parse rule and test command
         parsed_rule = parser.parse_acl_rule(req_data.rule)
-        is_granted, explanation, categories = parser.test_command_access(req_data.command, parsed_rule)
+        is_granted, explanation, categories, _selector_index = parser.test_command_access(req_data.command, parsed_rule)
 
         response = TestCommandResponse(
             success=True,
@@ -369,12 +369,12 @@ def api_test_command_key() -> Union[Response, Tuple[Response, int]]:
         # Parse rule
         parsed_rule = parser.parse_acl_rule(req_data.rule)
 
-        # Test command permission
-        is_command_granted, command_explanation, command_categories = parser.test_command_access(req_data.command, parsed_rule)
+        # Test command permission (now returns selector_index)
+        is_command_granted, command_explanation, command_categories, selector_index = parser.test_command_access(req_data.command, parsed_rule)
 
-        # Test key access
+        # Test key access (pass selector_index to ensure key patterns match the permission set that granted the command)
         is_allowed, key_reason, matched_pattern, permission_type = parser.test_key_access(
-            req_data.key, req_data.command, parsed_rule
+            req_data.key, req_data.command, parsed_rule, selector_index
         )
 
         # Determine overall access

@@ -319,7 +319,53 @@
                 </div>
                 
                 <p><strong>💡 TIP:</strong> Use the Keyspace Tester to validate complex patterns like <code>user:[0-9]*:session</code> against actual key names before deployment.</p>
-                
+
+                <h4>Advanced Key Permissions (Redis 7.0+)</h4>
+                <div class="syntax-example">
+%R~user:*        # Read-only access to user:* keys<br>
+%W~cache:*       # Write-only access to cache:* keys<br>
+%RW~session:*    # Read-write access to session:* keys<br>
+<br>
++@read %R~analytics:* # Read commands + read-only key access<br>
++@write %W~logs:* # Write commands + write-only key access<br>
+                </div>
+
+                <h4>Pub/Sub Channel Patterns</h4>
+                <div class="syntax-example">
+&*               # Access to all pub/sub channels<br>
+&notifications:* # Access to notification channels<br>
+&events:* &logs:* # Multiple channel patterns<br>
+<br>
++@read +@pubsub &alerts:* ~data:* # Commands + channel + key patterns<br>
+                </div>
+
+                <p><strong>⚠️ NOTE:</strong> Channel patterns (&) are parsed and preserved but cannot be tested in the UI. The app validates syntax but does not test pub/sub channel access permissions.</p>
+
+                <h4>Rule Selectors (Redis 7.0+)</h4>
+                <p>Selectors allow you to define multiple independent permission sets in a single ACL rule. A command is allowed if <strong>either</strong> the root permissions OR any selector grants it. Each selector creates an isolated permission context - commands granted by a selector can only access key patterns defined in that same selector.</p>
+
+                <div class="syntax-example">
+<strong># Basic Selector Syntax</strong><br>
++@read ~user:* (+@write ~logs:*)<br>
+<span style="color: #666;"># Root: Read commands on user:* keys</span><br>
+<span style="color: #666;"># Selector #1: Write commands on logs:* keys</span><br>
+<br>
+<strong># Multiple Selectors</strong><br>
++@all ~app:* (+@read ~analytics:*) (+@write ~logs:*)<br>
+<span style="color: #666;"># Root: All commands on app:* keys</span><br>
+<span style="color: #666;"># Selector #1: Read on analytics:* keys</span><br>
+<span style="color: #666;"># Selector #2: Write on logs:* keys</span><br>
+<br>
+<strong># Selectors with Advanced Key Permissions</strong><br>
++@all ~app:* (+@read %R~analytics:*)<br>
+<span style="color: #666;"># Root: All commands on app:* keys</span><br>
+<span style="color: #666;"># Selector #1: Read commands with read-only access to analytics:* keys</span><br>
+                </div>
+
+                <p><strong>🔑 Key Concept:</strong> Selector isolation means each permission set is self-contained. In <code>+@read ~user:* (+@write ~logs:*)</code>, GET can access user:* keys (root) but NOT logs:* keys (selector), and SET can access logs:* keys (selector) but NOT user:* keys (root).</p>
+
+                <p><strong>📊 Selector vs. Key Permissions:</strong> Selectors <code>(+@read ~key1)</code> create mutually exclusive permission sets (choose one), while key permissions <code>%R~key1 %W~key2</code> combine within the same set (mix and match). For multi-key commands like COPY, use key permissions (<code>+@all ~dest:* %R~source:*</code>) instead of selectors.</p>
+
                 <h4>Complete Rule Examples</h4>
                 <div class="syntax-example">
 +@read ~* # Read-only user<br>

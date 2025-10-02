@@ -145,6 +145,7 @@ const Utils = {
 
     /**
      * Validate ACL rule syntax according to Redis Enterprise rules
+     * Supports Redis 7.0+ selectors (parentheses grouping)
      */
     async validateACLRule(rule) {
         if (!rule || rule.trim() === '') {
@@ -152,8 +153,46 @@ const Utils = {
         }
 
         const trimmedRule = rule.trim();
-        const tokens = trimmedRule.split(/\s+/);
         const errors = [];
+
+        // Validate parentheses (for selectors) FIRST
+        let depth = 0;
+        let lastOpen = -1;
+
+        for (let i = 0; i < trimmedRule.length; i++) {
+            const char = trimmedRule[i];
+
+            if (char === '(') {
+                if (depth > 0) {
+                    errors.push('Nested selectors are not allowed');
+                    break;
+                }
+                depth++;
+                lastOpen = i;
+            } else if (char === ')') {
+                depth--;
+                if (depth < 0) {
+                    errors.push(`Unmatched closing parenthesis at position ${i}`);
+                    depth = 0; // Reset to continue checking
+                }
+                // Check for empty selector
+                if (lastOpen >= 0 && i - lastOpen <= 1) {
+                    errors.push('Empty selectors are not allowed');
+                }
+            }
+        }
+
+        if (depth > 0) {
+            errors.push('Unmatched opening parenthesis');
+        }
+
+        // If parentheses errors exist, return early
+        if (errors.length > 0) {
+            return { valid: false, errors };
+        }
+
+        // Tokenize by splitting on whitespace, but preserve parentheses as separate tokens
+        const tokens = trimmedRule.split(/\s+/);
 
         // Get valid categories and commands for the current Redis version
         let validCategories = new Set();
@@ -184,6 +223,16 @@ const Utils = {
 
         for (const token of tokens) {
             if (token === '') continue;
+
+            // Skip parentheses tokens (already validated above)
+            if (token === '(' || token === ')' || token.startsWith('(') || token.endsWith(')')) {
+                // Handle tokens with attached parentheses like "(+GET" or "+GET)"
+                let cleanToken = token.replace(/^\(+/, '').replace(/\)+$/, '');
+                if (cleanToken === '') continue; // Just parentheses, already validated
+                // Recursively validate the clean token by checking it in the next iteration
+                // For now, skip - the backend will catch any issues
+                continue;
+            }
 
             // Check if token starts with +, -, or ~
             if (token.startsWith('+') || token.startsWith('-')) {

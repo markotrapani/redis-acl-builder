@@ -94,6 +94,13 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **🎨 Light Mode Polish**: Pastel gradient buttons with improved accessibility
 - **📝 Better Labels**: Enhanced placeholder text and ARIA labels throughout
 
+### Pub/Sub Channel Pattern Support
+
+- **📢 Channel Patterns**: Parse and preserve `&` channel patterns (e.g., `&*`, `&channel:*`)
+- **✅ Syntax Validation**: Full validation for channel pattern syntax
+- **💾 Pattern Preservation**: Patterns preserved in ACL rules for display and export
+- **⚠️ No Access Testing**: App cannot test pub/sub channel permissions (preserve-only approach)
+
 ### Documentation Synchronization & Docker Hub Integration (v1.15.10-beta)
 
 - **📋 Documentation Workflow**: Comprehensive synchronization process preventing version drift across releases

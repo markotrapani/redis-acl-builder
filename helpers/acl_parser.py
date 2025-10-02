@@ -91,28 +91,74 @@ class ACLParser:
         else:
             raise ValueError(f"Invalid key permission token: {token}")
 
-    def parse_acl_rule(self, rule: str) -> Dict[str, Any]:
+    def _extract_selectors(self, rule: str) -> Tuple[str, List[str]]:
         """
-        Parse ACL rule into structured format.
-        
+        Extract selector groups from ACL rule.
+
         Args:
-            rule: ACL rule string (e.g., "+@read -flushdb ~user:*")
-            
+            rule: ACL rule string that may contain selectors in parentheses
+
         Returns:
-            Parsed rule structure with command_rules and key_rules
+            Tuple of (root_rule_string, list_of_selector_strings)
+
+        Example:
+            "+GET ~key1 (+SET ~key2) (+DEL ~key3)"
+            Returns: ("+GET ~key1", ["+SET ~key2", "+DEL ~key3"])
+        """
+        root_parts = []
+        selectors = []
+        i = 0
+
+        while i < len(rule):
+            if rule[i] == '(':
+                # Find matching closing parenthesis
+                depth = 1
+                start = i + 1
+                i += 1
+
+                while i < len(rule) and depth > 0:
+                    if rule[i] == '(':
+                        depth += 1
+                    elif rule[i] == ')':
+                        depth -= 1
+                    i += 1
+
+                if depth != 0:
+                    raise ValueError(f"Unbalanced parentheses in ACL rule: {rule}")
+
+                # Extract selector content (between parentheses)
+                selector_content = rule[start:i-1].strip()
+                if selector_content:
+                    selectors.append(selector_content)
+            else:
+                # Part of root permissions
+                root_parts.append(rule[i])
+                i += 1
+
+        root_rule = ''.join(root_parts).strip()
+        return root_rule, selectors
+
+    def _parse_permission_set(self, rule_string: str) -> Dict[str, Any]:
+        """
+        Parse a single permission set (either root or selector).
+
+        Args:
+            rule_string: ACL rule string without selectors
+
+        Returns:
+            Parsed permission set with command_rules, key_rules, channel_rules
         """
         parsed = {
-            'command_rules': [],  # [{'type': 'allow/deny', 'target': 'command/category', 'value': str}]
-            'key_rules': [],      # [{'type': 'allow/deny', 'pattern': str}]
-            'channel_rules': [],  # [{'type': 'allow', 'pattern': str}] - pub/sub channels
-            'raw_rule': rule.strip()
+            'command_rules': [],
+            'key_rules': [],
+            'channel_rules': []
         }
-        
-        if not rule.strip():
+
+        if not rule_string.strip():
             return parsed
-        
+
         # Split by whitespace and process each token
-        tokens = rule.strip().split()
+        tokens = rule_string.strip().split()
         
         for token in tokens:
             token = token.strip()
@@ -187,6 +233,58 @@ class ACLParser:
                     })
 
         return parsed
+
+    def parse_acl_rule(self, rule: str) -> Dict[str, Any]:
+        """
+        Parse ACL rule into structured format with support for selectors.
+
+        Args:
+            rule: ACL rule string (e.g., "+@read ~user:* (+SET ~cache:*)")
+
+        Returns:
+            Parsed rule structure with root permissions and selectors
+
+        Example structure:
+            {
+                'raw_rule': '+GET ~key1 (+SET ~key2)',
+                'root_permissions': {
+                    'command_rules': [...],
+                    'key_rules': [...],
+                    'channel_rules': [...]
+                },
+                'selectors': [
+                    {
+                        'command_rules': [...],
+                        'key_rules': [...],
+                        'channel_rules': [...]
+                    }
+                ]
+            }
+        """
+        # Extract root permissions and selectors
+        root_rule, selector_strings = self._extract_selectors(rule)
+
+        # Parse root permissions
+        root_permissions = self._parse_permission_set(root_rule)
+
+        # Parse each selector
+        selectors = []
+        for selector_string in selector_strings:
+            selector_permissions = self._parse_permission_set(selector_string)
+            selectors.append(selector_permissions)
+
+        # Build final parsed structure
+        parsed = {
+            'raw_rule': rule.strip(),
+            'root_permissions': root_permissions,
+            'selectors': selectors,
+            # Legacy fields for backward compatibility with existing code
+            'command_rules': root_permissions['command_rules'],
+            'key_rules': root_permissions['key_rules'],
+            'channel_rules': root_permissions['channel_rules']
+        }
+
+        return parsed
     
     def evaluate_command_permissions(self, parsed_rule: Dict[str, Any]) -> Tuple[Set[str], Dict[str, str]]:
         """
@@ -251,46 +349,69 @@ class ACLParser:
 
         return granted, explanations
     
-    def test_command_access(self, command: str, parsed_rule: Dict[str, Any]) -> Tuple[bool, str, List[str]]:
+    def test_command_access(self, command: str, parsed_rule: Dict[str, Any]) -> Tuple[bool, str, List[str], Optional[int]]:
         """
-        Test if a specific command is allowed by the ACL rule.
-        
+        Test if a specific command is allowed by the ACL rule with selector support.
+
+        With selectors, command is allowed if EITHER:
+        - Root permissions grant it, OR
+        - Any selector grants it
+
         Args:
             command: Command name to test (can use spaces like "acl cat")
             parsed_rule: Output from parse_acl_rule()
-            
+
         Returns:
-            Tuple of (is_granted, explanation, categories)
+            Tuple of (is_granted, explanation, categories, selector_index)
                 is_granted: Boolean indicating if command is allowed
-                explanation: String explaining why command was granted/denied
+                explanation: String explaining why command was granted/denied (includes selector info)
                 categories: List of categories this command belongs to
+                selector_index: None if granted by root, or selector index (0-based) if granted by selector
         """
-        granted, explanations = self.evaluate_command_permissions(parsed_rule)
-        
         command_lower = command.lower()
         # Convert space notation to pipe notation for internal lookup (e.g., "acl cat" -> "acl|cat")
         command_internal = command_lower.replace(' ', '|')
-        
-        # Check both formats in case command exists in either form
-        is_granted = command_internal in granted or command_lower in granted
         categories = self.get_command_categories(command)
-        
-        # Look for explanation in both formats
-        explanation = None
-        if command_internal in explanations:
-            explanation = explanations[command_internal]
-        elif command_lower in explanations:
-            explanation = explanations[command_lower]
+
+        # Check root permissions first
+        root_granted, root_explanations = self.evaluate_command_permissions({
+            'command_rules': parsed_rule.get('command_rules', []),
+            'key_rules': parsed_rule.get('key_rules', []),
+            'channel_rules': parsed_rule.get('channel_rules', [])
+        })
+
+        is_root_granted = command_internal in root_granted or command_lower in root_granted
+
+        if is_root_granted:
+            # Command granted by root permissions
+            explanation = root_explanations.get(command_internal) or root_explanations.get(command_lower)
+            if not explanation:
+                explanation = "Granted by root permissions"
+            return True, explanation, categories, None
+
+        # Check selectors (if any)
+        selectors = parsed_rule.get('selectors', [])
+        for i, selector in enumerate(selectors):
+            selector_granted, selector_explanations = self.evaluate_command_permissions(selector)
+            is_selector_granted = command_internal in selector_granted or command_lower in selector_granted
+
+            if is_selector_granted:
+                # Command granted by this selector
+                base_explanation = selector_explanations.get(command_internal) or selector_explanations.get(command_lower)
+                explanation = f"Granted by Selector #{i+1}"
+                if base_explanation:
+                    explanation += f": {base_explanation}"
+                return True, explanation, categories, i
+
+        # Command not granted by root or any selector
+        if command_internal in self.data['commands'] or command_lower in self.data['commands']:
+            explanation = "Command exists but not granted by root permissions or any selector"
         else:
-            # Check if command exists in either format
-            if command_internal in self.data['commands'] or command_lower in self.data['commands']:
-                explanation = "Command exists but not granted by current ACL rule"
-            else:
-                # Format version number nicely (e.g., "redis7" -> "Redis 7")
-                version_display = self.redis_version.replace('redis', 'Redis ') if 'redis' in self.redis_version else self.redis_version
-                explanation = f"Command '{command}' not found in {version_display}. Please check the command spelling."
-        
-        return is_granted, explanation, categories
+            # Format version number nicely (e.g., "redis7" -> "Redis 7")
+            version_display = self.redis_version.replace('redis', 'Redis ') if 'redis' in self.redis_version else self.redis_version
+            explanation = f"Command '{command}' not found in {version_display}. Please check the command spelling."
+
+        return False, explanation, categories, None
     
     def get_command_categories(self, command: str) -> List[str]:
         """
@@ -313,38 +434,19 @@ class ACLParser:
         
         return categories
 
-    def test_key_access(self, key: str, command: str, parsed_rule: Dict[str, Any]) -> Tuple[bool, str, Optional[str], Optional[str]]:
+    def _check_key_patterns(self, key: str, command: str, key_rules: List[Dict[str, Any]]) -> Tuple[bool, str, Optional[str], Optional[str]]:
         """
-        Test if a command on a specific key is allowed by the ACL rule.
-
-        This validates both:
-        1. Command permission (is the command allowed?)
-        2. Key permission (does the key match a pattern with appropriate read/write access?)
+        Helper to check if a key matches any of the key patterns for a command.
 
         Args:
-            key: The key name to test (e.g., 'user:123', 'analytics:session:abc')
-            command: The Redis command (e.g., 'GET', 'SET')
-            parsed_rule: Parsed ACL rule from parse_acl_rule()
+            key: The key name to test
+            command: The Redis command
+            key_rules: List of key rules to check
 
         Returns:
             Tuple of (is_allowed, reason, matched_pattern, permission_type)
-            - is_allowed: True if command on key is allowed
-            - reason: Human-readable explanation
-            - matched_pattern: The key pattern that matched (None if no match)
-            - permission_type: 'read-only', 'write-only', 'read-write' (None if no match)
-
-        Example:
-            >>> test_key_access('analytics:user:123', 'GET', parsed)
-            (True, 'Key matches read-only pattern analytics:*', 'analytics:*', 'read-only')
-
-            >>> test_key_access('analytics:user:123', 'SET', parsed)
-            (False, 'Key requires read-only access, SET requires write permission', 'analytics:*', 'read-only')
         """
         command_lower = command.lower()
-
-        # If no key rules, deny access (Redis default)
-        if not parsed_rule.get('key_rules'):
-            return False, "No key patterns defined in ACL rule", None, None
 
         # Classify the command
         is_read_cmd = command_lower in self.READ_COMMANDS
@@ -367,9 +469,9 @@ class ACLParser:
             needs_write = True
 
         # Check each key rule
-        for key_rule in parsed_rule['key_rules']:
+        for key_rule in key_rules:
             pattern = key_rule['pattern']
-            permission = key_rule.get('permission', 'read-write')  # Default to read-write for backward compatibility
+            permission = key_rule.get('permission', 'read-write')  # Default to read-write
 
             # Check if key matches this pattern (glob-style matching)
             if fnmatch.fnmatch(key, pattern):
@@ -391,42 +493,148 @@ class ACLParser:
                 }[permission]
                 return True, f"Key matches {permission_display} pattern '{pattern}'", pattern, permission
 
-        # No matching pattern
-        return False, f"Key '{key}' does not match any allowed patterns", None, None
+        return False, None, None, None  # No match found
+
+    def test_key_access(self, key: str, command: str, parsed_rule: Dict[str, Any], selector_index: Optional[int] = None) -> Tuple[bool, str, Optional[str], Optional[str]]:
+        """
+        Test if a command on a specific key is allowed by the ACL rule with selector support.
+
+        IMPORTANT: With selectors, key access is ONLY checked against the permission set
+        that granted the command. If root granted the command, only root key patterns are checked.
+        If selector X granted the command, only selector X's key patterns are checked.
+
+        Args:
+            key: The key name to test (e.g., 'user:123', 'analytics:session:abc')
+            command: The Redis command (e.g., 'GET', 'SET')
+            parsed_rule: Parsed ACL rule from parse_acl_rule()
+            selector_index: None if command granted by root, or selector index (0-based) if granted by selector
+
+        Returns:
+            Tuple of (is_allowed, reason, matched_pattern, permission_type)
+            - is_allowed: True if command on key is allowed
+            - reason: Human-readable explanation (includes selector info)
+            - matched_pattern: The key pattern that matched (None if no match)
+            - permission_type: 'read-only', 'write-only', 'read-write' (None if no match)
+        """
+        # Determine which permission set's key patterns to check
+        if selector_index is None:
+            # Command granted by root - only check root key patterns
+            key_rules = parsed_rule.get('key_rules', [])
+            context = "root"
+        else:
+            # Command granted by selector - only check that selector's key patterns
+            selectors = parsed_rule.get('selectors', [])
+            if selector_index >= len(selectors):
+                return False, f"Invalid selector index {selector_index}", None, None
+            key_rules = selectors[selector_index].get('key_rules', [])
+            context = f"Selector #{selector_index+1}"
+
+        # Check key patterns from the appropriate permission set
+        if not key_rules:
+            return False, f"No key patterns defined in {context}", None, None
+
+        is_allowed, reason, pattern, perm_type = self._check_key_patterns(key, command, key_rules)
+        if is_allowed:
+            # Add context if from selector
+            if selector_index is not None:
+                reason = f"Selector #{selector_index+1}: {reason}"
+            return True, reason, pattern, perm_type
+
+        return False, f"Key '{key}' does not match any allowed patterns in {context}", None, None
 
     def validate_rule_syntax(self, rule: str) -> Tuple[bool, List[str]]:
         """
         Validate ACL rule syntax and return any errors.
-        
+
+        Validates:
+        - Balanced parentheses (for selectors)
+        - No nested selectors
+        - Empty selectors
+        - Invalid categories
+        - Unknown commands
+
         Args:
             rule: ACL rule string
-            
+
         Returns:
             Tuple of (is_valid, error_messages)
         """
         errors = []
-        
+
         if not rule.strip():
             return True, []  # Empty rule is valid (means +@all)
-        
+
+        # Validate parentheses balance and nesting BEFORE parsing
+        depth = 0
+        max_depth = 0
+        empty_selector = False
+        last_open = -1
+
+        for i, char in enumerate(rule):
+            if char == '(':
+                if depth > 0:
+                    # Nested parentheses detected
+                    errors.append(f"Nested selectors are not allowed (position {i})")
+                depth += 1
+                max_depth = max(max_depth, depth)
+                last_open = i
+            elif char == ')':
+                depth -= 1
+                if depth < 0:
+                    errors.append(f"Unmatched closing parenthesis at position {i}")
+                    depth = 0  # Reset to continue checking
+                # Check for empty selector
+                if last_open >= 0 and i - last_open <= 1:
+                    empty_selector = True
+                    errors.append(f"Empty selector at position {last_open}-{i}")
+
+        if depth > 0:
+            errors.append(f"Unmatched opening parenthesis (missing {depth} closing parenthesis)")
+
+        # If parentheses errors exist, return early
+        if errors:
+            return False, errors
+
         try:
             parsed = self.parse_acl_rule(rule)
-            
-            # Check for invalid categories
+
+            # Check for invalid categories in root permissions
             for cmd_rule in parsed['command_rules']:
                 if cmd_rule.get('error'):
                     errors.append(cmd_rule['error'])
-            
-            # Check for invalid commands (basic check)
+
+            # Check for invalid commands in root permissions
             for cmd_rule in parsed['command_rules']:
-                if (cmd_rule['target'] == 'command' and 
+                if (cmd_rule['target'] == 'command' and
                     not cmd_rule.get('error') and
                     cmd_rule['value'] not in self.data['commands']):
                     errors.append(f"Unknown command: {cmd_rule['value']}")
-            
+
+            # Check selectors for errors
+            for i, selector in enumerate(parsed.get('selectors', [])):
+                selector_num = i + 1
+
+                # Check for invalid categories in selector
+                for cmd_rule in selector.get('command_rules', []):
+                    if cmd_rule.get('error'):
+                        errors.append(f"Selector #{selector_num}: {cmd_rule['error']}")
+
+                # Check for invalid commands in selector
+                for cmd_rule in selector.get('command_rules', []):
+                    if (cmd_rule['target'] == 'command' and
+                        not cmd_rule.get('error') and
+                        cmd_rule['value'] not in self.data['commands']):
+                        errors.append(f"Selector #{selector_num}: Unknown command: {cmd_rule['value']}")
+
+                # Check for completely empty selector (no rules at all)
+                if (not selector.get('command_rules') and
+                    not selector.get('key_rules') and
+                    not selector.get('channel_rules')):
+                    errors.append(f"Selector #{selector_num} is empty (no permissions defined)")
+
         except Exception as e:
             errors.append(f"Rule parsing error: {str(e)}")
-        
+
         return len(errors) == 0, errors
     
     def get_category_info(self) -> Dict[str, int]:

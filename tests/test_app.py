@@ -244,13 +244,144 @@ class TestACLParser(unittest.TestCase):
         """Test that Redis 8 search commands are properly handled."""
         parsed = self.parser8.parse_acl_rule("+@search")
         granted, explanations = self.parser8.evaluate_command_permissions(parsed)
-        
+
         # Check that search commands are granted
         search_commands = [cmd for cmd in granted if cmd.startswith('ft.')]
         self.assertGreater(len(search_commands), 0, "Should grant FT.* commands")
-    
+
         # Check specific command
         self.assertIn('ft.search', granted)  # Note: might need to check exact case
+
+    # ====== Selector Tests (Redis 7.0+) ======
+
+    def test_selector_basic_parsing(self):
+        """Test basic selector parsing."""
+        parsed = self.parser8.parse_acl_rule("+@read ~user:* (+@write ~logs:*)")
+
+        # Check root permissions
+        self.assertGreater(len(parsed['command_rules']), 0)
+        self.assertEqual(len(parsed['key_rules']), 1)
+        self.assertEqual(parsed['key_rules'][0]['pattern'], 'user:*')
+
+        # Check selectors
+        self.assertEqual(len(parsed['selectors']), 1)
+        selector = parsed['selectors'][0]
+        self.assertGreater(len(selector['command_rules']), 0)
+        self.assertEqual(len(selector['key_rules']), 1)
+        self.assertEqual(selector['key_rules'][0]['pattern'], 'logs:*')
+
+    def test_selector_command_access_root(self):
+        """Test command granted by root permissions."""
+        parsed = self.parser8.parse_acl_rule("+@read ~user:* (+@write ~logs:*)")
+        is_granted, explanation, categories, selector_index = self.parser8.test_command_access('GET', parsed)
+
+        self.assertTrue(is_granted)
+        self.assertIsNone(selector_index)  # Granted by root, not selector
+        self.assertIn('@read', explanation)
+
+    def test_selector_command_access_selector(self):
+        """Test command granted by selector."""
+        parsed = self.parser8.parse_acl_rule("+@read ~user:* (+@write ~logs:*)")
+        is_granted, explanation, categories, selector_index = self.parser8.test_command_access('SET', parsed)
+
+        self.assertTrue(is_granted)
+        self.assertEqual(selector_index, 0)  # Granted by first selector
+        self.assertIn('Selector #1', explanation)
+        self.assertIn('@write', explanation)
+
+    def test_selector_key_isolation_root(self):
+        """Test key access isolation - root command with root key."""
+        parsed = self.parser8.parse_acl_rule("+@read ~user:* (+@write ~logs:*)")
+
+        # GET (root) on user:123 (root key) - should succeed
+        is_allowed, reason, pattern, perm_type = self.parser8.test_key_access('user:123', 'GET', parsed, None)
+
+        self.assertTrue(is_allowed)
+        self.assertEqual(pattern, 'user:*')
+        self.assertEqual(perm_type, 'read-write')
+
+    def test_selector_key_isolation_selector(self):
+        """Test key access isolation - selector command with selector key."""
+        parsed = self.parser8.parse_acl_rule("+@read ~user:* (+@write ~logs:*)")
+
+        # SET (selector) on logs:error (selector key) - should succeed
+        is_allowed, reason, pattern, perm_type = self.parser8.test_key_access('logs:error', 'SET', parsed, 0)
+
+        self.assertTrue(is_allowed)
+        self.assertEqual(pattern, 'logs:*')
+        self.assertIn('Selector #1', reason)
+
+    def test_selector_key_isolation_mismatch_root_cmd_selector_key(self):
+        """Test key access isolation - root command with selector key (should fail)."""
+        parsed = self.parser8.parse_acl_rule("+@read ~user:* (+@write ~logs:*)")
+
+        # GET (root) on logs:error (selector key) - should fail
+        is_allowed, reason, pattern, perm_type = self.parser8.test_key_access('logs:error', 'GET', parsed, None)
+
+        self.assertFalse(is_allowed)
+        self.assertIsNone(pattern)
+        self.assertIn('root', reason)
+
+    def test_selector_key_isolation_mismatch_selector_cmd_root_key(self):
+        """Test key access isolation - selector command with root key (should fail)."""
+        parsed = self.parser8.parse_acl_rule("+@read ~user:* (+@write ~logs:*)")
+
+        # SET (selector) on user:123 (root key) - should fail
+        is_allowed, reason, pattern, perm_type = self.parser8.test_key_access('user:123', 'SET', parsed, 0)
+
+        self.assertFalse(is_allowed)
+        self.assertIsNone(pattern)
+        self.assertIn('Selector #1', reason)
+
+    def test_selector_multiple_selectors(self):
+        """Test multiple selectors."""
+        parsed = self.parser8.parse_acl_rule("+@read (~@write ~logs:*) (+@dangerous ~config:*)")
+
+        self.assertEqual(len(parsed['selectors']), 2)
+
+        # Test command from second selector - FLUSHDB is in @dangerous
+        is_granted, explanation, categories, selector_index = self.parser8.test_command_access('FLUSHDB', parsed)
+        self.assertTrue(is_granted)
+        self.assertEqual(selector_index, 1)  # Second selector (index 1)
+        self.assertIn('Selector #2', explanation)
+
+    def test_selector_validation_balanced_parens(self):
+        """Test selector validation - balanced parentheses."""
+        is_valid, errors = self.parser8.validate_rule_syntax("+@read (~@write")
+
+        self.assertFalse(is_valid)
+        self.assertTrue(any('Unmatched' in err or 'parenthesis' in err for err in errors))
+
+    def test_selector_validation_nested(self):
+        """Test selector validation - nested selectors not allowed."""
+        is_valid, errors = self.parser8.validate_rule_syntax("+@read ((+@write))")
+
+        self.assertFalse(is_valid)
+        self.assertTrue(any('Nested' in err for err in errors))
+
+    def test_selector_validation_empty(self):
+        """Test selector validation - empty selector."""
+        is_valid, errors = self.parser8.validate_rule_syntax("+@read ()")
+
+        self.assertFalse(is_valid)
+        self.assertTrue(any('Empty' in err for err in errors))
+
+    def test_selector_validation_invalid_category(self):
+        """Test selector validation - invalid category in selector."""
+        is_valid, errors = self.parser8.validate_rule_syntax("+@read (+@invalidcategory)")
+
+        self.assertFalse(is_valid)
+        self.assertTrue(any('Selector #1' in err and 'Unknown category' in err for err in errors))
+
+    def test_selector_with_advanced_key_permissions(self):
+        """Test selectors with advanced key permissions (%R~, %W~, %RW~)."""
+        parsed = self.parser8.parse_acl_rule("+@all ~app:* (+@read %R~analytics:*)")
+
+        # Check selector has read-only key pattern
+        selector = parsed['selectors'][0]
+        self.assertEqual(len(selector['key_rules']), 1)
+        self.assertEqual(selector['key_rules'][0]['permission'], 'read-only')
+        self.assertEqual(selector['key_rules'][0]['pattern'], 'analytics:*')
 
 
 class TestFlaskApp(unittest.TestCase):

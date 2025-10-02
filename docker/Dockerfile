@@ -1,11 +1,12 @@
 # Redis ACL Builder - Simplified Single-stage Docker Build
 # Target size: ~45-60MB (pure Python dependencies, no compilation needed)
 # Using Python 3.13 Alpine - Latest stable version with Alpine optimizations
-# Security: OpenSSL CVE-2025-9230 patched (2025-01-02)
+# Security: OpenSSL CVE-2025-9230 patched in v1.18.0-beta (2025-01-02)
 
 FROM python:3.13-alpine
 
 # Upgrade all packages to latest versions (fixes CVE-2025-9230: OpenSSL HIGH)
+# This addresses CVE-2025-9230 (HIGH) by upgrading openssl to >=3.5.4-r0
 RUN apk upgrade --no-cache
 
 # Install runtime dependencies (curl for health checks)
