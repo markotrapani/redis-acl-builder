@@ -492,7 +492,19 @@
 
 /* Global tester drag state */
 .tester-drag-active {
-    cursor: grabbing;
+    cursor: grabbing !important;
+}
+
+/* Universal hover override - disable ALL hover effects during tester drag */
+.tester-drag-active * {
+    cursor: grabbing !important;
+    pointer-events: none !important;
+}
+
+/* Re-enable pointer events only for the dragged tester and drag handle */
+.tester-drag-active .tester-dragging,
+.tester-drag-active .tester-drag-handle {
+    pointer-events: auto !important;
 }
 
 /* Disable hover effects on all elements during tester drag */
@@ -520,6 +532,23 @@
 .tester-drag-active button[disabled],
 .tester-drag-active input:disabled,
 .tester-drag-active input[disabled] {
+    cursor: grabbing !important;
+}
+
+/* Theme-specific hover overrides with higher specificity */
+[data-theme="light"] .tester-drag-active .integrate-toggle-btn:hover,
+[data-theme="light"] .tester-drag-active .split-mode-button:hover,
+[data-theme="light"] .tester-drag-active button:hover,
+[data-theme="light"] .tester-drag-active .test-button:hover,
+[data-theme="dark"] .tester-drag-active .integrate-toggle-btn:hover,
+[data-theme="dark"] .tester-drag-active .split-mode-button:hover,
+[data-theme="dark"] .tester-drag-active button:hover,
+[data-theme="dark"] .tester-drag-active .test-button:hover {
+    background: inherit !important;
+    border-color: inherit !important;
+    color: inherit !important;
+    transform: none !important;
+    box-shadow: inherit !important;
     cursor: grabbing !important;
 }
 
