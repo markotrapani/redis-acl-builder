@@ -10,6 +10,13 @@ import RuleManager from '../managers/rule-manager.js';
 import Storage from '../core/storage.js';
 import SearchManager from './search-manager.js';
 
+// Refactored modules (v1.22.0-beta)
+import ACLOptimizer from './acl-optimizer.js';
+import ACLRuleParser from './acl-rule-parser.js';
+import ACLCategoryManager from './acl-category-manager.js';
+import ACLUIRenderer from './acl-ui-renderer.js';
+import ACLStateManager from './acl-state-manager.js';
+
 const InteractiveACLBuilder = {
     // State management
     state: {
@@ -188,9 +195,9 @@ const InteractiveACLBuilder = {
      */
     async grantCategory(category) {
         // Update state and ordered terms
-        this.StateManager.toggleCategoryState(this.state, category, 'grant');
-        this.state.orderedTerms = this.StateManager.removeTermsByCategory(this.state.orderedTerms, category);
-        this.StateManager.addTerm(this.state.orderedTerms, 'category', 'grant', category);
+        ACLStateManager.toggleCategoryState(this.state, category, 'grant');
+        this.state.orderedTerms = ACLStateManager.removeTermsByCategory(this.state.orderedTerms, category);
+        ACLStateManager.addTerm(this.state.orderedTerms, 'category', 'grant', category);
 
         // Mark that we should check for comprehensive optimization after render
         this.state.shouldComprehensiveOptimize = true;
@@ -204,9 +211,9 @@ const InteractiveACLBuilder = {
      */
     async blockCategory(category) {
         // Update state and ordered terms
-        this.StateManager.toggleCategoryState(this.state, category, 'block');
-        this.state.orderedTerms = this.StateManager.removeTermsByCategory(this.state.orderedTerms, category);
-        this.StateManager.addTerm(this.state.orderedTerms, 'category', 'block', category);
+        ACLStateManager.toggleCategoryState(this.state, category, 'block');
+        this.state.orderedTerms = ACLStateManager.removeTermsByCategory(this.state.orderedTerms, category);
+        ACLStateManager.addTerm(this.state.orderedTerms, 'category', 'block', category);
 
         // Mark that we should check for comprehensive optimization after render
         this.state.shouldComprehensiveOptimize = true;
@@ -221,49 +228,13 @@ const InteractiveACLBuilder = {
      * Clicking the blocked @transaction button should remove both -@transaction and +discard, granting full category
      */
     async grantCategoryAndRemoveConflictingCommands(category) {
-        try {
-            // Get all commands in this category
-            const categoryCommands = await this.getCategoryCommandsCached(category);
-            if (!categoryCommands || categoryCommands.length === 0) {
-                console.warn(`No commands found for category ${category}`);
-                return;
-            }
-
-            // Find individual command grants that belong to this category
-            const conflictingCommands = categoryCommands.filter(cmd =>
-                this.state.grantedCommands.has(cmd)
-            );
-
-
-            // Remove the category block
-            this.state.blockedCategories.delete(category);
-
-            // Remove conflicting individual command grants
-            conflictingCommands.forEach(cmd => {
-                this.state.grantedCommands.delete(cmd);
-            });
-
-            // Grant the category
-            this.state.grantedCategories.add(category);
-
-            // Update ordered terms - remove category block and conflicting command grants
-            this.state.orderedTerms = this.state.orderedTerms.filter(term =>
-                !(term.type === 'category' && term.operation === 'block' && term.value === category) &&
-                !(term.type === 'command' && term.operation === 'grant' && conflictingCommands.includes(term.value))
-            );
-
-            // Add category grant
-            this.StateManager.addTerm(this.state.orderedTerms, 'category', 'grant', category);
-
-            // Show notification about the optimization
-            import('../core/utils.js').then(({ default: Utils }) => {
-                Utils.showNotification(`Granted @${category} and removed ${conflictingCommands.length} conflicting command grants`, 'success');
-            });
-
-            this.scheduleRender();
-        } catch (error) {
-            console.error(`Error granting category ${category} and removing conflicts:`, error);
-        }
+        return ACLCategoryManager.grantCategoryAndRemoveConflictingCommands(
+            this.state,
+            category,
+            (cat) => this.getCategoryCommandsCached(cat),
+            () => this.scheduleRender(),
+            ACLStateManager
+        );
     },
 
     /**
@@ -272,45 +243,12 @@ const InteractiveACLBuilder = {
      * Clicking the granted @transaction button should remove +discard but keep -@transaction
      */
     async removePartialGrantsFromBlockedCategory(category) {
-        try {
-
-            // Get all commands in this category
-            const categoryCommands = await this.getCategoryCommandsCached(category);
-            if (!categoryCommands || categoryCommands.length === 0) {
-                console.warn(`No commands found for category ${category}`);
-                return;
-            }
-
-            // Find individual command grants that belong to this category
-            const grantedCommands = categoryCommands.filter(cmd =>
-                this.state.grantedCommands.has(cmd)
-            );
-
-            if (grantedCommands.length === 0) {
-                return;
-            }
-
-
-            // Remove individual command grants (but keep category block)
-            grantedCommands.forEach(cmd => {
-                this.state.grantedCommands.delete(cmd);
-            });
-
-            // Update ordered terms - remove individual command grants
-            this.state.orderedTerms = this.state.orderedTerms.filter(term =>
-                !(term.type === 'command' && term.operation === 'grant' && grantedCommands.includes(term.value))
-            );
-
-
-            // Show notification about the action
-            import('../core/utils.js').then(({ default: Utils }) => {
-                Utils.showNotification(`Removed ${grantedCommands.length} individual command grants from blocked @${category}`, 'success');
-            });
-
-            this.scheduleRender();
-        } catch (error) {
-            console.error(`Error removing partial grants from blocked category ${category}:`, error);
-        }
+        return ACLCategoryManager.removePartialGrantsFromBlockedCategory(
+            this.state,
+            category,
+            (cat) => this.getCategoryCommandsCached(cat),
+            () => this.scheduleRender()
+        );
     },
 
     /**
@@ -737,58 +675,14 @@ const InteractiveACLBuilder = {
      * This is used when clicking a partially blocked category in the blocked column
      */
     async grantCategoryAndCleanup(category) {
-        try {
-            // Get all commands in this category
-            const categoryCommands = await this.getCategoryCommandsCached(category);
-            const categoryCommandSet = new Set(categoryCommands);
-
-            // Add the category to granted categories
-            this.state.grantedCategories.add(category);
-            this.state.blockedCategories.delete(category);
-
-            // Remove any existing category entries for this category
-            this.state.orderedTerms = this.state.orderedTerms.filter(term =>
-                !(term.type === 'category' && term.value === category)
-            );
-
-            // Remove any individual command entries (both granted and blocked) that belong to this category
-            const commandsToRemove = [];
-            this.state.orderedTerms = this.state.orderedTerms.filter(term => {
-                if (term.type === 'command' && categoryCommandSet.has(term.value)) {
-                    commandsToRemove.push(term.value);
-                    // Also remove from state sets
-                    this.state.grantedCommands.delete(term.value);
-                    this.state.blockedCommands.delete(term.value);
-                    return false; // Remove this term
-                }
-                return true; // Keep other terms
-            });
-
-            // Add the category grant at the end
-            this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
-
-            // Update the rule text and re-render
-            await this.updateRuleText();
-            this.scheduleRender();
-
-            // Show notification about the change
-            import('../core/utils.js').then(({ default: Utils }) => {
-                const commandCount = commandsToRemove.length;
-                if (commandCount > 0) {
-                    Utils.showNotification(
-                        `Granted @${category} category and removed ${commandCount} individual command${commandCount > 1 ? 's' : ''}`,
-                        'success'
-                    );
-                } else {
-                    Utils.showNotification(`Granted @${category} category`, 'success');
-                }
-            });
-
-        } catch (error) {
-            console.error('Error granting category and cleaning up:', error);
-            // Fallback to simple category grant
-            await this.grantCategory(category);
-        }
+        return ACLCategoryManager.grantCategoryAndCleanup(
+            this.state,
+            category,
+            (cat) => this.getCategoryCommandsCached(cat),
+            () => this.updateRuleText(),
+            () => this.scheduleRender(),
+            (cat) => this.grantCategory(cat)
+        );
     },
 
     /**
@@ -796,49 +690,13 @@ const InteractiveACLBuilder = {
      * This is used when clicking a partially granted category in the granted column
      */
     async removeAllCategoryRelatedTerms(category) {
-        try {
-            // Get all commands in this category
-            const categoryCommands = await this.getCategoryCommandsCached(category);
-            if (!categoryCommands || categoryCommands.length === 0) {
-                console.warn(`No commands found for category ${category}`);
-                return;
-            }
-
-            // Remove any explicit category grant/block for this category
-            this.state.grantedCategories.delete(category);
-            this.state.blockedCategories.delete(category);
-
-            // Remove individual command grants/blocks that belong to this category
-            const categoryCommandsSet = new Set(categoryCommands);
-            categoryCommandsSet.forEach(command => {
-                this.state.grantedCommands.delete(command);
-                this.state.blockedCommands.delete(command);
-            });
-
-            // Remove all terms from ordered list that relate to this category
-            this.state.orderedTerms = this.state.orderedTerms.filter(term => {
-                // Remove category rules for this category
-                if (term.type === 'category' && term.value === category) {
-                    return false;
-                }
-                // Remove individual command rules that belong to this category
-                if (term.type === 'command' && categoryCommandsSet.has(term.value)) {
-                    return false;
-                }
-                return true;
-            });
-
-            // Update the rule text and re-render
-            await this.updateRuleText();
-            this.scheduleRender();
-
-            // Show notification about the change
-            import('../core/utils.js').then(({ default: Utils }) => {
-                Utils.showNotification(`Removed all terms related to @${category} category`, 'success');
-            });
-        } catch (error) {
-            console.error(`Error removing terms for category ${category}:`, error);
-        }
+        return ACLCategoryManager.removeAllCategoryRelatedTerms(
+            this.state,
+            category,
+            (cat) => this.getCategoryCommandsCached(cat),
+            () => this.updateRuleText(),
+            () => this.scheduleRender()
+        );
     },
 
     /**
@@ -1011,9 +869,9 @@ const InteractiveACLBuilder = {
      */
     async grantCommand(command) {
         // Update state and ordered terms
-        this.StateManager.toggleCommandState(this.state, command, 'grant');
-        this.state.orderedTerms = this.StateManager.removeTermsByCommand(this.state.orderedTerms, command);
-        this.StateManager.addTerm(this.state.orderedTerms, 'command', 'grant', command);
+        ACLStateManager.toggleCommandState(this.state, command, 'grant');
+        this.state.orderedTerms = ACLStateManager.removeTermsByCommand(this.state.orderedTerms, command);
+        ACLStateManager.addTerm(this.state.orderedTerms, 'command', 'grant', command);
 
         // Mark that we should check for comprehensive optimization after render
         this.state.shouldComprehensiveOptimize = true;
@@ -1809,30 +1667,11 @@ const InteractiveACLBuilder = {
      * Get all commands that are granted via categories
      */
     async getCommandsGrantedByCategories() {
-        if (this.state.grantedCategories.size === 0) {
-            return [];
-        }
-        
-        try {
-            // Build a rule with just the granted categories to see what commands they include
-            const categoryRule = Array.from(this.state.grantedCategories)
-                .map(cat => `+@${cat}`)
-                .join(' ');
-            
-            const response = await API.parseRule(categoryRule, AppState.currentVersion);
-            if (response && response.grouped_commands) {
-                // Extract all commands from all categories
-                const commands = new Set();
-                Object.values(response.grouped_commands).forEach(categoryCommands => {
-                    categoryCommands.forEach(cmd => commands.add(cmd));
-                });
-                return Array.from(commands);
-            }
-        } catch (error) {
-            console.error('Error getting commands for categories:', error);
-        }
-        
-        return [];
+        return ACLCategoryManager.getCommandsGrantedByCategories(
+            this.state.grantedCategories,
+            AppState.currentVersion,
+            API
+        );
     },
 
     /**
@@ -2075,14 +1914,7 @@ const InteractiveACLBuilder = {
      * Get commands for a specific category
      */
     async getCategoryCommands(category) {
-        try {
-            // Use the API to parse a rule with just this category to get its commands
-            const result = await API.parseRule(`+@${category}`, AppState.currentVersion);
-            return result.granted_commands || [];
-        } catch (error) {
-            console.error(`Error getting commands for category ${category}:`, error);
-            return [];
-        }
+        return ACLCategoryManager.getCategoryCommands(category, AppState.currentVersion, API);
     },
     
     /**
@@ -2457,15 +2289,12 @@ const InteractiveACLBuilder = {
      * Get commands for a specific category with caching
      */
     async getCategoryCommandsCached(category) {
-        const cacheKey = `${AppState.currentVersion}:${category}`;
-        
-        if (this._categoryCommandsCache.has(cacheKey)) {
-            return this._categoryCommandsCache.get(cacheKey);
-        }
-        
-        const commands = await this.getCategoryCommands(category);
-        this._categoryCommandsCache.set(cacheKey, commands);
-        return commands;
+        return ACLCategoryManager.getCategoryCommandsCached(
+            category,
+            AppState.currentVersion,
+            this._categoryCommandsCache,
+            (cat) => this.getCategoryCommands(cat)
+        );
     },
 
     /**
@@ -2984,460 +2813,130 @@ const InteractiveACLBuilder = {
      * Block a command that was granted via category
      */
     async blockCommandFromCategory(command) {
-        // Add to blocked commands to explicitly exclude it
-        this.state.blockedCommands.add(command);
-        // Make sure it's not in granted commands
-        this.state.grantedCommands.delete(command);
-
-        // Update ordered terms - remove any existing entries for this command and add new block
-        this.state.orderedTerms = this.state.orderedTerms.filter(term =>
-            !(term.type === 'command' && term.value === command)
+        return ACLCategoryManager.blockCommandFromCategory(
+            this.state,
+            command,
+            () => this.finalizeStateChange()
         );
-        this.state.orderedTerms.push({ type: 'command', operation: 'block', value: command });
-
-        // Mark that we should check for comprehensive optimization after render
-        this.state.shouldComprehensiveOptimize = true;
-
-        // Check if this command completes a category block and auto-simplify if so
-        await this.finalizeStateChange();
     },
 
     /**
      * Check if any categories are now fully granted/blocked via individual commands
      * and automatically simplify them to category grants/blocks
+     * Delegated to ACLOptimizer module
      */
     async checkAndAutoSimplifyCategories() {
-        // Get all categories for current Redis version
-        if (!this.state.allCategories || this.state.allCategories.length === 0) {
-            return;
-        }
-
-        const optimizations = [
-            await this.detectCancelledAllPattern(),
-            await this.detectAllCategoriesPattern(),
-            await this.detectIndividualCategoryOptimizations()
-        ].flat().filter(Boolean);
-
-        await this.applyOptimizations(optimizations);
+        return ACLOptimizer.checkAndAutoSimplifyCategories(this.state, {
+            detectCancelledAllPattern: () => this.detectCancelledAllPattern(),
+            detectAllCategoriesPattern: () => this.detectAllCategoriesPattern(),
+            detectIndividualCategoryOptimizations: () => this.detectIndividualCategoryOptimizations()
+        }, (opts) => this.applyOptimizations(opts));
     },
 
     /**
      * Detect cancelled @all pattern - @all granted but all other categories blocked = empty ACL
      */
+    /**
+     * Optimization detection methods - delegated to ACLOptimizer module
+     */
     async detectCancelledAllPattern() {
-        const hasAllGranted = this.state.grantedCategories.has('all');
-        if (!hasAllGranted) return null;
-
-        const allCategoriesExceptAll = this.state.allCategories.filter(cat => cat !== 'all');
-        const explicitlyBlockedCategoriesExceptAll = Array.from(this.state.blockedCategories).filter(cat => cat !== 'all');
-
-        if (explicitlyBlockedCategoriesExceptAll.length === allCategoriesExceptAll.length &&
-            explicitlyBlockedCategoriesExceptAll.length >= 10) {
-
-            return {
-                type: 'cancelled-all',
-                grantedCategory: 'all',
-                blockedCategories: explicitlyBlockedCategoriesExceptAll,
-                count: explicitlyBlockedCategoriesExceptAll.length
-            };
-        }
-        return null;
+        return ACLOptimizer.detectCancelledAllPattern(this.state);
     },
 
-    /**
-     * Detect all-categories pattern - all categories explicitly granted should become @all
-     */
     async detectAllCategoriesPattern() {
-        const hasAllGranted = this.state.grantedCategories.has('all');
-        if (hasAllGranted) return null;
-
-        const allCategoriesExceptAll = this.state.allCategories.filter(cat => cat !== 'all');
-        const explicitlyGrantedCategoriesExceptAll = Array.from(this.state.grantedCategories).filter(cat => cat !== 'all');
-
-        if (explicitlyGrantedCategoriesExceptAll.length === allCategoriesExceptAll.length &&
-            explicitlyGrantedCategoriesExceptAll.length >= 10) {
-
-            return {
-                type: 'all-categories',
-                categories: explicitlyGrantedCategoriesExceptAll,
-                count: explicitlyGrantedCategoriesExceptAll.length
-            };
-        }
-        return null;
+        return ACLOptimizer.detectAllCategoriesPattern(this.state);
     },
 
-    /**
-     * Detect individual category optimizations (cancelled exclusions, full grants, full blocks)
-     */
     async detectIndividualCategoryOptimizations() {
-        // Skip individual category checking if we have an all-categories pattern
-        const allCategoriesPattern = await this.detectAllCategoriesPattern();
-        if (allCategoriesPattern) return [];
-
-        const optimizations = [];
-
-        for (const category of this.state.allCategories) {
-            const categoryCommands = await this.getCategoryCommandsCached(category);
-            if (!categoryCommands || categoryCommands.length === 0) continue;
-
-            // Check for cancelled-out exclusions (blocked category with all commands individually granted)
-            if (this.state.blockedCategories.has(category)) {
-                const cancelledExclusion = await this.detectCancelledExclusion(category, categoryCommands);
-                if (cancelledExclusion) optimizations.push(cancelledExclusion);
-                continue; // Skip further processing for blocked categories
-            }
-
-            // Check for null category pattern (granted category with all commands blocked)
-            if (this.state.grantedCategories.has(category)) {
-                const nullCategory = await this.detectNullCategory(category, categoryCommands);
-                if (nullCategory) optimizations.push(nullCategory);
-                continue; // Skip further processing for granted categories
-            }
-
-            // Check for full grant or block patterns
-            const grantPattern = await this.detectFullCategoryGrant(category, categoryCommands);
-            if (grantPattern) {
-                optimizations.push(grantPattern);
-            } else {
-                const blockPattern = await this.detectFullCategoryBlock(category, categoryCommands);
-                if (blockPattern) optimizations.push(blockPattern);
-            }
-        }
-
-        return optimizations;
+        return ACLOptimizer.detectIndividualCategoryOptimizations(this.state, (cat) => this.getCategoryCommandsCached(cat));
     },
 
-    /**
-     * Detect cancelled exclusion pattern - blocked category with all commands individually granted
-     */
     async detectCancelledExclusion(category, categoryCommands) {
-        const individuallyGrantedCommands = categoryCommands.filter(cmd =>
-            this.state.grantedCommands.has(cmd)
-        );
-
-        if (individuallyGrantedCommands.length === categoryCommands.length &&
-            individuallyGrantedCommands.length >= 3) {
-            return {
-                type: 'cancel-exclusion',
-                category,
-                commands: individuallyGrantedCommands,
-                count: individuallyGrantedCommands.length
-            };
-        }
-        return null;
+        return ACLOptimizer.detectCancelledExclusion(category, categoryCommands, this.state);
     },
 
-    /**
-     * Detect null category pattern - granted category with all commands individually blocked
-     */
     async detectNullCategory(category, categoryCommands) {
-        const individuallyBlockedCommands = categoryCommands.filter(cmd =>
-            this.state.blockedCommands.has(cmd)
-        );
-
-        if (individuallyBlockedCommands.length === categoryCommands.length &&
-            individuallyBlockedCommands.length >= 3) {
-            return {
-                type: 'null-category',
-                category,
-                commands: individuallyBlockedCommands,
-                count: individuallyBlockedCommands.length
-            };
-        }
-        return null;
+        return ACLOptimizer.detectNullCategory(category, categoryCommands, this.state);
     },
 
-    /**
-     * Detect full category grant pattern - all commands individually granted
-     */
     async detectFullCategoryGrant(category, categoryCommands) {
-        const individuallyGrantedCommands = categoryCommands.filter(cmd =>
-            this.state.grantedCommands.has(cmd)
-        );
-
-        if (individuallyGrantedCommands.length === categoryCommands.length &&
-            individuallyGrantedCommands.length >= 3) {
-            return {
-                type: 'grant',
-                category,
-                commands: individuallyGrantedCommands,
-                count: individuallyGrantedCommands.length
-            };
-        }
-        return null;
+        return ACLOptimizer.detectFullCategoryGrant(category, categoryCommands, this.state);
     },
 
-    /**
-     * Detect full category block pattern - all commands individually blocked
-     */
     async detectFullCategoryBlock(category, categoryCommands) {
-        const individuallyBlockedCommands = categoryCommands.filter(cmd =>
-            this.state.blockedCommands.has(cmd)
-        );
-
-        if (individuallyBlockedCommands.length === categoryCommands.length &&
-            individuallyBlockedCommands.length >= 3) {
-            return {
-                type: 'block',
-                category,
-                commands: individuallyBlockedCommands,
-                count: individuallyBlockedCommands.length
-            };
-        }
-        return null;
+        return ACLOptimizer.detectFullCategoryBlock(category, categoryCommands, this.state);
     },
 
     /**
      * Apply the detected optimizations
+     * Delegated to ACLOptimizer module
      */
     async applyOptimizations(optimizations) {
-        if (optimizations.length === 0) return;
-
-        // Apply optimizations
-        for (const optimization of optimizations) {
-            const { type, category, commands, count, categories, blockedCategories } = optimization;
-
-            if (type === 'cancelled-all') {
-                this.applyCancelledAllOptimization(count);
-            } else if (type === 'all-categories') {
-                this.applyAllCategoriesOptimization(count);
-            } else if (type === 'cancel-exclusion') {
-                this.applyCancelExclusionOptimization(category, commands, count);
-            } else if (type === 'null-category') {
-                this.applyNullCategoryOptimization(category, commands, count);
-            } else if (type === 'grant') {
-                this.applyCategoryGrantOptimization(category, commands, count);
-            } else if (type === 'block') {
-                this.applyCategoryBlockOptimization(category, commands, count);
-            }
-        }
-
-        // Update rule text if any optimizations were applied
-        if (optimizations.length > 0) {
-            await this.updateRuleText();
-        }
+        return ACLOptimizer.applyOptimizations(optimizations, {
+            applyCancelledAllOptimization: (count) => this.applyCancelledAllOptimization(count),
+            applyAllCategoriesOptimization: (count) => this.applyAllCategoriesOptimization(count),
+            applyCancelExclusionOptimization: (cat, cmds, cnt) => this.applyCancelExclusionOptimization(cat, cmds, cnt),
+            applyNullCategoryOptimization: (cat, cmds, cnt) => this.applyNullCategoryOptimization(cat, cmds, cnt),
+            applyCategoryGrantOptimization: (cat, cmds, cnt) => this.applyCategoryGrantOptimization(cat, cmds, cnt),
+            applyCategoryBlockOptimization: (cat, cmds, cnt) => this.applyCategoryBlockOptimization(cat, cmds, cnt)
+        }, () => this.updateRuleText());
     },
 
     /**
      * Individual optimization application methods
+     * Delegated to ACLOptimizer module
      */
     applyCancelledAllOptimization(count) {
-        // Clear all categories and commands - this results in empty ACL (only key patterns remain)
-        this.state.grantedCategories.clear();
-        this.state.blockedCategories.clear();
-        this.state.grantedCommands.clear();
-        this.state.blockedCommands.clear();
-
-        // Remove all command and category terms from ordered list, keep only key patterns
-        this.state.orderedTerms = this.StateManager.removeAllCommandAndCategoryTerms(this.state.orderedTerms);
-
-        // Show success notification
-        this.showOptimizationNotification(`Auto-optimized: cancelled @all pattern simplified to empty ACL (${count} blocked categories removed)`, 'success');
+        return ACLOptimizer.applyCancelledAllOptimization(this.state, count, ACLStateManager);
     },
 
     applyAllCategoriesOptimization(count) {
-        // Clear all existing categories and replace with @all
-        this.state.grantedCategories.clear();
-        this.state.grantedCategories.add('all');
-
-        // Remove all category grant terms from ordered list and replace with @all
-        this.state.orderedTerms = this.state.orderedTerms.filter(term =>
-            !(term.type === 'category' && term.operation === 'grant')
-        );
-        this.StateManager.addTerm(this.state.orderedTerms, 'category', 'grant', 'all');
-
-        // Show success notification
-        this.showOptimizationNotification(`Auto-optimized: replaced ${count} categories with "+@all"`, 'success');
+        return ACLOptimizer.applyAllCategoriesOptimization(this.state, count, ACLStateManager);
     },
 
     applyCancelExclusionOptimization(category, commands, count) {
-        // Remove the category block (since it's cancelled out)
-        this.state.blockedCategories.delete(category);
-
-        // Remove individual command grants (they're redundant now)
-        commands.forEach(cmd => this.state.grantedCommands.delete(cmd));
-
-        // Remove terms from ordered list
-        this.state.orderedTerms = this.StateManager.removeTermsByCategory(this.state.orderedTerms, category, 'block');
-        this.state.orderedTerms = this.StateManager.removeTermsByCommands(this.state.orderedTerms, commands, 'grant');
-
-        // Show success notification
-        this.showOptimizationNotification(`Auto-optimized: removed cancelled "-@${category}" and ${count} individual commands`, 'success');
+        return ACLOptimizer.applyCancelExclusionOptimization(this.state, category, commands, count, ACLStateManager);
     },
 
     applyNullCategoryOptimization(category, commands, count) {
-        // Remove the category grant (since all its commands are blocked)
-        this.state.grantedCategories.delete(category);
-
-        // Remove individual command blocks (they're redundant now - category isn't granted)
-        commands.forEach(cmd => this.state.blockedCommands.delete(cmd));
-
-        // Remove terms from ordered list
-        this.state.orderedTerms = this.StateManager.removeTermsByCategory(this.state.orderedTerms, category, 'grant');
-        this.state.orderedTerms = this.StateManager.removeTermsByCommands(this.state.orderedTerms, commands, 'block');
-
-        // Show success notification
-        this.showOptimizationNotification(`Auto-optimized: null category "+@${category}" and ${count} individual command blocks cancelled out`, 'success');
+        return ACLOptimizer.applyNullCategoryOptimization(this.state, category, commands, count, ACLStateManager);
     },
 
     applyCategoryGrantOptimization(category, commands, count) {
-        // Remove individual command grants
-        commands.forEach(cmd => this.state.grantedCommands.delete(cmd));
-
-        // Remove individual command terms from ordered list
-        this.state.orderedTerms = this.StateManager.removeTermsByCommands(this.state.orderedTerms, commands, 'grant');
-
-        // Add category grant
-        this.StateManager.toggleCategoryState(this.state, category, 'grant');
-        this.StateManager.addTerm(this.state.orderedTerms, 'category', 'grant', category);
-
-        // Show success notification
-        this.showOptimizationNotification(`Auto-optimized: replaced ${count} commands with "+@${category}"`, 'success');
+        return ACLOptimizer.applyCategoryGrantOptimization(this.state, category, commands, count, ACLStateManager);
     },
 
     applyCategoryBlockOptimization(category, commands, count) {
-        // Remove individual command blocks
-        commands.forEach(cmd => this.state.blockedCommands.delete(cmd));
-
-        // Remove individual command terms from ordered list
-        this.state.orderedTerms = this.StateManager.removeTermsByCommands(this.state.orderedTerms, commands, 'block');
-
-        // Add category block
-        this.StateManager.toggleCategoryState(this.state, category, 'block');
-        this.StateManager.addTerm(this.state.orderedTerms, 'category', 'block', category);
-
-        // Show success notification
-        this.showOptimizationNotification(`Auto-optimized: replaced ${count} command blocks with "-@${category}"`, 'success');
+        return ACLOptimizer.applyCategoryBlockOptimization(this.state, category, commands, count, ACLStateManager);
     },
 
     /**
      * Check for comprehensive optimization opportunities and auto-apply
      * Only called when shouldComprehensiveOptimize flag is true (button clicks)
+     * Delegated to ACLOptimizer module
      */
     async checkAndAutoOptimize() {
         const currentRule = this.elements.aclRuleInput.value.trim();
 
-        // Skip optimization for empty rules
-        if (!currentRule) {
-            return;
-        }
-
-        try {
-            const optimizeResponse = await API.optimizeRule(currentRule, AppState.currentVersion);
-
-            if (optimizeResponse.success && optimizeResponse.savings > 0) {
-                // Auto-apply the optimization for button clicks
-                const optimizedRule = optimizeResponse.optimized_rule;
-
-                // Update the textarea
+        return ACLOptimizer.checkAndAutoOptimize(currentRule, AppState.currentVersion, {
+            updateRuleText: (optimizedRule) => {
                 this.elements.aclRuleInput.value = optimizedRule;
+            },
+            updateLastGeneratedRule: (optimizedRule) => {
                 this.state.lastGeneratedRule = optimizedRule;
-
-                // Show notification about the optimization
-                this.showOptimizationNotification(
-                    `Auto-optimized: Saved ${optimizeResponse.savings} term${optimizeResponse.savings > 1 ? 's' : ''} (${optimizeResponse.original_term_count} → ${optimizeResponse.optimized_term_count})`,
-                    'success'
-                );
-
-                // Sync the optimized rule back to the builder state
+            },
+            syncFromRuleText: async () => {
                 await this.syncFromRuleText();
             }
-        } catch (error) {
-            console.error('Auto-optimization check failed:', error);
-            // Silently fail - don't disrupt user experience
-        }
-    },
-
-    /**
-     * Helper method for showing optimization notifications
-     */
-    showOptimizationNotification(message, type) {
-        import('../core/utils.js').then(({ default: Utils }) => {
-            Utils.showNotification(message, type);
         });
     },
 
     /**
-     * State management utilities to reduce code duplication
+     * Helper method for showing optimization notifications
+     * Delegated to ACLOptimizer module
      */
-    StateManager: {
-        /**
-         * Remove terms by category from ordered terms array
-         */
-        removeTermsByCategory(orderedTerms, category, operation = null) {
-            return orderedTerms.filter(term => {
-                if (term.type !== 'category' || term.value !== category) return true;
-                return operation ? term.operation !== operation : false;
-            });
-        },
-
-        /**
-         * Remove terms by command from ordered terms array
-         */
-        removeTermsByCommand(orderedTerms, command, operation = null) {
-            return orderedTerms.filter(term => {
-                if (term.type !== 'command' || term.value !== command) return true;
-                return operation ? term.operation !== operation : false;
-            });
-        },
-
-        /**
-         * Remove terms by commands array from ordered terms array
-         */
-        removeTermsByCommands(orderedTerms, commands, operation = null) {
-            return orderedTerms.filter(term => {
-                if (term.type !== 'command' || !commands.includes(term.value)) return true;
-                return operation ? term.operation !== operation : false;
-            });
-        },
-
-        /**
-         * Remove all command and category terms (keep only key patterns)
-         */
-        removeAllCommandAndCategoryTerms(orderedTerms) {
-            return orderedTerms.filter(term =>
-                !(term.type === 'category' || term.type === 'command')
-            );
-        },
-
-        /**
-         * Toggle category state between granted and blocked
-         */
-        toggleCategoryState(state, category, operation) {
-            if (operation === 'grant') {
-                state.grantedCategories.add(category);
-                state.blockedCategories.delete(category);
-            } else if (operation === 'block') {
-                state.blockedCategories.add(category);
-                state.grantedCategories.delete(category);
-            }
-        },
-
-        /**
-         * Toggle command state between granted and blocked
-         */
-        toggleCommandState(state, command, operation) {
-            if (operation === 'grant') {
-                state.grantedCommands.add(command);
-                state.blockedCommands.delete(command);
-            } else if (operation === 'block') {
-                state.blockedCommands.add(command);
-                state.grantedCommands.delete(command);
-            }
-        },
-
-        /**
-         * Add term to ordered terms if not already present
-         */
-        addTerm(orderedTerms, type, operation, value) {
-            const existingIndex = orderedTerms.findIndex(term =>
-                term.type === type && term.operation === operation && term.value === value
-            );
-
-            if (existingIndex === -1) {
-                orderedTerms.push({ type, operation, value });
-            }
-        }
+    showOptimizationNotification(message, type) {
+        return ACLOptimizer.showOptimizationNotification(message, type);
     },
 
     /**
@@ -3466,64 +2965,26 @@ const InteractiveACLBuilder = {
     /**
      * Simplify individually granted commands to a category grant
      * This is called when clicking an implicitly granted category button
+     * Delegated to ACLOptimizer module
      */
     async simplifyToCategory(category) {
-        // Get all commands for this category
-        const categoryCommands = await this.getCategoryCommandsCached(category);
-        if (!categoryCommands || categoryCommands.length === 0) {
-            console.warn(`No commands found for category ${category}`);
-            return;
-        }
-
-        // Remove all individual commands for this category from granted commands
-        categoryCommands.forEach(cmd => {
-            this.state.grantedCommands.delete(cmd);
-        });
-
-        // Remove individual command terms from ordered list
-        this.state.orderedTerms = this.state.orderedTerms.filter(term =>
-            !(term.type === 'command' && term.operation === 'grant' && categoryCommands.includes(term.value))
-        );
-
-        // Add category grant
-        this.state.grantedCategories.add(category);
-        this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
-
-        // Update rule text and re-render
-        await this.updateRuleText();
-        this.scheduleRender();
-
-        // Show success notification
-        import('../core/utils.js').then(({ default: Utils }) => {
-            Utils.showNotification(`Simplified: replaced ${categoryCommands.length} commands with "+@${category}"`, 'success');
+        return ACLOptimizer.simplifyToCategory(category, this.state, ACLStateManager, {
+            getCategoryCommands: (cat) => this.getCategoryCommandsCached(cat),
+            updateRuleText: () => this.updateRuleText(),
+            scheduleRender: () => this.scheduleRender()
         });
     },
 
     /**
      * Remove all individual commands for a category (when clicking implicitly granted category)
      * This removes the individual commands without adding the category grant
+     * Delegated to ACLOptimizer module
      */
     async removeAllCategoryCommands(category) {
-        // Get all commands for this category
-        const categoryCommands = await this.getCategoryCommandsCached(category);
-        if (!categoryCommands || categoryCommands.length === 0) {
-            console.warn(`No commands found for category ${category}`);
-            return;
-        }
-
-        // Remove all individual commands for this category from granted commands
-        categoryCommands.forEach(cmd => this.state.grantedCommands.delete(cmd));
-
-        // Remove individual command terms from ordered list
-        this.state.orderedTerms = this.StateManager.removeTermsByCommands(this.state.orderedTerms, categoryCommands, 'grant');
-
-        // Update rule text and re-render
-        await this.updateRuleText();
-        this.scheduleRender();
-
-        // Show success notification
-        import('../core/utils.js').then(({ default: Utils }) => {
-            Utils.showNotification(`Removed ${categoryCommands.length} individual @${category} commands`, 'success');
+        return ACLOptimizer.removeAllCategoryCommands(category, this.state, ACLStateManager, {
+            getCategoryCommands: (cat) => this.getCategoryCommandsCached(cat),
+            updateRuleText: () => this.updateRuleText(),
+            scheduleRender: () => this.scheduleRender()
         });
     },
 
@@ -3566,157 +3027,37 @@ const InteractiveACLBuilder = {
 
     /**
      * Generate optimized ACL rule from current state
-     * Terms are ordered: inclusions first, then exclusions, then key patterns (~), then selectors
-     * Within each group, preserve insertion order rather than alphabetical sorting
+     * Delegated to ACLRuleParser module
      */
     async generateOptimizedRule() {
-        const parts = [];
-
-        // Check if we have any inclusion terms for optimization logic
-        const hasInclusions = this.state.grantedCategories.size > 0 || this.state.grantedCommands.size > 0;
-        let grantedCommands = null;
-
-        if (hasInclusions) {
-            // Get all commands that would be granted by the inclusion terms
-            grantedCommands = await this.getCommandsGrantedByInclusions();
-        }
-
-        // Process terms in the exact order they were added/modified
-        this.state.orderedTerms.forEach(term => {
-            if (term.type === 'category') {
-                if (term.operation === 'grant') {
-                    parts.push(`+@${term.value}`);
-                } else if (term.operation === 'block' && hasInclusions) {
-                    // Only add blocked categories if they would actually exclude granted commands
-                    if (this.categoryOverlapsWithGranted(term.value, grantedCommands)) {
-                        parts.push(`-@${term.value}`);
-                    }
-                }
-            } else if (term.type === 'command') {
-                if (term.operation === 'grant') {
-                    parts.push(`+${term.value}`);
-                } else if (term.operation === 'block' && hasInclusions) {
-                    // Only add blocked commands if they would be granted by inclusions
-                    if (grantedCommands && grantedCommands.has(term.value)) {
-                        parts.push(`-${term.value}`);
-                    }
-                }
-            }
+        return ACLRuleParser.generateOptimizedRule(this.state, {
+            getCommandsGrantedByInclusions: () => this.getCommandsGrantedByInclusions(),
+            categoryOverlapsWithGranted: (cat, cmds) => this.categoryOverlapsWithGranted(cat, cmds)
         });
-
-        // Key patterns (~) - these should come after command/category terms
-        if (this.state.keyPatterns) {
-            Array.from(this.state.keyPatterns).forEach(pattern => {
-                parts.push(pattern);
-            });
-        }
-
-        // Channel patterns (&) - these come after key patterns
-        if (this.state.channelPatterns) {
-            Array.from(this.state.channelPatterns).forEach(pattern => {
-                parts.push(pattern);
-            });
-        }
-
-        // Selectors - these come last
-        if (this.state.selectors && this.state.selectors.length > 0) {
-            for (const selector of this.state.selectors) {
-                const selectorParts = [];
-
-                // Process selector's ordered terms
-                selector.orderedTerms.forEach(term => {
-                    if (term.type === 'category') {
-                        selectorParts.push(term.operation === 'grant' ? `+@${term.value}` : `-@${term.value}`);
-                    } else if (term.type === 'command') {
-                        selectorParts.push(term.operation === 'grant' ? `+${term.value}` : `-${term.value}`);
-                    }
-                });
-
-                // Add selector's key patterns
-                if (selector.keyPatterns) {
-                    Array.from(selector.keyPatterns).forEach(pattern => {
-                        selectorParts.push(pattern);
-                    });
-                }
-
-                // Add selector's channel patterns
-                if (selector.channelPatterns) {
-                    Array.from(selector.channelPatterns).forEach(pattern => {
-                        selectorParts.push(pattern);
-                    });
-                }
-
-                // Only add selector if it has content
-                if (selectorParts.length > 0) {
-                    parts.push(`(${selectorParts.join(' ')})`);
-                }
-            }
-        }
-
-        return parts.join(' ');
     },
 
     /**
      * Get all commands that would be granted by current inclusion terms
-     * Uses the same API call pattern as the existing getCommandsGrantedByCategories method
+     * Delegated to ACLRuleParser module
      */
     async getCommandsGrantedByInclusions() {
-        const grantedCommands = new Set();
-
-        // Add individual granted commands
-        this.state.grantedCommands.forEach(command => {
-            grantedCommands.add(command);
-        });
-
-        // Add commands from granted categories (if any)
-        if (this.state.grantedCategories.size > 0) {
-            try {
-                const categoryCommands = await this.getCommandsGrantedByCategories();
-                categoryCommands.forEach(command => {
-                    grantedCommands.add(command);
-                });
-            } catch (error) {
-                console.error('Error getting category commands:', error);
-            }
-        }
-
-        return grantedCommands;
+        return ACLRuleParser.getCommandsGrantedByInclusions(this.state, () => this.getCommandsGrantedByCategories());
     },
 
     /**
      * Get all commands that are blocked by excluded categories
-     * For example, with +@all -@dangerous, this would return all @dangerous commands
+     * Delegated to ACLRuleParser module
      */
     async getCommandsBlockedByCategories() {
-        if (this.state.blockedCategories.size === 0) {
-            return [];
-        }
-        
-        const blockedCommands = new Set();
-        
-        for (const category of this.state.blockedCategories) {
-            try {
-                // Use the same pattern as getCommandsGrantedByCategories
-                const result = await API.parseRule(`+@${category}`, AppState.currentVersion);
-                if (result && result.success && result.granted_commands) {
-                    result.granted_commands.forEach(cmd => blockedCommands.add(cmd));
-                }
-            } catch (error) {
-                console.error(`Error getting commands for blocked category ${category}:`, error);
-            }
-        }
-        
-        return Array.from(blockedCommands);
+        return ACLRuleParser.getCommandsBlockedByCategories(this.state, API, AppState);
     },
 
     /**
      * Check if a blocked category would actually exclude any granted commands
-     * For now, always return true to be safe - we can optimize this later
+     * Delegated to ACLRuleParser module
      */
     categoryOverlapsWithGranted(_category, _grantedCommands) {
-        // Conservative approach: assume all categories might overlap
-        // This prevents overly aggressive filtering while we implement proper category lookup
-        return true;
+        return ACLRuleParser.categoryOverlapsWithGranted(_category, _grantedCommands);
     },
 
 
@@ -4140,10 +3481,10 @@ const InteractiveACLBuilder = {
      */
     updateOrderedTerms(type, operation, value, replaceExisting = true) {
         if (replaceExisting && this.StateManager?.removeTermsByCategory) {
-            this.state.orderedTerms = this.StateManager.removeTermsByCategory(this.state.orderedTerms, value);
+            this.state.orderedTerms = ACLStateManager.removeTermsByCategory(this.state.orderedTerms, value);
         }
         if (this.StateManager?.addTerm) {
-            this.StateManager.addTerm(this.state.orderedTerms, type, operation, value);
+            ACLStateManager.addTerm(this.state.orderedTerms, type, operation, value);
         }
     },
 
