@@ -3,7 +3,7 @@
 Redis Enterprise ACL Builder - Main Flask Application
 """
 
-from flask import Flask, render_template, request, jsonify, Request
+from flask import Flask, render_template, request, jsonify
 from flask.wrappers import Response
 import logging
 import sys
@@ -65,11 +65,12 @@ def get_parser(version: str) -> ACLParser:
 
 def handle_api_error(error_msg: str, status_code: int = 400) -> Tuple[Any, int]:
     """Standard error response format."""
-    return jsonify({
-        'error': True,
-        'message': error_msg,
-        'status_code': status_code
-    }), status_code
+    response = ErrorResponse(
+        error=True,
+        message=error_msg,
+        status_code=status_code
+    )
+    return jsonify(response.model_dump()), status_code
 
 def validate_pydantic_request(model_class: type[BaseModel]) -> Any:
     """Validate request JSON using Pydantic model."""
@@ -80,10 +81,11 @@ def validate_pydantic_request(model_class: type[BaseModel]) -> Any:
         return model_class(**data)
     except ValidationError as e:
         # Format Pydantic validation errors
-        errors = []
+        errors: List[str] = []
         for error in e.errors():
-            field = '.'.join(str(x) for x in error['loc'])
-            errors.append(f"{field}: {error['msg']}")
+            field: str = '.'.join(str(x) for x in error['loc'])
+            msg: str = str(error['msg'])
+            errors.append(f"{field}: {msg}")
         raise ValueError(f"Validation error: {'; '.join(errors)}")
     except Exception as e:
         raise ValueError(f"Invalid request data: {str(e)}")
@@ -115,7 +117,7 @@ def api_parse() -> Union[Response, Tuple[Response, int]]:
         # Parse and evaluate rule
         parsed_rule = parser.parse_acl_rule(req_data.rule)
         granted_commands, _explanations = parser.evaluate_command_permissions(parsed_rule)
-        
+
         # Group commands by category for display
         grouped_commands: Dict[str, List[str]] = {}
         parser_data = parser.data
@@ -125,20 +127,24 @@ def api_parse() -> Union[Response, Tuple[Response, int]]:
                                if category in parser.get_command_categories(cmd)]
             if category_commands:
                 grouped_commands[category] = sorted(category_commands)
-        
+
         # Get rule impact summary
         impact_summary = parser.get_rule_impact_summary(parsed_rule)
-        
-        return jsonify({
-            'success': True,
-            'granted_commands': sorted(list(granted_commands)),
-            'grouped_commands': grouped_commands,
-            'total_granted': len(granted_commands),
-            'total_available': len(cast(Dict[str, Any], parser_data['commands'])),
-            'parsed_rule': parsed_rule,
-            'impact_summary': impact_summary,
-            'version': req_data.version
-        })
+
+        # Extract tokens from parsed rule for response (Pydantic expects List[str])
+        rule_tokens: List[str] = req_data.rule.strip().split() if req_data.rule.strip() else []
+
+        response = ParseACLResponse(
+            success=True,
+            granted_commands=sorted(list(granted_commands)),
+            grouped_commands=grouped_commands,
+            total_granted=len(granted_commands),
+            total_available=len(cast(Dict[str, Any], parser_data['commands'])),
+            parsed_rule=rule_tokens,
+            impact_summary=impact_summary,
+            version=req_data.version
+        )
+        return jsonify(response.model_dump())
         
     except ValueError as e:
         return handle_api_error(str(e))
@@ -163,14 +169,15 @@ def api_test_command() -> Union[Response, Tuple[Response, int]]:
         parsed_rule = parser.parse_acl_rule(req_data.rule)
         is_granted, explanation, categories = parser.test_command_access(req_data.command, parsed_rule)
 
-        return jsonify({
-            'success': True,
-            'command': req_data.command.upper(),
-            'is_granted': is_granted,
-            'explanation': explanation,
-            'categories': categories,
-            'version': req_data.version
-        })
+        response = TestCommandResponse(
+            success=True,
+            command=req_data.command.upper(),
+            is_granted=is_granted,
+            explanation=explanation,
+            categories=categories,
+            version=req_data.version
+        )
+        return jsonify(response.model_dump())
         
     except ValueError as e:
         return handle_api_error(str(e))
@@ -187,14 +194,15 @@ def api_command_info() -> Union[Response, Tuple[Response, int]]:
         parser = get_parser(req_data.version)
         categories = parser.get_command_categories(req_data.command)
 
-        return jsonify({
-            'success': True,
-            'command': req_data.command.upper(),
-            'categories': categories,
-            'exists': len(categories) > 0,
-            'version': req_data.version
-        })
-        
+        response = CommandInfoResponse(
+            success=True,
+            command=req_data.command.upper(),
+            categories=categories,
+            exists=len(categories) > 0,
+            version=req_data.version
+        )
+        return jsonify(response.model_dump())
+
     except ValueError as e:
         return handle_api_error(str(e))
     except Exception as e:
@@ -212,14 +220,22 @@ def api_categories() -> Union[Response, Tuple[Response, int]]:
         parser = get_parser(version)
         category_info = parser.get_category_info()
 
-        return jsonify({
-            'success': True,
-            'version': version,
-            'categories': sorted(category_info.keys()),
-            'category_info': category_info,
-            'total_categories': len(category_info)
-        })
-        
+        # Convert category_info to nested dict format expected by Pydantic
+        # From Dict[str, int] to Dict[str, Dict[str, int]]
+        formatted_category_info: Dict[str, Dict[str, int]] = {
+            cat: {"command_count": count}
+            for cat, count in category_info.items()
+        }
+
+        response = CategoriesResponse(
+            success=True,
+            version=version,
+            categories=sorted(list(category_info.keys())),
+            category_info=formatted_category_info,
+            total_categories=len(category_info)
+        )
+        return jsonify(response.model_dump())
+
     except ValueError as e:
         return handle_api_error(str(e))
     except Exception as e:
@@ -237,23 +253,24 @@ def api_search_commands() -> Union[Response, Tuple[Response, int]]:
 
         # Limit results and add category info
         limited_results = matching_commands[:req_data.limit]
-        results_with_categories: List[Dict[str, Any]] = []
+        results_with_categories: List[CommandSearchResult] = []
 
         for cmd in limited_results:
-            results_with_categories.append({
-                'command': cmd,
-                'categories': parser.get_command_categories(cmd)
-            })
+            results_with_categories.append(CommandSearchResult(
+                command=cmd,
+                categories=parser.get_command_categories(cmd)
+            ))
 
-        return jsonify({
-            'success': True,
-            'pattern': req_data.pattern,
-            'results': results_with_categories,
-            'total_matches': len(matching_commands),
-            'showing': len(limited_results),
-            'version': req_data.version
-        })
-        
+        response = SearchCommandsResponse(
+            success=True,
+            pattern=req_data.pattern,
+            results=results_with_categories,
+            total_matches=len(matching_commands),
+            showing=len(limited_results),
+            version=req_data.version
+        )
+        return jsonify(response.model_dump())
+
     except ValueError as e:
         return handle_api_error(str(e))
     except Exception as e:
@@ -269,14 +286,15 @@ def api_validate_rule() -> Union[Response, Tuple[Response, int]]:
         parser = get_parser(req_data.version)
         is_valid, errors = parser.validate_rule_syntax(req_data.rule)
 
-        return jsonify({
-            'success': True,
-            'rule': req_data.rule,
-            'is_valid': is_valid,
-            'errors': errors,
-            'version': req_data.version
-        })
-        
+        response = ValidateRuleResponse(
+            success=True,
+            rule=req_data.rule,
+            is_valid=is_valid,
+            errors=errors,
+            version=req_data.version
+        )
+        return jsonify(response.model_dump())
+
     except ValueError as e:
         return handle_api_error(str(e))
     except Exception as e:
@@ -292,13 +310,14 @@ def api_analyze_redundancy() -> Union[Response, Tuple[Response, int]]:
         parser = get_parser(req_data.version)
         analysis = parser.analyze_rule_redundancy(req_data.rule)
 
-        return jsonify({
-            'success': True,
-            'rule': req_data.rule,
-            'version': req_data.version,
-            'analysis': analysis
-        })
-        
+        response = AnalyzeRedundancyResponse(
+            success=True,
+            rule=req_data.rule,
+            version=req_data.version,
+            analysis=analysis
+        )
+        return jsonify(response.model_dump())
+
     except ValueError as e:
         return handle_api_error(str(e))
     except Exception as e:
@@ -314,18 +333,19 @@ def api_optimize_rule() -> Union[Response, Tuple[Response, int]]:
         parser = get_parser(req_data.version)
         optimization = parser.optimize_rule(req_data.rule)
 
-        return jsonify({
-            'success': True,
-            'original_rule': optimization['original_rule'],
-            'optimized_rule': optimization['optimized_rule'],
-            'original_term_count': optimization['original_term_count'],
-            'optimized_term_count': optimization['optimized_term_count'],
-            'savings': optimization['savings'],
-            'granted_commands': optimization['granted_commands'],
-            'explanation': optimization['explanation'],
-            'optimization_type': optimization.get('optimization_type'),
-            'version': req_data.version
-        })
+        response = OptimizeRuleResponse(
+            success=True,
+            original_rule=optimization['original_rule'],
+            optimized_rule=optimization['optimized_rule'],
+            original_term_count=optimization['original_term_count'],
+            optimized_term_count=optimization['optimized_term_count'],
+            savings=optimization['savings'],
+            granted_commands=optimization['granted_commands'],
+            explanation=optimization['explanation'],
+            optimization_type=optimization.get('optimization_type'),
+            version=req_data.version
+        )
+        return jsonify(response.model_dump())
 
     except ValueError as e:
         return handle_api_error(str(e))
@@ -367,21 +387,22 @@ def api_test_command_key() -> Union[Response, Tuple[Response, int]]:
         elif not is_allowed:
             reason = f"Command {req_data.command.upper()} is granted, but key access denied: {key_reason}"
         else:
-            reason = f"✅ Access granted: {command_explanation} AND {key_reason}"
+            reason = f"Access granted: {command_explanation} AND {key_reason}"
 
-        return jsonify({
-            'success': True,
-            'command': req_data.command.upper(),
-            'key': req_data.key,
-            'is_allowed': overall_allowed,
-            'command_granted': is_command_granted,
-            'key_access_granted': key_access_granted,
-            'reason': reason,
-            'matched_pattern': matched_pattern,
-            'permission_type': permission_type,
-            'command_categories': command_categories,
-            'version': req_data.version
-        })
+        response = TestCommandKeyResponse(
+            success=True,
+            command=req_data.command.upper(),
+            key=req_data.key,
+            is_allowed=overall_allowed,
+            command_granted=is_command_granted,
+            key_access_granted=key_access_granted,
+            reason=reason,
+            matched_pattern=matched_pattern,
+            permission_type=permission_type,
+            command_categories=command_categories,
+            version=req_data.version
+        )
+        return jsonify(response.model_dump())
 
     except ValueError as e:
         return handle_api_error(str(e))
@@ -392,33 +413,36 @@ def api_test_command_key() -> Union[Response, Tuple[Response, int]]:
 @app.route('/health')
 def health_check() -> Response:
     """Health check endpoint."""
-    return jsonify({
-        'status': 'healthy',
-        'redis_versions': list(PARSERS.keys()),
-        'total_commands': {
+    response = HealthResponse(
+        status='healthy',
+        redis_versions=list(PARSERS.keys()),
+        total_commands={
             version: len(parser.data['commands'])
             for version, parser in PARSERS.items()
         }
-    })
+    )
+    return jsonify(response.model_dump())
 
 @app.errorhandler(404)
 def not_found(_error: Any) -> Tuple[Response, int]:
     """Handle 404 errors."""
-    return jsonify({
-        'error': True,
-        'message': 'Endpoint not found',
-        'status_code': 404
-    }), 404
+    response = ErrorResponse(
+        error=True,
+        message='Endpoint not found',
+        status_code=404
+    )
+    return jsonify(response.model_dump()), 404
 
 @app.errorhandler(500)
 def internal_error(_error: Any) -> Tuple[Response, int]:
     """Handle 500 errors."""
     logger.error(f"Internal server error: {str(_error)}")
-    return jsonify({
-        'error': True,
-        'message': 'Internal server error',
-        'status_code': 500
-    }), 500
+    response = ErrorResponse(
+        error=True,
+        message='Internal server error',
+        status_code=500
+    )
+    return jsonify(response.model_dump()), 500
 
 if __name__ == '__main__':
     print("\n" + "="*60)
