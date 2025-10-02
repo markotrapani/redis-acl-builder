@@ -862,8 +862,12 @@ class ACLParser:
                     'explanation': 'Rule grants no commands - optimized to empty rule'
                 }
 
-            # Count terms in original rule (exclude key patterns)
-            original_tokens = [t for t in rule.split() if not t.startswith('~')]
+            # Extract key patterns from original rule (preserve them in optimized version)
+            rule_tokens = rule.split()
+            key_patterns = [t for t in rule_tokens if t.startswith('~') or t.startswith('%')]
+
+            # Count terms in original rule (exclude key patterns: ~, %R~, %W~, %RW~)
+            original_tokens = [t for t in rule_tokens if not (t.startswith('~') or t.startswith('%'))]
             original_term_count = len(original_tokens)
 
             # Find all possible representations
@@ -953,9 +957,14 @@ class ACLParser:
                     'explanation': 'Current rule is already optimal'
                 }
 
+            # Append key patterns to optimized rule (they don't affect command optimization)
+            optimized_rule = best['rule']
+            if key_patterns:
+                optimized_rule = optimized_rule + ' ' + ' '.join(key_patterns)
+
             return {
                 'original_rule': rule,
-                'optimized_rule': best['rule'],
+                'optimized_rule': optimized_rule,
                 'original_term_count': original_term_count,
                 'optimized_term_count': best['term_count'],
                 'savings': original_term_count - best['term_count'],

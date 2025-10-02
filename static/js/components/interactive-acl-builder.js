@@ -3669,10 +3669,10 @@ const InteractiveACLBuilder = {
                             }
                         }
                         
-                        // Parse key patterns
+                        // Parse key patterns (~, %R~, %W~, %RW~)
                         this.state.keyPatterns.clear();
                         for (const token of tokens) {
-                            if (token.startsWith('~')) {
+                            if (token.startsWith('~') || token.startsWith('%')) {
                                 this.state.keyPatterns.add(token);
                             }
                         }
@@ -3801,8 +3801,8 @@ const InteractiveACLBuilder = {
                 const command = token.substring(1).toLowerCase();
                 this.state.blockedCommands.add(command);
                 this.state.orderedTerms.push({ type: 'command', operation: 'block', value: command });
-            } else if (token.startsWith('~')) {
-                // Key pattern
+            } else if (token.startsWith('~') || token.startsWith('%')) {
+                // Key pattern (~, %R~, %W~, %RW~)
                 this.state.keyPatterns.add(token);
             }
         }

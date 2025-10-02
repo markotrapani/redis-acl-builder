@@ -6,6 +6,9 @@
 import AppState from './app-state.js';
 
 const Utils = {
+    // Store timeout IDs per container to allow cleanup
+    _dismissTimeouts: new WeakMap(),
+
     /**
      * Debounce function to limit API calls
      */
@@ -217,28 +220,44 @@ const Utils = {
                     errors.push(`Invalid command: "${token}" - Command "${content}" does not exist in ${this.formatVersionName(AppState.currentVersion)}`);
                 }
             }
-            else if (token.startsWith('~')) {
-                // Keyspace rule: ~pattern
-                const pattern = token.slice(1);
-                if (pattern === '') {
-                    errors.push(`Invalid keyspace syntax: "${token}" - Missing pattern after ~`);
+            else if (token.startsWith('~') || token.startsWith('%')) {
+                // Keyspace rule: ~pattern, %R~pattern, %W~pattern, %RW~pattern
+                let pattern;
+
+                // Parse key permission prefix
+                if (token.startsWith('%R~')) {
+                    pattern = token.slice(3); // Read-only
+                } else if (token.startsWith('%W~')) {
+                    pattern = token.slice(3); // Write-only
+                } else if (token.startsWith('%RW~')) {
+                    pattern = token.slice(4); // Read-write
+                } else if (token.startsWith('~')) {
+                    pattern = token.slice(1); // Traditional read-write
+                } else {
+                    // Invalid % prefix (must be %R~, %W~, or %RW~)
+                    errors.push(`Invalid key permission syntax: "${token}" - Use %R~, %W~, %RW~, or ~`);
                     continue;
                 }
-                
+
+                if (pattern === '') {
+                    errors.push(`Invalid keyspace syntax: "${token}" - Missing pattern after key permission prefix`);
+                    continue;
+                }
+
                 // Check for spaces within the pattern
                 if (pattern.includes(' ')) {
                     errors.push(`Invalid keyspace syntax: "${token}" - No spaces allowed in keyspace patterns`);
                     continue;
                 }
-                
+
                 // Basic pattern validation (allow alphanumeric, wildcards, colons, etc.)
                 if (!/^[a-zA-Z0-9:*?[\]{}._-]+$/.test(pattern)) {
                     errors.push(`Invalid keyspace pattern: "${token}" - Pattern contains invalid characters`);
                 }
             }
             else {
-                // Invalid token - doesn't start with +, -, or ~
-                errors.push(`Invalid rule syntax: "${token}" - Terms must start with +, -, or ~ operators`);
+                // Invalid token - doesn't start with +, -, ~, or %
+                errors.push(`Invalid rule syntax: "${token}" - Terms must start with +, -, ~, or % operators`);
             }
         }
 
@@ -422,6 +441,12 @@ Do you want to continue and automatically clean the rule?`;
     showDismissibleTestResult(container, html, resultClass, autoDismissMs = 5000) {
         if (!container) return;
 
+        // Clear any existing auto-dismiss timeout for this container
+        if (this._dismissTimeouts.has(container)) {
+            clearTimeout(this._dismissTimeouts.get(container));
+            this._dismissTimeouts.delete(container);
+        }
+
         // Create result with close button
         const resultHtml = `
             <div class="test-result ${resultClass}">
@@ -429,13 +454,19 @@ Do you want to continue and automatically clean the rule?`;
                 ${html}
             </div>
         `;
-        
+
         container.innerHTML = resultHtml;
         const resultDiv = container.querySelector('.test-result');
-        
+
         // Function to smoothly dismiss the result
         const dismissResult = () => {
             if (resultDiv && !resultDiv.classList.contains('dismissing')) {
+                // Clear the timeout when manually dismissing
+                if (this._dismissTimeouts.has(container)) {
+                    clearTimeout(this._dismissTimeouts.get(container));
+                    this._dismissTimeouts.delete(container);
+                }
+
                 resultDiv.classList.add('dismissing');
                 // Wait for animation to complete before removing
                 setTimeout(() => {
@@ -443,18 +474,22 @@ Do you want to continue and automatically clean the rule?`;
                 }, 400); // Match 0.4s transition duration
             }
         };
-        
+
         // Add click handler for close button
         const closeBtn = container.querySelector('.test-result-close');
         if (closeBtn) {
             closeBtn.addEventListener('click', dismissResult);
         }
-        
+
         // Auto-dismiss after specified time
         if (autoDismissMs > 0) {
-            setTimeout(() => {
+            const timeoutId = setTimeout(() => {
                 dismissResult();
+                this._dismissTimeouts.delete(container);
             }, autoDismissMs);
+
+            // Store timeout ID for this container
+            this._dismissTimeouts.set(container, timeoutId);
         }
     },
 
