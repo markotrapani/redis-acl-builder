@@ -1,105 +1,120 @@
 # Redis ACL Builder - Docker Deployment
 
-This folder contains all Docker-related files for the Redis ACL Builder v1.20.0-beta.
+**Version v1.20.0-beta** - Rule Selectors with Complete UI Support
 
-## 📁 Contents
-
-- `Dockerfile` - Production-ready Docker image configuration
-- `.dockerignore` - Docker build context optimization
-- `docker-compose.yml` - Docker Compose configuration
-- `deploy-beta.sh` - Automated deployment script
-- `BETA-README.md` - Complete beta testing documentation
-- `DISTRIBUTION-README.md` - Distribution package instructions
-- **Note**: Docker image files (*.tar) are built locally (not stored in git due to 100MB+ size)
+A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced Key Permissions, and an elegant drag-drop interface.
 
 ## 🚀 Quick Start
 
-### Option 1: Docker Hub (Fastest)
+### Pull and Run from Docker Hub
 
 ```bash
-# Run the latest version directly from Docker Hub
-docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
+# Run the latest version
+docker run -d \
+  --name redis-acl-builder \
+  -p 7380:7380 \
+  --restart unless-stopped \
+  markotrapani608/redis-acl-builder:latest
 
 # Access the application
 open http://localhost:7380
 ```
 
-#### Upgrade to Latest Version (One-Liner)
+### Version-Specific Tags
 
 ```bash
-# Stop, remove, pull latest, and restart with one command
-docker stop redis-acl-builder 2>/dev/null; docker rm redis-acl-builder 2>/dev/null; docker pull markotrapani608/redis-acl-builder:latest && docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
+# Latest stable
+docker pull markotrapani608/redis-acl-builder:latest
+
+# Specific version
+docker pull markotrapani608/redis-acl-builder:v1.20.0-beta
+
+# Beta releases
+docker pull markotrapani608/redis-acl-builder:beta
 ```
 
-### Option 2: Automated Script (Build Locally)
+### Upgrade to Latest Version (One-Liner)
 
 ```bash
-chmod +x deploy-beta.sh
-./deploy-beta.sh
+# Stop, remove, pull latest, and restart
+docker stop redis-acl-builder 2>/dev/null; \
+docker rm redis-acl-builder 2>/dev/null; \
+docker pull markotrapani608/redis-acl-builder:latest && \
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
 ```
 
-### Option 2: Docker Compose
+## 🎯 Key Features
 
-```bash
-docker-compose up -d
-```
+### Rule Selectors (Redis 7.0+)
+- Full UI integration for selector syntax `(+@read ~logs:*)`
+- Perfect isolation between root and selector key patterns
+- OR logic: commands granted if root OR any selector permits
+- Enhanced testing showing which selector granted access
 
-### Option 4: Build and Export Image (for distribution)
+### Advanced Key Permissions (Redis 7.0+)
+- Read-only keys: `%R~pattern`
+- Write-only keys: `%W~pattern`
+- Read-write keys: `%RW~pattern` or `~pattern`
+- Smart error messages for permission mismatches
 
-```bash
-# Build image
-docker build -t redis-acl-builder:1.15.14-beta -f Dockerfile ..
+### Interactive Interface
+- 8-way resizable panels with drag-drop reordering
+- Dual testing modes: split or integrated
+- Real-time validation with auto-optimization
+- Light/dark theme with system preference detection
 
-# Export image (if needed for distribution) - uncompressed for simplicity
-docker save redis-acl-builder:1.15.14-beta > redis-acl-builder-1.15.14-beta.tar
-
-# Run with consistent naming and restart policy
-docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped redis-acl-builder:1.15.14-beta
-```
-
-### Option 5: Alternative Build Locations
-
-```bash
-# From docker folder
-docker build -t redis-acl-builder:1.15.14-beta -f Dockerfile ..
-docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped redis-acl-builder:1.15.14-beta
-
-# From project root
-docker build -t redis-acl-builder:1.15.14-beta -f docker/Dockerfile .
-docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped redis-acl-builder:1.15.14-beta
-```
+### Redis Support
+- Full Redis 7 (311 commands, 21 categories)
+- Full Redis 8 (446 commands, 29 categories including modules)
+- Module support: RediSearch, RedisJSON, TimeSeries, Bloom, etc.
 
 ## 📋 Image Details
 
-- **Base Image**: python:3.13-alpine
+- **Base**: python:3.13-alpine
 - **Runtime**: Gunicorn with 4 workers
 - **Port**: 7380
-- **Health Checks**: Built-in HTTP health monitoring
-- **Security**: Non-root user execution
-- **Size**: ~252MB (compressed: 120MB)
+- **Architecture**: AMD64, ARM64
+- **Size**: ~110MB (multi-arch)
+- **Security**: Non-root user execution, CVE scanned
 
 ## 🔧 Configuration
 
-The Docker image is configured for production use with:
+The image is production-ready with:
+- Production Flask environment
+- Debug mode disabled
+- Automatic health checks
+- Graceful restart on failure
+- 120-second timeout for complex ACL parsing
 
-- Production Flask environment (`FLASK_ENV=production`)
-- Debug mode disabled (`FLASK_DEBUG=False`)
-- Gunicorn WSGI server with 4 worker processes
-- 120-second timeout for long-running requests
-- Automatic restart on failure
+## 🆘 Troubleshooting
 
-## 📖 Full Documentation
+```bash
+# Check container logs
+docker logs redis-acl-builder
 
-- See `BETA-README.md` for complete feature documentation
-- See `DISTRIBUTION-README.md` for distribution package details
-- See `../CLAUDE.md` for development and project information
+# Verify port availability
+lsof -i :7380
 
-## 🆘 Support
+# Test connectivity
+curl http://localhost:7380/
 
-For issues with Docker deployment:
+# Restart container
+docker restart redis-acl-builder
+```
 
-1. Check container logs: `docker logs redis-acl-builder`
-2. Verify port availability: `lsof -i :7380`
-3. Test manually: `curl http://localhost:7380/`
+## 📚 Additional Resources
 
-The application should be accessible at <http://localhost:7380> once deployed.
+- **GitHub Repository**: [markotrapani/marko-projects](https://github.com/markotrapani/marko-projects)
+- **Issue Tracker**: Report bugs and feature requests on GitHub
+- **Documentation**: Full docs available in the running application (click "Info" in header)
+
+## 🏷️ Available Tags
+
+- `latest` - Latest stable release (currently v1.20.0-beta)
+- `beta` - Latest beta release
+- `v1.20.0-beta` - Specific version tag
+- Multi-architecture support (AMD64/ARM64)
+
+---
+
+**Redis ACL Builder** - Built with ❤️ for Redis Enterprise ACL testing and validation
