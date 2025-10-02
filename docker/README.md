@@ -1,6 +1,6 @@
 # Redis ACL Builder - Docker Deployment
 
-**Version v1.20.2-beta** - Rule Selectors with Complete UI Support
+**Version v1.20.3-beta** - Rule Selectors with Complete UI Support
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced Key Permissions, and an elegant drag-drop interface.
 
@@ -27,7 +27,7 @@ open http://localhost:7380
 docker pull markotrapani608/redis-acl-builder:latest
 
 # Specific version
-docker pull markotrapani608/redis-acl-builder:v1.20.2-beta
+docker pull markotrapani608/redis-acl-builder:v1.20.3-beta
 
 # Beta releases
 docker pull markotrapani608/redis-acl-builder:beta
@@ -82,9 +82,9 @@ docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped mar
 The image is production-ready with:
 - Production Flask environment
 - Debug mode disabled
-- Automatic health checks
+- Automatic health checks every 30 seconds
 - Graceful restart on failure
-- 120-second timeout for complex ACL parsing
+- 4 Gunicorn workers with automatic recycling
 
 ## 🆘 Troubleshooting
 

@@ -6,7 +6,7 @@
 
 set -e
 
-echo "🚀 Redis ACL Builder Multi-Architecture Build v1.20.2-beta"
+echo "🚀 Redis ACL Builder Multi-Architecture Build v1.20.3-beta"
 echo "============================================================"
 
 # Check if Docker is installed
