@@ -366,32 +366,12 @@
                             </div>
 
                             <div class="example-group">
-                                <h6 class="example-category">Keyspace Patterns</h6>
-                                <button type="button" class="example" onclick="setRuleAndParse('+@read ~user:* ~session:*')" title="Read-only access to user and session keys">
-                                    +@read ~user:* ~session:*
-                                </button>
-                                <button type="button" class="example" onclick="setRuleAndParse('+get +set +del +exists ~*')" title="Basic key operations only">
-                                    +get +set +del +exists ~*
-                                </button>
-                            </div>
-
-                            <div class="example-group">
-                                <h6 class="example-category">Advanced Key Permissions</h6>
+                                <h6 class="example-category">Advanced Examples</h6>
                                 <button type="button" class="example" onclick="setRuleAndParse('+@all ~app:* %R~analytics:*')" title="Full access to app keys, read-only access to analytics keys">
                                     +@all ~app:* %R~analytics:*
                                 </button>
-                                <button type="button" class="example" onclick="setRuleAndParse('+@read +@write %W~logs:*')" title="Read/write commands, but write-only access to log keys">
-                                    +@read +@write %W~logs:*
-                                </button>
-                            </div>
-
-                            <div class="example-group">
-                                <h6 class="example-category">Rule Selectors (Redis 7.0+)</h6>
                                 <button type="button" class="example" onclick="setRuleAndParse('+@read ~user:* (+@write ~logs:*)')" title="Read access to user keys OR write access to log keys">
                                     +@read ~user:* (+@write ~logs:*)
-                                </button>
-                                <button type="button" class="example" onclick="setRuleAndParse('+@all ~app:* (+@read %R~analytics:*)')" title="Full access to app keys OR read-only access to analytics keys">
-                                    +@all ~app:* (+@read %R~analytics:*)
                                 </button>
                             </div>
                         </section>
