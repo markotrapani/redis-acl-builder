@@ -18,7 +18,8 @@ const InteractiveACLBuilder = {
         grantedCategories: new Set(),
         blockedCommands: new Set(),
         blockedCategories: new Set(),
-        keyPatterns: new Set(),          // Store key patterns like ~*, ~user:*, etc.
+        keyPatterns: new Set(),          // Store key patterns like ~*, ~user:*, %R~*, etc.
+        channelPatterns: new Set(),      // Store pub/sub channel patterns like &*, &channel:*
 
         // New ordered structure for rule generation
         orderedTerms: [],                // Array of {type: 'category|command|keypattern', operation: 'grant|block', value: string}
@@ -3477,6 +3478,13 @@ const InteractiveACLBuilder = {
             });
         }
 
+        // Channel patterns (&) - these come after key patterns
+        if (this.state.channelPatterns) {
+            Array.from(this.state.channelPatterns).forEach(pattern => {
+                parts.push(pattern);
+            });
+        }
+
         return parts.join(' ');
     },
 
@@ -3621,8 +3629,9 @@ const InteractiveACLBuilder = {
             this.state.grantedCommands.clear();
             this.state.blockedCategories.clear();
             this.state.blockedCommands.clear();
-            
+
             this.state.keyPatterns.clear();
+            this.state.channelPatterns.clear();
             this.state.orderedTerms = []; // Reset ordered terms
 
             // Parse the rule using actual ACL logic to get real granted/blocked commands
@@ -3669,11 +3678,14 @@ const InteractiveACLBuilder = {
                             }
                         }
                         
-                        // Parse key patterns (~, %R~, %W~, %RW~)
+                        // Parse key patterns (~, %R~, %W~, %RW~) and channel patterns (&)
                         this.state.keyPatterns.clear();
+                        this.state.channelPatterns.clear();
                         for (const token of tokens) {
                             if (token.startsWith('~') || token.startsWith('%')) {
                                 this.state.keyPatterns.add(token);
+                            } else if (token.startsWith('&')) {
+                                this.state.channelPatterns.add(token);
                             }
                         }
                         
@@ -3804,6 +3816,9 @@ const InteractiveACLBuilder = {
             } else if (token.startsWith('~') || token.startsWith('%')) {
                 // Key pattern (~, %R~, %W~, %RW~)
                 this.state.keyPatterns.add(token);
+            } else if (token.startsWith('&')) {
+                // Channel pattern (&)
+                this.state.channelPatterns.add(token);
             }
         }
     },

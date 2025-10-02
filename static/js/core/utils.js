@@ -255,9 +255,32 @@ const Utils = {
                     errors.push(`Invalid keyspace pattern: "${token}" - Pattern contains invalid characters`);
                 }
             }
+            else if (token.startsWith('&')) {
+                // Pub/Sub channel pattern: &pattern
+                const pattern = token.slice(1);
+
+                if (pattern === '') {
+                    errors.push(`Invalid channel syntax: "${token}" - Missing pattern after &`);
+                    continue;
+                }
+
+                // Check for spaces within the pattern
+                if (pattern.includes(' ')) {
+                    errors.push(`Invalid channel syntax: "${token}" - No spaces allowed in channel patterns`);
+                    continue;
+                }
+
+                // Basic pattern validation (allow alphanumeric, wildcards, colons, etc.)
+                if (!/^[a-zA-Z0-9:*?[\]{}._-]+$/.test(pattern)) {
+                    errors.push(`Invalid channel pattern: "${token}" - Pattern contains invalid characters`);
+                }
+
+                // Note: Channel patterns are accepted but not validated for access
+                // The app cannot test pub/sub channel permissions, only preserve them
+            }
             else {
-                // Invalid token - doesn't start with +, -, ~, or %
-                errors.push(`Invalid rule syntax: "${token}" - Terms must start with +, -, ~, or % operators`);
+                // Invalid token - doesn't start with +, -, ~, %, or &
+                errors.push(`Invalid rule syntax: "${token}" - Terms must start with +, -, ~, %, or & operators`);
             }
         }
 

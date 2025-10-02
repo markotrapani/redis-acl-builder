@@ -104,6 +104,7 @@ class ACLParser:
         parsed = {
             'command_rules': [],  # [{'type': 'allow/deny', 'target': 'command/category', 'value': str}]
             'key_rules': [],      # [{'type': 'allow/deny', 'pattern': str}]
+            'channel_rules': [],  # [{'type': 'allow', 'pattern': str}] - pub/sub channels
             'raw_rule': rule.strip()
         }
         
@@ -174,7 +175,17 @@ class ACLParser:
                 except ValueError as e:
                     # Invalid key permission token, skip it
                     pass
-        
+
+            elif token.startswith('&'):
+                # Pub/Sub channel pattern rule
+                pattern = token[1:]
+                if pattern:  # Only add if pattern is not empty
+                    parsed['channel_rules'].append({
+                        'type': 'allow',  # Channel patterns always grant access
+                        'pattern': pattern,
+                        'original_token': token
+                    })
+
         return parsed
     
     def evaluate_command_permissions(self, parsed_rule: Dict[str, Any]) -> Tuple[Set[str], Dict[str, str]]:
