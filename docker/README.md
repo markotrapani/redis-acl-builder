@@ -121,6 +121,27 @@ For questions about usage, feedback, or to report bugs, please reach out to:
 - `v1.21.0-beta` - Specific version tag
 - Multi-architecture support (AMD64/ARM64)
 
+## 🔒 Security
+
+**Current Security Status (v1.21.0-beta):**
+- ✅ **0 Critical vulnerabilities**
+- ✅ **0 High vulnerabilities**
+- ⚠️ **1 Medium vulnerability** - CVE-2025-8869 (pip 25.2) - waiting for pip 25.3 release
+  - **Low runtime risk**: Only affects pip install operations; production container doesn't install packages
+  - All dependencies installed during build phase; runtime doesn't use pip
+- ⚠️ **2 Low vulnerabilities** in BusyBox (waiting for Alpine upstream to package BusyBox 1.38.0+)
+
+**Security Features:**
+- **Python 3.13.7** with latest security patches
+- **Gunicorn 23.0.0** with HTTP Request Smuggling fixes (CVE-2024-1135, CVE-2024-6827 resolved)
+- **OpenSSL 3.5.4-r0** with CVE-2025-9230 patch
+- **Automated package upgrades** via `apk upgrade` on every build
+- **Non-root user** execution (UID 1000)
+- **Alpine Linux 3.22** base with minimal attack surface
+- **Build-time dependency installation** - pip not used at runtime
+
+We continuously monitor security advisories and update dependencies as fixes become available.
+
 ---
 
 **Redis ACL Builder** - Built with ❤️ for Redis Enterprise ACL testing and validation
