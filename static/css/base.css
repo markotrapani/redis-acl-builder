@@ -301,7 +301,7 @@ h1 {
 }
 
 h2 {
-  color: var(--primary-color);
+  color: var(--info-light);
   margin-bottom: var(--spacing-xs);
   font-size: var(--font-size-xl);
 }

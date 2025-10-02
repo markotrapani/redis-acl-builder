@@ -1,16 +1,20 @@
 /**
- * Integrated Command + Key Tester
+ * Integrated Command + Keyspace Tester
  * Provides unified testing of command permission + key pattern access
  */
 
 import API from '../api/api-client.js';
 import AppState from '../core/app-state.js';
+import InteractiveACLBuilder from './interactive-acl-builder.js';
 
 // DOM element references
 let commandPanel, keyspacePanel, integratedPanel;
 let commandIntegrateBtn, keyspaceIntegrateBtn, splitModeBtn;
 let commandInput, keyspaceInput, integratedCommandInput, integratedKeyInput;
 let integratedTestBtn, integratedResultDiv, keyPermissionHint;
+
+// Store auto-dismiss timeout ID
+let integratedDismissTimeout = null;
 
 /**
  * Initialize the integrated tester
@@ -56,6 +60,9 @@ export function initIntegratedTester() {
         integratedCommandInput.addEventListener('input', updateIntegratedButtonState);
         integratedKeyInput.addEventListener('input', updateIntegratedButtonState);
     }
+
+    // Restore integrated mode state from localStorage
+    restoreIntegratedModeState();
 }
 
 /**
@@ -63,6 +70,9 @@ export function initIntegratedTester() {
  */
 function enterIntegratedMode() {
     if (!commandPanel || !keyspacePanel || !integratedPanel) return;
+
+    // Save state to localStorage
+    localStorage.setItem('testerMode', 'integrated');
 
     // Hide separate panels with fade out
     commandPanel.style.transition = 'opacity 200ms ease-out';
@@ -106,6 +116,9 @@ function enterIntegratedMode() {
 function exitIntegratedMode() {
     if (!commandPanel || !keyspacePanel || !integratedPanel) return;
 
+    // Save state to localStorage
+    localStorage.setItem('testerMode', 'split');
+
     // Fade out integrated panel
     integratedPanel.style.transition = 'opacity 200ms ease-out';
     integratedPanel.style.opacity = '0';
@@ -134,6 +147,9 @@ function exitIntegratedMode() {
             integratedResultDiv.innerHTML = '';
         }
 
+        // Enable split tester buttons if there's prefilled data
+        updateSplitButtonStates();
+
         // Trigger fade in
         setTimeout(() => {
             commandPanel.style.opacity = '1';
@@ -150,7 +166,7 @@ async function testIntegrated() {
 
     const command = integratedCommandInput.value.trim();
     const key = integratedKeyInput.value.trim();
-    const rule = AppState.currentACLRule;
+    const rule = InteractiveACLBuilder.getLastValidRule();
 
     if (!command || !key) {
         showIntegratedResult({
@@ -169,7 +185,7 @@ async function testIntegrated() {
     integratedResultDiv.innerHTML = '<div class="loading">Testing command + key access...</div>';
 
     try {
-        const result = await API.testCommandKey(rule, command, key, AppState.redisVersion);
+        const result = await API.testCommandKey(rule, command, key, AppState.currentVersion);
         showIntegratedResult(result, false);
     } catch (error) {
         showIntegratedResult({
@@ -195,7 +211,8 @@ function showIntegratedResult(result, isError) {
     const statusText = result.is_allowed ? 'ACCESS GRANTED' : 'ACCESS DENIED';
 
     let html = `
-        <div class="integrated-result ${statusClass}" style="opacity: 0; transform: scale(0.95);">
+        <div class="integrated-result test-result ${statusClass}" style="opacity: 0; transform: scale(0.95);">
+            <button class="test-result-close" onclick="dismissIntegratedResult()" aria-label="Dismiss result">✕</button>
             <h4 class="result-header">${statusIcon} ${statusText}</h4>
     `;
 
@@ -238,7 +255,43 @@ function showIntegratedResult(result, isError) {
             resultEl.style.transform = 'scale(1)';
         }
     }, 10);
+
+    // Clear any existing auto-dismiss timeout
+    if (integratedDismissTimeout) {
+        clearTimeout(integratedDismissTimeout);
+    }
+
+    // Auto-dismiss after 15 seconds (longer than split testers due to more content)
+    integratedDismissTimeout = setTimeout(() => {
+        dismissIntegratedResult();
+        integratedDismissTimeout = null;
+    }, 15000);
 }
+
+/**
+ * Dismiss the integrated test result
+ */
+function dismissIntegratedResult() {
+    if (!integratedResultDiv) return;
+
+    // Clear the auto-dismiss timeout if manually dismissing
+    if (integratedDismissTimeout) {
+        clearTimeout(integratedDismissTimeout);
+        integratedDismissTimeout = null;
+    }
+
+    // Add dismissing class for fade-out animation
+    integratedResultDiv.classList.add('dismissing');
+
+    // Remove after animation completes
+    setTimeout(() => {
+        integratedResultDiv.innerHTML = '';
+        integratedResultDiv.classList.remove('dismissing');
+    }, 400);
+}
+
+// Make dismissIntegratedResult globally available for onclick handler
+window.dismissIntegratedResult = dismissIntegratedResult;
 
 /**
  * Format permission type for display
@@ -283,6 +336,47 @@ function updateIntegratedButtonState() {
 export function updateKeyPermissionHint() {
     if (integratedPanel && integratedPanel.style.display !== 'none') {
         checkForKeyPermissions();
+    }
+}
+
+/**
+ * Restore integrated/split mode state from localStorage
+ * Note: Display switching is handled by inline script in HTML to prevent flash
+ */
+function restoreIntegratedModeState() {
+    const savedMode = localStorage.getItem('testerMode');
+
+    if (savedMode === 'integrated') {
+        // Display is already set by inline script - just update state
+        if (integratedPanel) {
+            // Check for key permissions
+            checkForKeyPermissions();
+
+            // Update button state
+            updateIntegratedButtonState();
+        }
+    } else {
+        // Default to split mode - ensure buttons are enabled if data is prefilled
+        setTimeout(() => {
+            updateSplitButtonStates();
+        }, 100);
+    }
+}
+
+/**
+ * Update split tester button states based on prefilled data
+ */
+function updateSplitButtonStates() {
+    // Update command tester button (select by class since it has no ID)
+    const commandTestBtn = document.querySelector('.command-test-button');
+    if (commandTestBtn && commandInput) {
+        commandTestBtn.disabled = commandInput.value.trim().length === 0;
+    }
+
+    // Update keyspace tester button (select by class since it has no ID)
+    const keyspaceTestBtn = document.querySelector('.keyspace-test-button');
+    if (keyspaceTestBtn && keyspaceInput) {
+        keyspaceTestBtn.disabled = keyspaceInput.value.trim().length === 0;
     }
 }
 

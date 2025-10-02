@@ -238,6 +238,34 @@ button.test-button[disabled] {
   cursor: not-allowed !important;
 }
 
+/* Light mode action buttons - lighter pastel gradients */
+[data-theme="light"] .inline-action-button.clear-button {
+  background: linear-gradient(135deg, #ffccbc, #ff8a65);
+  border-color: #ff5722;
+}
+
+[data-theme="light"] .inline-action-button.clear-button:hover {
+  background: linear-gradient(135deg, #ff8a65, #ff5722);
+}
+
+[data-theme="light"] .inline-action-button.copy-button {
+  background: linear-gradient(135deg, #bbdefb, #64b5f6);
+  border-color: #2196F3;
+}
+
+[data-theme="light"] .inline-action-button.copy-button:hover {
+  background: linear-gradient(135deg, #64b5f6, #2196F3);
+}
+
+[data-theme="light"] .inline-action-button.save-button {
+  background: linear-gradient(135deg, #c8e6c9, #81c784);
+  border-color: #4CAF50;
+}
+
+[data-theme="light"] .inline-action-button.save-button:hover {
+  background: linear-gradient(135deg, #81c784, #4CAF50);
+}
+
 /* Disabled hover state for test buttons */
 .test-button:disabled:hover,
 .test-button[disabled]:hover {
@@ -247,7 +275,7 @@ button.test-button[disabled] {
   box-shadow: none !important;
 }
 
-/* Test result close button */
+/* Test result - slides up from button on appear, slides down on dismiss */
 .test-result {
   position: absolute;
   bottom: 8px; /* Closer to the input group */
@@ -255,13 +283,16 @@ button.test-button[disabled] {
   right: var(--panel-padding);
   width: calc(100% - 2 * var(--panel-padding)); /* Match exact width of form area */
   z-index: 10;
-  animation: fadeIn var(--transition-normal) ease-out;
-  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+  /* Use fadeIn animation defined in layout.css (slides up from below) */
+  animation: fadeIn 0.3s ease-out forwards;
 }
 
 .test-result.dismissing {
-  opacity: 0;
-  transform: translateY(15px) scale(0.95);
+  /* Override animation and use transition for dismissing */
+  animation: none !important;
+  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+  opacity: 0 !important;
+  transform: translateY(15px) scale(0.95) !important; /* Slide DOWN back to button when dismissing */
 }
 
 .test-result-close {
@@ -587,7 +618,7 @@ button.test-button[disabled] {
 /* Buttons */
 .test-button {
   color: white;
-  padding: 12px var(--spacing-lg);
+  padding: 12px var(--spacing-sm);
   border-radius: var(--radius-md);
   cursor: pointer;
   font-weight: 700;
@@ -632,6 +663,37 @@ button.test-button[disabled] {
 
 .test-button:focus {
   outline: none; /* Remove default browser outline */
+}
+
+/* Light mode test buttons - lighter pastel gradients */
+[data-theme="light"] .command-test-button {
+  background: linear-gradient(135deg, #ef9a9a, #e57373);
+  border-color: #e53935;
+}
+
+[data-theme="light"] .command-test-button:hover {
+  background: linear-gradient(135deg, #e57373, #e53935);
+  border-color: #c62828;
+}
+
+[data-theme="light"] .keyspace-test-button {
+  background: linear-gradient(135deg, #a5d6a7, #81c784);
+  border-color: #43a047;
+}
+
+[data-theme="light"] .keyspace-test-button:hover {
+  background: linear-gradient(135deg, #81c784, #43a047);
+  border-color: #388e3c;
+}
+
+[data-theme="light"] .integrated-test-button {
+  background: linear-gradient(135deg, #90caf9, #64b5f6) !important;
+  border-color: #1e88e5 !important;
+}
+
+[data-theme="light"] .integrated-test-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #64b5f6, #1e88e5) !important;
+  border-color: #1565c0 !important;
 }
 /* Interactive buttons for categories and commands */
 .category-button, 
@@ -2019,7 +2081,7 @@ button.test-button[disabled] {
 }
 
 /* ================================
-   Integrated Command + Key Tester
+   Integrated Command + Keyspace Tester
    ================================ */
 
 /* Toggle buttons in separate panels - match inline-action-button style with purple gradient */
@@ -2038,15 +2100,15 @@ button.test-button[disabled] {
   justify-content: center;
   min-width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #9575cd, #7e57c2);
   color: white;
-  border-color: #764ba2;
+  border-color: #7e57c2;
 }
 
 .integrate-toggle-btn:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  background: linear-gradient(135deg, #7e57c2, #673ab7);
   transform: translateY(-1px);
-  box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 3px 12px rgba(124, 77, 255, 0.4);
 }
 
 .integrate-toggle-btn:active {
@@ -2054,23 +2116,49 @@ button.test-button[disabled] {
   box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 
+/* Light mode integrate button - lighter pastel purple gradient */
+[data-theme="light"] .integrate-toggle-btn {
+  background: linear-gradient(135deg, #e1bee7, #ba68c8);
+  border-color: #9c27b0;
+  color: #4a148c; /* Dark purple text for better contrast */
+}
+
+[data-theme="light"] .integrate-toggle-btn:hover {
+  background: linear-gradient(135deg, #ce93d8, #ab47bc);
+  color: #4a148c;
+}
+
 /* Integrated tester panel - match existing test section styling */
 .integrated-test-section {
   grid-column: 1 / -1;
+  position: relative; /* Establish positioning context for absolute result */
+  overflow: visible !important; /* Allow result to overflow panel boundaries */
   /* Use same background as other test sections */
 }
 
 /* Split mode button - match inline-action-button style with purple gradient */
 .split-mode-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #9575cd, #7e57c2);
   color: white;
-  border-color: #764ba2;
+  border-color: #7e57c2;
 }
 
 .split-mode-button:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  background: linear-gradient(135deg, #7e57c2, #673ab7);
   transform: translateY(-1px);
-  box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 3px 12px rgba(124, 77, 255, 0.4);
+}
+
+/* Light mode split button - lighter pastel purple gradient */
+[data-theme="light"] .split-mode-button {
+  background: linear-gradient(135deg, #e1bee7, #ba68c8);
+  border-color: #9c27b0;
+  color: #4a148c; /* Dark purple text for better contrast */
+}
+
+[data-theme="light"] .split-mode-button:hover {
+  background: linear-gradient(135deg, #ce93d8, #ab47bc);
+  color: #4a148c;
 }
 
 /* Hint badge */
@@ -2102,39 +2190,101 @@ button.test-button[disabled] {
   min-width: 200px;
 }
 
-/* Integrated test button - match existing test button styling */
+/* Integrated test button - blue theme to distinguish from red/green split testers */
 .integrated-test-button {
   flex-shrink: 0;
   min-width: 120px;
   line-height: 1.2;
   white-space: nowrap;
+  background: linear-gradient(135deg, #2196F3, #1976D2) !important;
+  border-color: #2196F3 !important;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
 }
 
-/* Hint text */
-.integrated-hint-text {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  margin-top: 10px;
-  font-style: italic;
+.integrated-test-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1976D2, #1565C0) !important;
+  border-color: #1976D2 !important;
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.4);
 }
 
-/* Integrated result display */
+.integrated-test-button:active:not(:disabled) {
+  background: #1565C0 !important;
+  border-color: #1565C0 !important;
+}
+
+/* Integrated result display - absolutely positioned to overlay content above */
+#integratedTestResult {
+  position: absolute;
+  bottom: 78px; /* Position above form/button with 8px margin */
+  left: var(--panel-padding);
+  right: var(--panel-padding);
+  width: calc(100% - 2 * var(--panel-padding)); /* Narrower than full width - matches split testers */
+  z-index: 100;
+  pointer-events: none; /* Allow clicks to pass through empty container */
+}
+
+/* Integrated result animations and base styling - match test-result styling */
 .integrated-result {
-  margin-top: 15px;
-  padding: 15px;
+  padding: var(--spacing-md);
   border-radius: var(--radius-md);
-  background: var(--panel-bg);
-  border: 1px solid var(--border-color);
+  font-family: var(--font-mono);
+  position: relative; /* For close button positioning */
+  pointer-events: auto; /* Re-enable clicks on actual result */
+  /* Use fadeIn animation defined in layout.css (slides up from below) */
+  animation: fadeIn 0.3s ease-out forwards;
 }
 
-.integrated-result.success {
-  border-left: 4px solid var(--success-color, #28a745);
-  background: var(--success-bg, rgba(40, 167, 69, 0.05));
+#integratedTestResult.dismissing .integrated-result {
+  /* Override animation and use transition for dismissing */
+  animation: none !important;
+  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+  opacity: 0 !important;
+  transform: translateY(15px) scale(0.95) !important; /* Slide DOWN back to form when dismissing */
 }
 
-.integrated-result.error {
-  border-left: 4px solid var(--error-color, #dc3545);
-  background: var(--error-bg, rgba(220, 53, 69, 0.05));
+/* Light mode integrated result - granted (match test-result.granted) */
+.integrated-result.success,
+[data-theme="light"] .integrated-result.success {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+/* Light mode integrated result - denied (match test-result.denied) */
+.integrated-result.error,
+[data-theme="light"] .integrated-result.error {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+/* Dark mode integrated result - granted */
+[data-theme="dark"] .integrated-result.success {
+  background: #1a3d1a;
+  border: 1px solid #2d5a2d;
+  color: #81c784;
+}
+
+/* Dark mode integrated result - denied */
+[data-theme="dark"] .integrated-result.error {
+  background: #3d1a1a;
+  border: 1px solid #5a2d2d;
+  color: #f28b82;
+}
+
+/* System preference fallback */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) .integrated-result.success {
+    background: #1a3d1a;
+    border: 1px solid #2d5a2d;
+    color: #81c784;
+  }
+
+  html:not([data-theme]) .integrated-result.error {
+    background: #3d1a1a;
+    border: 1px solid #5a2d2d;
+    color: #f28b82;
+  }
 }
 
 .integrated-result .result-header {
@@ -2165,17 +2315,20 @@ button.test-button[disabled] {
   font-size: 0.9rem;
   line-height: 1.5;
   border-left: 3px solid transparent;
+  border: 1px solid transparent;
 }
 
 .check-item.pass {
   background: var(--success-bg, rgba(40, 167, 69, 0.08));
-  border-left-color: var(--success-color, #28a745);
+  border-left: 3px solid var(--success-color, #28a745);
+  border-color: rgba(40, 167, 69, 0.2);
   color: var(--text-color);
 }
 
 .check-item.fail {
   background: var(--error-bg, rgba(220, 53, 69, 0.08));
-  border-left-color: var(--error-color, #dc3545);
+  border-left: 3px solid var(--error-color, #dc3545);
+  border-color: rgba(220, 53, 69, 0.2);
   color: var(--text-color);
 }
 
@@ -2185,7 +2338,6 @@ button.test-button[disabled] {
 
 .check-item .categories {
   color: var(--text-muted);
-  font-style: italic;
   margin-top: 4px;
   display: block;
   font-size: 0.85rem;
@@ -2236,6 +2388,7 @@ button.test-button[disabled] {
   margin-top: 12px;
   padding: 10px;
   background: var(--code-bg, rgba(0, 0, 0, 0.03));
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: var(--radius-sm);
   font-size: 0.9rem;
   line-height: 1.6;

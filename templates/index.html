@@ -515,7 +515,7 @@
                         type="text"
                         id="testKeyspace"
                         class="test-command-input"
-                        placeholder="Enter key name to test (eg. user:123, cache:*) ..."
+                        placeholder="Enter key name to test (eg. user:123, cache:abc) ..."
                         aria-label="Key pattern to test"
                         autocomplete="off"
                         spellcheck="false"
@@ -526,15 +526,15 @@
                 </div>
             </section>
 
-            <!-- Integrated Command + Key Tester (hidden by default) -->
+            <!-- Integrated Command + Keyspace Tester (hidden by default) -->
             <section class="panel test-section integrated-test-section" id="integrated-tester-panel" style="display: none;">
                 <h2>
-                    🔗 Integrated Command + Key Tester
+                    🔗 Integrated Command + Keyspace Tester
                     <button type="button" id="split-mode-btn" class="inline-action-button split-mode-button" title="Split back to separate Command and Keyspace testers">
                         ✕
                     </button>
                 </h2>
-                <p class="text-muted mb-2">Test both command permission AND key pattern access together:</p>
+                <p class="text-muted mb-2">Test command permissions + keyspace access together:</p>
 
                 <!-- Hint badge for key permissions -->
                 <div id="key-permission-hint" class="integrated-hint-badge" style="display: none;">
@@ -548,7 +548,7 @@
                         type="text"
                         id="integratedCommand"
                         class="test-command-input integrated-command-input"
-                        placeholder="Command (e.g., GET, SET)"
+                        placeholder="Enter command to test (eg. GET, SET, FLUSHDB) ..."
                         aria-label="Command to test"
                         autocomplete="off"
                         spellcheck="false"
@@ -557,21 +557,38 @@
                         type="text"
                         id="integratedKey"
                         class="test-command-input integrated-key-input"
-                        placeholder="Key (e.g., cache:user:123)"
+                        placeholder="Enter key name to test (eg. user:123, cache:abc) ..."
                         aria-label="Key name to test"
                         autocomplete="off"
                         spellcheck="false"
                     >
                     <button type="button" id="integrated-test-btn" class="test-button integrated-test-button" aria-label="Test command and key access together" disabled>
-                        TEST COMMAND<br>+ KEY
+                        CHECK<br>CMD+KEYNAME
                     </button>
                 </div>
-
-                <p class="integrated-hint-text">💡 Testing both command permission AND key pattern access</p>
             </section>
             </div>
         </div>
     </div>
+
+    <!-- Apply immediate tester mode if saved in localStorage (prevent flash) -->
+    <script>
+        (function() {
+            const savedMode = localStorage.getItem('testerMode');
+            if (savedMode === 'integrated') {
+                // Hide split panels and show integrated panel immediately
+                const commandPanel = document.getElementById('command-tester-panel');
+                const keyspacePanel = document.getElementById('keyspace-tester-panel');
+                const integratedPanel = document.getElementById('integrated-tester-panel');
+
+                if (commandPanel && keyspacePanel && integratedPanel) {
+                    commandPanel.style.display = 'none';
+                    keyspacePanel.style.display = 'none';
+                    integratedPanel.style.display = 'block';
+                }
+            }
+        })();
+    </script>
 
     <!-- Apply immediate positioning and sizing if saved values exist -->
     <script>
