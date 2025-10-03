@@ -2320,133 +2320,28 @@ const InteractiveACLBuilder = {
      * Create a category button element
      */
     async createCategoryButton(category, state, categoryAnalysis = null, blockType = null) {
-        const button = document.createElement('button');
-
-
-        // Determine visual state and styling
-        let buttonClass, tooltipText, clickHandler;
-        
-        if (state === 'granted') {
-            const analysisState = categoryAnalysis?.[category];
-            const isExplicitlyGranted = this.state.grantedCategories.has(category);
-
-
-            if (analysisState === 'partial') {
-                if (isExplicitlyGranted) {
-                    // Explicit partial category inclusion (user explicitly granted category but some commands are excluded)
-                    buttonClass = `category-button granted partial explicit`;
-                    tooltipText = `@${category} category (explicitly partial) - Some commands in this category are excluded - Click to revoke`;
-                    clickHandler = () => this.toggleCategory(category);
-                } else {
-                    // Implicit partial category inclusion (some commands granted individually)
-                    buttonClass = `category-button granted partial implicit`;
-
-                    if (category === 'all') {
-                        // Special handling for @all - clicking should clear the entire rule to revoke all commands
-                        tooltipText = `@${category} category (implicitly partial) - Some commands currently granted - Click to revoke ALL commands`;
-                        clickHandler = () => this.clearAllCategory();
-                    } else {
-                        // Check if this is a partially explicitly blocked category showing in granted panel
-                        if (this.state.blockedCategories.has(category)) {
-                            tooltipText = `@${category} category (partially implicitly granted) - Category blocked but some commands granted back - Click to remove granted commands`;
-                            clickHandler = () => this.removePartialGrantsFromBlockedCategory(category);
-                        } else {
-                            tooltipText = `@${category} category (implicitly partial) - Some commands granted individually - Click to remove all related terms`;
-                            clickHandler = () => this.removeAllCategoryRelatedTerms(category);
-                        }
-                    }
-                }
-            } else if (analysisState === 'fully-granted' && !this.state.grantedCategories.has(category)) {
-                // Implicitly granted (all commands granted individually)
-                buttonClass = `category-button granted implicit`;
-                tooltipText = `@${category} category (implicitly granted) - All commands granted individually - Click to remove all individual commands`;
-                clickHandler = () => this.removeAllCategoryCommands(category);
-            } else {
-                // Check if this category is granted via @all (implicitly) or explicitly granted
-                const isGrantedViaAll = this.state.grantedCategories.has('all') && !this.state.grantedCategories.has(category);
-
-                if (isGrantedViaAll) {
-                    // Check if this category has conflicting individual commands that make it partial
-                    const hasConflictingCommands = await this.hasConflictingIndividualCommands(category);
-
-                    if (category === 'fast') {
-                    }
-
-                    if (hasConflictingCommands) {
-                        // Category granted via @all but has conflicting individual commands
-                        buttonClass = `category-button granted partial implicit`;
-                        tooltipText = `@${category} category (partially granted via @all) - Has conflicting individual commands - Click to remove conflicting commands`;
-                        clickHandler = () => this.removeConflictingIndividualCommands(category);
-
-                    } else {
-                        // Cleanly granted via @all
-                        buttonClass = `category-button granted implicit`;
-                        tooltipText = `@${category} category (granted via @all) - Click to block`;
-                        clickHandler = () => this.blockCategory(category);
-
-                    }
-                } else {
-                    // Explicitly granted
-                    buttonClass = `category-button granted explicit`;
-                    tooltipText = `@${category} category (explicitly granted) - Click to revoke`;
-                    clickHandler = () => this.toggleCategory(category);
-                }
-            }
-        } else if (state === 'available') {
-            buttonClass = `category-button blocked implicit`; // Available = implicitly blocked (not granted)
-            tooltipText = `Click to grant @${category} category`;
-            clickHandler = () => this.grantCategory(category);
-        } else if (state === 'blocked') {
-            // Determine if explicitly, partially, or implicitly blocked
-            const analysisState = categoryAnalysis?.[category];
-
-            if (analysisState === 'partially-explicitly-blocked') {
-                // Partially explicitly blocked (category blocked but some commands granted back)
-                buttonClass = `category-button blocked partial explicit`;
-                tooltipText = `@${category} category (partially explicitly blocked) - Category blocked but some commands granted back - Click to grant full category`;
-                clickHandler = () => this.grantCategoryAndRemoveConflictingCommands(category);
-            } else if (blockType === 'explicit' || this.state.blockedCategories.has(category)) {
-                buttonClass = `category-button blocked explicit`;
-                tooltipText = `@${category} category (explicitly blocked) - Click to toggle`;
-                clickHandler = () => this.toggleCategory(category);
-            } else if (blockType === 'partial') {
-                // Partially blocked category (some commands blocked individually)
-                buttonClass = `category-button blocked partial implicit`;
-
-                if (category === 'all') {
-                    // Special handling for @all - clicking should grant all commands
-                    tooltipText = `@${category} category (partially blocked) - Some commands currently blocked - Click to grant ALL commands`;
-                    clickHandler = () => this.grantAllCategory();
-                } else {
-                    tooltipText = `@${category} category (partially blocked) - Some commands blocked individually - Click to grant full category`;
-                    clickHandler = () => this.grantCategoryAndCleanup(category);
-                }
-            } else {
-                buttonClass = `category-button blocked implicit`;
-                tooltipText = `@${category} category (implicitly blocked) - Click to grant`;
-                clickHandler = () => this.toggleCategory(category);
-            }
-        } else {
-            buttonClass = `category-button ${state}`;
-            tooltipText = `Click to ${state === 'granted' ? 'revoke' : 'grant'} @${category} category`;
-            clickHandler = () => this.toggleCategory(category);
-        }
-        
-        button.className = buttonClass;
-        // Add visual debug indicator for partial categories
-        if (buttonClass.includes('partial')) {
-            button.textContent = `@${category} ⚠`;
-        } else {
-            button.textContent = `@${category}`;
-        }
-        button.dataset.stateInfo = tooltipText;
-
-        button.onclick = clickHandler;
-
-        // Add enhanced tooltip on hover
-        this.addEnhancedTooltip(button, 'category', category);
-
-        return button;
+        return ACLUIRenderer.createCategoryButton(
+            category,
+            state,
+            categoryAnalysis,
+            blockType,
+            this.state,
+            {
+                toggleCategory: (cat) => this.toggleCategory(cat),
+                clearAllCategory: () => this.clearAllCategory(),
+                removePartialGrantsFromBlockedCategory: (cat) => this.removePartialGrantsFromBlockedCategory(cat),
+                removeAllCategoryRelatedTerms: (cat) => this.removeAllCategoryRelatedTerms(cat),
+                removeAllCategoryCommands: (cat) => this.removeAllCategoryCommands(cat),
+                hasConflictingIndividualCommands: (cat) => this.hasConflictingIndividualCommands(cat),
+                removeConflictingIndividualCommands: (cat) => this.removeConflictingIndividualCommands(cat),
+                blockCategory: (cat) => this.blockCategory(cat),
+                grantCategory: (cat) => this.grantCategory(cat),
+                grantCategoryAndRemoveConflictingCommands: (cat) => this.grantCategoryAndRemoveConflictingCommands(cat),
+                grantAllCategory: () => this.grantAllCategory(),
+                grantCategoryAndCleanup: (cat) => this.grantCategoryAndCleanup(cat)
+            },
+            (btn, type, name) => this.addEnhancedTooltip(btn, type, name)
+        );
     },
 
     /**
