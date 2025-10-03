@@ -1,6 +1,6 @@
 # Redis ACL Builder - Docker Deployment
 
-**Version v1.22.4-beta** - Complete Pylance Strict Mode Type Safety
+**Version v1.23.1-beta** - Interactive Hover Feedback & Animation Fixes
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced Key Permissions, and an elegant drag-drop interface.
 
@@ -59,7 +59,8 @@ docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped mar
 
 ### Interactive Interface
 - 8-way resizable panels with drag-drop reordering
-- Dual testing modes: split or integrated
+- Dual testing modes: split or integrated with smooth animations
+- Interactive hover feedback showing button actions (emoji swap)
 - Real-time validation with auto-optimization
 - Light/dark theme with system preference detection
 
@@ -116,14 +117,14 @@ For questions about usage, feedback, or to report bugs, please reach out to:
 
 ## 🏷️ Available Tags
 
-- `latest` - Latest stable release (currently v1.22.3-beta)
+- `latest` - Latest stable release (currently v1.23.1-beta)
 - `beta` - Latest beta release
-- `v1.22.3-beta` - Specific version tag
+- `v1.23.1-beta` - Specific version tag
 - Multi-architecture support (AMD64/ARM64)
 
 ## 🔒 Security
 
-**Current Security Status (v1.22.3-beta):**
+**Current Security Status (v1.23.1-beta):**
 - ✅ **0 Critical vulnerabilities**
 - ✅ **0 High vulnerabilities**
 - ⚠️ **1 Medium vulnerability** - CVE-2025-8869 (pip 25.2) - waiting for pip 25.3 release
