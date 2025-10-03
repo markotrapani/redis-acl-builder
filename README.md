@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version v1.21.4-beta** - Testing Panel Drag-Drop Fix
+**Version v1.22.4-beta** - Complete Pylance Strict Mode Type Safety
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 

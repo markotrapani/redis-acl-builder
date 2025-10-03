@@ -2,11 +2,11 @@
 
 # Redis ACL Builder Multi-Architecture Build Script
 # Builds for both AMD64 (Intel/AMD) and ARM64 (Apple Silicon/ARM) architectures
-# Version 1.22.3-beta
+# Version 1.22.4-beta
 
 set -e
 
-echo "🚀 Redis ACL Builder Multi-Architecture Build v1.22.3-beta"
+echo "🚀 Redis ACL Builder Multi-Architecture Build v1.22.4-beta"
 echo "============================================================"
 
 # Check if Docker is installed

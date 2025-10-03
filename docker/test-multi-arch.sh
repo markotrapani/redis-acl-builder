@@ -2,11 +2,11 @@
 
 # Redis ACL Builder Multi-Architecture Test Script
 # Tests both AMD64 and ARM64 builds independently to verify compatibility
-# Version 1.14.1-beta
+# Version 1.22.4-beta
 
 set -e
 
-echo "🧪 Redis ACL Builder Multi-Architecture Test v1.22.3-beta"
+echo "🧪 Redis ACL Builder Multi-Architecture Test v1.22.4-beta"
 echo "=========================================================="
 
 # Check if Docker Buildx is available

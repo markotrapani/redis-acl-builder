@@ -1,6 +1,6 @@
 # Redis ACL Builder - Docker Deployment
 
-**Version v1.22.3-beta** - Comprehensive Interactive ACL Builder Refactoring Complete
+**Version v1.22.4-beta** - Complete Pylance Strict Mode Type Safety
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced Key Permissions, and an elegant drag-drop interface.
 
