@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Redis ACL Builder Beta Deployment Script
-# Version 1.14.1-beta
+# Version 1.22.3-beta
 
 set -e
 
-echo "🚀 Redis ACL Builder Beta v1.21.0-beta - Deployment Script"
+echo "🚀 Redis ACL Builder Beta v1.22.3-beta - Deployment Script"
 echo "=================================================="
 
 # Check if Docker is installed
