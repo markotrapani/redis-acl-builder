@@ -1019,9 +1019,9 @@ class ACLParser:
                     
                     if not current_commands:
                         continue
-                    
-                    preceding_granted = cumulative_granted_by_position[idx - 1] if idx > 0 else set()
-                    preceding_inclusion_tokens = [tokens[i] for i in range(idx) if tokens[i].startswith('+') and not tokens[i].startswith('~')]
+
+                    preceding_granted: Set[str] = cumulative_granted_by_position[idx - 1] if idx > 0 else set()
+                    preceding_inclusion_tokens: List[str] = [tokens[i] for i in range(idx) if tokens[i].startswith('+') and not tokens[i].startswith('~')]
                     
                     if preceding_inclusion_tokens and preceding_granted.issubset(current_commands):
                         warnings.append(f"Inefficient rule structure: '{token}' grants all commands from preceding inclusion terms\nPreceding terms made redundant: {', '.join(preceding_inclusion_tokens)}")
@@ -1089,7 +1089,7 @@ class ACLParser:
             redundant_token_set = {rt['term'] for rt in redundant_terms}
             
             # Keep only non-redundant tokens
-            simplified_tokens = []
+            simplified_tokens: List[str] = []
             for token in tokens:
                 if token not in redundant_token_set:
                     simplified_tokens.append(token)
@@ -1191,7 +1191,7 @@ class ACLParser:
             original_term_count = len(original_tokens)
 
             # Find all possible representations
-            representations = []
+            representations: List[Dict[str, Any]] = []
 
             # 1. Try pure category grants
             for category, commands in self.data['categories'].items():
@@ -1263,7 +1263,7 @@ class ACLParser:
                     'explanation': 'No shorter equivalent representation found'
                 }
 
-            best = min(representations, key=lambda r: r['term_count'])
+            best: Dict[str, Any] = min(representations, key=lambda r: r['term_count'])
 
             if best['term_count'] >= original_term_count:
                 # No improvement
@@ -1278,7 +1278,7 @@ class ACLParser:
                 }
 
             # Append key patterns to optimized rule (they don't affect command optimization)
-            optimized_rule = best['rule']
+            optimized_rule: str = best['rule']
             if key_patterns:
                 optimized_rule = optimized_rule + ' ' + ' '.join(key_patterns)
 
@@ -1496,7 +1496,7 @@ class ACLParser:
                     category_coverage[category].add(command)
 
             # Check each category for completion
-            completed_categories = []
+            completed_categories: List[Tuple[str, int]] = []
             for category, granted_in_category in category_coverage.items():
                 if category in self.data['categories']:
                     all_commands_in_category = set(self.data['categories'][category])
@@ -1524,7 +1524,7 @@ class ACLParser:
                             warnings.append(f"Individual commands cover entire @{category} category ({command_count} commands)")
 
                             # Generate optimized rule for clickable suggestion
-                            optimized_rule = self._generate_optimized_rule_for_category(parsed_rule, category)
+                            optimized_rule: str = self._generate_optimized_rule_for_category(parsed_rule, category)
 
                             # Add suggestion in the existing clickable format
                             suggestions.append(f"Simplified rule: {optimized_rule}")
@@ -1600,7 +1600,7 @@ class ACLParser:
                     excluded_commands.add(rule['value'])
 
             # Check each included category to see if all its commands are excluded
-            null_categories = []
+            null_categories: List[Tuple[str, int]] = []
             for category in included_categories:
                 if category in self.data['categories']:
                     category_commands = set(self.data['categories'][category])
@@ -1615,7 +1615,7 @@ class ACLParser:
                     warnings.append(f"Null category detected: +@{category} is included but all {command_count} commands are then excluded")
 
                     # Generate optimized rule that removes the null category and its exclusions
-                    optimized_rule = self._generate_optimized_rule_for_null_category(parsed_rule, category)
+                    optimized_rule: str = self._generate_optimized_rule_for_null_category(parsed_rule, category)
                     if optimized_rule.strip():
                         suggestions.append(f"Simplified rule: {optimized_rule}")
                     else:
