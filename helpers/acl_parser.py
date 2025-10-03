@@ -1334,7 +1334,7 @@ class ACLParser:
             'exclusions': sorted(list(total_exclusions))
         }
 
-    def _is_legitimate_security_pattern(self, command_rules: List[Dict[str, str]], current_index: int, current_token: Dict[str, str]) -> bool:
+    def _is_legitimate_security_pattern(self, command_rules: List[Dict[str, Any]], current_index: int, current_token: str) -> bool:
         """
         Detect if the current inclusion rule is part of a legitimate security pattern.
 
@@ -1634,7 +1634,7 @@ class ACLParser:
             # If optimization fails, return original rule
             return parsed_rule['raw_rule']
 
-    def _group_redundancy_warnings(self, warnings: List[str], suggestions: List[str], redundant_terms: List[str]) -> None:
+    def _group_redundancy_warnings(self, warnings: List[str], suggestions: List[str], redundant_terms: List[Dict[str, Any]]) -> Tuple[List[str], List[str], List[Dict[str, Any]]]:
         """
         Group similar redundancy warnings to avoid overwhelming the user with many similar messages.
 
@@ -1743,7 +1743,7 @@ class ACLParser:
 
         return grouped_warnings, suggestions, grouped_terms
 
-    def _analyze_all_categories_pattern(self, parsed_rule: Dict[str, Any], warnings: List[str], suggestions: List[str], redundant_terms: List[str]) -> None:
+    def _analyze_all_categories_pattern(self, parsed_rule: Dict[str, Any], warnings: List[str], suggestions: List[str], redundant_terms: List[Dict[str, Any]]) -> None:
         """
         Check if all available categories are explicitly granted and suggest +@all optimization.
 
@@ -1802,7 +1802,7 @@ class ACLParser:
             # Don't let all-categories analysis errors break the main redundancy analysis
             pass
 
-    def _analyze_cancelled_all_pattern(self, parsed_rule: Dict[str, Any], warnings: List[str], suggestions: List[str], redundant_terms: List[str]) -> None:
+    def _analyze_cancelled_all_pattern(self, parsed_rule: Dict[str, Any], warnings: List[str], suggestions: List[str], redundant_terms: List[Dict[str, Any]]) -> None:
         """
         Check if @all is granted but then all categories are blocked, resulting in empty ACL.
 

@@ -2,7 +2,7 @@
 """
 Redis Data Parser - Loads and processes Redis command categories
 """
-from typing import Dict, List, Any
+from typing import Dict, List
 
 def get_redis_data() -> Dict[str, Dict[str, Dict[str, List[str]]]]:
     """Return the complete Redis command and category data for both versions."""
@@ -123,7 +123,7 @@ def get_redis_data() -> Dict[str, Dict[str, Dict[str, List[str]]]]:
     return redis_data
 
 
-def build_command_indexes(redis_data: Dict[str, Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+def build_command_indexes(redis_data: Dict[str, Dict[str, Dict[str, List[str]]]]) -> Dict[str, Dict[str, Dict[str, List[str]]]]:
     """Build reverse indexes for fast command -> category lookups."""
     for version in redis_data:
         redis_data[version]['commands'] = {}
@@ -134,5 +134,5 @@ def build_command_indexes(redis_data: Dict[str, Dict[str, Any]]) -> Dict[str, Di
                 if cmd_lower not in redis_data[version]['commands']:
                     redis_data[version]['commands'][cmd_lower] = []
                 redis_data[version]['commands'][cmd_lower].append(category)
-    
+
     return redis_data
