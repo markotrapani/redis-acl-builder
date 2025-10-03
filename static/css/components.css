@@ -180,6 +180,29 @@ button.test-button[disabled] {
   background: var(--orange-gradient);
   color: white;
   border-color: var(--orange-color, #E64A19);
+  position: relative;
+}
+
+/* Hover emoji swap - show explosion on hover (indicating destructive action) */
+.inline-action-button.clear-button::before {
+  content: '💥';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  font-size: 16px;
+  background: var(--orange-gradient-hover);
+}
+
+.inline-action-button.clear-button:hover:not([disabled])::before {
+  opacity: 1;
 }
 
 .inline-action-button.clear-button:hover {
@@ -242,6 +265,11 @@ button.test-button[disabled] {
 [data-theme="light"] .inline-action-button.clear-button {
   background: linear-gradient(135deg, #ffccbc, #ff8a65);
   border-color: #ff5722;
+}
+
+/* Light mode explosion emoji background */
+[data-theme="light"] .inline-action-button.clear-button::before {
+  background: linear-gradient(135deg, #ff8a65, #ff5722);
 }
 
 [data-theme="light"] .inline-action-button.clear-button:hover {
