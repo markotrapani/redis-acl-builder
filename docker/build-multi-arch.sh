@@ -44,7 +44,7 @@ docker buildx inspect --bootstrap
 
 # Define the image name and tag
 IMAGE_NAME="redis-acl-builder"
-IMAGE_TAG="v1.21.0-beta"
+IMAGE_TAG="v1.22.3-beta"
 FULL_IMAGE_NAME="$IMAGE_NAME:$IMAGE_TAG"
 
 # Build for multiple architectures
