@@ -142,8 +142,8 @@ class ACLParser:
             "+GET ~key1 (+SET ~key2) (+DEL ~key3)"
             Returns: ("+GET ~key1", ["+SET ~key2", "+DEL ~key3"])
         """
-        root_parts = []
-        selectors = []
+        root_parts: List[str] = []
+        selectors: List[str] = []
         i = 0
 
         while i < len(rule):
@@ -255,7 +255,7 @@ class ACLParser:
                         'pattern': pattern,
                         'original_token': token
                     })
-                except ValueError as e:
+                except ValueError:
                     # Invalid key permission token, skip it
                     pass
 
@@ -305,7 +305,7 @@ class ACLParser:
         root_permissions = self._parse_permission_set(root_rule)
 
         # Parse each selector
-        selectors = []
+        selectors: List[PermissionSet] = []
         for selector_string in selector_strings:
             selector_permissions = self._parse_permission_set(selector_string)
             selectors.append(selector_permissions)
@@ -647,7 +647,7 @@ class ACLParser:
         Returns:
             Tuple of (is_valid, error_messages)
         """
-        errors = []
+        errors: List[str] = []
 
         if not rule.strip():
             return True, []  # Empty rule is valid (means +@all)
@@ -807,10 +807,10 @@ class ACLParser:
             parsed = self.parse_acl_rule(rule)
         except Exception as e:
             return {'warnings': [], 'suggestions': [], 'redundant_terms': [], 'error': str(e)}
-        
-        warnings = []
-        suggestions = []
-        redundant_terms = []
+
+        warnings: List[str] = []
+        suggestions: List[str] = []
+        redundant_terms: List[Dict[str, Any]] = []
         
         # Track cumulative effects as we process left-to-right
         cumulative_granted = set()
@@ -1693,12 +1693,12 @@ class ACLParser:
         redundant_inclusion_pattern = "Redundant inclusion:"
         redundant_exclusion_pattern = "Redundant exclusion:"
 
-        inclusion_warnings = []
-        inclusion_terms = []
-        exclusion_warnings = []
-        exclusion_terms = []
-        other_warnings = []
-        other_terms = []
+        inclusion_warnings: List[str] = []
+        inclusion_terms: List[Dict[str, Any]] = []
+        exclusion_warnings: List[str] = []
+        exclusion_terms: List[Dict[str, Any]] = []
+        other_warnings: List[str] = []
+        other_terms: List[Dict[str, Any]] = []
 
         # Separate inclusion warnings, exclusion warnings, and others
         for i, warning in enumerate(warnings):
