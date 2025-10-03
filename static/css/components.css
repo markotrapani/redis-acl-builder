@@ -2092,29 +2092,53 @@ button.test-button[disabled] {
 
 /* Toggle buttons in separate panels - match inline-action-button style with purple gradient */
 .integrate-toggle-btn {
-  /* Float right within the paragraph */
-  float: right;
-  margin-left: 10px;
+  /* Position inline - comes before drag handle, margin-left auto pushes both right */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  margin-right: var(--spacing-sm); /* Gap between this button and drag handle */
   padding: 4px 8px;
   border: 2px solid transparent;
   border-radius: var(--radius-sm);
   font-size: 16px;
   cursor: pointer;
   transition: all var(--transition-normal);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-width: 32px;
   height: 32px;
   background: linear-gradient(135deg, #9575cd, #7e57c2);
   color: white;
   border-color: #7e57c2;
+  vertical-align: middle;
+  position: relative;
+}
+
+/* Hover emoji swap - show linked chain on hover (indicating "link" action) */
+.integrate-toggle-btn::before {
+  content: '🔗';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  font-size: 16px;
+  background: linear-gradient(135deg, #7e57c2, #673ab7); /* Cover original emoji */
+}
+
+.integrate-toggle-btn:hover::before {
+  opacity: 1;
 }
 
 .integrate-toggle-btn:hover {
   background: linear-gradient(135deg, #7e57c2, #673ab7);
-  transform: translateY(-1px);
   box-shadow: 0 3px 12px rgba(124, 77, 255, 0.4);
+  transform: translateY(-1px);
 }
 
 .integrate-toggle-btn:active {
@@ -2129,9 +2153,12 @@ button.test-button[disabled] {
   color: #4a148c; /* Dark purple text for better contrast */
 }
 
+[data-theme="light"] .integrate-toggle-btn::before {
+  background: linear-gradient(135deg, #ce93d8, #ab47bc); /* Match light mode colors */
+}
+
 [data-theme="light"] .integrate-toggle-btn:hover {
   background: linear-gradient(135deg, #ce93d8, #ab47bc);
-  color: #4a148c;
 }
 
 /* Integrated tester panel - match existing test section styling */
@@ -2142,20 +2169,59 @@ button.test-button[disabled] {
   /* Use same background as other test sections */
 }
 
-/* Split mode button - match inline-action-button style with purple gradient */
+/* Split mode button - default purple styling (matches integrate buttons) */
 .split-mode-button {
-  /* Float right within the paragraph */
+  /* Position in top right of h2 */
   float: right;
   margin-left: 10px;
+  padding: 4px 8px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
   background: linear-gradient(135deg, #9575cd, #7e57c2);
   color: white;
   border-color: #7e57c2;
+  position: relative;
+}
+
+/* Hover emoji swap - show broken chain on hover (indicating "unlink/split" action) */
+.split-mode-button::before {
+  content: '⛓️‍💥';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  font-size: 16px;
+  background: linear-gradient(135deg, #7e57c2, #673ab7); /* Cover original emoji */
+}
+
+.split-mode-button:hover::before {
+  opacity: 1;
 }
 
 .split-mode-button:hover {
   background: linear-gradient(135deg, #7e57c2, #673ab7);
-  transform: translateY(-1px);
   box-shadow: 0 3px 12px rgba(124, 77, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.split-mode-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 
 /* Light mode split button - lighter pastel purple gradient */
@@ -2165,9 +2231,46 @@ button.test-button[disabled] {
   color: #4a148c; /* Dark purple text for better contrast */
 }
 
+[data-theme="light"] .split-mode-button::before {
+  background: linear-gradient(135deg, #ce93d8, #ab47bc); /* Match light mode colors */
+}
+
 [data-theme="light"] .split-mode-button:hover {
   background: linear-gradient(135deg, #ce93d8, #ab47bc);
-  color: #4a148c;
+}
+
+/* Split mode button in INTEGRATED panel only - yellow/orange styling */
+.integrated-test-section .split-mode-button {
+  background: linear-gradient(135deg, #e65100, #f57c00);
+  border-color: #ff9800;
+  color: #fff3e0; /* Light cream color for excellent contrast */
+  font-weight: bold;
+}
+
+.integrated-test-section .split-mode-button::before {
+  background: linear-gradient(135deg, #f57c00, #fb8c00); /* Match integrated panel colors */
+}
+
+.integrated-test-section .split-mode-button:hover {
+  background: linear-gradient(135deg, #f57c00, #fb8c00);
+  box-shadow: 0 3px 12px rgba(255, 152, 0, 0.4);
+}
+
+/* Light mode - yellow/orange only for integrated panel */
+[data-theme="light"] .integrated-test-section .split-mode-button {
+  background: linear-gradient(135deg, #fff3e0, #ffcc02);
+  border-color: #ff9800;
+  color: #e65100; /* Darker orange for better contrast */
+  font-weight: 900; /* Bolder text for better visibility */
+}
+
+[data-theme="light"] .integrated-test-section .split-mode-button::before {
+  background: linear-gradient(135deg, #ffcc02, #ffb300); /* Match light mode integrated panel colors */
+}
+
+[data-theme="light"] .integrated-test-section .split-mode-button:hover {
+  background: linear-gradient(135deg, #ffcc02, #ffb300);
+  box-shadow: 0 3px 12px rgba(255, 152, 0, 0.3);
 }
 
 /* Hint badge */

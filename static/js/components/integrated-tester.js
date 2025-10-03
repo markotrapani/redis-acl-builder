@@ -106,6 +106,13 @@ function enterIntegratedMode() {
         // Trigger fade in
         setTimeout(() => {
             integratedPanel.style.opacity = '1';
+
+            // Clear inline styles after animation completes to prevent interference with drag-drop
+            setTimeout(() => {
+                integratedPanel.style.transition = '';
+                integratedPanel.style.opacity = '';
+                integratedPanel.style.display = '';
+            }, 300);
         }, 10);
     }, 200);
 }
@@ -154,6 +161,16 @@ function exitIntegratedMode() {
         setTimeout(() => {
             commandPanel.style.opacity = '1';
             keyspacePanel.style.opacity = '1';
+
+            // Clear inline styles after animation completes to prevent interference with drag-drop
+            setTimeout(() => {
+                commandPanel.style.transition = '';
+                commandPanel.style.opacity = '';
+                commandPanel.style.display = '';
+                keyspacePanel.style.transition = '';
+                keyspacePanel.style.opacity = '';
+                keyspacePanel.style.display = '';
+            }, 300);
         }, 10);
     }, 200);
 }
