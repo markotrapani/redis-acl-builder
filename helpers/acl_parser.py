@@ -3,9 +3,47 @@
 Redis ACL Parser - Parse and evaluate Redis ACL rules
 """
 
-from typing import Dict, List, Set, Tuple, Any, Optional
+from typing import Dict, List, Set, Tuple, Any, Optional, TypedDict, Literal
 import fnmatch
 import re
+
+# Type definitions for ACL parsing structures
+class CommandRule(TypedDict, total=False):
+    """Type definition for a command rule in ACL."""
+    type: Literal['allow', 'deny']
+    target: Literal['command', 'category']
+    value: str
+    original_token: str
+    error: str  # Optional error message
+
+class KeyRule(TypedDict):
+    """Type definition for a key permission rule."""
+    type: Literal['allow']
+    permission: Literal['read-write', 'read-only', 'write-only']
+    pattern: str
+    original_token: str
+
+class ChannelRule(TypedDict):
+    """Type definition for a pub/sub channel rule."""
+    type: Literal['allow']
+    pattern: str
+    original_token: str
+
+class PermissionSet(TypedDict):
+    """Type definition for a set of permissions (root or selector)."""
+    command_rules: List[CommandRule]
+    key_rules: List[KeyRule]
+    channel_rules: List[ChannelRule]
+
+class ParsedACLRule(TypedDict):
+    """Type definition for a fully parsed ACL rule."""
+    raw_rule: str
+    root_permissions: PermissionSet
+    selectors: List[PermissionSet]
+    # Legacy fields for backward compatibility
+    command_rules: List[CommandRule]
+    key_rules: List[KeyRule]
+    channel_rules: List[ChannelRule]
 
 class ACLParser:
     """Parse and evaluate Redis ACL rules."""
@@ -45,7 +83,7 @@ class ACLParser:
         'smove', 'zpopmin', 'zpopmax', 'bzpopmin', 'bzpopmax'
     }
 
-    def __init__(self, redis_data: Dict, redis_version: str = 'redis7'):
+    def __init__(self, redis_data: Dict[str, Any], redis_version: str = 'redis7'):
         """
         Initialize ACL parser with Redis data.
 
@@ -55,11 +93,11 @@ class ACLParser:
         """
         self.redis_version = redis_version
         self.data: Dict[str, Any] = redis_data[redis_version]
-        
+
         if not self.data.get('commands'):
             raise ValueError(f"Command index not built for {redis_version}")
 
-    def parse_key_permission(self, token: str) -> Tuple[str, str]:
+    def parse_key_permission(self, token: str) -> Tuple[Literal['read-write', 'read-only', 'write-only'], str]:
         """
         Parse key permission token into permission type and pattern.
 
@@ -138,7 +176,7 @@ class ACLParser:
         root_rule = ''.join(root_parts).strip()
         return root_rule, selectors
 
-    def _parse_permission_set(self, rule_string: str) -> Dict[str, Any]:
+    def _parse_permission_set(self, rule_string: str) -> PermissionSet:
         """
         Parse a single permission set (either root or selector).
 
@@ -148,7 +186,7 @@ class ACLParser:
         Returns:
             Parsed permission set with command_rules, key_rules, channel_rules
         """
-        parsed = {
+        parsed: PermissionSet = {
             'command_rules': [],
             'key_rules': [],
             'channel_rules': []
@@ -802,6 +840,7 @@ class ACLParser:
             processed_tokens.add(original_token)
             
             # For @all, collect all commands from the expanded rules with same token
+            rule_commands: Set[str]
             if original_token in ['+@all', '-@all']:
                 rule_commands = set()
                 # Collect all commands from rules with this token

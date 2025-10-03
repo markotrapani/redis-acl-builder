@@ -2,12 +2,17 @@
 """
 Redis Data Parser - Loads and processes Redis command categories
 """
-from typing import Dict, List
+from typing import Dict, List, TypedDict, cast
 
-def get_redis_data() -> Dict[str, Dict[str, Dict[str, List[str]]]]:
+class RedisVersionData(TypedDict):
+    """Type definition for Redis version data structure."""
+    categories: Dict[str, List[str]]  # category_name -> list of commands
+    commands: Dict[str, List[str]]    # command_name -> list of categories
+
+def get_redis_data() -> Dict[str, RedisVersionData]:
     """Return the complete Redis command and category data for both versions."""
-    
-    redis_data = {
+
+    redis_data: Dict[str, RedisVersionData] = cast(Dict[str, RedisVersionData], {
         'redis7': {
             'categories': {
                 'keyspace': ['ttl', 'exists', 'copy', 'unlink', 'persist', 'touch', 'pttl', 'pexpire', 'object|help', 'object|encoding', 'object|idletime', 'object|freq', 'object|refcount', 'flushall', 'renamenx', 'restore', 'scan', 'flushdb', 'expireat', 'keys', 'expire', 'expiretime', 'randomkey', 'pexpireat', 'del', 'dbsize', 'type', 'pexpiretime', 'dump', 'sflush', 'rename'],
@@ -118,12 +123,12 @@ def get_redis_data() -> Dict[str, Dict[str, Dict[str, List[str]]]]:
             },
             'commands': {}
         }
-    }
-    
+    })
+
     return redis_data
 
 
-def build_command_indexes(redis_data: Dict[str, Dict[str, Dict[str, List[str]]]]) -> Dict[str, Dict[str, Dict[str, List[str]]]]:
+def build_command_indexes(redis_data: Dict[str, RedisVersionData]) -> Dict[str, RedisVersionData]:
     """Build reverse indexes for fast command -> category lookups."""
     for version in redis_data:
         redis_data[version]['commands'] = {}
