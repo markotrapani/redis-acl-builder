@@ -311,7 +311,7 @@ class ACLParser:
             selectors.append(selector_permissions)
 
         # Build final parsed structure
-        parsed = {
+        parsed: Dict[str, Any] = {
             'raw_rule': rule.strip(),
             'root_permissions': root_permissions,
             'selectors': selectors,
@@ -338,9 +338,9 @@ class ACLParser:
                 explanations: Dict mapping command -> explanation string
         """
         # Start with empty permissions (Redis default is no access)
-        granted = set()
-        explanations = {}
-        rule_history = {}  # Track which rule affected each command
+        granted: Set[str] = set()
+        explanations: Dict[str, str] = {}
+        rule_history: Dict[str, int] = {}  # Track which rule affected each command
 
         # Process ROOT command rules left-to-right (Redis precedence)
         for i, rule in enumerate(parsed_rule['command_rules']):
@@ -382,7 +382,7 @@ class ACLParser:
         # Process SELECTORS - commands granted by any selector are added (OR logic)
         selectors = parsed_rule.get('selectors', [])
         for selector_idx, selector in enumerate(selectors):
-            selector_granted = set()
+            selector_granted: Set[str] = set()
 
             # Process command rules within this selector
             for rule in selector.get('command_rules', []):
@@ -655,7 +655,6 @@ class ACLParser:
         # Validate parentheses balance and nesting BEFORE parsing
         depth = 0
         max_depth = 0
-        empty_selector = False
         last_open = -1
 
         for i, char in enumerate(rule):
@@ -673,7 +672,6 @@ class ACLParser:
                     depth = 0  # Reset to continue checking
                 # Check for empty selector
                 if last_open >= 0 and i - last_open <= 1:
-                    empty_selector = True
                     errors.append(f"Empty selector at position {last_open}-{i}")
 
         if depth > 0:
@@ -768,8 +766,8 @@ class ACLParser:
             Summary dict with category impacts
         """
         granted, _ = self.evaluate_command_permissions(parsed_rule)
-        
-        category_impact = {}
+
+        category_impact: Dict[str, Dict[str, Any]] = {}
         total_commands = len(self.data['commands'])
         
         for category, commands in self.data['categories'].items():
@@ -813,13 +811,13 @@ class ACLParser:
         redundant_terms: List[Dict[str, Any]] = []
         
         # Track cumulative effects as we process left-to-right
-        cumulative_granted = set()
-        cumulative_denied = set()
-        
+        cumulative_granted: Set[str] = set()
+        cumulative_denied: Set[str] = set()
+
         command_rules = parsed['command_rules']
-        
+
         # Group rules by original token to handle @all expansion properly
-        processed_tokens = set()
+        processed_tokens: Set[str] = set()
         
         i = 0
         while i < len(command_rules):
@@ -894,7 +892,6 @@ class ACLParser:
             else:  # deny
                 # Check if these commands are already denied
                 not_granted = rule_commands - cumulative_granted
-                already_denied = rule_commands.intersection(cumulative_denied)
 
                 if not_granted == rule_commands:
                     # All commands weren't granted anyway - completely redundant
@@ -981,14 +978,14 @@ class ACLParser:
         # Only run other optimizations if -@all optimization wasn't applied
         if not optimization_applied:
             # Check for inclusion superset patterns
-            cumulative_granted_by_position = []
-            temp_cumulative = set()
-            
+            cumulative_granted_by_position: List[Set[str]] = []
+            temp_cumulative: Set[str] = set()
+
             # Build cumulative granted sets for each position
             for idx, token in enumerate(tokens):
                 if token.startswith('+') and not token.startswith('~'):
                     if token == '+@all':
-                        all_commands = set()
+                        all_commands: Set[str] = set()
                         for cat_commands in self.data['categories'].values():
                             all_commands.update(cat_commands)
                         temp_cumulative.update(all_commands)
@@ -1006,7 +1003,7 @@ class ACLParser:
             # Look for inclusion superset patterns
             for idx, token in enumerate(tokens):
                 if token.startswith('+') and not token.startswith('~') and idx > 0:
-                    current_commands = set()
+                    current_commands: Set[str] = set()
                     
                     if token == '+@all':
                         for cat_commands in self.data['categories'].values():
@@ -1043,8 +1040,8 @@ class ACLParser:
             if not optimization_applied:
                 for idx, token in enumerate(tokens):
                     if token.startswith('-') and not token.startswith('~') and idx > 0 and token != '-@all':
-                        current_blocked = set()
-                        
+                        current_blocked: Set[str] = set()
+
                         if token.startswith('-@'):
                             category = token[2:].lower()
                             if category in self.data['categories']:
@@ -1053,12 +1050,12 @@ class ACLParser:
                             command = token[1:].lower()
                             if command in self.data['commands']:
                                 current_blocked.add(command)
-                        
+
                         if not current_blocked:
                             continue
-                        
-                        preceding_exclusion_tokens = []
-                        preceding_blocked = set()
+
+                        preceding_exclusion_tokens: List[str] = []
+                        preceding_blocked: Set[str] = set()
                         
                         for i in range(idx):
                             if tokens[i].startswith('-') and not tokens[i].startswith('~') and tokens[i] != '-@all':
@@ -1325,16 +1322,16 @@ class ACLParser:
             return {'categories': [], 'exclusions': []}
 
         remaining = target_commands.copy()
-        selected_categories = []
-        total_exclusions = set()
+        selected_categories: List[str] = []
+        total_exclusions: Set[str] = set()
 
         # Greedy approach: repeatedly select the category that covers the most remaining commands
         # with the best ratio of (commands_covered / total_terms_added)
         while remaining:
             best_category = None
             best_score = -1
-            best_coverage = set()
-            best_exclusions = set()
+            best_coverage: Set[str] = set()
+            best_exclusions: Set[str] = set()
 
             for category, commands in self.data['categories'].items():
                 cat_set = set(commands)
@@ -1394,8 +1391,8 @@ class ACLParser:
             return False
 
         # Look for multiple category grants before this position
-        category_grants_before = []
-        deny_rules_after = []
+        category_grants_before: List[str] = []
+        deny_rules_after: List[str] = []
 
         # Collect category grants that appear before current position
         for i in range(current_index):
@@ -1490,7 +1487,7 @@ class ACLParser:
             granted_commands, _ = self.evaluate_command_permissions(parsed_rule)
 
             # Group granted commands by their categories
-            category_coverage = {}
+            category_coverage: Dict[str, Set[str]] = {}
             for command in granted_commands:
                 categories = self.get_command_categories(command)
                 for category in categories:
@@ -1558,8 +1555,8 @@ class ACLParser:
             category_commands = set(self.data['categories'].get(category, []))
 
             # Build new rule tokens
-            new_tokens = []
-            skip_tokens = set()
+            new_tokens: List[str] = []
+            skip_tokens: Set[str] = set()
 
             # Mark individual commands from this category to be removed
             for token in original_tokens:
@@ -1593,8 +1590,8 @@ class ACLParser:
         """
         try:
             # Find categories that are explicitly included
-            included_categories = set()
-            excluded_commands = set()
+            included_categories: Set[str] = set()
+            excluded_commands: Set[str] = set()
 
             for rule in parsed_rule['command_rules']:
                 if rule['type'] == 'allow' and rule['target'] == 'category':
@@ -1647,7 +1644,7 @@ class ACLParser:
             category_commands = set(self.data['categories'].get(null_category, []))
 
             # Build new rule tokens, excluding the null category and its command exclusions
-            new_tokens = []
+            new_tokens: List[str] = []
 
             for token in original_tokens:
                 # Skip the null category inclusion
@@ -1701,7 +1698,7 @@ class ACLParser:
         other_terms: List[Dict[str, Any]] = []
 
         # Separate inclusion warnings, exclusion warnings, and others
-        for i, warning in enumerate(warnings):
+        for _, warning in enumerate(warnings):
             if redundant_inclusion_pattern in warning and "All commands already granted by earlier rules" in warning:
                 # Extract the term from the warning
                 lines = warning.split('\n')
@@ -1794,7 +1791,7 @@ class ACLParser:
         """
         try:
             # Extract granted categories from the rule
-            granted_categories = set()
+            granted_categories: Set[str] = set()
             tokens = parsed_rule['raw_rule'].strip().split()
 
             for token in tokens:
@@ -1857,7 +1854,7 @@ class ACLParser:
 
             # Look for +@all followed by blocking all other categories
             has_all_grant = False
-            blocked_categories = set()
+            blocked_categories: Set[str] = set()
 
             for token in tokens:
                 if token == '+@all':
