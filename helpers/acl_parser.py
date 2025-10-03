@@ -1535,7 +1535,7 @@ class ACLParser:
             # Check for null categories (category included but all commands excluded)
             self._analyze_null_categories(parsed_rule, warnings, suggestions)
 
-        except Exception as e:
+        except Exception:
             # Don't let category analysis errors break the main redundancy analysis
             pass
 
@@ -1624,7 +1624,7 @@ class ACLParser:
                     else:
                         suggestions.append("Simplified rule: (empty rule)")
 
-        except Exception as e:
+        except Exception:
             # Don't let null category analysis errors break the main redundancy analysis
             pass
 
@@ -1837,7 +1837,7 @@ class ACLParser:
                             'reason': f"Part of all-categories pattern, can be simplified to '+@all'"
                         })
 
-        except Exception as e:
+        except Exception:
             # Don't let all-categories analysis errors break the main redundancy analysis
             pass
 
@@ -1917,6 +1917,6 @@ class ACLParser:
                             'reason': 'Part of cancelled @all pattern - blocks permissions that were just granted'
                         })
 
-        except Exception as e:
+        except Exception:
             # Don't let cancelled @all analysis errors break the main redundancy analysis
             pass
