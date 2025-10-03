@@ -5,7 +5,6 @@ Redis ACL Parser - Parse and evaluate Redis ACL rules
 
 from typing import Dict, List, Set, Tuple, Any, Optional, TypedDict, Literal
 import fnmatch
-import re
 
 # Type definitions for ACL parsing structures
 class CommandRule(TypedDict, total=False):
@@ -559,7 +558,7 @@ class ACLParser:
                 }[permission]
                 return True, f"Key matches {permission_display} pattern '{pattern}'", pattern, permission
 
-        return False, None, None, None  # No match found
+        return False, "", None, None  # No match found
 
     def test_key_access(self, key: str, command: str, parsed_rule: Dict[str, Any], selector_index: Optional[int] = None) -> Tuple[bool, str, Optional[str], Optional[str]]:
         """
@@ -844,10 +843,11 @@ class ACLParser:
             if original_token in ['+@all', '-@all']:
                 rule_commands = set()
                 # Collect all commands from rules with this token
-                for rule in command_rules:
-                    if rule.get('original_token') == original_token:
-                        if rule['target'] == 'category' and rule['value'] in self.data['categories']:
-                            rule_commands.update(self.data['categories'][rule['value']])
+                cmd_rule: Dict[str, Any]
+                for cmd_rule in command_rules:
+                    if cmd_rule.get('original_token') == original_token:
+                        if cmd_rule['target'] == 'category' and cmd_rule['value'] in self.data['categories']:
+                            rule_commands.update(self.data['categories'][cmd_rule['value']])
             else:
                 # Regular rule processing
                 if current_rule['target'] == 'category':
