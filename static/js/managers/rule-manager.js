@@ -190,16 +190,69 @@ const RuleManager = {
             const optimizeResponse = await API.optimizeRule(rule, AppState.currentVersion);
 
             if (optimizeResponse.success && optimizeResponse.savings > 0) {
+                // Check if backend already has suggestions (empty rule or other simplifications)
+                const hasBackendSuggestions = redundancyAnalysis.suggestions &&
+                    redundancyAnalysis.suggestions.length > 0;
+
+                // Check if backend already has "Rule results in no permissions" warning
+                const hasNoPermissionsWarning = redundancyAnalysis.warnings &&
+                    redundancyAnalysis.warnings.some(w => w.includes('Rule results in no permissions'));
+
+                // Check if optimized rule is empty
+                const optimizesToEmpty = !optimizeResponse.optimized_rule ||
+                    optimizeResponse.optimized_rule.trim() === '' ||
+                    optimizeResponse.optimized_rule === '(empty rule)';
+
+                // Skip frontend optimization if backend already has empty rule suggestion
+                // or if "Rule results in no permissions" warning exists
+                if ((hasBackendSuggestions && optimizesToEmpty) || hasNoPermissionsWarning) {
+                    // Backend already covers this with better messaging
+                    this.displayRedundancyWarnings(redundancyAnalysis);
+                    return;
+                }
+
                 // Add optimization suggestion to the redundancy analysis
-                const optimizationSuggestion = `Saves ${optimizeResponse.savings} term${optimizeResponse.savings > 1 ? 's' : ''}\nSimplified rule: ${optimizeResponse.optimized_rule}`;
+                const simplifiedRule = optimizeResponse.optimized_rule || '(empty rule)';
+                const isEmptyRule = !optimizeResponse.optimized_rule || optimizeResponse.optimized_rule.trim() === '';
+
+                // For empty rules, don't show "Saves X terms" - the warning already explains it
+                // Put "Simplified rule" first (most important), then "Saves X terms" below
+                let optimizationSuggestion;
+                if (isEmptyRule) {
+                    optimizationSuggestion = `Simplified rule: ${simplifiedRule}`;
+                } else {
+                    optimizationSuggestion = `Simplified rule: ${simplifiedRule}\nSaves ${optimizeResponse.savings} term${optimizeResponse.savings > 1 ? 's' : ''}`;
+                }
 
                 if (!redundancyAnalysis.suggestions) {
                     redundancyAnalysis.suggestions = [];
                 }
+                if (!redundancyAnalysis.warnings) {
+                    redundancyAnalysis.warnings = [];
+                }
 
-                // Add optimization suggestion at the beginning
-                redundancyAnalysis.suggestions.unshift(optimizationSuggestion);
+                // Show explanation as a warning (red box) when available
+                // This provides context for why the optimization is possible
+                // BUT: Skip if there are already redundancy warnings (to avoid duplication)
+                const hasRedundancyWarnings = redundancyAnalysis.warnings &&
+                    redundancyAnalysis.warnings.some(w =>
+                        w.includes('Redundant inclusion') ||
+                        w.includes('Redundant exclusion') ||
+                        w.includes('Rule results in no permissions')
+                    );
+
+                if (optimizeResponse.explanation && !hasRedundancyWarnings) {
+                    redundancyAnalysis.warnings.push(optimizeResponse.explanation);
+                }
+
+                // Replace any existing optimization suggestions with the best one
+                // The backend might return intermediate optimizations, but we only want to show the best
+                redundancyAnalysis.suggestions = [optimizationSuggestion];
                 redundancyAnalysis.has_redundancy = true;
+
+                // Mark this as an optimization scenario (not true redundancy)
+                // This affects the header text displayed to the user
+                redundancyAnalysis.is_optimization = true;
             }
 
             // Display combined warnings and suggestions
@@ -229,13 +282,44 @@ const RuleManager = {
         suggestionsList.innerHTML = '';
 
         // Determine if we have actual redundancy or just optimization
-        const hasRedundantTerms = analysis.warnings && analysis.warnings.length > 0;
         const hasOptimization = analysis.suggestions && analysis.suggestions.some(s => s.startsWith('Saves ') && s.includes('term'));
+
+        // Check if optimization simplifies to empty rule (covers redundant exclusions)
+        const optimizesToEmpty = hasOptimization && analysis.suggestions.some(s =>
+            s.includes('(empty rule)') || s.includes('Simplified rule: \n') || s.includes('Simplified rule:  ')
+        );
+
+        // Filter warnings: handle different scenarios appropriately
+        let filteredWarnings = analysis.warnings || [];
+        const hasNoPermissionsWarning = filteredWarnings.some(w => w.includes('Rule results in no permissions'));
+        const hasEmptyRuleSuggestion = analysis.suggestions && analysis.suggestions.some(s => s.includes('(empty rule)'));
+
+        // Get count of "Commands were not granted" warnings for deduplication
+        const notGrantedWarnings = filteredWarnings.filter(w => w.includes('Commands were not granted by earlier rules'));
+
+        if (hasNoPermissionsWarning) {
+            // Only keep the "Rule results in no permissions" warning, suppress all others
+            filteredWarnings = filteredWarnings.filter(warning =>
+                warning.includes('Rule results in no permissions')
+            );
+        } else if (hasEmptyRuleSuggestion && notGrantedWarnings.length > 0) {
+            // When we have empty rule suggestion, keep only ONE "not granted" warning as explanation
+            // Filter out all "not granted" warnings first
+            const otherWarnings = filteredWarnings.filter(w => !w.includes('Commands were not granted by earlier rules'));
+            // Add back just the first one as the explanation
+            filteredWarnings = [...otherWarnings, notGrantedWarnings[0]];
+        }
+
+        const hasRedundantTerms = filteredWarnings.length > 0;
 
         // Update header text based on what we're showing
         const headerElement = warningsContainer.querySelector('.redundancy-header h4');
         if (headerElement) {
-            if (hasRedundantTerms) {
+            // Prioritize optimization header when it's an optimization scenario
+            // (even if there are warnings/explanations)
+            if (analysis.is_optimization || (hasOptimization && !hasRedundantTerms)) {
+                headerElement.textContent = '💡 Rule Optimization Available:';
+            } else if (hasRedundantTerms) {
                 headerElement.textContent = '⚠️ Redundant Terms Detected:';
             } else if (hasOptimization) {
                 headerElement.textContent = '💡 Rule Optimization Available:';
@@ -244,9 +328,9 @@ const RuleManager = {
             }
         }
 
-        // Add warnings
-        if (analysis.warnings && analysis.warnings.length > 0) {
-            analysis.warnings.forEach(warning => {
+        // Add warnings (using filtered list)
+        if (filteredWarnings.length > 0) {
+            filteredWarnings.forEach(warning => {
                 const warningDiv = document.createElement('div');
                 warningDiv.className = 'warning-item';
                 // Convert newlines to <br> tags for proper display
@@ -265,7 +349,13 @@ const RuleManager = {
                     const parts = suggestion.split('Simplified rule: ');
                     // Convert newlines to <br> tags in the first part
                     const formattedFirstPart = parts[0].replace(/\n/g, '<br>');
-                    suggestionDiv.innerHTML = `${formattedFirstPart}Simplified rule: <span class="simplified-rule">${parts[1]}</span>`;
+
+                    // Split the second part by newline to separate the rule from additional text (like "Saves X terms")
+                    const afterRule = parts[1].split('\n');
+                    const actualRule = afterRule[0]; // First line is the actual rule
+                    const additionalText = afterRule.slice(1).join('<br>'); // Remaining lines
+
+                    suggestionDiv.innerHTML = `${formattedFirstPart}Simplified rule: <span class="simplified-rule">${actualRule}</span>${additionalText ? '<br>' + additionalText : ''}`;
 
                     // Make simplified rule clickable
                     const ruleSpan = suggestionDiv.querySelector('.simplified-rule');
@@ -295,6 +385,11 @@ const RuleManager = {
                                 if (InteractiveACLBuilder.state.isInitialized) {
                                     InteractiveACLBuilder.syncFromRuleText();
                                 }
+                            });
+
+                            // Update button states after applying simplified rule
+                            import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
+                                EventHandlers.updateActionButtonStates();
                             });
                         };
                     }

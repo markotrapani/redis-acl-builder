@@ -1179,7 +1179,7 @@ class ACLParser:
                     'optimized_term_count': 0,
                     'savings': len(rule.split()),
                     'granted_commands': [],
-                    'explanation': 'Rule grants no commands - optimized to empty rule'
+                    'explanation': 'Rule grants no commands - can optimize to empty rule'
                 }
 
             # Extract key patterns from original rule (preserve them in optimized version)
@@ -1192,6 +1192,20 @@ class ACLParser:
 
             # Find all possible representations
             representations: List[Dict[str, Any]] = []
+
+            # 0. Special case: Check if all commands are granted (can optimize to +@all)
+            total_commands: Set[str] = set()
+            for commands in self.data['categories'].values():
+                total_commands.update(commands)
+
+            if granted_set == total_commands:
+                # All commands granted - can optimize to +@all
+                representations.append({
+                    'rule': '+@all',
+                    'term_count': 1,
+                    'type': 'all_category',
+                    'explanation': 'All commands are granted - use +@all'
+                })
 
             # 1. Try pure category grants
             for category, commands in self.data['categories'].items():
@@ -1227,11 +1241,19 @@ class ACLParser:
             # 3. Try individual command grants
             if len(granted_set) < original_term_count:
                 command_terms = sorted([f'+{cmd}' for cmd in granted_set])
+
+                # Generate explanation: show commands if ≤5, otherwise just the count
+                if len(granted_set) <= 5:
+                    cmd_list = ', '.join(sorted(granted_set))
+                    explanation = f'Only {len(granted_set)} command{"s" if len(granted_set) > 1 else ""} granted: {cmd_list}'
+                else:
+                    explanation = f'List all {len(granted_set)} commands individually'
+
                 representations.append({
                     'rule': ' '.join(command_terms),
                     'term_count': len(command_terms),
                     'type': 'individual_commands',
-                    'explanation': f'List all {len(granted_set)} commands individually'
+                    'explanation': explanation
                 })
 
             # 4. Try multiple category approach (find minimal set of categories that cover all commands)
@@ -1682,8 +1704,8 @@ class ACLParser:
         Returns:
             tuple: (grouped_warnings, updated_suggestions, grouped_redundant_terms)
         """
-        if len(warnings) <= 2:
-            # Not enough warnings to group
+        if len(warnings) <= 1:
+            # Not enough warnings to group (only 1 or 0)
             return warnings, suggestions, redundant_terms
 
         # Group redundant inclusion and exclusion warnings
@@ -1734,10 +1756,15 @@ class ACLParser:
         grouped_terms = other_terms.copy()
 
         # Group redundant inclusions
-        if len(inclusion_warnings) >= 3:  # Group if 3 or more similar warnings
-            # Create a single grouped warning
-            terms_list = "', '".join(inclusion_warnings)
-            grouped_warning = f"Multiple redundant category inclusions detected:\n'{terms_list}'\nAll commands in these categories are already granted by earlier rules"
+        if len(inclusion_warnings) >= 2:  # Group if 2 or more similar warnings
+            # Create a single grouped warning with comma-separated list
+            # Use ellipsis if too many terms (more than 5)
+            if len(inclusion_warnings) <= 5:
+                terms_list = ', '.join(inclusion_warnings)
+            else:
+                terms_list = ', '.join(inclusion_warnings[:5]) + f', ... ({len(inclusion_warnings) - 5} more)'
+
+            grouped_warning = f"Redundant inclusions: {terms_list}\nAll commands already granted by earlier rules"
             grouped_warnings.append(grouped_warning)
 
             # Add a single grouped redundant term entry
@@ -1756,10 +1783,14 @@ class ACLParser:
             grouped_terms.extend(inclusion_terms)
 
         # Group redundant exclusions
-        if len(exclusion_warnings) >= 3:  # Group if 3 or more similar warnings
-            # Create a single grouped warning for exclusions
-            terms_list = "', '".join(exclusion_warnings)
-            grouped_warning = f"Multiple redundant category exclusions detected:\n'{terms_list}'\nThese categories were not granted by earlier rules, so excluding them is unnecessary"
+        if len(exclusion_warnings) >= 2:  # Group if 2 or more similar warnings
+            # Create a single grouped warning for exclusions with comma-separated list
+            # Use ellipsis if too many terms (more than 5)
+            if len(exclusion_warnings) <= 5:
+                terms_list = ', '.join(exclusion_warnings)
+            else:
+                terms_list = ', '.join(exclusion_warnings[:5]) + f', ... ({len(exclusion_warnings) - 5} more)'
+            grouped_warning = f"Redundant exclusions: {terms_list}\nCommands were not granted by earlier rules"
             grouped_warnings.append(grouped_warning)
 
             # Add a single grouped redundant term entry

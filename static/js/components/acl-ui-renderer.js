@@ -419,6 +419,9 @@ const ACLUIRenderer = {
     async createCategoryButton(category, buttonState, categoryAnalysis, blockType, state, handlers, addEnhancedTooltip) {
         const button = document.createElement('button');
 
+        // Add special class for @all category to enable distinctive styling
+        const isAllCategory = category === 'all';
+
         // Determine visual state and styling
         let buttonClass, tooltipText, clickHandler;
 
@@ -430,8 +433,16 @@ const ACLUIRenderer = {
                 if (isExplicitlyGranted) {
                     // Explicit partial category inclusion (user explicitly granted category but some commands are excluded)
                     buttonClass = `category-button granted partial explicit`;
-                    tooltipText = `@${category} category (explicitly partial) - Some commands in this category are excluded - Click to revoke`;
-                    clickHandler = () => handlers.toggleCategory(category);
+
+                    if (category === 'all') {
+                        // Special handling for @all - clicking should clear the entire rule
+                        // (removing just +@all would leave orphaned blocks like -@admin)
+                        tooltipText = `@${category} category (explicitly partial) - Some commands/categories blocked - Click to revoke ALL commands`;
+                        clickHandler = () => handlers.clearAllCategory();
+                    } else {
+                        tooltipText = `@${category} category (explicitly partial) - Some commands in this category are excluded - Click to revoke`;
+                        clickHandler = () => handlers.toggleCategory(category);
+                    }
                 } else {
                     // Implicit partial category inclusion (some commands granted individually)
                     buttonClass = `category-button granted partial implicit`;
@@ -446,8 +457,10 @@ const ACLUIRenderer = {
                             tooltipText = `@${category} category (partially implicitly granted) - Category blocked but some commands granted back - Click to remove granted commands`;
                             clickHandler = () => handlers.removePartialGrantsFromBlockedCategory(category);
                         } else {
-                            tooltipText = `@${category} category (implicitly partial) - Some commands granted individually - Click to remove all related terms`;
-                            clickHandler = () => handlers.removeAllCategoryRelatedTerms(category);
+                            // Category is partially granted through other categories or individual commands
+                            // Clicking should block the entire category to revoke those permissions
+                            tooltipText = `@${category} category (implicitly partial) - Some commands granted via other categories - Click to block ALL @${category} commands`;
+                            clickHandler = () => handlers.blockCategory(category);
                         }
                     }
                 }
@@ -502,13 +515,26 @@ const ACLUIRenderer = {
                 tooltipText = `@${category} category (explicitly blocked) - Click to toggle`;
                 clickHandler = () => handlers.toggleCategory(category);
             } else if (blockType === 'partial') {
-                // Partially blocked category (some commands blocked individually)
-                buttonClass = `category-button blocked partial implicit`;
+                // Implicitly partially blocked category (some commands blocked individually)
+                // Use 'granted partial implicit' styling (yellow/orange) for consistency with granted column
+                // These categories appear in BOTH columns and should have the same color
+                buttonClass = `category-button granted partial implicit`;
 
                 if (category === 'all') {
-                    // Special handling for @all - clicking should grant all commands
-                    tooltipText = `@${category} category (partially blocked) - Some commands currently blocked - Click to grant ALL commands`;
-                    clickHandler = () => handlers.grantAllCategory();
+                    // Special handling for @all - two scenarios:
+                    // 1. "+@all -@admin" (explicitly granted, some blocked) -> remove blocks
+                    // 2. "+@admin" (implicitly partial) -> grant @all
+                    const isAllExplicitlyGranted = state.grantedCategories.has('all');
+
+                    if (isAllExplicitlyGranted) {
+                        // Case 1: @all is explicitly granted but has blocks
+                        tooltipText = `@${category} category (partially blocked) - Some commands/categories currently blocked - Click to remove all blocks and grant full @all access`;
+                        clickHandler = () => handlers.removeAllBlocksForAllCategory();
+                    } else {
+                        // Case 2: @all is implicitly partially blocked (some other categories/commands granted)
+                        tooltipText = `@${category} category (partially blocked) - Some commands currently granted - Click to grant full @all access`;
+                        clickHandler = () => handlers.grantAllCategory();
+                    }
                 } else {
                     tooltipText = `@${category} category (partially blocked) - Some commands blocked individually - Click to grant full category`;
                     clickHandler = () => handlers.grantCategoryAndCleanup(category);
@@ -525,9 +551,15 @@ const ACLUIRenderer = {
         }
 
         button.className = buttonClass;
+
+        // Add special class for @all category to enable distinctive styling
+        if (isAllCategory) {
+            button.classList.add('all-category');
+        }
+
         // Add visual debug indicator for partial categories
         if (buttonClass.includes('partial')) {
-            button.textContent = `@${category} ⚠`;
+            button.innerHTML = `@${category}<span class="warning-icon">⚠</span>`;
         } else {
             button.textContent = `@${category}`;
         }

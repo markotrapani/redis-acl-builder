@@ -1009,6 +1009,162 @@ button.test-button[disabled] {
   font-style: italic;
 }
 
+/* Special styling for @all category button to make it visually distinctive */
+.category-button.all-category {
+  border-width: 3px !important; /* Thicker border for visual distinction */
+  font-weight: 600 !important; /* Bolder text */
+}
+
+/* @all GRANTED - Explicit (solid blue) */
+.category-button.all-category.granted.explicit:not(.partial) {
+  background: #1565c0 !important; /* Solid blue */
+  border-color: #42a5f5 !important; /* Light blue border */
+  color: #ffffff !important;
+  box-shadow: inset 0 0 0 2px rgba(66, 165, 245, 0.3), 0 2px 4px rgba(21, 101, 192, 0.4) !important;
+}
+
+.category-button.all-category.granted.explicit:not(.partial):hover {
+  background: #1976d2 !important; /* Brighter blue on hover */
+  border-color: #64b5f6 !important;
+  box-shadow: inset 0 0 0 2px rgba(100, 181, 246, 0.4), 0 3px 6px rgba(25, 118, 210, 0.5) !important;
+}
+
+/* @all GRANTED - Implicit (transparent blue) */
+.category-button.all-category.granted.implicit:not(.partial) {
+  background: rgba(21, 101, 192, 0.3) !important; /* Transparent blue */
+  border-color: #42a5f5 !important;
+  color: #90caf9 !important; /* Light blue text */
+  opacity: 0.75;
+}
+
+.category-button.all-category.granted.implicit:not(.partial):hover {
+  background: rgba(25, 118, 210, 0.4) !important; /* More opaque on hover */
+  border-color: #64b5f6 !important;
+  opacity: 0.9;
+}
+
+/* @all BLOCKED - Explicit (solid blue) */
+.category-button.all-category.blocked.explicit:not(.partial) {
+  background: #1565c0 !important; /* Solid blue */
+  border-color: #42a5f5 !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 0 0 2px rgba(66, 165, 245, 0.3), 0 2px 4px rgba(21, 101, 192, 0.4) !important;
+}
+
+.category-button.all-category.blocked.explicit:not(.partial):hover {
+  background: #1976d2 !important; /* Brighter blue on hover */
+  border-color: #64b5f6 !important;
+  box-shadow: inset 0 0 0 2px rgba(100, 181, 246, 0.4), 0 3px 6px rgba(25, 118, 210, 0.5) !important;
+}
+
+/* @all BLOCKED - Implicit (transparent blue) */
+.category-button.all-category.blocked.implicit:not(.partial) {
+  background: rgba(21, 101, 192, 0.3) !important; /* Transparent blue */
+  border-color: #42a5f5 !important;
+  color: #90caf9 !important; /* Light blue text */
+  opacity: 0.75;
+}
+
+.category-button.all-category.blocked.implicit:not(.partial):hover {
+  background: rgba(25, 118, 210, 0.4) !important; /* More opaque on hover */
+  border-color: #64b5f6 !important;
+  opacity: 0.9;
+}
+
+/* @all PARTIAL - Use blue styling with warning symbol */
+/* Explicit partial @all - solid blue like other explicit @all states */
+.category-button.all-category.granted.partial.explicit,
+.category-button.all-category.blocked.partial.explicit {
+  background: #1565c0 !important; /* Solid blue */
+  border-color: #42a5f5 !important; /* Light blue border */
+  color: #ffffff !important;
+  box-shadow: inset 0 0 0 2px rgba(66, 165, 245, 0.3), 0 2px 4px rgba(21, 101, 192, 0.4) !important;
+}
+
+/* Implicit partial @all - transparent blue like other implicit @all states */
+.category-button.all-category.granted.partial.implicit,
+.category-button.all-category.blocked.partial.implicit {
+  background: rgba(21, 101, 192, 0.3) !important; /* Transparent blue */
+  border-color: #42a5f5 !important;
+  color: #90caf9 !important; /* Light blue text */
+  opacity: 0.75;
+}
+
+/* Light mode adjustments for @all */
+[data-theme="light"] .category-button.all-category.granted.explicit:not(.partial),
+[data-theme="light"] .category-button.all-category.blocked.explicit:not(.partial) {
+  background: #1976d2 !important;
+  border-color: #1565c0 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .category-button.all-category.granted.implicit:not(.partial),
+[data-theme="light"] .category-button.all-category.blocked.implicit:not(.partial) {
+  background: rgba(25, 118, 210, 0.2) !important;
+  border-color: #1976d2 !important;
+  color: #0d47a1 !important; /* Dark blue text */
+}
+
+/* Light mode - Partial @all */
+[data-theme="light"] .category-button.all-category.granted.partial.explicit,
+[data-theme="light"] .category-button.all-category.blocked.partial.explicit {
+  background: #1976d2 !important;
+  border-color: #1565c0 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .category-button.all-category.granted.partial.implicit,
+[data-theme="light"] .category-button.all-category.blocked.partial.implicit {
+  background: rgba(25, 118, 210, 0.2) !important;
+  border-color: #1976d2 !important;
+  color: #0d47a1 !important; /* Dark blue text */
+}
+
+/* Warning icon styling - make warning symbol larger without affecting category name or button size */
+.warning-icon {
+  display: inline-block; /* Contain sizing to prevent layout changes */
+  font-size: 1.15em; /* Slightly larger for better readability */
+  line-height: 1; /* Prevent line height from affecting button height */
+  vertical-align: middle; /* Align with text middle for better centering */
+  margin-left: 5px; /* Proper spacing between category name and warning (no HTML space) */
+  transform: translateY(-0.05em); /* Fine-tune vertical position */
+}
+
+/* @all HOVER EFFECTS - Must come before generic hover rules for proper override */
+/* @all explicit partial hover - brighter blue */
+.category-button.all-category.granted.partial.explicit:hover,
+.category-button.all-category.blocked.partial.explicit:hover {
+  background: #1976d2 !important; /* Brighter blue on hover */
+  border-color: #64b5f6 !important; /* Lighter blue border */
+  color: #ffffff !important;
+  box-shadow: inset 0 0 0 2px rgba(100, 181, 246, 0.4), 0 3px 6px rgba(25, 118, 210, 0.5) !important;
+}
+
+/* @all implicit partial hover - subtle blue enhancement */
+.category-button.all-category.granted.partial.implicit:hover,
+.category-button.all-category.blocked.partial.implicit:hover {
+  background: rgba(25, 118, 210, 0.4) !important; /* Slightly more opaque blue */
+  border-color: #64b5f6 !important; /* Lighter blue border */
+  color: #90caf9 !important;
+  opacity: 0.85;
+}
+
+/* Light mode @all hover effects */
+[data-theme="light"] .category-button.all-category.granted.partial.explicit:hover,
+[data-theme="light"] .category-button.all-category.blocked.partial.explicit:hover {
+  background: #2196f3 !important; /* Brighter blue */
+  border-color: #1976d2 !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 0 0 2px rgba(25, 118, 210, 0.4), 0 3px 6px rgba(33, 150, 243, 0.5) !important;
+}
+
+[data-theme="light"] .category-button.all-category.granted.partial.implicit:hover,
+[data-theme="light"] .category-button.all-category.blocked.partial.implicit:hover {
+  background: rgba(33, 150, 243, 0.25) !important; /* Slightly more opaque */
+  border-color: #2196f3 !important;
+  color: #0d47a1 !important;
+}
+
 /* Blocked partial hover effects */
 /* Explicit partial blocked hover - brighter with enhanced highlight */
 .category-button.blocked.partial.explicit:hover {
@@ -1052,6 +1208,22 @@ button.test-button[disabled] {
   border-color: var(--success-border);
   opacity: 0.9;
 }
+
+/* CRITICAL: Final @all hover override - must come LAST to override all other hover rules */
+/* This ensures @all ALWAYS gets blue hover, regardless of state (blocked/granted/implicit/explicit) */
+.category-button.all-category:not(.partial):hover {
+  background: rgba(25, 118, 210, 0.4) !important; /* More opaque blue */
+  border-color: #64b5f6 !important; /* Lighter blue border */
+  color: #90caf9 !important; /* Light blue text */
+  opacity: 0.9 !important;
+}
+
+[data-theme="light"] .category-button.all-category:not(.partial):hover {
+  background: rgba(33, 150, 243, 0.25) !important;
+  border-color: #2196f3 !important;
+  color: #0d47a1 !important;
+}
+
 /* Active/Click effects */
 .category-button:active, 
 .command-button:active {

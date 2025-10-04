@@ -81,10 +81,11 @@ const ACLCategoryManager = {
      * @param {Object} state - The ACL builder state
      * @param {string} category - Category to grant
      * @param {Function} getCategoryCommandsCached - Function to get cached category commands
+     * @param {Function} updateRuleText - Function to update rule text
      * @param {Function} scheduleRender - Function to trigger UI update
      * @returns {Promise<void>}
      */
-    async grantCategoryAndRemoveConflictingCommands(state, category, getCategoryCommandsCached, scheduleRender, ACLStateManager) {
+    async grantCategoryAndRemoveConflictingCommands(state, category, getCategoryCommandsCached, updateRuleText, scheduleRender, ACLStateManager) {
         try {
             // Get all commands in this category
             const categoryCommands = await getCategoryCommandsCached(category);
@@ -118,12 +119,19 @@ const ACLCategoryManager = {
             // Add category grant
             ACLStateManager.addTerm(state.orderedTerms, 'category', 'grant', category);
 
+            // Mark that we should check for comprehensive optimization after render
+            // This handles cases like +@all -@admin +@connection -> clicking @admin -> +@all +@connection +@admin (redundant)
+            // The optimization will simplify it to just +@all
+            state.shouldComprehensiveOptimize = true;
+
+            // Update the rule text and re-render
+            await updateRuleText();
+            scheduleRender();
+
             // Show notification about the optimization
             import('../core/utils.js').then(({ default: Utils }) => {
                 Utils.showNotification(`Granted @${category} and removed ${conflictingCommands.length} conflicting command grants`, 'success');
             });
-
-            scheduleRender();
         } catch (error) {
             console.error(`Error granting category ${category} and removing conflicts:`, error);
         }
@@ -219,6 +227,11 @@ const ACLCategoryManager = {
 
             // Add the category grant at the end
             state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
+
+            // Mark that we should check for comprehensive optimization after render
+            // This handles cases like +@all -@admin +@connection -> clicking @admin -> +@all +@connection +@admin (redundant)
+            // The optimization will simplify it to just +@all
+            state.shouldComprehensiveOptimize = true;
 
             // Update the rule text and re-render
             await updateRuleText();

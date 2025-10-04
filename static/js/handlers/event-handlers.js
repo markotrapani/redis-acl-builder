@@ -215,12 +215,9 @@ const EventHandlers = {
             DOMElements.versionDetail.textContent = `Redis ${newVersion.slice(-1)} (${categoryCount} categories, ${commandCount} commands)`;
 
             // During restoration, only skip error notifications but allow redundancy analysis
-            // During user changes, skip both redundancy analysis and error notifications
-            if (isRestoration) {
-                RuleManager.parseRuleInternal(false, false); // Allow redundancy analysis, skip error notifications
-            } else {
-                RuleManager.parseRuleSilent(true); // Skip redundancy analysis and error notifications during user version changes
-            }
+            // During user version changes, allow redundancy/optimization analysis but skip error notifications
+            // (This ensures optimization suggestions update when switching Redis versions)
+            RuleManager.parseRuleInternal(false, false); // Allow redundancy analysis, skip error notifications
 
             // Also update interactive builder if initialized
             if (window.updateInteractiveBuilder) {

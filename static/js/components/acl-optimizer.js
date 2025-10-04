@@ -44,11 +44,16 @@ const ACLOptimizer = {
                     callbacks.updateLastGeneratedRule(optimizedRule);
                 }
 
-                // Show notification about the optimization
-                this.showOptimizationNotification(
-                    `Auto-optimized: Saved ${optimizeResponse.savings} term${optimizeResponse.savings > 1 ? 's' : ''} (${optimizeResponse.original_term_count} → ${optimizeResponse.optimized_term_count})`,
-                    'success'
-                );
+                // Show notification about the optimization with explanation
+                const explanation = optimizeResponse.explanation || '';
+                let message = `Auto-optimized: Saved ${optimizeResponse.savings} term${optimizeResponse.savings > 1 ? 's' : ''} (${optimizeResponse.original_term_count} → ${optimizeResponse.optimized_term_count})`;
+
+                // Add explanation for better clarity (especially for "grants no commands" case)
+                if (explanation && (explanation.includes('grants no commands') || optimizeResponse.optimized_term_count === 0)) {
+                    message = `Auto-optimized: ${explanation} (${optimizeResponse.original_term_count} → ${optimizeResponse.optimized_term_count})`;
+                }
+
+                this.showOptimizationNotification(message, 'success');
 
                 // Sync the optimized rule back to the builder state
                 if (callbacks.syncFromRuleText) {

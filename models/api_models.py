@@ -29,11 +29,10 @@ class ParseACLRequest(RedisVersionMixin):
     @field_validator('rule')
     @classmethod
     def validate_rule(cls, v: str) -> str:
-        """Validate rule is not empty"""
-        # Pydantic already validates type; just ensure non-empty
-        if not v.strip():
-            raise ValueError('Rule cannot be empty')
-        return v
+        """Validate and normalize rule"""
+        # Pydantic already validates type
+        # Empty rules are allowed (Redis default: all commands blocked)
+        return v.strip()
 
 
 class TestCommandRequest(RedisVersionMixin):
