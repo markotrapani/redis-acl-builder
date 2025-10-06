@@ -175,18 +175,18 @@ class TestACLParser(unittest.TestCase):
     def test_command_testing(self):
         """Test individual command testing."""
         parsed = self.parser7.parse_acl_rule("+@read")
-        
+
         # Test allowed command
-        is_granted, explanation, categories = self.parser7.test_command_access('GET', parsed)
+        is_granted, explanation, categories, selector_index = self.parser7.test_command_access('GET', parsed)
         self.assertTrue(is_granted)
         self.assertIn('read', categories)
-        
+
         # Test denied command
-        is_granted, explanation, categories = self.parser7.test_command_access('SET', parsed)
+        is_granted, explanation, categories, selector_index = self.parser7.test_command_access('SET', parsed)
         self.assertFalse(is_granted)
-        
+
         # Test non-existent command
-        is_granted, explanation, categories = self.parser7.test_command_access('NONEXISTENT', parsed)
+        is_granted, explanation, categories, selector_index = self.parser7.test_command_access('NONEXISTENT', parsed)
         self.assertFalse(is_granted)
         self.assertIn('not found', explanation)
     

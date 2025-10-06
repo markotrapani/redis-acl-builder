@@ -39,72 +39,6 @@ class TestAdvancedFeatures(unittest.TestCase):
         self.ctx.pop()
 
 
-class TestImplicitCategoryDetection(TestAdvancedFeatures):
-    """Test implicit fully-granted category detection."""
-
-    @unittest.skip("Feature not yet implemented: implicit_categories detection")
-    def test_single_category_all_commands_granted(self):
-        """Test detection when all commands in a single category are individually granted."""
-        # Get all geo commands for Redis 7
-        geo_commands = list(self.redis_data['redis7']['categories']['geo'])
-        rule_terms = [f"+{cmd}" for cmd in geo_commands] + ["~*"]
-        rule = " ".join(rule_terms)
-
-        result = self.parser_redis7.parse_acl_rule(rule)
-
-        # Should detect @geo as implicitly fully granted
-        self.assertIn('geo', result.get('implicit_categories', {}))
-
-    @unittest.skip("Feature not yet implemented: implicit_categories detection")
-    def test_multiple_categories_all_commands_granted(self):
-        """Test detection with multiple categories fully granted via individual commands."""
-        # Get all commands from string and bitmap categories
-        string_commands = list(self.redis_data['redis7']['categories']['string'])
-        bitmap_commands = list(self.redis_data['redis7']['categories']['bitmap'])
-
-        all_commands = string_commands + bitmap_commands
-        rule_terms = [f"+{cmd}" for cmd in all_commands] + ["~*"]
-        rule = " ".join(rule_terms)
-
-        result = self.parser_redis7.parse_acl_rule(rule)
-
-        # Should detect both categories as implicitly granted
-        implicit = result.get('implicit_categories', {})
-        self.assertIn('string', implicit)
-        self.assertIn('bitmap', implicit)
-
-    @unittest.skip("Feature not yet implemented: implicit_categories detection")
-    def test_partial_category_not_detected(self):
-        """Test that partial category grants are not detected as implicit."""
-        # Grant only half the geo commands
-        geo_commands = list(self.redis_data['redis7']['categories']['geo'])
-        partial_commands = geo_commands[:len(geo_commands)//2]
-
-        rule_terms = [f"+{cmd}" for cmd in partial_commands] + ["~*"]
-        rule = " ".join(rule_terms)
-
-        result = self.parser_redis7.parse_acl_rule(rule)
-
-        # Should NOT detect geo as implicitly granted
-        implicit = result.get('implicit_categories', {})
-        self.assertNotIn('geo', implicit)
-
-    @unittest.skip("Feature not yet implemented: implicit_categories detection")
-    def test_mixed_explicit_and_implicit_categories(self):
-        """Test rules with both explicit category grants and implicit detection."""
-        # Explicit read category + all individual write commands
-        write_commands = list(self.redis_data['redis7']['categories']['write'])
-        rule_terms = ["+@read"] + [f"+{cmd}" for cmd in write_commands] + ["~*"]
-        rule = " ".join(rule_terms)
-
-        result = self.parser_redis7.parse_acl_rule(rule)
-
-        # Should have explicit read and implicit write
-        self.assertIn('read', result['granted_categories'])
-        implicit = result.get('implicit_categories', {})
-        self.assertIn('write', implicit)
-
-
 class TestAutoSimplification(TestAdvancedFeatures):
     """Test automatic rule simplification features."""
 
@@ -203,105 +137,12 @@ class TestEnhancedRedundancy(TestAdvancedFeatures):
 
 
 class TestComplexACLScenarios(TestAdvancedFeatures):
-    """Test complex real-world ACL rule scenarios."""
+    """Test complex real-world ACL rule scenarios.
 
-    @unittest.skip("Feature not yet implemented: parse() method and granted_categories/blocked_commands fields")
-    def test_redis8_module_commands_with_categories(self):
-        """Test Redis 8 module commands mixed with traditional categories."""
-        rule = "+@read +@write -@dangerous +ft.search +ft.create +json.get +json.set ~*"
-
-        result = self.parser_redis8.parse_acl_rule(rule)
-
-        # Should properly handle module commands
-        self.assertIn('read', result['granted_categories'])
-        self.assertIn('write', result['granted_categories'])
-        self.assertIn('dangerous', result['blocked_categories'])
-
-        # Module commands should be in granted_commands
-        granted_commands = result['granted_commands']
-        self.assertIn('ft.search', granted_commands)
-        self.assertIn('ft.create', granted_commands)
-        self.assertIn('json.get', granted_commands)
-        self.assertIn('json.set', granted_commands)
-
-    @unittest.skip("Feature not yet implemented: parse() method and granted_categories/blocked_commands fields")
-    def test_complex_precedence_chain(self):
-        """Test complex precedence with multiple overrides."""
-        rule = "+@all -@dangerous +@admin -flushall -flushdb +get -get +set ~*"
-
-        result = self.parser_redis7.parse_acl_rule(rule)
-
-        # Final state should respect left-to-right precedence
-        self.assertIn('all', result['granted_categories'])
-        self.assertIn('dangerous', result['blocked_categories'])
-        self.assertIn('admin', result['granted_categories'])
-
-        # Individual command overrides
-        self.assertIn('flushall', result['blocked_commands'])
-        self.assertIn('flushdb', result['blocked_commands'])
-        self.assertIn('get', result['blocked_commands'])  # Final -get overrides +get
-        self.assertIn('set', result['granted_commands'])
-
-    @unittest.skip("Feature not yet implemented: parse() method and granted_categories/blocked_commands fields")
-    def test_overlapping_categories_with_individual_commands(self):
-        """Test categories with overlapping commands and individual grants."""
-        rule = "+@read +@fast -@slow +get +set -mget ~*"
-
-        result = self.parser_redis7.parse_acl_rule(rule)
-
-        # Should handle overlapping categories correctly
-        self.assertIn('read', result['granted_categories'])
-        self.assertIn('fast', result['granted_categories'])
-        self.assertIn('slow', result['blocked_categories'])
-
-        # Individual command precedence
-        self.assertIn('get', result['granted_commands'])
-        self.assertIn('set', result['granted_commands'])
-        self.assertIn('mget', result['blocked_commands'])
-
-    @unittest.skip("Feature not yet implemented: parse() method and granted_categories/blocked_commands fields")
-    def test_large_rule_with_many_terms(self):
-        """Test parsing very large ACL rules with 20+ terms."""
-        # Create a rule with many individual commands and categories
-        commands = ['get', 'set', 'del', 'exists', 'keys', 'scan', 'type', 'ttl',
-                   'expire', 'persist', 'rename', 'move', 'copy', 'unlink', 'touch']
-        categories = ['@read', '@write', '@admin', '@fast', '@slow']
-        keyspaces = ['~user:*', '~session:*', '~cache:*', '~temp:*']
-
-        rule_terms = [f"+{cmd}" for cmd in commands] + categories + keyspaces + ['-@dangerous', '-flushall']
-        rule = " ".join(rule_terms)
-
-        result = self.parser_redis7.parse_acl_rule(rule)
-
-        # Should parse successfully without errors
-        self.assertIsNotNone(result)
-        self.assertIn('granted_commands', result)
-        self.assertIn('granted_categories', result)
-        self.assertIn('key_patterns', result)
-
-        # Should have correct counts
-        self.assertGreater(len(result['granted_commands']), 10)
-        self.assertGreater(len(result['granted_categories']), 3)
-
-    @unittest.skip("Feature not yet implemented: parse() method and granted_categories/blocked_commands fields")
-    def test_edge_case_empty_and_wildcard_patterns(self):
-        """Test edge cases with empty rules and wildcard patterns."""
-        test_rules = [
-            "",  # Empty rule
-            "~*",  # Only keyspace
-            "+@all",  # Only command, no keyspace
-            "+get ~* ~cache:* ~user:*",  # Multiple keyspaces
-            "+@read +@write +@admin +@fast +@slow -@dangerous ~*",  # Many categories
-        ]
-
-        for rule in test_rules:
-            with self.subTest(rule=rule):
-                result = self.parser_redis7.parse_acl_rule(rule)
-
-                # Should always return a valid result structure
-                self.assertIsInstance(result, dict)
-                self.assertIn('granted_commands', result)
-                self.assertIn('blocked_commands', result)
+    NOTE: Category analysis tests have been moved to test_category_analysis_api.py
+    which tests the full API endpoint behavior instead of parser internals.
+    """
+    pass
 
 
 class TestUIFeatures(TestAdvancedFeatures):

@@ -413,7 +413,60 @@ class ACLParser:
                     explanations[cmd] = f"Granted by Selector #{selector_idx + 1}"
 
         return granted, explanations
-    
+
+    def analyze_category_grants(self, granted_commands: Set[str]) -> Dict[str, Any]:
+        """
+        Analyze which categories are fully granted, partially granted, or blocked.
+
+        Args:
+            granted_commands: Set of command names that are granted
+
+        Returns:
+            Dict with category analysis:
+            {
+                'granted_categories': ['read', 'write'],  # All commands in category granted
+                'partial_categories': {  # Some but not all commands granted
+                    'admin': {
+                        'granted_count': 5,
+                        'total_count': 21,
+                        'percentage': 23.8
+                    }
+                },
+                'blocked_categories': ['dangerous']  # No commands in category granted
+            }
+        """
+        granted_categories = []
+        partial_categories = {}
+        blocked_categories = []
+
+        for category, category_commands in self.data['categories'].items():
+            category_commands_set = set(category_commands)
+            granted_in_category = granted_commands & category_commands_set
+
+            granted_count = len(granted_in_category)
+            total_count = len(category_commands_set)
+
+            if granted_count == total_count:
+                # All commands granted
+                granted_categories.append(category)
+            elif granted_count > 0:
+                # Partial grant
+                percentage = (granted_count / total_count) * 100
+                partial_categories[category] = {
+                    'granted_count': granted_count,
+                    'total_count': total_count,
+                    'percentage': round(percentage, 1)
+                }
+            else:
+                # No commands granted (blocked)
+                blocked_categories.append(category)
+
+        return {
+            'granted_categories': sorted(granted_categories),
+            'partial_categories': partial_categories,
+            'blocked_categories': sorted(blocked_categories)
+        }
+
     def test_command_access(self, command: str, parsed_rule: Dict[str, Any]) -> Tuple[bool, str, List[str], Optional[int]]:
         """
         Test if a specific command is allowed by the ACL rule with selector support.

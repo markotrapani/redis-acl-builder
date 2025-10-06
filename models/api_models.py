@@ -138,6 +138,10 @@ class ParseACLResponse(BaseModel):
     parsed_rule: Dict[str, Any] = Field(description="Parsed ACL rule structure with root_permissions and selectors")
     impact_summary: Dict[str, Any] = Field(description="Summary of rule impact")
     version: str = Field(description="Redis version used")
+    # NEW: Category analysis fields
+    granted_categories: List[str] = Field(default_factory=list, description="Categories where all commands are granted")
+    partial_categories: Dict[str, Dict[str, Any]] = Field(default_factory=dict, description="Categories with partial command grants")
+    blocked_categories: List[str] = Field(default_factory=list, description="Categories with no commands granted")
 
 
 class TestCommandResponse(BaseModel):

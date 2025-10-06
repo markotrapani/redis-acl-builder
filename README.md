@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version v1.22.4-beta** - Complete Pylance Strict Mode Type Safety
+**Version v1.25.0-beta** - Backend Category Analysis & Test Suite Expansion
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -25,7 +25,7 @@ The application features modern, modular frontend and backend architectures:
 - **Frontend**: Modular ES6 JavaScript (9 modules) + Optimized Modular CSS (6 modules) with professional desktop-like resize experience
 - **Backend**: Flask with comprehensive Redis ACL parsing and API layer
 - **Database**: Hardcoded Redis command databases for Redis 7 (311 commands) and Redis 8 (446 commands)
-- **Testing**: 35 automated tests with 82% code coverage (35 passing, 0 failing)
+- **Testing**: 195 automated tests with 85% code coverage (195 passing, 0 failing, 0 skipped)
 - **Type Safety**: Enterprise-grade type annotations with 94% reduction in Pylance strict errors (comprehensive typing across all modules)
 - **UI/UX**: Elegant resizable container system with real-time content synchronization, drag-drop panel reordering, and perfect responsive design
 
@@ -69,15 +69,20 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
-## ✨ What's New in v1.21.4-beta
+## ✨ What's New in v1.25.0-beta
 
-### Testing Panel Drag-Drop Fix
+### Backend Category Analysis & Test Suite Expansion
 
-- **🐛 Critical Regression Fix**: Fixed testing panel drag-drop not updating positions in real-time
-- **🎯 CSS Order Only**: Removed conflicting DOM manipulation, now purely uses CSS flexbox `order` properties
-- **✨ Instant Updates**: Testing panels now reorder immediately when dragged (no refresh needed)
-- **🔄 Flash Prevention Preserved**: Maintains zero-flash page load from v1.21.2-beta
-- **🎨 Clean Architecture**: Drag-drop system now fully compatible with inline script flash prevention
+- **🧠 Backend Category Intelligence**: Complete category analysis engine classifies categories as fully granted, partially granted (with percentages), or blocked based on actual command permissions
+- **📊 API Enhancement**: `/api/parse` endpoint now returns comprehensive category analysis including `granted_categories`, `partial_categories` (with grant counts and percentages), and `blocked_categories`
+- **✅ Test Suite Explosion**: Expanded from 127 → 195 passing tests (+68 new tests, 0 skipped)
+  - 12 comprehensive API-level category analysis tests
+  - 19 button interaction tests validating UI logic
+  - 16 @all category behavior tests
+  - 8 ACL precedence validation tests
+- **🧹 Code Cleanup**: Removed 16 obsolete skipped tests (-319 lines) with proper documentation
+- **🔧 Test Fixes**: Fixed all test signature mismatches and API response structure assertions
+- **📈 Coverage Improvement**: Test coverage increased from 82% → 85% (API coverage: 71% → 78%)
 
 ### Previous Release (v1.21.3-beta)
 

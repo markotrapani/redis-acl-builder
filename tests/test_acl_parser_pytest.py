@@ -93,7 +93,7 @@ class TestCommandTesting:
     def test_command_access(self, parser_redis7, rule, command, expected_granted, expected_categories):
         """Test individual command access testing"""
         parsed = parser_redis7.parse_acl_rule(rule)
-        is_granted, explanation, categories = parser_redis7.test_command_access(command, parsed)
+        is_granted, explanation, categories, selector_index = parser_redis7.test_command_access(command, parsed)
 
         assert is_granted == expected_granted
         for cat in expected_categories:
@@ -102,7 +102,7 @@ class TestCommandTesting:
     def test_nonexistent_command(self, parser_redis7):
         """Test non-existent command"""
         parsed = parser_redis7.parse_acl_rule("+@read")
-        is_granted, explanation, categories = parser_redis7.test_command_access('NONEXISTENT', parsed)
+        is_granted, explanation, categories, selector_index = parser_redis7.test_command_access('NONEXISTENT', parsed)
 
         assert is_granted is False
         assert 'not found' in explanation

@@ -131,6 +131,9 @@ def api_parse() -> Union[Response, Tuple[Response, int]]:
         # Get rule impact summary
         impact_summary = parser.get_rule_impact_summary(parsed_rule)
 
+        # NEW: Analyze category grants
+        category_analysis = parser.analyze_category_grants(granted_commands)
+
         # Return the actual parsed rule structure with root_permissions and selectors
         response = ParseACLResponse(
             success=True,
@@ -140,7 +143,10 @@ def api_parse() -> Union[Response, Tuple[Response, int]]:
             total_available=len(cast(Dict[str, Any], parser_data['commands'])),
             parsed_rule=parsed_rule,
             impact_summary=impact_summary,
-            version=req_data.version
+            version=req_data.version,
+            granted_categories=category_analysis['granted_categories'],
+            partial_categories=category_analysis['partial_categories'],
+            blocked_categories=category_analysis['blocked_categories']
         )
         return jsonify(response.model_dump())
         
