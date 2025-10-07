@@ -1875,9 +1875,8 @@ const InteractiveACLBuilder = {
             this.elements.grantedCommandsButtons.appendChild(wrapper);
             
             // Update header with command count and total
-            const totalCommands = this.lastApiResponse ?
-                (this.lastApiResponse.granted_commands?.length || 0) + (this.lastApiResponse.blocked_commands?.length || 0) :
-                0;
+            // Use this.state.allCommands.length as the total (all commands for current Redis version)
+            const totalCommands = this.state.allCommands?.length || 0;
             this.updateCommandSectionHeader('granted', allGrantedCommands.size, totalCommands);
         }
 
@@ -1982,9 +1981,8 @@ const InteractiveACLBuilder = {
             // Calculate total blocked command count for header
             // For empty ACL, show total available commands since they're all effectively blocked
             const blockedCount = isEmptyACL ? this.state.allCommands.length : commandsToShow.length;
-            const totalCommands = this.lastApiResponse ?
-                (this.lastApiResponse.granted_commands?.length || 0) + (this.lastApiResponse.blocked_commands?.length || 0) :
-                0;
+            // Use this.state.allCommands.length as the total (all commands for current Redis version)
+            const totalCommands = this.state.allCommands?.length || 0;
             this.updateCommandSectionHeader('blocked', blockedCount, totalCommands);
         }
     },
