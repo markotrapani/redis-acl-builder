@@ -1263,6 +1263,15 @@ const InteractiveACLBuilder = {
                 }
             }
 
+            // Check if explicitly GRANTED category has some commands blocked (e.g., +@admin -acl|deluser)
+            // This should show in blocked column as implicitly partial
+            if (this.state.grantedCategories.has(category)) {
+                const blockedAnalysis = await this.detectPartiallyBlockedCategory(category);
+                if (blockedAnalysis[category] === 'partial') {
+                    implicitPartialBlockedCategories.add(category);
+                }
+            }
+
             // IMPORTANT: If a category is partially granted, it's also partially blocked
             // This creates the dual-button behavior where users can act from either column
             if (implicitPartialCategories.has(category)) {

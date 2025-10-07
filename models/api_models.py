@@ -132,6 +132,7 @@ class ParseACLResponse(BaseModel):
     """Response model for /api/parse endpoint"""
     success: bool = Field(default=True)
     granted_commands: List[str] = Field(description="List of granted commands")
+    blocked_commands: List[str] = Field(default_factory=list, description="List of blocked commands (all commands minus granted)")
     grouped_commands: Dict[str, List[str]] = Field(description="Commands grouped by category")
     total_granted: int = Field(description="Total number of granted commands")
     total_available: int = Field(description="Total number of available commands")

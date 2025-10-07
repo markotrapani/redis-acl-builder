@@ -134,10 +134,15 @@ def api_parse() -> Union[Response, Tuple[Response, int]]:
         # NEW: Analyze category grants
         category_analysis = parser.analyze_category_grants(granted_commands)
 
+        # Calculate blocked commands (all commands minus granted commands)
+        all_commands_set = set(cast(Dict[str, Any], parser_data['commands']).keys())
+        blocked_commands_set = all_commands_set - granted_commands
+
         # Return the actual parsed rule structure with root_permissions and selectors
         response = ParseACLResponse(
             success=True,
             granted_commands=sorted(list(granted_commands)),
+            blocked_commands=sorted(list(blocked_commands_set)),
             grouped_commands=grouped_commands,
             total_granted=len(granted_commands),
             total_available=len(cast(Dict[str, Any], parser_data['commands'])),

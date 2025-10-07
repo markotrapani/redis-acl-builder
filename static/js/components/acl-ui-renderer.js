@@ -228,23 +228,33 @@ const ACLUIRenderer = {
                     // For categories, add (X/Y) count showing granted/blocked commands
                     let titleText = `${type === 'category' ? '@' : ''}${name}`;
 
-                    if (type === 'category' && lastApiResponse) {
+                    if (type === 'category') {
                         // Get all commands for this category
                         const categoryCommands = await getCategoryCommandsCached(name);
                         if (categoryCommands && categoryCommands.length > 0) {
-                            const grantedCommands = new Set(lastApiResponse.granted_commands || []);
-                            const blockedCommands = new Set(lastApiResponse.blocked_commands || []);
-
-                            // Count how many commands in this category are granted/blocked
-                            const grantedCount = categoryCommands.filter(cmd => grantedCommands.has(cmd)).length;
-                            const blockedCount = categoryCommands.filter(cmd => blockedCommands.has(cmd)).length;
                             const totalCount = categoryCommands.length;
 
-                            // Show count based on which column we're in
-                            if (isInGrantedColumn) {
-                                titleText += ` (${grantedCount}/${totalCount})`;
-                            } else if (isInBlockedColumn) {
-                                titleText += ` (${blockedCount}/${totalCount})`;
+                            // If no API response (empty rule), all commands are blocked (0 granted)
+                            if (!lastApiResponse) {
+                                if (isInGrantedColumn) {
+                                    titleText += ` (0/${totalCount})`;
+                                } else if (isInBlockedColumn) {
+                                    titleText += ` (${totalCount}/${totalCount})`;
+                                }
+                            } else {
+                                const grantedCommands = new Set(lastApiResponse.granted_commands || []);
+                                const blockedCommands = new Set(lastApiResponse.blocked_commands || []);
+
+                                // Count how many commands in this category are granted/blocked
+                                const grantedCount = categoryCommands.filter(cmd => grantedCommands.has(cmd)).length;
+                                const blockedCount = categoryCommands.filter(cmd => blockedCommands.has(cmd)).length;
+
+                                // Show count based on which column we're in
+                                if (isInGrantedColumn) {
+                                    titleText += ` (${grantedCount}/${totalCount})`;
+                                } else if (isInBlockedColumn) {
+                                    titleText += ` (${blockedCount}/${totalCount})`;
+                                }
                             }
                         }
                     }
