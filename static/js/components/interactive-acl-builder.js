@@ -1573,10 +1573,10 @@ const InteractiveACLBuilder = {
                         blockedCategories.push({ category, type: 'explicit', priority: 1 });
                     } else if (isPartialBlocked) {
                         // Implicitly partial blocked category (e.g., @dangerous when +@all -@admin)
-                        blockedCategories.push({ category, type: 'partial', priority: 2 });
+                        blockedCategories.push({ category, type: 'partial', priority: 3 }); // After fully blocked
                     } else {
                         // Implicitly blocked category (available but not granted)
-                        blockedCategories.push({ category, type: 'implicit', priority: 1 }); // Same priority as explicit
+                        blockedCategories.push({ category, type: 'implicit', priority: 2 }); // After explicit, before partial
                     }
                 });
             }
@@ -1587,7 +1587,16 @@ const InteractiveACLBuilder = {
             Array.from(implicitPartialBlockedCategories).forEach(category => {
                 // Only add if not already in the list
                 if (!blockedCategories.find(item => item.category === category)) {
-                    blockedCategories.push({ category, type: 'partial', priority: 2 }); // After fully blocked
+                    blockedCategories.push({ category, type: 'partial', priority: 3 }); // After fully blocked
+                }
+            });
+
+            // Add fully available categories (not granted, not partial) so they can be sorted with partial categories
+            availableCategories.forEach(category => {
+                // Only add if not already in the list and not partial
+                if (!blockedCategories.find(item => item.category === category) &&
+                    !implicitPartialBlockedCategories.has(category)) {
+                    blockedCategories.push({ category, type: 'available', priority: 2 }); // After explicit, before partial
                 }
             });
 
@@ -1653,7 +1662,7 @@ const InteractiveACLBuilder = {
                     return a.category.localeCompare(b.category);
                 });
 
-                // Note: @all is already first due to sort comparator (lines 1549-1551)
+                // Note: @all is already first due to sort comparator
                 // Process blocked categories with partial detection
                 for (const { category, type } of blockedCategories) {
                     // Check if this category needs partial analysis
@@ -1672,8 +1681,9 @@ const InteractiveACLBuilder = {
                 }
             }
 
-            // Show available categories after explicitly blocked categories
-            if (availableCategories.length > 0) {
+            // NOTE: Available categories are now included in blockedCategories list above for proper sorting
+            // This section is kept for backwards compatibility but should not render anything
+            if (false && availableCategories.length > 0) {
                 // Sort categories, but keep @all at the front if present
                 const sortedCategories = [...availableCategories];
                 const hasAllInList = sortedCategories.includes('all');
@@ -2729,11 +2739,10 @@ const InteractiveACLBuilder = {
         this.state.lastValidRule = rule;     // This is a valid rule for testing
         this.state.hasManualChanges = false;
         this.hideSubmitButton();
-        
-        // Add the newly committed rule to history BEFORE saving it (skip empty rules)
-        if (rule.trim() !== '') {
-            Storage.addToHistory(rule);
-        }
+
+        // Add the newly committed rule to history BEFORE saving it
+        // Include empty rules from button clicks (e.g., clicking last category that auto-optimizes to empty)
+        Storage.addToHistory(rule);
 
         // Save to localStorage for proper restoration
         Storage.saveLastGeneratedRule(rule);
