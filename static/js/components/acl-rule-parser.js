@@ -26,18 +26,20 @@ const ACLRuleParser = {
             if (term.type === 'category') {
                 if (term.operation === 'grant') {
                     parts.push(`+@${term.value}`);
-                } else if (term.operation === 'block' && hasInclusions) {
-                    // Only add blocked categories if they would actually exclude granted commands
-                    if (helpers.categoryOverlapsWithGranted(term.value, grantedCommands)) {
+                } else if (term.operation === 'block') {
+                    // Always preserve explicit blocks, even without inclusions
+                    // If there are inclusions, only add if it would exclude granted commands
+                    if (!hasInclusions || helpers.categoryOverlapsWithGranted(term.value, grantedCommands)) {
                         parts.push(`-@${term.value}`);
                     }
                 }
             } else if (term.type === 'command') {
                 if (term.operation === 'grant') {
                     parts.push(`+${term.value}`);
-                } else if (term.operation === 'block' && hasInclusions) {
-                    // Only add blocked commands if they would be granted by inclusions
-                    if (grantedCommands && grantedCommands.has(term.value)) {
+                } else if (term.operation === 'block') {
+                    // Always preserve explicit blocks, even without inclusions
+                    // If there are inclusions, only add if it would be granted
+                    if (!hasInclusions || (grantedCommands && grantedCommands.has(term.value))) {
                         parts.push(`-${term.value}`);
                     }
                 }

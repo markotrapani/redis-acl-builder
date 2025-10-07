@@ -1378,6 +1378,23 @@ button.test-button[disabled] {
   overflow-wrap: break-word;
 }
 
+/* Hide empty command-buttons and category-buttons containers to prevent unwanted spacing */
+.command-buttons:empty,
+.category-buttons:empty {
+  display: none;
+}
+
+/* No commands message styling */
+.no-commands-message {
+  display: block;
+  width: 100%;
+}
+
+/* Hide no-commands message when command buttons exist (even if filtered) */
+.command-buttons:has(.command-button) .no-commands-message {
+  display: none;
+}
+
 /* Command-categories container loading cover */
 .command-categories-container {
   position: relative;
@@ -2063,6 +2080,8 @@ button.test-button[disabled] {
 
 /* Search result count - matches "No categories granted" styling */
 .search-results-count {
+  display: block;
+  width: 100%;
   color: var(--text-muted);
   padding: 10px;
   font-size: inherit;

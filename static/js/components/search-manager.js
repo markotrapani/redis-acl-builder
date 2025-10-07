@@ -339,15 +339,65 @@ const SearchManager = {
 
         const categoryButtons = container.querySelectorAll('.category-button');
         const searchTermLower = searchTerm.toLowerCase().trim();
+        const buttonsContainer = container.querySelector('.category-buttons');
+
+        if (!buttonsContainer) return;
+
+        // If search is empty, restore original order
+        if (!searchTermLower) {
+            categoryButtons.forEach(button => {
+                button.style.display = '';
+                // Restore original order by using dataset.originalIndex
+                const originalIndex = parseInt(button.dataset.originalIndex || '0');
+                button.dataset.currentIndex = originalIndex;
+            });
+
+            // Sort by original index to restore order
+            const buttonsArray = Array.from(categoryButtons);
+            buttonsArray.sort((a, b) => {
+                const aIndex = parseInt(a.dataset.originalIndex || '0');
+                const bIndex = parseInt(b.dataset.originalIndex || '0');
+                return aIndex - bIndex;
+            });
+
+            // Re-append in original order
+            buttonsArray.forEach(button => buttonsContainer.appendChild(button));
+
+            this.updateResultsCount(containerId, categoryButtons.length, categoryButtons.length, 'categories');
+            return;
+        }
+
+        // Store original indices if not already stored
+        categoryButtons.forEach((button, index) => {
+            if (!button.dataset.originalIndex) {
+                button.dataset.originalIndex = index.toString();
+            }
+        });
 
         let visibleCount = 0;
+        const matchedButtons = [];
 
         categoryButtons.forEach(button => {
             const categoryName = button.textContent.toLowerCase().trim();
-            const matches = !searchTermLower || this.performSearch(categoryName, searchTermLower, type);
+            const matches = this.performSearch(categoryName, searchTermLower, type);
 
-            button.style.display = matches ? '' : 'none';
-            if (matches) visibleCount++;
+            if (matches) {
+                visibleCount++;
+                // Calculate match score for sorting
+                const score = this.calculateMatchScore(categoryName, searchTermLower);
+                matchedButtons.push({ button, score });
+            } else {
+                button.style.display = 'none';
+            }
+        });
+
+        // Sort matched buttons by score (higher score = better match = appears first)
+        matchedButtons.sort((a, b) => b.score - a.score);
+
+        // Re-append buttons in sorted order (by relevance score)
+        matchedButtons.forEach(({ button }) => {
+            button.style.display = '';
+            buttonsContainer.appendChild(button);
         });
 
         // Update results count (optional enhancement)
@@ -365,15 +415,65 @@ const SearchManager = {
 
         const commandButtons = container.querySelectorAll('.command-button');
         const searchTermLower = searchTerm.toLowerCase().trim();
+        const buttonsContainer = container.querySelector('.command-buttons');
+
+        if (!buttonsContainer) return;
+
+        // If search is empty, restore original order
+        if (!searchTermLower) {
+            commandButtons.forEach(button => {
+                button.style.display = '';
+                // Restore original order by using dataset.originalIndex
+                const originalIndex = parseInt(button.dataset.originalIndex || '0');
+                button.dataset.currentIndex = originalIndex;
+            });
+
+            // Sort by original index to restore order
+            const buttonsArray = Array.from(commandButtons);
+            buttonsArray.sort((a, b) => {
+                const aIndex = parseInt(a.dataset.originalIndex || '0');
+                const bIndex = parseInt(b.dataset.originalIndex || '0');
+                return aIndex - bIndex;
+            });
+
+            // Re-append in original order
+            buttonsArray.forEach(button => buttonsContainer.appendChild(button));
+
+            this.updateResultsCount(containerId, commandButtons.length, commandButtons.length, 'commands');
+            return;
+        }
+
+        // Store original indices if not already stored
+        commandButtons.forEach((button, index) => {
+            if (!button.dataset.originalIndex) {
+                button.dataset.originalIndex = index.toString();
+            }
+        });
 
         let visibleCount = 0;
+        const matchedButtons = [];
 
         commandButtons.forEach(button => {
             const commandName = button.textContent.toLowerCase().trim();
-            const matches = !searchTermLower || this.performSearch(commandName, searchTermLower, type);
+            const matches = this.performSearch(commandName, searchTermLower, type);
 
-            button.style.display = matches ? '' : 'none';
-            if (matches) visibleCount++;
+            if (matches) {
+                visibleCount++;
+                // Calculate match score for sorting
+                const score = this.calculateMatchScore(commandName, searchTermLower);
+                matchedButtons.push({ button, score });
+            } else {
+                button.style.display = 'none';
+            }
+        });
+
+        // Sort matched buttons by score (higher score = better match = appears first)
+        matchedButtons.sort((a, b) => b.score - a.score);
+
+        // Re-append buttons in sorted order (by relevance score)
+        matchedButtons.forEach(({ button }) => {
+            button.style.display = '';
+            buttonsContainer.appendChild(button);
         });
 
         // Update results count (optional enhancement)
@@ -402,7 +502,7 @@ const SearchManager = {
 
             const buttonsContainer = container.querySelector('.category-buttons, .command-buttons');
             if (buttonsContainer) {
-                buttonsContainer.parentNode.insertBefore(countElement, buttonsContainer.nextSibling);
+                buttonsContainer.parentNode.insertBefore(countElement, buttonsContainer);
             }
         }
     },
@@ -490,6 +590,83 @@ const SearchManager = {
 
         // Match if we found all search characters in sequence
         return searchIndex === searchTerm.length;
+    },
+
+    /**
+     * Calculate match score for sorting search results
+     * Higher score = better match (appears first in results)
+     *
+     * Scoring system:
+     * - Exact match: 1000
+     * - Exact match without @ prefix: 900
+     * - Starts with search term: 500
+     * - Contains search term as substring: 250
+     * - Abbreviation match: 100
+     * - Fuzzy match (characters in order): 50
+     *
+     * Bonus points for shorter matches (better relevance)
+     */
+    calculateMatchScore(target, searchTerm) {
+        if (!searchTerm) return 0;
+
+        // Remove @ prefix for category comparisons
+        const targetWithoutPrefix = target.replace(/^@/, '');
+
+        // Exact match (highest priority)
+        if (target === searchTerm) {
+            return 1000;
+        }
+
+        // Exact match without @ prefix
+        if (targetWithoutPrefix === searchTerm) {
+            return 900;
+        }
+
+        // Starts with search term (high priority)
+        if (target.startsWith(searchTerm) || targetWithoutPrefix.startsWith(searchTerm)) {
+            return 500;
+        }
+
+        // Contains search term as substring (medium-high priority)
+        if (target.includes(searchTerm)) {
+            // Bonus points for appearing earlier in the string
+            const position = target.indexOf(searchTerm);
+            return 250 + (50 - Math.min(position, 50));
+        }
+
+        // Abbreviation match (medium priority)
+        const targetWords = target.split(/[_\-\s]/).filter(word => word.length > 0);
+        const abbreviation = targetWords.map(word => word[0]).join('').toLowerCase();
+
+        if (abbreviation.includes(searchTerm)) {
+            return 100;
+        }
+
+        // Fuzzy match - characters in order (lower priority)
+        // Calculate match density for better scoring
+        let searchIndex = 0;
+        let targetIndex = 0;
+        let matchPositions = [];
+
+        while (searchIndex < searchTerm.length && targetIndex < target.length) {
+            if (searchTerm[searchIndex] === target[targetIndex]) {
+                matchPositions.push(targetIndex);
+                searchIndex++;
+            }
+            targetIndex++;
+        }
+
+        if (searchIndex === searchTerm.length) {
+            // Calculate match density (how close together the matched characters are)
+            const matchSpread = matchPositions[matchPositions.length - 1] - matchPositions[0] + 1;
+            const density = searchTerm.length / matchSpread;
+
+            // Base score 50, bonus for higher density (more compact matches)
+            return 50 + Math.floor(density * 20);
+        }
+
+        // No match
+        return 0;
     }
 };
 

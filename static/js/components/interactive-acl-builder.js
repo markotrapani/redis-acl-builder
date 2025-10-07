@@ -1638,17 +1638,21 @@ const InteractiveACLBuilder = {
 
                         if (grantedCount > 0) {
                             // Explicit PARTIAL block (some commands granted back)
-                            blockedCategories.push({ category, type: 'explicit-partial', priority: 2 });
+                            // Priority 3: After implicit full (2), before implicit partial (4)
+                            blockedCategories.push({ category, type: 'explicit-partial', priority: 3 });
                         } else {
                             // Explicit FULL block (all commands blocked)
+                            // Priority 1: First (after @all)
                             blockedCategories.push({ category, type: 'explicit-full', priority: 1 });
                         }
                     } else if (isPartialBlocked) {
                         // Implicitly partial blocked category (e.g., @dangerous when +@all -@admin)
-                        blockedCategories.push({ category, type: 'implicit-partial', priority: 4 }); // After implicit full
+                        // Priority 4: Last
+                        blockedCategories.push({ category, type: 'implicit-partial', priority: 4 });
                     } else {
                         // Implicitly fully blocked category (available but not granted)
-                        blockedCategories.push({ category, type: 'implicit-full', priority: 3 }); // After explicit partial
+                        // Priority 2: After explicit full (1), before explicit partial (3)
+                        blockedCategories.push({ category, type: 'implicit-full', priority: 2 });
                     }
                 }
             }
@@ -1659,7 +1663,9 @@ const InteractiveACLBuilder = {
             Array.from(implicitPartialBlockedCategories).forEach(category => {
                 // Only add if not already in the list
                 if (!blockedCategories.find(item => item.category === category)) {
-                    blockedCategories.push({ category, type: 'implicit-partial', priority: 4 }); // After implicit full
+                    // @all always gets priority 1, others get priority 4
+                    const priority = category === 'all' ? 1 : 4;
+                    blockedCategories.push({ category, type: 'implicit-partial', priority }); // After implicit full
                 }
             });
 
@@ -1668,7 +1674,7 @@ const InteractiveACLBuilder = {
                 // Only add if not already in the list and not partial
                 if (!blockedCategories.find(item => item.category === category) &&
                     !implicitPartialBlockedCategories.has(category)) {
-                    blockedCategories.push({ category, type: 'implicit-full', priority: 3 }); // After explicit partial
+                    blockedCategories.push({ category, type: 'implicit-full', priority: 2 }); // After explicit full
                 }
             });
 
@@ -1739,10 +1745,10 @@ const InteractiveACLBuilder = {
                 for (const { category, type } of blockedCategories) {
                     // Check if this category needs partial analysis
                     let categoryAnalysis = null;
-                    if (type === 'explicit') {
+                    if (type === 'explicit-full' || type === 'explicit-partial') {
                         // Explicitly blocked category - check if partially granted back
                         categoryAnalysis = await this.detectPartiallyExplicitlyBlockedCategory(category);
-                    } else if (type === 'partial') {
+                    } else if (type === 'implicit-partial') {
                         // Implicitly partial blocked category (e.g., @dangerous when +@all -@admin)
                         // Create analysis showing partial state for hollow styling
                         categoryAnalysis = { [category]: 'partial' };
@@ -1908,9 +1914,6 @@ const InteractiveACLBuilder = {
             // Clear any existing content (including initial placeholders from HTML)
             this.elements.grantedCommandsButtons.innerHTML = '';
 
-            // Create collapsible wrapper
-            const wrapper = document.createElement('div');
-
             // Use the API response for accurate granted commands (respects ACL precedence)
             const allGrantedCommands = new Set();
             if (this.lastApiResponse && this.lastApiResponse.granted_commands) {
@@ -1926,10 +1929,10 @@ const InteractiveACLBuilder = {
 
             if (allGrantedCommands.size === 0) {
                 const message = document.createElement('div');
-                message.className = 'text-muted';
+                message.className = 'text-muted no-commands-message';
                 message.style.padding = '10px';
                 message.textContent = 'No individual commands granted';
-                wrapper.appendChild(message);
+                this.elements.grantedCommandsButtons.appendChild(message);
             } else {
                 // Separate explicitly granted from implicitly granted commands
                 const explicitlyGrantedCommands = [];
@@ -1951,19 +1954,16 @@ const InteractiveACLBuilder = {
                     const isViaCategory = false; // Individual commands are not via category
                     const isIndividual = true; // Always true for this group
                     const button = this.createGrantedCommandButton(command, isViaCategory, isIndividual);
-                    wrapper.appendChild(button);
+                    this.elements.grantedCommandsButtons.appendChild(button);
                 });
 
                 implicitlyGrantedCommands.sort().forEach(command => {
                     const isViaCategory = true; // Commands granted via category rules
                     const isIndividual = false; // Always false for this group
                     const button = this.createGrantedCommandButton(command, isViaCategory, isIndividual);
-                    wrapper.appendChild(button);
+                    this.elements.grantedCommandsButtons.appendChild(button);
                 });
             }
-            
-            wrapper.className = 'command-buttons';
-            this.elements.grantedCommandsButtons.appendChild(wrapper);
             
             // Update header with command count and total
             // Use this.state.allCommands.length as the total (all commands for current Redis version)
@@ -1975,21 +1975,23 @@ const InteractiveACLBuilder = {
         if (this.elements.blockedCommandsButtons) {
             // Clear any existing content (including initial placeholders from HTML)
             this.elements.blockedCommandsButtons.innerHTML = '';
-            
-            const wrapper = document.createElement('div');
-            const isEmptyACL = this.state.grantedCategories.size === 0 && this.state.grantedCommands.size === 0;
-            
+
+            const isEmptyACL = this.state.grantedCategories.size === 0 &&
+                               this.state.grantedCommands.size === 0 &&
+                               this.state.blockedCategories.size === 0 &&
+                               this.state.blockedCommands.size === 0;
+
             if (isEmptyACL && this.state.allCommands.length > 0) {
                 // Show ALL available commands as clickable buttons to grant
-                const allAvailableForEmptyACL = this.state.allCommands.filter(cmd => 
+                const allAvailableForEmptyACL = this.state.allCommands.filter(cmd =>
                     !this.state.grantedCommands.has(cmd) && !this.state.blockedCommands.has(cmd)
                 );
-                
+
                 if (allAvailableForEmptyACL.length > 0) {
                     allAvailableForEmptyACL.sort().forEach(command => {
                         const button = this.createCommandButton(command, 'available');
                         button.dataset.stateInfo = `Click to grant ${command} command`;
-                        wrapper.appendChild(button);
+                        this.elements.blockedCommandsButtons.appendChild(button);
                     });
                 }
             }
@@ -2053,21 +2055,16 @@ const InteractiveACLBuilder = {
 
                 commandsToShow.forEach(({ command, type }) => {
                     const button = this.createCommandButton(command, 'blocked', type);
-                    wrapper.appendChild(button);
+                    this.elements.blockedCommandsButtons.appendChild(button);
                 });
-            }
-
-            // Show message when there are no individual commands to show at all
-            if (commandsToShow.length === 0 && wrapper.children.length === 0) {
+            } else {
+                // Show message when there are no individual commands to show at all
                 const message = document.createElement('div');
-                message.className = 'text-muted';
+                message.className = 'text-muted no-commands-message';
                 message.style.padding = '10px';
                 message.textContent = 'No individual commands blocked';
-                wrapper.appendChild(message);
+                this.elements.blockedCommandsButtons.appendChild(message);
             }
-            
-            wrapper.className = 'command-buttons';
-            this.elements.blockedCommandsButtons.appendChild(wrapper);
 
             // Calculate total blocked command count for header using API response
             // This ensures accurate count based on actual blocked commands (not just what's displayed)

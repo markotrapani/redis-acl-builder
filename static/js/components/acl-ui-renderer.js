@@ -544,15 +544,14 @@ const ACLUIRenderer = {
                 buttonClass = `category-button blocked partial explicit`;
                 tooltipText = `@${category} category (partially explicitly blocked) - Category blocked but some commands granted back - Click to grant full category`;
                 clickHandler = () => handlers.grantCategoryAndRemoveConflictingCommands(category);
-            } else if (blockType === 'explicit' || state.blockedCategories.has(category)) {
+            } else if (blockType === 'explicit-full' || (blockType === 'explicit' && state.blockedCategories.has(category))) {
                 buttonClass = `category-button blocked explicit`;
                 tooltipText = `@${category} category (explicitly blocked) - Click to toggle`;
                 clickHandler = () => handlers.toggleCategory(category);
-            } else if (blockType === 'partial') {
+            } else if (blockType === 'implicit-partial' || blockType === 'partial') {
                 // Implicitly partially blocked category (some commands blocked individually)
-                // Use 'granted partial implicit' styling (yellow/orange) for consistency with granted column
-                // These categories appear in BOTH columns and should have the same color
-                buttonClass = `category-button granted partial implicit`;
+                // Use hollow yellow/orange styling with warning icon
+                buttonClass = `category-button blocked partial implicit`;
 
                 if (category === 'all') {
                     // Special handling for @all - two scenarios:

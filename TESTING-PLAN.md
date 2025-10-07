@@ -1,8 +1,8 @@
 # Interactive ACL Builder - Test Plan
 
-## Test Status: In Progress (v1.25.2-beta)
+## Test Status: In Progress (v1.25.3-beta)
 
-### ✅ Completed Tests (v1.23.2 - v1.25.2)
+### ✅ Completed Tests (v1.23.2 - v1.25.3)
 
 #### Implicitly Partial Categories (v1.24.0)
 
@@ -74,36 +74,65 @@
 - [x] Individual Commands count uses API `blocked_commands` for accuracy
 - [x] Rule `-@admin +acl|deluser -@dangerous` shows correct count (446/446, not 310/311)
 
+#### Dual-Column Explicit Partial Blocks (v1.25.3)
+
+- [x] `+@keyspace -@read +bitcount`: @read shows in both columns
+- [x] @read appears in granted column as implicitly partially granted (hollow green ⚠)
+- [x] @read appears in blocked column as explicitly partially blocked (hollow red/yellow ⚠)
+- [x] Blocked column ordering: explicit full → implicit full → explicit partial → implicit partial
+- [x] Fixed rendering type check to handle `'explicit-partial'` type correctly
+- [x] Fixed implicit partial styling: now shows hollow yellow ⚠ instead of solid red
+- [x] Fixed @all priority assignment: always priority 1 even when implicit-partial
+- [x] Updated blockType check in acl-ui-renderer.js to match 'implicit-partial' correctly
+
+#### Regular Category Button States (v1.25.3)
+
+- [x] Explicit grant `+@read`: Solid green in granted column
+- [x] Explicit partial `+@read -get`: Solid yellow ⚠ in granted column (explicitly partial)
+- [x] Implicit grant (via `+@all`): Slightly opaque green in granted column
+- [x] Implicit partial (via `+@all -@admin`): Hollow yellow ⚠ in both columns
+- [x] Explicit block `-@dangerous`: Solid red in blocked column
+- [x] Partial block `+@all -@admin +acl|deluser`: Solid yellow ⚠ in blocked column (explicitly partial)
+- [x] Available (not granted): Solid red in blocked column
+
+#### Cross-Column Interactions (v1.25.3)
+
+- [x] Clicking granted category moves to blocked: `+@read` → click @read → empty rule with @read in blocked
+- [x] Clicking blocked category moves to granted: `-@dangerous` → click @dangerous → granted
+- [x] Clicking partial category in granted removes partial grants: `+@read -get` → click @read → empty rule
+- [x] Clicking partial category in blocked grants full category: `+@all -@admin +acl|deluser` → click @admin → auto-optimizes to `+@all`
+- [x] Button state reflects committed ACL rule, not uncommitted textarea changes
+
 ---
 
 ## 🔄 Pending Tests (Future Work)
 
 ### Button Interaction Testing
 
-#### Regular Category Button States
+#### Individual Command Button Testing (v1.25.3)
 
-- [ ] Explicit grant `+@read`: Solid green in granted column
-- [ ] Explicit partial `+@read -get`: Hollow yellow ⚠ in granted column
-- [ ] Implicit grant (via `+@all`): Solid green in granted column
-- [ ] Implicit partial (via `+@all -@admin`): Hollow yellow ⚠ in both columns
-- [ ] Explicit block `-@dangerous`: Solid red in blocked column
-- [ ] Partial block `+@all -@admin +acldeluser`: Hollow red ⚠ in blocked column
-- [ ] Available (not granted): Solid red in blocked column
+- [x] Granted commands show green solid: `+get` shows solid green
+- [x] Blocked commands show red with correct type:
+  - Explicit block `-get`: bright/highlighted red
+  - Category block `-@string`: darkened/muted red
+  - Implicit block `+set`: darkened/muted red (get not granted)
+- [x] Clicking command toggles correctly:
+  - `+get` → click get → empty rule (moved to blocked)
+  - `-get` → click get → `+get` (moved to granted)
+- [x] Command buttons position correctly in their respective columns
+- [x] Commands blocked by category have different styling than explicit blocks:
+  - `-@string -get`: get is bright red (explicit), others darkened (category)
+- [x] **FIXED**: Command sort order - explicit commands before implicit (priority-based sorting)
+- [x] **FIXED**: Rule preservation on refresh - `-get` no longer cleared to empty rule
+- [x] **FIXED**: Empty ACL detection now checks for blocked categories/commands too
 
-#### Cross-Column Interactions
+#### Search & Filter Enhancements (v1.25.3)
 
-- [ ] Clicking granted category moves to blocked (and vice versa)
-- [ ] Clicking partial category in granted removes partial grants
-- [ ] Clicking partial category in blocked grants full category
-- [ ] Button state reflects committed ACL rule, not uncommitted textarea changes
-
-### Individual Command Button Testing
-
-- [ ] Granted commands show green solid
-- [ ] Blocked commands show red with correct type (explicit/category/implicit)
-- [ ] Clicking command toggles correctly
-- [ ] Command buttons position correctly in their respective columns
-- [ ] Commands blocked by category have different styling than explicit blocks
+- [x] Fuzzy search relevance scoring - exact matches first, then by match quality
+- [x] Search results restore original order when cleared
+- [x] "Showing X of Y" count appears BEFORE buttons, not after
+- [x] Empty command-buttons containers hidden to prevent visual gaps
+- [x] No-commands message shows on own line with proper block display
 
 ### Optimization & Redundancy Testing
 
