@@ -1466,9 +1466,13 @@ const InteractiveACLBuilder = {
                 }
             }
 
-            // Update the granted categories header (exclude @all from count as it's a pseudo-category)
-            const grantedCategoryCount = effectivelyGrantedCategories.filter(cat => cat !== 'all').length;
-            this.updateCategorySectionHeader('granted', grantedCategoryCount);
+            // Update the granted categories header (exclude @all and partial categories from count)
+            // Only count FULLY granted categories (explicit or implicit via @all)
+            const fullyGrantedCategories = effectivelyGrantedCategories.filter(cat =>
+                cat !== 'all' && !implicitPartialCategories.has(cat)
+            );
+            const totalCategories = this.state.allCategories.filter(cat => cat !== 'all').length;
+            this.updateCategorySectionHeader('granted', fullyGrantedCategories.length, totalCategories);
         }
 
         // Render available categories as clickable buttons
@@ -1721,10 +1725,17 @@ const InteractiveACLBuilder = {
                 this.elements.blockedCategoriesButtons.appendChild(message);
             }
 
-            // Update the blocked categories header (exclude @all from count as it's a pseudo-category)
-            const blockedCategoryCount = effectivelyBlockedCategories.filter(cat => cat !== 'all').length +
-                                         availableCategories.filter(cat => cat !== 'all').length;
-            this.updateCategorySectionHeader('blocked', blockedCategoryCount);
+            // Update the blocked categories header (exclude @all and partial categories from count)
+            // Only count FULLY blocked categories (explicit blocks + available/not granted)
+            const fullyBlockedCategories = effectivelyBlockedCategories.filter(cat =>
+                cat !== 'all' && !implicitPartialBlockedCategories.has(cat)
+            );
+            const fullyAvailableCategories = availableCategories.filter(cat =>
+                cat !== 'all' && !implicitPartialBlockedCategories.has(cat)
+            );
+            const blockedCategoryCount = fullyBlockedCategories.length + fullyAvailableCategories.length;
+            const totalCategories = this.state.allCategories.filter(cat => cat !== 'all').length;
+            this.updateCategorySectionHeader('blocked', blockedCategoryCount, totalCategories);
         }
     },
 
@@ -1775,13 +1786,14 @@ const InteractiveACLBuilder = {
     /**
      * Update category section header with count
      */
-    updateCategorySectionHeader(type, count) {
+    updateCategorySectionHeader(type, count, total) {
         const sectionId = type === 'granted' ? 'grantedCategories' : 'blockedCategories';
         const section = document.getElementById(sectionId);
         const header = section?.querySelector('h3');
-        
+
         if (header) {
-            header.textContent = `Categories ${count > 0 ? `(${count})` : ''}`;
+            // Show X/Y format with total denominator
+            header.textContent = total ? `Categories (${count}/${total})` : `Categories`;
         }
     },
 
@@ -1862,8 +1874,11 @@ const InteractiveACLBuilder = {
             wrapper.className = 'command-buttons';
             this.elements.grantedCommandsButtons.appendChild(wrapper);
             
-            // Update header with command count
-            this.updateCommandSectionHeader('granted', allGrantedCommands.size);
+            // Update header with command count and total
+            const totalCommands = this.lastApiResponse ?
+                (this.lastApiResponse.granted_commands?.length || 0) + (this.lastApiResponse.blocked_commands?.length || 0) :
+                0;
+            this.updateCommandSectionHeader('granted', allGrantedCommands.size, totalCommands);
         }
 
         // Render blocked/available commands
@@ -1967,21 +1982,25 @@ const InteractiveACLBuilder = {
             // Calculate total blocked command count for header
             // For empty ACL, show total available commands since they're all effectively blocked
             const blockedCount = isEmptyACL ? this.state.allCommands.length : commandsToShow.length;
-            this.updateCommandSectionHeader('blocked', blockedCount);
+            const totalCommands = this.lastApiResponse ?
+                (this.lastApiResponse.granted_commands?.length || 0) + (this.lastApiResponse.blocked_commands?.length || 0) :
+                0;
+            this.updateCommandSectionHeader('blocked', blockedCount, totalCommands);
         }
     },
 
     /**
      * Update command section header with count
      */
-    updateCommandSectionHeader(type, count) {
+    updateCommandSectionHeader(type, count, total) {
         const sectionId = type === 'granted' ? 'grantedCommands' : 'blockedCommands';
         const section = document.getElementById(sectionId);
         const header = section?.querySelector('h3');
-        
+
         if (header) {
             const text = 'Individual Commands';
-            header.textContent = `${text}${count > 0 ? ` (${count})` : ''}`;
+            // Show X/Y format with total denominator when available
+            header.textContent = total ? `${text} (${count}/${total})` : text;
         }
     },
 
