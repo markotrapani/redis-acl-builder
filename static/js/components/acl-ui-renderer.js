@@ -157,7 +157,7 @@ const ACLUIRenderer = {
      * @param {Object} dependencies - External dependencies
      */
     addEnhancedTooltip(button, type, name, dependencies) {
-        const { API, AppState, getCategoryCommandsCached, createMultiColumnContent } = dependencies;
+        const { API, AppState, getCategoryCommandsCached, createMultiColumnContent, lastApiResponse } = dependencies;
 
         let tooltipElement = null;
         let hideTimeout = null;
@@ -225,7 +225,31 @@ const ACLUIRenderer = {
                     }
 
                     // Build tooltip content with state info and relationships
-                    content = `<div class="${titleClass}">${type === 'category' ? '@' : ''}${name}</div>`;
+                    // For categories, add (X/Y) count showing granted/blocked commands
+                    let titleText = `${type === 'category' ? '@' : ''}${name}`;
+
+                    if (type === 'category' && lastApiResponse) {
+                        // Get all commands for this category
+                        const categoryCommands = await getCategoryCommandsCached(name);
+                        if (categoryCommands && categoryCommands.length > 0) {
+                            const grantedCommands = new Set(lastApiResponse.granted_commands || []);
+                            const blockedCommands = new Set(lastApiResponse.blocked_commands || []);
+
+                            // Count how many commands in this category are granted/blocked
+                            const grantedCount = categoryCommands.filter(cmd => grantedCommands.has(cmd)).length;
+                            const blockedCount = categoryCommands.filter(cmd => blockedCommands.has(cmd)).length;
+                            const totalCount = categoryCommands.length;
+
+                            // Show count based on which column we're in
+                            if (isInGrantedColumn) {
+                                titleText += ` (${grantedCount}/${totalCount})`;
+                            } else if (isInBlockedColumn) {
+                                titleText += ` (${blockedCount}/${totalCount})`;
+                            }
+                        }
+                    }
+
+                    content = `<div class="${titleClass}">${titleText}</div>`;
 
                     // Add state information if available
                     if (stateInfo) {

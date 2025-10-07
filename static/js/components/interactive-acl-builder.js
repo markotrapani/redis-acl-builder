@@ -2448,7 +2448,8 @@ const InteractiveACLBuilder = {
             API,
             AppState,
             getCategoryCommandsCached: (cat) => this.getCategoryCommandsCached(cat),
-            createMultiColumnContent: (title, items, prefix) => this.createMultiColumnContent(title, items, prefix)
+            createMultiColumnContent: (title, items, prefix) => this.createMultiColumnContent(title, items, prefix),
+            lastApiResponse: this.lastApiResponse
         });
     },
 
