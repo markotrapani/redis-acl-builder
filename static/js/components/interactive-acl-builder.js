@@ -1366,14 +1366,15 @@ const InteractiveACLBuilder = {
 
                 // NEW ORDERING: Show categories in priority order for better UX
                 // 1. Explicit categories first (user explicitly granted these)
-                // 2. Implicitly partial categories (hollow - some commands blocked, need user attention)
-                // 3. Implicitly fully granted categories (solid - all commands granted, less important)
+                // 2. Implicitly fully granted categories (solid - all commands granted, important)
+                // 3. Implicitly partial categories (hollow - some commands blocked, less common edge case)
 
-                // Sort partial categories alphabetically
+                // Sort implicit categories alphabetically
                 const sortedImplicitPartials = implicitPartialCategoriesArray.sort();
+                const sortedImplicitFullyGranted = implicitFullyGrantedCategoriesArray.sort();
 
-                // Combine in priority order: explicit → implicit partial → implicit fully granted
-                const combinedCategories = [...sortedExplicitCategories, ...sortedImplicitPartials, ...implicitFullyGrantedCategoriesArray];
+                // CORRECTED: Combine in priority order: explicit → implicit fully granted → implicit partial
+                const combinedCategories = [...sortedExplicitCategories, ...sortedImplicitFullyGranted, ...sortedImplicitPartials];
 
                 // SPECIAL POSITIONING: Always show @all category first (if present) for visibility
                 // Visual distinction will be added via CSS styling to indicate its special nature
