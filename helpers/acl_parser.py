@@ -1077,8 +1077,7 @@ class ACLParser:
                     preceding_inclusion_tokens: List[str] = [tokens[i] for i in range(idx) if tokens[i].startswith('+') and not tokens[i].startswith('~')]
 
                     if preceding_inclusion_tokens and preceding_granted.issubset(current_commands):
-                        # Note: No warning added here - the optimization suggestion will explain this
-                        # Adding both would be redundant (e.g., "+@connection +@all" shows optimization suggestion)
+                        warnings.append(f"Inefficient rule structure: '{token}' grants all commands from preceding inclusion terms\nPreceding terms made redundant: {', '.join(preceding_inclusion_tokens)}")
 
                         for redundant_token in preceding_inclusion_tokens:
                             redundant_terms.append({
@@ -1254,11 +1253,15 @@ class ACLParser:
 
             if granted_set == total_commands:
                 # All commands granted - can optimize to +@all
+                # If we already warned about inefficient +@all placement, don't repeat the explanation
+                has_all_placement_warning = any('Inefficient rule structure' in w and '+@all' in w for w in warnings)
+                explanation = '' if has_all_placement_warning else 'All commands are granted - use +@all'
+
                 representations.append({
                     'rule': '+@all',
                     'term_count': 1,
                     'type': 'all_category',
-                    'explanation': 'All commands are granted - use +@all'
+                    'explanation': explanation
                 })
 
             # 1. Try pure category grants

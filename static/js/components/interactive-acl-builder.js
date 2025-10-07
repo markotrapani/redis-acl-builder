@@ -1306,22 +1306,30 @@ const InteractiveACLBuilder = {
             if (hasAllExplicitlyGranted) {
                 // When @all is explicitly granted, show categories in priority order:
                 // 1. @all first (explicitly granted)
-                // 2. Implicitly partial categories (hollow - some commands blocked, need attention)
-                // 3. Fully granted categories (solid - all commands granted)
+                // 2. Other explicitly granted categories (e.g., +@connection in "+@connection +@all")
+                // 3. Implicitly partial categories (hollow - some commands blocked, need attention)
+                // 4. Implicitly fully granted categories (solid - granted via @all only)
 
                 effectivelyGrantedCategories.push('all');
 
-                // Add implicitly partial categories first (they need user attention)
-                const sortedImplicitPartials = Array.from(implicitPartialCategories)
+                // Add other explicit grants (categories in grantedCategories besides @all)
+                const explicitGrants = Array.from(this.state.grantedCategories)
                     .filter(cat => cat !== 'all')
+                    .sort();
+                effectivelyGrantedCategories.push(...explicitGrants);
+
+                // Add implicitly partial categories (they need user attention)
+                const sortedImplicitPartials = Array.from(implicitPartialCategories)
+                    .filter(cat => cat !== 'all' && !this.state.grantedCategories.has(cat))
                     .sort();
                 effectivelyGrantedCategories.push(...sortedImplicitPartials);
 
-                // Then add all other fully granted categories
+                // Then add implicitly fully granted categories (granted via @all only)
                 this.state.allCategories.forEach(category => {
                     if (category !== 'all' &&
                         effectiveCategoryStatus[category] === 'granted' &&
-                        !implicitPartialCategories.has(category)) {
+                        !implicitPartialCategories.has(category) &&
+                        !this.state.grantedCategories.has(category)) {
                         effectivelyGrantedCategories.push(category);
                     }
                 });
