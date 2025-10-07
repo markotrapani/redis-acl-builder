@@ -69,9 +69,39 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
-## ✨ What's New in v1.25.1-beta
+## ✨ What's New in v1.25.4-beta
 
-### Optimization Box Persistence & Backend Error Fix
+### Rule Optimization Display & Version Switching Enhancements
+
+- **✨ Clean Optimization Display**: Fixed optimization to show single descriptive warning with backend suggestion and "Saves X terms" (no duplicates)
+  - Frontend now preserves backend warnings/suggestions intelligently
+  - Removed redundant "Commands match exactly" explanation when category completion warning exists
+  - Example: `+pfadd +pfcount +pfmerge` shows clean single warning: "Individual commands cover entire @hyperloglog category (3 commands)"
+- **🔄 Smart Version Switching**: Preserve unsaved textarea content when switching between Redis 7 and Redis 8
+  - Skips redundancy analysis when Submit Changes button is visible
+  - Skips interactive builder refresh to prevent overwriting textarea
+  - Unsaved edits remain intact across version toggles
+- **🎯 Version-Aware Optimization**: Optimization suggestions update correctly between Redis versions
+  - Example: 25 @hash commands in Redis 7 → `+@hash` (Saves 24 terms)
+  - Same 25 commands in Redis 8 → `+@hash -hgetdel -hgetex -hsetex` (Saves 21 terms)
+  - Automatically adapts to version-specific category differences
+- **✅ Comprehensive Testing**: Edge cases validated (empty rules, invalid syntax, already optimal, category exclusions)
+- **🎨 Visual Consistency**: Light/dark mode optimization box styling verified
+
+### Previous Release (v1.25.3-beta)
+
+#### Command Sort Order & Rule Preservation Fixes
+
+- **🔧 Command Sort Order**: Fixed sorting to prioritize explicit commands before implicit (priority-based)
+- **💾 Rule Preservation**: Rules like `-get` now preserved on page refresh (no longer cleared to empty)
+- **🎯 Empty ACL Detection**: Fixed to check for blocked categories/commands too
+- **⚠️ Implicit Partial Styling**: Proper hollow yellow ⚠ display for implicitly partial categories
+- **📊 Search Enhancements**: Fuzzy relevance scoring, order restoration, "Showing X of Y" positioning
+- **🧹 Visual Polish**: Eliminated gaps from empty command-buttons containers
+
+### Previous Release (v1.25.1-beta)
+
+#### Optimization Box Persistence & Backend Error Fix
 
 - **🐛 Critical Backend Fix**: Fixed undefined `warnings` variable error in `optimize_rule()` method that broke all optimization
   - Was returning `savings=0` instead of actual savings

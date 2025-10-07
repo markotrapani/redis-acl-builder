@@ -1,8 +1,8 @@
 # Interactive ACL Builder - Test Plan
 
-## Test Status: In Progress (v1.25.3-beta)
+## Test Status: In Progress (v1.25.4-beta)
 
-### ✅ Completed Tests (v1.23.2 - v1.25.3)
+### ✅ Completed Tests (v1.23.2 - v1.25.4)
 
 #### Implicitly Partial Categories (v1.24.0)
 
@@ -103,12 +103,6 @@
 - [x] Clicking partial category in blocked grants full category: `+@all -@admin +acl|deluser` → click @admin → auto-optimizes to `+@all`
 - [x] Button state reflects committed ACL rule, not uncommitted textarea changes
 
----
-
-## 🔄 Pending Tests (Future Work)
-
-### Button Interaction Testing
-
 #### Individual Command Button Testing (v1.25.3)
 
 - [x] Granted commands show green solid: `+get` shows solid green
@@ -133,6 +127,45 @@
 - [x] "Showing X of Y" count appears BEFORE buttons, not after
 - [x] Empty command-buttons containers hidden to prevent visual gaps
 - [x] No-commands message shows on own line with proper block display
+
+#### Rule Optimization System (v1.25.4-beta)
+
+**Optimization Display & Deduplication:**
+- [x] Backend optimization suggestion displays with "Saves X terms"
+- [x] Frontend warnings preserved when backend has suggestions (no duplicates)
+- [x] Single warning + single suggestion format (no redundant explanations)
+- [x] Example: `+pfadd +pfcount +pfmerge` shows:
+  - Warning: "Individual commands cover entire @hyperloglog category (3 commands)"
+  - Suggestion: "Simplified rule: +@hyperloglog"
+  - Savings: "Saves 2 terms"
+
+**Version Switching with Unsaved Text:**
+- [x] Typing text without submitting + switching versions preserves textarea content
+- [x] No optimization suggestions appear for unsaved text
+- [x] Submit Changes button visibility prevents redundancy analysis
+- [x] Interactive builder refresh skipped when unsaved changes exist
+
+**Edge Cases:**
+- [x] Empty rule optimization: `+get -get` → suggests empty rule
+- [x] Category with exclusions: `+bitcount +bitfield +bitpos +getbit +setbit` → `+@bitmap -bitfield_ro -bitop` (Saves 2 terms)
+- [x] Invalid syntax: Shows error, no optimization suggestions
+- [x] Already optimal: `+@read` → no optimization suggestions
+
+**Version-Specific Optimization:**
+- [x] Redis 7 @hash (25 commands): `+hdel +hexists ... +hvals` → `+@hash` (Saves 24 terms)
+- [x] Redis 8 @hash (28 commands): Same 25 commands → `+@hash -hgetdel -hgetex -hsetex` (Saves 21 terms)
+- [x] Optimization updates correctly when switching versions
+- [x] Version-aware suggestions based on category differences
+
+**Visual Consistency:**
+- [x] Light mode: Warnings (red), suggestions (blue), savings text all readable
+- [x] Dark mode: Warnings (red), suggestions (blue), savings text all readable
+- [x] Theme switching preserves optimization box styling
+- [x] Clickable simplified rule with proper hover effects
+
+---
+
+## 🔄 Pending Tests (Future Work)
 
 ### Optimization & Redundancy Testing
 

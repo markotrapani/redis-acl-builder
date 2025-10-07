@@ -287,7 +287,21 @@
                                     }
 
                                     if (toggle && initialVersion === 'redis8') {
+                                        // Disable transitions temporarily to prevent animation flash on page load
+                                        const slider = document.querySelector('.toggle-slider');
+                                        if (slider) {
+                                            // Disable transitions on both the slider and its ::before pseudo-element
+                                            slider.style.setProperty('--transition-slow', '0s');
+                                        }
+
                                         toggle.checked = true;
+
+                                        // Re-enable transitions after a brief delay
+                                        setTimeout(() => {
+                                            if (slider) {
+                                                slider.style.removeProperty('--transition-slow');
+                                            }
+                                        }, 50);
                                     }
 
                                     // Store the version for use in the version detail element

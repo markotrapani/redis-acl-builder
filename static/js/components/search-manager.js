@@ -515,11 +515,15 @@ const SearchManager = {
         if (!input) return;
 
         input.value = '';
-        input.focus();
 
-        // Trigger filter to reset display
-        const event = new Event('input', { bubbles: true });
-        input.dispatchEvent(event);
+        // Determine search type from input ID
+        const searchType = inputId === 'blockedSearch' ? 'blocked' : 'granted';
+
+        // Directly filter with empty string to immediately clear results
+        // This bypasses the debounced event handler for instant response
+        this.filterAll(searchType, '');
+
+        input.focus();
     },
 
     /**

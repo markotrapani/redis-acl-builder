@@ -317,8 +317,7 @@ const DragDropTesters = {
 
         // Get the current position of the dragged tester
         const draggedRect = this.state.draggedTester.getBoundingClientRect();
-        const draggedLeft = draggedRect.left;
-        const draggedRight = draggedRect.right;
+        const draggedMidpoint = draggedRect.left + (draggedRect.width / 2);
 
         // Get all other tester positions
         const testerRects = this.elements.testers.map((tester, index) => {
@@ -330,23 +329,23 @@ const DragDropTesters = {
             };
         }).filter(t => t !== null);
 
-        // Determine insertion position based on edge crossover
+        // Determine insertion position based on midpoint crossover
+        // Only swap when dragged panel's midpoint crosses another panel's midpoint
         let insertPosition = draggedIndex;
         const crossovers = [];
 
         for (const testerData of testerRects) {
             const { index, rect } = testerData;
-            const targetLeft = rect.left;
-            const targetRight = rect.right;
+            const targetMidpoint = rect.left + (rect.width / 2);
 
             if (draggedIndex < index) {
-                // Dragging to the right
-                if (draggedLeft > targetLeft) {
+                // Dragging to the right - check if dragged midpoint passed target midpoint
+                if (draggedMidpoint > targetMidpoint) {
                     crossovers.push(index);
                 }
             } else {
-                // Dragging to the left
-                if (draggedRight < targetRight) {
+                // Dragging to the left - check if dragged midpoint passed target midpoint
+                if (draggedMidpoint < targetMidpoint) {
                     crossovers.push(index);
                 }
             }
@@ -372,44 +371,38 @@ const DragDropTesters = {
      * Visualize where the tester will be inserted
      */
     visualizeInsertion(draggedIndex, insertPosition) {
-        // Clear all previous states
-        this.elements.testers.forEach(tester => {
-            if (tester !== this.state.draggedTester) {
-                tester.classList.remove('tester-make-room-left', 'tester-make-room-right', 'tester-preview-position');
-                tester.style.transform = '';
+        // Calculate final layout first to determine which testers should move
+        const currentOrder = [...this.elements.testers];
+        const previewOrder = [...currentOrder];
+
+        if (insertPosition !== draggedIndex) {
+            const draggedTester = previewOrder.splice(draggedIndex, 1)[0];
+            previewOrder.splice(insertPosition, 0, draggedTester);
+        }
+
+        // Calculate how far each tester needs to move
+        this.elements.testers.forEach((tester, currentIndex) => {
+            if (currentIndex === draggedIndex) return;
+
+            const previewIndex = previewOrder.findIndex(t => t === tester);
+            const positionDifference = previewIndex - currentIndex;
+
+            // Ensure the tester has the preview class for smooth transitions
+            if (!tester.classList.contains('tester-preview-position')) {
+                tester.classList.add('tester-preview-position');
             }
-        });
 
-        // Give DOM a moment to settle
-        requestAnimationFrame(() => {
-            // Calculate final layout
-            const currentOrder = [...this.elements.testers];
-            const previewOrder = [...currentOrder];
+            if (positionDifference !== 0) {
+                const testerWidth = tester.getBoundingClientRect().width;
+                const gap = 16; // Grid gap
+                const calculatedOffset = positionDifference * (testerWidth + gap);
 
-            if (insertPosition !== draggedIndex) {
-                const draggedTester = previewOrder.splice(draggedIndex, 1)[0];
-                previewOrder.splice(insertPosition, 0, draggedTester);
+                // Apply transform to show movement (CSS transition will animate it)
+                tester.style.transform = `translateX(${calculatedOffset}px)`;
+            } else {
+                // Return to original position with smooth transition (not instant)
+                tester.style.transform = 'translateX(0px)';
             }
-
-            // Calculate how far each tester needs to move
-            this.elements.testers.forEach((tester, currentIndex) => {
-                if (currentIndex === draggedIndex) return;
-
-                const previewIndex = previewOrder.findIndex(t => t === tester);
-                const positionDifference = previewIndex - currentIndex;
-
-                if (positionDifference !== 0) {
-                    const testerWidth = tester.getBoundingClientRect().width;
-                    const gap = 16; // Grid gap
-                    const calculatedOffset = positionDifference * (testerWidth + gap);
-
-                    tester.classList.add('tester-preview-position');
-                    tester.style.transform = `translateX(${calculatedOffset}px)`;
-                } else {
-                    tester.classList.add('tester-preview-position');
-                    tester.style.transform = '';
-                }
-            });
         });
     },
 

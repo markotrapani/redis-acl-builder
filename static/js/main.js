@@ -203,7 +203,8 @@ window.getLastGeneratedRule = () => InteractiveACLBuilder.state?.lastGeneratedRu
 window.updateInteractiveBuilder = () => {
     if (InteractiveACLBuilder.state.isInitialized) {
         InteractiveACLBuilder.loadAllData().then(() => {
-            InteractiveACLBuilder.scheduleRender();
+            // Don't add to history during version switches - this is just a render refresh
+            InteractiveACLBuilder.scheduleRender(false);
         });
     }
 };

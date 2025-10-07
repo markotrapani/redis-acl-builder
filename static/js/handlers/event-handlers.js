@@ -28,7 +28,6 @@ const EventHandlers = {
         const shouldEnableClearButton = hasCommittedContent || hasHistory;
         const shouldEnableCopyButton = hasCommittedContent;
 
-
         const clearBtn = document.getElementById('clearRuleBtn');
         const copyBtn = document.getElementById('copyRuleBtn');
 
@@ -203,6 +202,7 @@ const EventHandlers = {
         });
         
         // Helper function to perform the actual version switch
+        const self = this; // Capture EventHandlers context
         DOMElements.versionToggle.performVersionSwitch = function(newVersion, isRestoration = false) {
             AppState.currentVersion = newVersion;
 
@@ -214,13 +214,26 @@ const EventHandlers = {
             const commandCount = newVersion === 'redis8' ? '446' : '311';
             DOMElements.versionDetail.textContent = `Redis ${newVersion.slice(-1)} (${categoryCount} categories, ${commandCount} commands)`;
 
-            // During restoration, only skip error notifications but allow redundancy analysis
-            // During user version changes, allow redundancy/optimization analysis but skip error notifications
-            // (This ensures optimization suggestions update when switching Redis versions)
-            RuleManager.parseRuleInternal(false, false); // Allow redundancy analysis, skip error notifications
+            // Check if there are unsaved changes (Submit Changes button is visible)
+            const submitBtn = document.getElementById('submitChangesBtn');
+            const hasUnsavedChanges = submitBtn && submitBtn.style.display !== 'none';
 
-            // Also update interactive builder if initialized
-            if (window.updateInteractiveBuilder) {
+            // Only run redundancy analysis if there are NO unsaved changes
+            // If there are unsaved changes, skip parsing to preserve the textarea content
+            // This prevents clearing unsaved text when switching versions
+            if (!hasUnsavedChanges) {
+                // During restoration or version switch with saved changes, allow redundancy analysis
+                RuleManager.parseRuleInternal(false, false); // Allow redundancy analysis, skip error notifications
+            }
+
+            // Update action button states after version switch
+            // This ensures clear/copy buttons reflect correct state even with empty rules
+            self.updateActionButtonStates();
+
+            // IMPORTANT: Only update interactive builder if there are NO unsaved changes
+            // If there are unsaved changes, skip the update to preserve textarea content
+            // The interactive builder's updateRuleText() would overwrite the textarea with generated rule
+            if (window.updateInteractiveBuilder && !hasUnsavedChanges) {
                 window.updateInteractiveBuilder();
             }
         };

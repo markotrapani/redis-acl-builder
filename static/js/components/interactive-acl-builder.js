@@ -390,11 +390,32 @@ const InteractiveACLBuilder = {
             const warningsContainer = document.getElementById('redundancyWarnings');
 
             if (warningsList && suggestionsList && warningsContainer) {
-                // Clear existing content first to avoid duplication (same as RuleManager does)
-                // Note: Backend redundancy analysis will also clear these, but we need to clear
-                // them here too since we might be called multiple times before backend analysis
+                // IMPORTANT: Preserve any existing backend warnings and suggestions before clearing
+                // Backend adds warnings like "Individual commands cover entire @hyperloglog category"
+                // Backend suggestions include "Saves X terms" and are added by RuleManager.displayRedundancyWarnings()
+                // We want to keep those and just ADD our frontend-detected optimizations
+                const existingBackendWarnings = Array.from(warningsList.children);
+                const existingBackendSuggestions = Array.from(suggestionsList.children).filter(child =>
+                    child.querySelector('.simplified-rule') && child.textContent.includes('Saves ')
+                );
+
+                // If backend already has warnings, skip adding frontend warnings (they're less detailed)
+                const backendHasWarnings = existingBackendWarnings.length > 0;
+
+                // Clear existing content to avoid duplication
                 warningsList.innerHTML = '';
                 suggestionsList.innerHTML = '';
+
+                // Re-add the preserved backend warnings and suggestions FIRST
+                if (backendHasWarnings) {
+                    // Backend already provided warnings, so we skip adding our own
+                    existingBackendWarnings.forEach(warning => {
+                        warningsList.appendChild(warning);
+                    });
+                }
+                existingBackendSuggestions.forEach(suggestion => {
+                    suggestionsList.appendChild(suggestion);
+                });
 
                 // Add optimization suggestions for redundant exclusions
                 redundantExclusions.forEach(({ command }) => {
@@ -406,11 +427,24 @@ const InteractiveACLBuilder = {
                     // Build the optimized rule string
                     const optimizedRule = this.generateRuleFromTerms(optimizedTerms);
 
-                    // Add warning (red box) explaining the redundancy
-                    const warningDiv = document.createElement('div');
-                    warningDiv.className = 'warning-item';
-                    warningDiv.innerHTML = `Redundant exclusion "-${command}" is overridden by later category grant.`;
-                    warningsList.appendChild(warningDiv);
+                    // Check if backend already provided this exact suggestion
+                    const backendAlreadyHasSuggestion = Array.from(suggestionsList.children).some(child => {
+                        const ruleSpan = child.querySelector('.simplified-rule');
+                        return ruleSpan && ruleSpan.textContent.trim() === optimizedRule.trim();
+                    });
+
+                    // Only add frontend warning if backend hasn't already provided warnings
+                    if (!backendHasWarnings) {
+                        const warningDiv = document.createElement('div');
+                        warningDiv.className = 'warning-item';
+                        warningDiv.innerHTML = `Redundant exclusion "-${command}" is overridden by later category grant.`;
+                        warningsList.appendChild(warningDiv);
+                    }
+
+                    // Skip the suggestion if backend already provided it (to avoid duplicates)
+                    if (backendAlreadyHasSuggestion) {
+                        return;
+                    }
 
                     // Add suggestion (blue box) with clickable simplified rule
                     const suggestionDiv = document.createElement('div');
@@ -463,11 +497,24 @@ const InteractiveACLBuilder = {
                     // Build the optimized rule string
                     const optimizedRule = this.generateRuleFromTerms(optimizedTerms);
 
-                    // Add warning (red box) explaining the redundancy
-                    const warningDiv = document.createElement('div');
-                    warningDiv.className = 'warning-item';
-                    warningDiv.innerHTML = `Category "@${category}" is fully granted via ${commands.length} individual commands.`;
-                    warningsList.appendChild(warningDiv);
+                    // Check if backend already provided this exact suggestion
+                    const backendAlreadyHasSuggestion = Array.from(suggestionsList.children).some(child => {
+                        const ruleSpan = child.querySelector('.simplified-rule');
+                        return ruleSpan && ruleSpan.textContent.trim() === optimizedRule.trim();
+                    });
+
+                    // Only add frontend warning if backend hasn't already provided warnings
+                    if (!backendHasWarnings) {
+                        const warningDiv = document.createElement('div');
+                        warningDiv.className = 'warning-item';
+                        warningDiv.innerHTML = `Category "@${category}" is fully granted via ${commands.length} individual commands.`;
+                        warningsList.appendChild(warningDiv);
+                    }
+
+                    // Skip the suggestion if backend already provided it (to avoid duplicates)
+                    if (backendAlreadyHasSuggestion) {
+                        return;
+                    }
 
                     // Add suggestion (blue box) with clickable simplified rule
                     const suggestionDiv = document.createElement('div');
@@ -532,11 +579,24 @@ const InteractiveACLBuilder = {
                     // Build the optimized rule string
                     const optimizedRule = this.generateRuleFromTerms(optimizedTerms);
 
-                    // Add warning (red box) explaining the redundancy
-                    const warningDiv = document.createElement('div');
-                    warningDiv.className = 'warning-item';
-                    warningDiv.innerHTML = `Category "@${category}" is blocked then re-granted via ${commands.length} individual commands. This cancels out.`;
-                    warningsList.appendChild(warningDiv);
+                    // Check if backend already provided this exact suggestion
+                    const backendAlreadyHasSuggestion = Array.from(suggestionsList.children).some(child => {
+                        const ruleSpan = child.querySelector('.simplified-rule');
+                        return ruleSpan && ruleSpan.textContent.trim() === optimizedRule.trim();
+                    });
+
+                    // Only add frontend warning if backend hasn't already provided warnings
+                    if (!backendHasWarnings) {
+                        const warningDiv = document.createElement('div');
+                        warningDiv.className = 'warning-item';
+                        warningDiv.innerHTML = `Category "@${category}" is blocked then re-granted via ${commands.length} individual commands. This cancels out.`;
+                        warningsList.appendChild(warningDiv);
+                    }
+
+                    // Skip the suggestion if backend already provided it (to avoid duplicates)
+                    if (backendAlreadyHasSuggestion) {
+                        return;
+                    }
 
                     // Add suggestion (blue box) with clickable simplified rule
                     const suggestionDiv = document.createElement('div');
@@ -1114,15 +1174,16 @@ const InteractiveACLBuilder = {
     
     /**
      * Schedule a render with debouncing to reduce visual flashing
+     * @param {boolean} addToHistory - Whether to add to history when updating rule text (default: true)
      */
-    scheduleRender() {
+    scheduleRender(addToHistory = true) {
         if (this.debouncedRender) {
             clearTimeout(this.debouncedRender);
         }
 
         this.debouncedRender = setTimeout(() => {
             requestAnimationFrame(async () => {
-                await this.smoothRender();
+                await this.smoothRender(true, addToHistory);
                 // Note: SearchManager.refreshAllSearches() is now called from within smoothRender after DOM updates
             });
         }, 100); // 100ms debounce for smoother batching
@@ -1130,8 +1191,10 @@ const InteractiveACLBuilder = {
 
     /**
      * Smooth rendering with loading covers to prevent empty state flash
+     * @param {boolean} shouldUpdateRuleText - Whether to update rule text (default: true)
+     * @param {boolean} addToHistory - Whether to add to history when updating rule text (default: true)
      */
-    async smoothRender(shouldUpdateRuleText = true) {
+    async smoothRender(shouldUpdateRuleText = true, addToHistory = true) {
         // Apply loading covers instead of opacity fade to prevent empty state flash
         this.applyLoadingAnimation();
 
@@ -1139,7 +1202,7 @@ const InteractiveACLBuilder = {
         setTimeout(async () => {
             // Update rule text based on current state (skip during Submit Changes to preserve user input)
             if (shouldUpdateRuleText) {
-                await this.updateRuleText();
+                await this.updateRuleText(addToHistory);
             }
             
             // Then refresh API response data for partial category detection
@@ -2793,8 +2856,9 @@ const InteractiveACLBuilder = {
 
     /**
      * Update the ACL rule text based on current state
+     * @param {boolean} addToHistory - Whether to add this rule to history (default: true)
      */
-    async updateRuleText() {
+    async updateRuleText(addToHistory = true) {
         if (!this.elements.aclRuleInput) return;
 
 
@@ -2803,26 +2867,28 @@ const InteractiveACLBuilder = {
         this.elements.aclRuleInput.dataset.programmaticUpdate = 'true';
 
         this.elements.aclRuleInput.value = rule;
-        
+
         // Update character counter (button states will be updated by the input event below)
         this.executeEventHandler('updateCharacterCounterProgrammatically', this.elements.aclRuleInput);
-        
+
         // Track the rule we just generated
         this.state.lastGeneratedRule = rule;
         this.state.lastValidRule = rule;     // This is a valid rule for testing
         this.state.hasManualChanges = false;
         this.hideSubmitButton();
 
-        // Add the newly committed rule to history BEFORE saving it
+        // Add the newly committed rule to history BEFORE saving it (only for user actions, not render refreshes)
         // Include empty rules from button clicks (e.g., clicking last category that auto-optimizes to empty)
-        Storage.addToHistory(rule);
+        if (addToHistory) {
+            Storage.addToHistory(rule);
+        }
 
         // Save to localStorage for proper restoration
         Storage.saveLastGeneratedRule(rule);
 
         // Also save as the committed ACL rule so button states work correctly
         Storage.saveAclRule(rule);
-        
+
         // Trigger change event to update other parts of the app
         this.elements.aclRuleInput.dispatchEvent(new Event('input'));
     },
