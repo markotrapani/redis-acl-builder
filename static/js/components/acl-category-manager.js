@@ -237,7 +237,7 @@ const ACLCategoryManager = {
             await updateRuleText();
             scheduleRender();
 
-            // Show notification about the change
+            // Show notification only for significant changes (when removing conflicting commands)
             import('../core/utils.js').then(({ default: Utils }) => {
                 const commandCount = commandsToRemove.length;
                 if (commandCount > 0) {
@@ -245,9 +245,8 @@ const ACLCategoryManager = {
                         `Granted @${category} category and removed ${commandCount} individual command${commandCount > 1 ? 's' : ''}`,
                         'success'
                     );
-                } else {
-                    Utils.showNotification(`Granted @${category} category`, 'success');
                 }
+                // No notification for simple category grants - reduces noise
             });
 
         } catch (error) {
