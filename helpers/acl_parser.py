@@ -1077,7 +1077,9 @@ class ACLParser:
                     preceding_inclusion_tokens: List[str] = [tokens[i] for i in range(idx) if tokens[i].startswith('+') and not tokens[i].startswith('~')]
 
                     if preceding_inclusion_tokens and preceding_granted.issubset(current_commands):
-                        warnings.append(f"Inefficient rule structure: '{token}' grants all commands from preceding inclusion terms\nPreceding terms made redundant: {', '.join(preceding_inclusion_tokens)}")
+                        # Format tokens with quotes for clarity
+                        formatted_tokens = ', '.join(f'"{t}"' for t in preceding_inclusion_tokens)
+                        warnings.append(f'Inefficient rule structure: "{token}" grants all commands from preceding inclusion terms: {formatted_tokens}')
 
                         for redundant_token in preceding_inclusion_tokens:
                             redundant_terms.append({
