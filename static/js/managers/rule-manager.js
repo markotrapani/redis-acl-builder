@@ -207,10 +207,24 @@ const RuleManager = {
                     optimizeResponse.optimized_rule.trim() === '' ||
                     optimizeResponse.optimized_rule === '(empty rule)';
 
-                // Skip frontend optimization if backend already has empty rule suggestion
-                // or if "Rule results in no permissions" warning exists
-                if ((hasBackendSuggestions && optimizesToEmpty) || hasNoPermissionsWarning) {
-                    // Backend already covers this with better messaging
+                // If optimizing to empty rule, REPLACE redundancy suggestions with the optimization suggestion
+                // The redundancy analysis might suggest partial optimizations (e.g., remove -@admin)
+                // but the optimization endpoint correctly identifies that the entire rule should be empty
+                if (optimizesToEmpty && hasBackendSuggestions) {
+                    // Replace suggestions with the correct empty rule optimization
+                    redundancyAnalysis.suggestions = [`Simplified rule: (empty rule)`];
+
+                    // Replace warnings with just the optimization explanation (cleaner than showing all redundant terms)
+                    if (optimizeResponse.explanation) {
+                        redundancyAnalysis.warnings = [optimizeResponse.explanation];
+                    }
+
+                    this.displayRedundancyWarnings(redundancyAnalysis);
+                    return;
+                }
+
+                // Skip frontend optimization if "Rule results in no permissions" warning exists
+                if (hasNoPermissionsWarning) {
                     this.displayRedundancyWarnings(redundancyAnalysis);
                     return;
                 }

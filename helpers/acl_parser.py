@@ -955,7 +955,7 @@ class ACLParser:
                         'type': 'exclusion',
                         'reason': 'Commands were not granted by earlier rules'
                     })
-                
+
                 # Update cumulative sets
                 cumulative_granted.difference_update(rule_commands)
                 cumulative_denied.update(rule_commands)

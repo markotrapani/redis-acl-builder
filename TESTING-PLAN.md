@@ -1,8 +1,8 @@
 # Interactive ACL Builder - Test Plan
 
-## Test Status: In Progress (v1.25.1-beta)
+## Test Status: In Progress (v1.25.2-beta)
 
-### ✅ Completed Tests (v1.23.2 - v1.25.1)
+### ✅ Completed Tests (v1.23.2 - v1.25.2)
 
 #### Implicitly Partial Categories (v1.24.0)
 
@@ -57,6 +57,22 @@
 - [x] Only hide on: submit new rule, click X button, or explicit clear operation
 - [x] Backend optimization error fixed (undefined `warnings` variable)
 - [x] "Saves X terms" displays correctly after fix
+
+#### Category Ordering & Optimization (v1.25.2)
+
+- [x] Explicit full grants appear before explicit partial grants in granted column
+- [x] Blocked column ordering: explicit full → explicit partial → implicit full → implicit partial
+- [x] `+@admin -acl|deluser +@read`: @read (full) appears before @admin (partial)
+- [x] Empty rule optimization: rules that grant 0 commands suggest empty rule (not partial)
+- [x] `-@admin +acl|deluser -@dangerous`: correctly suggests empty rule optimization
+- [x] Clean single warning for empty rules (no duplicate redundancy messages)
+
+#### API Response Accuracy (v1.25.2)
+
+- [x] @all doesn't appear in granted column when no commands actually granted
+- [x] `detectPartialCategory(@all)` checks API response instead of state
+- [x] Individual Commands count uses API `blocked_commands` for accuracy
+- [x] Rule `-@admin +acl|deluser -@dangerous` shows correct count (446/446, not 310/311)
 
 ---
 

@@ -1321,11 +1321,34 @@ const InteractiveACLBuilder = {
 
                 effectivelyGrantedCategories.push('all');
 
-                // Add other explicit grants (categories in grantedCategories besides @all)
-                const explicitGrants = Array.from(this.state.grantedCategories)
-                    .filter(cat => cat !== 'all')
-                    .sort();
-                effectivelyGrantedCategories.push(...explicitGrants);
+                // Add other explicit grants, separating FULL from PARTIAL
+                // Full grants appear before partial grants
+                const explicitGrantsExceptAll = Array.from(this.state.grantedCategories)
+                    .filter(cat => cat !== 'all');
+
+                // Separate into full and partial based on whether they have blocked commands
+                const explicitFullGrants = [];
+                const explicitPartialGrants = [];
+
+                for (const cat of explicitGrantsExceptAll) {
+                    // Check if this category has any blocked commands (making it partial)
+                    const categoryCommands = await this.getCategoryCommandsCached(cat);
+                    const allGrantedCommands = new Set(this.lastApiResponse?.granted_commands || []);
+                    const allBlockedCommands = new Set(this.lastApiResponse?.blocked_commands || []);
+
+                    const grantedCount = categoryCommands.filter(cmd => allGrantedCommands.has(cmd)).length;
+                    const blockedCount = categoryCommands.filter(cmd => allBlockedCommands.has(cmd)).length;
+
+                    if (blockedCount > 0 && grantedCount > 0) {
+                        explicitPartialGrants.push(cat);
+                    } else {
+                        explicitFullGrants.push(cat);
+                    }
+                }
+
+                // Add full grants first (alphabetical), then partial grants (alphabetical)
+                effectivelyGrantedCategories.push(...explicitFullGrants.sort());
+                effectivelyGrantedCategories.push(...explicitPartialGrants.sort());
 
                 // Add implicitly partial categories (they need user attention)
                 const sortedImplicitPartials = Array.from(implicitPartialCategories)
@@ -1363,11 +1386,13 @@ const InteractiveACLBuilder = {
                 const implicitPartialCategoriesArray = Array.from(implicitPartialCategories);
                 const implicitFullyGrantedCategoriesArray = Array.from(implicitFullyGrantedCategories);
 
-                // Special @all handling: if there are any inclusions but @all is not explicitly granted,
+                // Special @all handling: if there are any ACTUALLY GRANTED commands (per API) but @all is not explicitly granted,
                 // show @all as implicitly partially granted
-                const hasAnyInclusions = this.state.grantedCategories.size > 0 || this.state.grantedCommands.size > 0;
+                // IMPORTANT: Use API response to check actual grants, not state (state may have terms that are ultimately blocked)
+                const actuallyGrantedCommands = this.lastApiResponse?.granted_commands || [];
+                const hasAnyActualGrants = actuallyGrantedCommands.length > 0;
                 const hasAllCategory = explicitlyGrantedCategories.includes('all');
-                const shouldShowAllAsPartial = hasAnyInclusions && !hasAllCategory && !this.state.blockedCategories.has('all');
+                const shouldShowAllAsPartial = hasAnyActualGrants && !hasAllCategory && !this.state.blockedCategories.has('all');
 
                 let sortedExplicitCategories;
 
@@ -1376,7 +1401,29 @@ const InteractiveACLBuilder = {
                     const explicitWithoutAll = explicitlyGrantedCategories.filter(cat => cat !== 'all').sort();
                     sortedExplicitCategories = ['all', ...explicitWithoutAll];
                 } else {
-                    sortedExplicitCategories = explicitlyGrantedCategories.sort();
+                    // NEW: Separate explicit categories into FULL and PARTIAL
+                    // Full grants (no blocked commands) appear before partial grants (some blocked commands)
+                    const explicitFullGrants = [];
+                    const explicitPartialGrants = [];
+
+                    for (const cat of explicitlyGrantedCategories) {
+                        // Check if this category has any blocked commands (making it partial)
+                        const categoryCommands = await this.getCategoryCommandsCached(cat);
+                        const allGrantedCommands = new Set(this.lastApiResponse?.granted_commands || []);
+                        const allBlockedCommands = new Set(this.lastApiResponse?.blocked_commands || []);
+
+                        const grantedCount = categoryCommands.filter(cmd => allGrantedCommands.has(cmd)).length;
+                        const blockedCount = categoryCommands.filter(cmd => allBlockedCommands.has(cmd)).length;
+
+                        if (blockedCount > 0 && grantedCount > 0) {
+                            explicitPartialGrants.push(cat);
+                        } else {
+                            explicitFullGrants.push(cat);
+                        }
+                    }
+
+                    // Combine: full grants first (sorted), then partial grants (sorted)
+                    sortedExplicitCategories = [...explicitFullGrants.sort(), ...explicitPartialGrants.sort()];
                 }
 
                 // Add @all as implicit partial if needed
@@ -1530,7 +1577,9 @@ const InteractiveACLBuilder = {
                 // Use pre-calculated implicit partial categories (computed at the beginning of this method)
                 this.state.allCategories.forEach(category => {
                     // Skip categories that are explicitly granted (but allow partial categories in both columns)
+                    // EXCEPTION: If explicitly granted category has blocked commands, it should appear in blocked column too
                     if (this.state.grantedCategories.has(category)) {
+                        // We'll check for partial blocks later - don't add to effectivelyBlockedCategories here
                         return;
                     }
 
@@ -1541,6 +1590,18 @@ const InteractiveACLBuilder = {
                     }
                     // Categories with 'granted' status are handled in the granted section above
                 });
+
+                // IMPORTANT: Add explicitly BLOCKED categories to effectivelyBlockedCategories
+                // This allows us to check if they're partial (some commands granted back)
+                this.state.blockedCategories.forEach(category => {
+                    if (!effectivelyBlockedCategories.includes(category)) {
+                        effectivelyBlockedCategories.push(category);
+                    }
+                });
+
+                // IMPORTANT: Check explicitly GRANTED categories for partial blocks
+                // These should appear in BOTH granted and blocked columns
+                // We'll check this in the renderCategoryButtons loop below
 
                 // Special handling for @all category
                 // Only show @all as available (blocked) when the rule is truly empty (no inclusions at all)
@@ -1564,21 +1625,32 @@ const InteractiveACLBuilder = {
             const blockedCategories = [];
 
             if (effectivelyBlockedCategories.length > 0) {
-                effectivelyBlockedCategories.forEach(category => {
+                for (const category of effectivelyBlockedCategories) {
                     const isExplicitlyBlocked = this.state.blockedCategories.has(category);
                     const isPartialBlocked = implicitPartialBlockedCategories.has(category);
 
                     if (isExplicitlyBlocked) {
-                        // Explicitly blocked category (e.g., -@dangerous)
-                        blockedCategories.push({ category, type: 'explicit', priority: 1 });
+                        // Check if explicitly blocked category is FULL or PARTIAL
+                        // Partial means some commands are granted back (e.g., -@admin +acl|deluser)
+                        const categoryCommands = await this.getCategoryCommandsCached(category);
+                        const allGrantedCommands = new Set(this.lastApiResponse?.granted_commands || []);
+                        const grantedCount = categoryCommands.filter(cmd => allGrantedCommands.has(cmd)).length;
+
+                        if (grantedCount > 0) {
+                            // Explicit PARTIAL block (some commands granted back)
+                            blockedCategories.push({ category, type: 'explicit-partial', priority: 2 });
+                        } else {
+                            // Explicit FULL block (all commands blocked)
+                            blockedCategories.push({ category, type: 'explicit-full', priority: 1 });
+                        }
                     } else if (isPartialBlocked) {
                         // Implicitly partial blocked category (e.g., @dangerous when +@all -@admin)
-                        blockedCategories.push({ category, type: 'partial', priority: 3 }); // After fully blocked
+                        blockedCategories.push({ category, type: 'implicit-partial', priority: 4 }); // After implicit full
                     } else {
-                        // Implicitly blocked category (available but not granted)
-                        blockedCategories.push({ category, type: 'implicit', priority: 2 }); // After explicit, before partial
+                        // Implicitly fully blocked category (available but not granted)
+                        blockedCategories.push({ category, type: 'implicit-full', priority: 3 }); // After explicit partial
                     }
-                });
+                }
             }
 
             // Add partially blocked categories (with individual command blocks)
@@ -1587,7 +1659,7 @@ const InteractiveACLBuilder = {
             Array.from(implicitPartialBlockedCategories).forEach(category => {
                 // Only add if not already in the list
                 if (!blockedCategories.find(item => item.category === category)) {
-                    blockedCategories.push({ category, type: 'partial', priority: 3 }); // After fully blocked
+                    blockedCategories.push({ category, type: 'implicit-partial', priority: 4 }); // After implicit full
                 }
             });
 
@@ -1596,7 +1668,7 @@ const InteractiveACLBuilder = {
                 // Only add if not already in the list and not partial
                 if (!blockedCategories.find(item => item.category === category) &&
                     !implicitPartialBlockedCategories.has(category)) {
-                    blockedCategories.push({ category, type: 'available', priority: 2 }); // After explicit, before partial
+                    blockedCategories.push({ category, type: 'implicit-full', priority: 3 }); // After explicit partial
                 }
             });
 
@@ -1605,10 +1677,10 @@ const InteractiveACLBuilder = {
                 blockedCategories.push({ category: 'all', type: 'explicit', priority: 1 });
             }
 
-            // CRITICAL: Render @all FIRST if it's in availableCategories (before blockedCategories)
-            // This ensures @all appears at the very top of the blocked column
+            // NOTE: @all is now included in blockedCategories list above for proper sorting
+            // This special rendering section is disabled to prevent duplicates
             const allIndexInAvailable = availableCategories.indexOf('all');
-            if (allIndexInAvailable !== -1) {
+            if (false && allIndexInAvailable !== -1) {
                 // Remove @all from available list
                 availableCategories.splice(allIndexInAvailable, 1);
 
@@ -1997,9 +2069,10 @@ const InteractiveACLBuilder = {
             wrapper.className = 'command-buttons';
             this.elements.blockedCommandsButtons.appendChild(wrapper);
 
-            // Calculate total blocked command count for header
-            // For empty ACL, show total available commands since they're all effectively blocked
-            const blockedCount = isEmptyACL ? this.state.allCommands.length : commandsToShow.length;
+            // Calculate total blocked command count for header using API response
+            // This ensures accurate count based on actual blocked commands (not just what's displayed)
+            const apiBlockedCommands = this.lastApiResponse?.blocked_commands || [];
+            const blockedCount = apiBlockedCommands.length;
             // Use this.state.allCommands.length as the total (all commands for current Redis version)
             const totalCommands = this.state.allCommands?.length || 0;
             this.updateCommandSectionHeader('blocked', blockedCount, totalCommands);
@@ -2171,10 +2244,13 @@ const InteractiveACLBuilder = {
         try {
             // Special handling for @all category
             if (category === 'all') {
-                // @all is considered "partially granted" when there are any inclusions but @all is not explicitly granted
-                const hasAnyInclusions = this.state.grantedCategories.size > 0 || this.state.grantedCommands.size > 0;
+                // @all is considered "partially granted" when there are ACTUAL grants (per API) but @all is not explicitly granted
+                // IMPORTANT: Use API response to check actual grants, not state (state may have terms that are ultimately blocked)
+                const actuallyGrantedCommands = this.lastApiResponse?.granted_commands || [];
+                const hasAnyActualGrants = actuallyGrantedCommands.length > 0;
                 const isExplicitlyGranted = this.state.grantedCategories.has('all');
-                if (hasAnyInclusions && !isExplicitlyGranted) {
+
+                if (hasAnyActualGrants && !isExplicitlyGranted) {
                     return { [category]: 'partial' };
                 } else if (isExplicitlyGranted) {
                     // @all is explicitly granted - check if it's partial due to exclusions
