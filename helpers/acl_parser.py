@@ -1255,9 +1255,15 @@ class ACLParser:
 
             if granted_set == total_commands:
                 # All commands granted - can optimize to +@all
-                # If we already warned about inefficient +@all placement, don't repeat the explanation
-                has_all_placement_warning = any('Inefficient rule structure' in w and '+@all' in w for w in warnings)
-                explanation = '' if has_all_placement_warning else 'All commands are granted - use +@all'
+                # Check if +@all appears after other grant terms (inefficient placement)
+                # Parse tokens to detect pattern: has other grants BEFORE +@all
+                tokens = rule.split()
+                grant_tokens = [t for t in tokens if t.startswith('+') and not t.startswith('+@all')]
+                all_token_index = next((i for i, t in enumerate(tokens) if t == '+@all'), -1)
+                has_grants_before_all = all_token_index > 0 and any(tokens.index(gt) < all_token_index for gt in grant_tokens if gt in tokens)
+
+                # If we already have inefficient +@all placement, don't repeat the explanation
+                explanation = '' if has_grants_before_all else 'All commands are granted - use +@all'
 
                 representations.append({
                     'rule': '+@all',

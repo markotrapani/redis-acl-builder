@@ -1,49 +1,68 @@
 # Interactive ACL Builder - Test Plan
 
-## Test Status: In Progress (v1.24.0-beta)
+## Test Status: In Progress (v1.25.1-beta)
 
-### ✅ Completed Tests (v1.23.2 - v1.24.0)
+### ✅ Completed Tests (v1.23.2 - v1.25.1)
 
-#### Implicitly Partial Categories
+#### Implicitly Partial Categories (v1.24.0)
 
 - [x] `+@all -@admin` shows partial categories in BOTH columns with hollow yellow styling
 - [x] Categories like `@connection`, `@dangerous`, `@search`, `@slow` appear correctly
 - [x] Hollow yellow/orange styling is consistent across granted and blocked columns
 - [x] Clicking partial categories from either column works correctly
 
-#### Auto-Optimization
+#### Auto-Optimization (v1.24.0)
 
 - [x] `+@all -@admin +@connection` → clicking `@admin` → auto-optimizes to `+@all`
 - [x] Backend detects when all commands are granted and suggests `+@all`
 - [x] Auto-optimization triggers on button-built rule changes
 - [x] Success notification shows correct savings count
 
-#### Redundancy Detection
+#### Redundancy Detection (v1.24.0 - v1.25.0)
 
 - [x] `+@all +@connection +@admin` shows grouped redundancy warning
 - [x] Single red box with comma-separated list of redundant terms
 - [x] No duplicate explanation boxes
 - [x] Only shows best optimization suggestion (not intermediate ones)
+- [x] Simplified one-line redundancy messages with quoted tokens
 
-#### Version Switching
+#### Version Switching (v1.24.0)
 
 - [x] Optimization suggestions persist and update when switching Redis versions
 - [x] Implicitly partial categories detected correctly in both Redis 7 and 8
+
+#### @all Category Button States (v1.25.0 - v1.25.1)
+
+- [x] Empty rule: `@all` shows as available (solid blue) in blocked column
+- [x] Explicit grant `+@all`: Shows as solid blue in granted column
+- [x] Explicit block `-@all`: Shows as solid red in blocked column
+- [x] Partial grant `+@all -@admin`: Shows as solid blue with ⚠ in granted column
+- [x] Partial grant `+@all -@admin`: Shows as hollow yellow with ⚠ in blocked column
+- [x] Clicking `@all` in blocked with `-@all +@connection` auto-optimizes to `+@all`
+- [x] Clicking `@all` with empty rule produces `+@all`
+- [x] Removing `-@all` optimizes away redundant exclusions
+- [x] `+@connection +@all` shows dual explanations correctly (redundant + optimization)
+
+#### Button Ordering (v1.25.0 - v1.25.1)
+
+- [x] Granted column: `@all` first, then explicit grants, then implicit full, then implicit partial
+- [x] Explicit categories prioritized correctly with `+@connection +@all` rule
+- [x] Implicit partial categories appear after implicit fully granted categories
+- [x] Alphabetical sorting within same priority level
+
+#### Optimization Box Persistence (v1.25.1)
+
+- [x] Optimization suggestions persist while typing in textarea
+- [x] Suggestions remain visible when temporarily deleting all text
+- [x] Only hide on: submit new rule, click X button, or explicit clear operation
+- [x] Backend optimization error fixed (undefined `warnings` variable)
+- [x] "Saves X terms" displays correctly after fix
 
 ---
 
 ## 🔄 Pending Tests (Future Work)
 
 ### Button Interaction Testing
-
-#### @all Category Button States
-
-- [ ] Empty rule: `@all` shows as available in blocked column
-- [ ] Explicit grant `+@all`: Shows as solid blue in granted column
-- [ ] Explicit block `-@all`: Shows as solid red in blocked column
-- [ ] Partial grant `+@all -@admin`: Shows as hollow blue with ⚠ in granted column
-- [ ] Partial grant `+@all -@admin`: Shows as hollow yellow with ⚠ in blocked column
-- [ ] Clicking `@all` from different states produces correct rule changes
 
 #### Regular Category Button States
 
@@ -54,13 +73,6 @@
 - [ ] Explicit block `-@dangerous`: Solid red in blocked column
 - [ ] Partial block `+@all -@admin +acldeluser`: Hollow red ⚠ in blocked column
 - [ ] Available (not granted): Solid red in blocked column
-
-#### Button Ordering
-
-- [ ] Granted column: `@all` first, then explicit, then implicit partial, then implicit full
-- [ ] Blocked column: Explicit blocks first, then partial, then available
-- [ ] Alphabetical sorting within same priority level
-- [ ] Partial categories appear before fully granted implicit categories
 
 #### Cross-Column Interactions
 

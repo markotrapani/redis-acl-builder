@@ -71,7 +71,11 @@ const RuleManager = {
             if (DOMElements.resultsSummary) {
                 DOMElements.resultsSummary.style.display = 'none';
             }
-            this.hideRedundancyWarnings();
+            // Only hide optimization warnings if this is a committed empty rule (not during typing)
+            // During typing (skipRedundancyAnalysis=true), keep the optimization visible
+            if (!skipRedundancyAnalysis) {
+                this.hideRedundancyWarnings();
+            }
             return;
         }
 
@@ -143,16 +147,16 @@ const RuleManager = {
             }
         }
         
-        // Analyze for redundancy after successful parsing (skip during version changes)
+        // Analyze for redundancy after successful parsing (skip during version changes or manual typing)
         if (!skipRedundancyAnalysis) {
             try {
                 this.analyzeRedundancy();
             } catch (error) {
                 console.error('Error starting redundancy analysis:', error);
             }
-        } else {
-            this.hideRedundancyWarnings(); // Hide any existing warnings
         }
+        // Note: When skipping redundancy analysis (during typing), we DON'T hide warnings
+        // The optimization box should persist until user submits a new rule or clicks X
     },
     
     /**
