@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version v1.25.0-beta** - Backend Category Analysis & Test Suite Expansion
+**Version v1.25.1-beta** - Optimization Box Persistence & Backend Error Fix
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -69,9 +69,24 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
-## ✨ What's New in v1.25.0-beta
+## ✨ What's New in v1.25.1-beta
 
-### Backend Category Analysis & Test Suite Expansion
+### Optimization Box Persistence & Backend Error Fix
+
+- **🐛 Critical Backend Fix**: Fixed undefined `warnings` variable error in `optimize_rule()` method that broke all optimization
+  - Was returning `savings=0` instead of actual savings
+  - Changed to parse rule tokens directly to detect inefficient +@all placement patterns
+  - "Saves X terms" now displays correctly in optimization suggestions
+- **📌 Optimization Persistence**: Optimization suggestions now remain visible while typing
+  - Suggestions persist when temporarily deleting text in textarea
+  - Only hide on: submit new rule, click X dismiss button, or explicit clear operation
+  - Skip redundancy analysis during typing no longer hides existing warnings
+- **✅ Manual Testing**: Complete validation of @all category button states, button ordering priorities, and auto-optimization triggers
+- **📝 Documentation**: Updated testing plan with all v1.25.0-v1.25.1 completed tests
+
+### Previous Release (v1.25.0-beta)
+
+#### Backend Category Analysis & Test Suite Expansion
 
 - **🧠 Backend Category Intelligence**: Complete category analysis engine classifies categories as fully granted, partially granted (with percentages), or blocked based on actual command permissions
 - **📊 API Enhancement**: `/api/parse` endpoint now returns comprehensive category analysis including `granted_categories`, `partial_categories` (with grant counts and percentages), and `blocked_categories`
