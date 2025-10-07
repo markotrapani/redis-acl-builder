@@ -1010,7 +1010,7 @@ class ACLParser:
                 # There are command terms after -@all
                 # The -@all becomes redundant because subsequent inclusions will override it
                 # Final result is just the following commands + any key patterns
-                warnings.append("The '-@all' term is redundant when followed by inclusion commands")
+                # Note: No warning added here - the specific redundancy check below will handle it
                 redundant_terms.append({
                     'term': '-@all',
                     'position': all_deny_index,
