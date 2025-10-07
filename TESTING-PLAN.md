@@ -128,7 +128,7 @@
 - [x] Empty command-buttons containers hidden to prevent visual gaps
 - [x] No-commands message shows on own line with proper block display
 
-#### Rule Optimization System (v1.25.4-beta)
+#### Rule Optimization System (v1.25.4-v1.25.5-beta)
 
 **Optimization Display & Deduplication:**
 - [x] Backend optimization suggestion displays with "Saves X terms"
@@ -138,6 +138,18 @@
   - Warning: "Individual commands cover entire @hyperloglog category (3 commands)"
   - Suggestion: "Simplified rule: +@hyperloglog"
   - Savings: "Saves 2 terms"
+
+**Key Pattern Preservation (v1.25.5-beta):**
+- [x] Key patterns preserved in optimization suggestions: `+pfadd +pfcount +pfmerge ~key*` → `+@hyperloglog ~key*`
+- [x] No duplicate suggestions when key patterns present (fixed comparison logic)
+- [x] Backend includes key patterns, frontend detects with startsWith check
+- [x] Single clean suggestion with key pattern and "Saves X terms"
+
+**Auto-Optimization Triggers (v1.25.5-beta):**
+- [x] Button clicks trigger auto-optimization: Clicking commands → auto-applies `+@hyperloglog`
+- [x] Manual text edits show suggestions only (no auto-apply)
+- [x] Auto-optimization works correctly for button-built rules
+- [x] Manual entry shows optimization suggestion without auto-applying
 
 **Version Switching with Unsaved Text:**
 - [x] Typing text without submitting + switching versions preserves textarea content
@@ -171,10 +183,10 @@
 
 #### Auto-Optimization Triggers
 
-- [ ] Button clicks trigger auto-optimization (grantCategory, blockCategory, etc.)
-- [ ] Manual text edits do NOT trigger auto-optimization (only suggestions)
+- [x] ~~Button clicks trigger auto-optimization (grantCategory, blockCategory, etc.)~~ ✅ Completed in v1.25.5-beta
+- [x] ~~Manual text edits do NOT trigger auto-optimization (only suggestions)~~ ✅ Completed in v1.25.5-beta
 - [ ] Auto-optimization notification shows correct before/after counts
-- [ ] Optimization preserves key patterns (`~`, `%R~`, `%W~`, `%RW~`)
+- [x] ~~Optimization preserves key patterns (`~`, `%R~`, `%W~`, `%RW~`)~~ ✅ Completed in v1.25.5-beta
 
 #### Redundancy Detection Patterns
 

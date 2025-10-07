@@ -427,10 +427,15 @@ const InteractiveACLBuilder = {
                     // Build the optimized rule string
                     const optimizedRule = this.generateRuleFromTerms(optimizedTerms);
 
-                    // Check if backend already provided this exact suggestion
+                    // Check if backend already provided this suggestion (or a version with key patterns)
+                    // Backend may include key patterns like ~key*, so check if it starts with our rule
                     const backendAlreadyHasSuggestion = Array.from(suggestionsList.children).some(child => {
                         const ruleSpan = child.querySelector('.simplified-rule');
-                        return ruleSpan && ruleSpan.textContent.trim() === optimizedRule.trim();
+                        if (!ruleSpan) return false;
+                        const backendRule = ruleSpan.textContent.trim();
+                        const frontendRule = optimizedRule.trim();
+                        // Exact match OR backend rule starts with frontend rule (has additional key patterns)
+                        return backendRule === frontendRule || backendRule.startsWith(frontendRule + ' ');
                     });
 
                     // Only add frontend warning if backend hasn't already provided warnings
@@ -497,10 +502,15 @@ const InteractiveACLBuilder = {
                     // Build the optimized rule string
                     const optimizedRule = this.generateRuleFromTerms(optimizedTerms);
 
-                    // Check if backend already provided this exact suggestion
+                    // Check if backend already provided this suggestion (or a version with key patterns)
+                    // Backend may include key patterns like ~key*, so check if it starts with our rule
                     const backendAlreadyHasSuggestion = Array.from(suggestionsList.children).some(child => {
                         const ruleSpan = child.querySelector('.simplified-rule');
-                        return ruleSpan && ruleSpan.textContent.trim() === optimizedRule.trim();
+                        if (!ruleSpan) return false;
+                        const backendRule = ruleSpan.textContent.trim();
+                        const frontendRule = optimizedRule.trim();
+                        // Exact match OR backend rule starts with frontend rule (has additional key patterns)
+                        return backendRule === frontendRule || backendRule.startsWith(frontendRule + ' ');
                     });
 
                     // Only add frontend warning if backend hasn't already provided warnings
@@ -579,10 +589,15 @@ const InteractiveACLBuilder = {
                     // Build the optimized rule string
                     const optimizedRule = this.generateRuleFromTerms(optimizedTerms);
 
-                    // Check if backend already provided this exact suggestion
+                    // Check if backend already provided this suggestion (or a version with key patterns)
+                    // Backend may include key patterns like ~key*, so check if it starts with our rule
                     const backendAlreadyHasSuggestion = Array.from(suggestionsList.children).some(child => {
                         const ruleSpan = child.querySelector('.simplified-rule');
-                        return ruleSpan && ruleSpan.textContent.trim() === optimizedRule.trim();
+                        if (!ruleSpan) return false;
+                        const backendRule = ruleSpan.textContent.trim();
+                        const frontendRule = optimizedRule.trim();
+                        // Exact match OR backend rule starts with frontend rule (has additional key patterns)
+                        return backendRule === frontendRule || backendRule.startsWith(frontendRule + ' ');
                     });
 
                     // Only add frontend warning if backend hasn't already provided warnings
