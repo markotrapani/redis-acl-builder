@@ -185,17 +185,18 @@
 
 - [x] ~~Button clicks trigger auto-optimization (grantCategory, blockCategory, etc.)~~ ✅ Completed in v1.25.5-beta
 - [x] ~~Manual text edits do NOT trigger auto-optimization (only suggestions)~~ ✅ Completed in v1.25.5-beta
-- [ ] Auto-optimization notification shows correct before/after counts
+- [x] ~~Auto-optimization notification shows correct before/after counts~~ ✅ Completed in v1.25.5-beta (e.g., "Auto-optimized: replaced 3 commands with +@hyperloglog")
 - [x] ~~Optimization preserves key patterns (`~`, `%R~`, `%W~`, `%RW~`)~~ ✅ Completed in v1.25.5-beta
 
 #### Redundancy Detection Patterns
 
-- [ ] Redundant inclusions: `+@all +@read +@write` (should group)
-- [ ] Redundant exclusions: `-@read -@write` (when neither granted)
-- [ ] Cancelled `@all`: `+@all` then all categories blocked
-- [ ] All categories granted: `+@read +@write ...` → suggest `+@all`
-- [ ] Category completion: `+get +set +append ...` → suggest `+@string`
-- [ ] Null categories: `+@read` then all read commands excluded
+- [x] ~~Redundant inclusions: `+@all +@read +@write` (should group)~~ ✅ Completed in v1.25.5-beta (groups as "Redundant inclusions: +@read, +@write")
+- [x] ~~Redundant exclusions: `+@all -@string -get -set -append` (should group)~~ ✅ Completed in v1.25.5-beta (groups as "Redundant exclusions: -get, -set, -append")
+- [x] ~~Inefficient ordering: `+@all -get -@string`~~ ✅ Completed in v1.25.5-beta (detects preceding exclusions made redundant)
+- [x] ~~Cancelled `@all`: Block all categories after `+@all`~~ ✅ Completed in v1.25.6-beta (detects no commands granted, suggests empty rule)
+- [x] ~~All categories granted: All 21 categories → suggest `+@all`~~ ✅ Completed in v1.25.6-beta (truncated list after 3 examples, clean message)
+- [x] ~~Category completion: `+pfadd +pfcount +pfmerge` → suggest `+@hyperloglog`~~ ✅ Completed in v1.25.5-beta
+- [x] ~~Null categories: `+@hyperloglog -pfadd -pfcount -pfmerge`~~ ✅ Completed in v1.25.6-beta (detects no commands granted, suggests empty rule)
 
 #### Optimization Edge Cases
 

@@ -1916,8 +1916,13 @@ class ACLParser:
 
                 # Clear existing warnings and add the all-categories specific warning
                 warnings.clear()
-                category_list = "', '".join(sorted(granted_categories))
-                all_categories_warning = f"All {len(granted_categories)} categories explicitly granted:\n'{category_list}'\nThis can be simplified to '+@all' for better readability"
+                sorted_cats = sorted(granted_categories)
+                # Truncate category list after 3 examples for readability
+                if len(sorted_cats) > 3:
+                    category_list = "', '".join(sorted_cats[:3]) + "', ..."
+                else:
+                    category_list = "', '".join(sorted_cats)
+                all_categories_warning = f"All {len(granted_categories)} categories explicitly granted:\n'{category_list}"
                 warnings.append(all_categories_warning)
 
                 # Mark all category tokens as redundant for UI highlighting
