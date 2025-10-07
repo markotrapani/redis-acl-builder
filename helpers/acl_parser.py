@@ -1075,10 +1075,11 @@ class ACLParser:
 
                     preceding_granted: Set[str] = cumulative_granted_by_position[idx - 1] if idx > 0 else set()
                     preceding_inclusion_tokens: List[str] = [tokens[i] for i in range(idx) if tokens[i].startswith('+') and not tokens[i].startswith('~')]
-                    
+
                     if preceding_inclusion_tokens and preceding_granted.issubset(current_commands):
-                        warnings.append(f"Inefficient rule structure: '{token}' grants all commands from preceding inclusion terms\nPreceding terms made redundant: {', '.join(preceding_inclusion_tokens)}")
-                        
+                        # Note: No warning added here - the optimization suggestion will explain this
+                        # Adding both would be redundant (e.g., "+@connection +@all" shows optimization suggestion)
+
                         for redundant_token in preceding_inclusion_tokens:
                             redundant_terms.append({
                                 'term': redundant_token,

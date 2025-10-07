@@ -891,6 +891,9 @@ const InteractiveACLBuilder = {
             this.state.orderedTerms.push({ type: 'category', operation: 'grant', value: category });
         }
 
+        // Mark that we should check for comprehensive optimization after render
+        this.state.shouldComprehensiveOptimize = true;
+
         this.scheduleRender();
     },
 
