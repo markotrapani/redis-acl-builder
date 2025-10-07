@@ -1792,8 +1792,8 @@ const InteractiveACLBuilder = {
         const header = section?.querySelector('h3');
 
         if (header) {
-            // Show X/Y format with total denominator
-            header.textContent = total ? `Categories (${count}/${total})` : `Categories`;
+            // Show X/Y format with total denominator (total should always be defined)
+            header.textContent = (total !== undefined && total !== null) ? `Categories (${count}/${total})` : `Categories`;
         }
     },
 
@@ -1997,8 +1997,8 @@ const InteractiveACLBuilder = {
 
         if (header) {
             const text = 'Individual Commands';
-            // Show X/Y format with total denominator when available
-            header.textContent = total ? `${text} (${count}/${total})` : text;
+            // Show X/Y format with total denominator (total should always be defined)
+            header.textContent = (total !== undefined && total !== null) ? `${text} (${count}/${total})` : text;
         }
     },
 
