@@ -164,20 +164,42 @@ const EventHandlers = {
                                     () => {
                                         // User confirmed - clean the rule and proceed
                                         const cleanedRule = Utils.cleanRedis8ContentFromRule(currentRule);
-                                        // Mark as programmatic update to prevent panel expansion
+
+                                        // Update textarea value
                                         DOMElements.aclRuleInput.dataset.programmaticUpdate = 'true';
                                         DOMElements.aclRuleInput.value = cleanedRule;
 
-                                        // Proceed with version change - use stored reference
-                                        toggleElement.performVersionSwitch(newVersion);
+                                        // Sync the cleaned rule to Interactive ACL Builder's internal state
+                                        // This is critical - we must update the builder's state BEFORE switching versions
+                                        import('../components/interactive-acl-builder.js').then(({ default: InteractiveACLBuilder }) => {
+                                            if (InteractiveACLBuilder.state.isInitialized) {
+                                                // This will parse the textarea (which is now cleaned) and update internal state
+                                                return InteractiveACLBuilder.syncFromRuleText();
+                                            }
+                                        }).then(() => {
+                                            // Save the cleaned rule to localStorage (commit it)
+                                            return import('../core/storage.js');
+                                        }).then(({ default: Storage }) => {
+                                            Storage.saveAclRule(cleanedRule);
+                                            Storage.saveLastGeneratedRule(cleanedRule);
 
-                                        // Show notification about cleaned items
-                                        const itemCount = analysis.incompatibleItems.length;
-                                        Utils.showNotification(
-                                            `Removed ${itemCount} Redis 8-specific item${itemCount > 1 ? 's' : ''} from ACL rule`,
-                                            'warning',
-                                            4000
-                                        );
+                                            // Hide Submit Changes button since we just committed the cleaned rule
+                                            const submitBtn = document.getElementById('submitChangesBtn');
+                                            if (submitBtn) {
+                                                submitBtn.style.display = 'none';
+                                            }
+
+                                            // Now proceed with version change - use stored reference
+                                            toggleElement.performVersionSwitch(newVersion);
+
+                                            // Show notification about cleaned items
+                                            const itemCount = analysis.incompatibleItems.length;
+                                            Utils.showNotification(
+                                                `Removed ${itemCount} Redis 8-specific item${itemCount > 1 ? 's' : ''} from ACL rule`,
+                                                'warning',
+                                                4000
+                                            );
+                                        });
                                     },
                                     () => {
                                         // User cancelled - revert toggle

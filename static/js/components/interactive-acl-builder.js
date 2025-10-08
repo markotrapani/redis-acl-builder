@@ -2928,7 +2928,6 @@ const InteractiveACLBuilder = {
     async updateRuleText(addToHistory = true) {
         if (!this.elements.aclRuleInput) return;
 
-
         const rule = await this.generateOptimizedRule();
         // Mark as programmatic update to prevent panel expansion
         this.elements.aclRuleInput.dataset.programmaticUpdate = 'true';

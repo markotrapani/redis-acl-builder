@@ -1,8 +1,8 @@
 # Interactive ACL Builder - Test Plan
 
-## Test Status: In Progress (v1.25.7-beta)
+## Test Status: In Progress (v1.25.9-beta)
 
-### ✅ Completed Tests (v1.23.2 - v1.25.7)
+### ✅ Completed Tests (v1.23.2 - v1.25.9)
 
 #### Implicitly Partial Categories (v1.24.0)
 
@@ -225,6 +225,29 @@
 - [x] @all button appears below message text in blocked column
 - [x] @all button appears below message text in granted column
 - [x] `width: 100%` forces message to take full flex container width
+
+#### Command Count Initialization (v1.25.8)
+
+- [x] Empty rule on page load shows correct blocked count (311/311 for Redis 7, 446/446 for Redis 8)
+- [x] No longer shows (0/311) on initial page load
+- [x] `blockedCount = totalCommands` when rule is empty or no API response
+
+#### Version Switching with Unsaved Changes (v1.25.8)
+
+- [x] Typing "+ft.search" in Redis 7 → switch to Redis 8 → submit shows correct counts (1/446)
+- [x] `loadAllData()` always called during version switch, even with unsaved changes
+- [x] Command counts update correctly when switching versions with unsaved text
+- [x] No more wrong denominators like (445/311)
+
+#### Redis 8 → Redis 7 Downgrade with Module Commands (v1.25.9)
+
+- [x] Enter `+ft.search +json.get +@search` in Redis 8 and submit
+- [x] Switch to Redis 7 → confirmation dialog appears correctly
+- [x] Click OK → rule is cleaned (module commands and categories removed)
+- [x] Interactive ACL Builder internal state properly synced via `syncFromRuleText()`
+- [x] Textarea remains empty after version switch completes
+- [x] No re-addition of cleaned Redis 8 content
+- [x] Notification shows: "Removed X Redis 8-specific items from ACL rule"
 
 ### Edge Cases & Error Handling (v1.25.7)
 
