@@ -151,7 +151,7 @@ function exitIntegratedMode() {
 
         // Clear integrated result
         if (integratedResultDiv) {
-            integratedResultDiv.innerHTML = '';
+            integratedResultDiv.textContent = '';
         }
 
         // Enable split tester buttons if there's prefilled data
@@ -299,7 +299,7 @@ function dismissIntegratedResult() {
 
     // Remove after animation completes
     setTimeout(() => {
-        integratedResultDiv.innerHTML = '';
+        integratedResultDiv.textContent = '';
         integratedResultDiv.classList.remove('dismissing');
     }, 400);
 }

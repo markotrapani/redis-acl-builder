@@ -202,7 +202,7 @@ const SavedRules = {
         this.elements.savedRulesSection.style.display = 'block';
 
         // Clear existing content
-        this.elements.savedRulesContent.innerHTML = '';
+        this.elements.savedRulesContent.textContent = '';
 
         // Create buttons for each saved rule
         savedRules.forEach(rule => {

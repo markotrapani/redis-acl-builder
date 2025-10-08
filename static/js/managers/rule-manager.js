@@ -8,6 +8,7 @@ import DOMElements from '../core/dom-elements.js';
 import Storage from '../core/storage.js';
 import Utils from '../core/utils.js';
 import API from '../api/api-client.js';
+import DOMUtils from '../core/dom-utils.js';
 
 const RuleManager = {
     /**
@@ -66,7 +67,7 @@ const RuleManager = {
         // If rule is empty, clear results and return early (no error)
         if (!rule || rule.length === 0) {
             if (DOMElements.commandResults) {
-                DOMElements.commandResults.innerHTML = '';
+                DOMElements.commandResults.textContent = '';
             }
             if (DOMElements.resultsSummary) {
                 DOMElements.resultsSummary.style.display = 'none';
@@ -298,8 +299,8 @@ const RuleManager = {
         }
 
         // Clear existing content
-        warningsList.innerHTML = '';
-        suggestionsList.innerHTML = '';
+        warningsList.textContent = '';
+        suggestionsList.textContent = '';
 
         // Determine if we have actual redundancy or just optimization
         const hasOptimization = analysis.suggestions && analysis.suggestions.some(s => s.startsWith('Saves ') && s.includes('term'));
@@ -353,8 +354,8 @@ const RuleManager = {
             filteredWarnings.forEach(warning => {
                 const warningDiv = document.createElement('div');
                 warningDiv.className = 'warning-item';
-                // Convert newlines to <br> tags for proper display
-                warningDiv.innerHTML = warning.replace(/\n/g, '<br>');
+                // Safely create text with line breaks (XSS-safe)
+                warningDiv.appendChild(DOMUtils.createTextWithBreaks(warning));
                 warningsList.appendChild(warningDiv);
             });
         }

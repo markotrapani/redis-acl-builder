@@ -559,7 +559,7 @@ Do you want to continue and automatically clean the rule?`;
                 resultDiv.classList.add('dismissing');
                 // Wait for animation to complete before removing
                 setTimeout(() => {
-                    container.innerHTML = '';
+                    container.textContent = '';
                 }, 400); // Match 0.4s transition duration
             }
         };

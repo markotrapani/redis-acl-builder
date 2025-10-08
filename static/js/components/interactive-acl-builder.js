@@ -9,6 +9,7 @@ import API from '../api/api-client.js';
 import RuleManager from '../managers/rule-manager.js';
 import Storage from '../core/storage.js';
 import SearchManager from './search-manager.js';
+import DOMUtils from '../core/dom-utils.js';
 
 // Refactored modules (v1.22.0-beta)
 import ACLOptimizer from './acl-optimizer.js';
@@ -421,9 +422,9 @@ const InteractiveACLBuilder = {
                 // If backend already has warnings, skip adding frontend warnings (they're less detailed)
                 const backendHasWarnings = existingBackendWarnings.length > 0;
 
-                // Clear existing content to avoid duplication
-                warningsList.innerHTML = '';
-                suggestionsList.innerHTML = '';
+                // Clear existing content to avoid duplication (XSS-safe)
+                warningsList.textContent = '';
+                suggestionsList.textContent = '';
 
                 // Re-add the preserved backend warnings and suggestions FIRST
                 if (backendHasWarnings) {
@@ -1417,8 +1418,8 @@ const InteractiveACLBuilder = {
 
         // Render granted categories
         if (this.elements.grantedCategoriesButtons) {
-            // Clear any existing content (including initial placeholders from HTML)
-            this.elements.grantedCategoriesButtons.innerHTML = '';
+            // Clear any existing content (XSS-safe)
+            this.elements.grantedCategoriesButtons.textContent = '';
             
             const effectivelyGrantedCategories = [];
 
@@ -1648,7 +1649,7 @@ const InteractiveACLBuilder = {
         // Render available categories as clickable buttons
         if (this.elements.blockedCategoriesButtons) {
             // Clear any existing content (including initial placeholders from HTML)
-            this.elements.blockedCategoriesButtons.innerHTML = '';
+            this.elements.blockedCategoriesButtons.textContent = '';
             
             const effectivelyBlockedCategories = [];
             const availableCategories = [];
@@ -2033,7 +2034,7 @@ const InteractiveACLBuilder = {
         // Render granted commands
         if (this.elements.grantedCommandsButtons) {
             // Clear any existing content (including initial placeholders from HTML)
-            this.elements.grantedCommandsButtons.innerHTML = '';
+            this.elements.grantedCommandsButtons.textContent = '';
 
             // Use the API response for accurate granted commands (respects ACL precedence)
             const allGrantedCommands = new Set();
@@ -2095,7 +2096,7 @@ const InteractiveACLBuilder = {
         // Render blocked/available commands
         if (this.elements.blockedCommandsButtons) {
             // Clear any existing content (including initial placeholders from HTML)
-            this.elements.blockedCommandsButtons.innerHTML = '';
+            this.elements.blockedCommandsButtons.textContent = '';
 
             const isEmptyACL = this.state.grantedCategories.size === 0 &&
                                this.state.grantedCommands.size === 0 &&
