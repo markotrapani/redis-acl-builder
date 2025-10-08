@@ -233,8 +233,18 @@ const EventHandlers = {
             // IMPORTANT: Only update interactive builder if there are NO unsaved changes
             // If there are unsaved changes, skip the update to preserve textarea content
             // The interactive builder's updateRuleText() would overwrite the textarea with generated rule
-            if (window.updateInteractiveBuilder && !hasUnsavedChanges) {
-                window.updateInteractiveBuilder();
+            if (window.updateInteractiveBuilder) {
+                if (!hasUnsavedChanges) {
+                    window.updateInteractiveBuilder();
+                } else {
+                    // Even with unsaved changes, we need to refresh command/category lists for the new version
+                    // But skip the render to preserve textarea content
+                    import('../components/interactive-acl-builder.js').then(({ default: InteractiveACLBuilder }) => {
+                        if (InteractiveACLBuilder.state.isInitialized) {
+                            InteractiveACLBuilder.loadAllData(); // Update lists without rendering
+                        }
+                    });
+                }
             }
         };
         

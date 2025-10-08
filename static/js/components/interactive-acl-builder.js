@@ -2189,10 +2189,19 @@ const InteractiveACLBuilder = {
 
             // Calculate total blocked command count for header using API response
             // This ensures accurate count based on actual blocked commands (not just what's displayed)
-            const apiBlockedCommands = this.lastApiResponse?.blocked_commands || [];
-            const blockedCount = apiBlockedCommands.length;
-            // Use this.state.allCommands.length as the total (all commands for current Redis version)
             const totalCommands = this.state.allCommands?.length || 0;
+
+            // For empty rules (no lastApiResponse or no rule text), all commands are blocked
+            const currentRule = this.elements.aclRuleInput?.value?.trim() || '';
+            let blockedCount;
+            if (!currentRule || !this.lastApiResponse) {
+                // Empty rule = all commands blocked (Redis default)
+                blockedCount = totalCommands;
+            } else {
+                const apiBlockedCommands = this.lastApiResponse.blocked_commands || [];
+                blockedCount = apiBlockedCommands.length;
+            }
+
             this.updateCommandSectionHeader('blocked', blockedCount, totalCommands);
         }
     },
