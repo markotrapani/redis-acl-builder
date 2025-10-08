@@ -368,23 +368,16 @@ const RuleManager = {
 
                 if (suggestion.includes('Simplified rule:')) {
                     const parts = suggestion.split('Simplified rule: ');
-                    // Convert newlines to <br> tags in the first part
-                    const formattedFirstPart = parts[0].replace(/\n/g, '<br>');
+                    const formattedFirstPart = parts[0];
 
                     // Split the second part by newline to separate the rule from additional text (like "Saves X terms")
                     const afterRule = parts[1].split('\n');
                     const actualRule = afterRule[0]; // First line is the actual rule
-                    const additionalText = afterRule.slice(1).join('<br>'); // Remaining lines
+                    const additionalText = afterRule.slice(1).join('\n'); // Remaining lines
 
-                    suggestionDiv.innerHTML = `${formattedFirstPart}Simplified rule: <span class="simplified-rule">${actualRule}</span>${additionalText ? '<br>' + additionalText : ''}`;
-
-                    // Make simplified rule clickable
-                    const ruleSpan = suggestionDiv.querySelector('.simplified-rule');
-                    if (ruleSpan) {
-                        ruleSpan.style.cursor = 'pointer';
-                        ruleSpan.title = 'Click to apply this simplified rule';
-                        ruleSpan.onclick = () => {
-                            const simplifiedRule = ruleSpan.textContent.replace(/'/g, '');
+                    // Use DOMUtils for XSS-safe DOM construction
+                    const clickHandler = () => {
+                            const simplifiedRule = actualRule.replace(/'/g, '');
                             // Handle special case of "(empty rule)" or empty string - clear the text area completely
                             if (simplifiedRule === '(empty rule)' || simplifiedRule === '' || simplifiedRule === ' ') {
                                 DOMElements.aclRuleInput.value = '';
@@ -412,8 +405,16 @@ const RuleManager = {
                             import('../handlers/event-handlers.js').then(({ default: EventHandlers }) => {
                                 EventHandlers.updateActionButtonStates();
                             });
-                        };
-                    }
+                    };
+
+                    // Create safe DOM structure with DOMUtils
+                    const fragment = DOMUtils.createSimplifiedRuleSuggestion(
+                        formattedFirstPart,
+                        actualRule,
+                        additionalText,
+                        clickHandler
+                    );
+                    suggestionDiv.appendChild(fragment);
                 } else {
                     suggestionDiv.textContent = suggestion;
                 }
