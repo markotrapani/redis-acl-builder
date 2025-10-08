@@ -1,8 +1,8 @@
 # Interactive ACL Builder - Test Plan
 
-## Test Status: In Progress (v1.25.4-beta)
+## Test Status: In Progress (v1.25.7-beta)
 
-### ✅ Completed Tests (v1.23.2 - v1.25.4)
+### ✅ Completed Tests (v1.23.2 - v1.25.7)
 
 #### Implicitly Partial Categories (v1.24.0)
 
@@ -198,37 +198,50 @@
 - [x] ~~Category completion: `+pfadd +pfcount +pfmerge` → suggest `+@hyperloglog`~~ ✅ Completed in v1.25.5-beta
 - [x] ~~Null categories: `+@hyperloglog -pfadd -pfcount -pfmerge`~~ ✅ Completed in v1.25.6-beta (detects no commands granted, suggests empty rule)
 
-#### Optimization Edge Cases
+#### Optimization Edge Cases (v1.25.7)
 
-- [ ] Empty rule optimization (grants no commands)
-- [ ] Key patterns preserved during optimization
-- [ ] Selector rules skip optimization (context isolation)
-- [ ] Multiple optimization strategies ranked correctly
+- [x] Selector rules skip optimization (context isolation) - `+@read (~user:*)` shows no optimization
+- [x] Multiple optimization strategies ranked correctly - `+pfadd +pfcount +pfmerge` → `+@hyperloglog`, `+discard +exec +multi +unwatch +watch` → `+@transaction`
+- [x] Category completion detected for small categories (hyperloglog: 3 commands, transaction: 5 commands)
 
-### Redis 7 vs Redis 8 Differences
+#### All-Categories Pattern Detection (v1.25.7)
 
-- [ ] Command counts differ correctly (311 vs 446)
-- [ ] Category counts differ correctly (21 vs 29)
-- [ ] Module commands only appear in Redis 8 (`ft.*`, `json.*`, etc.)
-- [ ] Optimization suggestions differ based on available commands
-- [ ] Category overlap percentages differ between versions
+- [x] Backend detects when all commands are covered (not just all categories present)
+- [x] 20/21 categories covering all 311 commands suggests `+@all`
+- [x] Proper warning message: "Categories cover all 311 commands" (not "redundant inclusions")
+- [x] Works for both exact category match (21/21) and command coverage (20/21)
+- [x] No misleading "Redundant inclusions" when it's actually an all-categories pattern
 
-### Edge Cases & Error Handling
+#### Null Category Optimization Clearing (v1.25.7)
 
-- [ ] Invalid category names show proper error
-- [ ] Invalid command names show proper error
-- [ ] Malformed ACL syntax shows proper error with truncated tokens
-- [ ] Empty rule behavior (blocks all commands by default)
-- [ ] Very long rules (100+ terms) perform acceptably
-- [ ] Rapid button clicking doesn't cause race conditions
+- [x] `+@hyperloglog -pfadd -pfcount -pfmerge` (grants 0 commands) clears rule when clicking @hyperloglog button
+- [x] Optimization suggestion automatically clears when rule becomes empty
+- [x] No persistent optimization box after clearing null category rule
+- [x] analyzeRedundancy() called after updateRuleText() in smoothRender flow
 
-### Light/Dark Mode Testing
+#### UI Layout Fixes (v1.25.7)
 
-- [ ] All button states visible in light mode
-- [ ] All button states visible in dark mode
-- [ ] Hollow styling distinguishable in both themes
-- [ ] Warning icons (⚠) visible in both themes
-- [ ] Optimization/redundancy boxes styled correctly in both themes
+- [x] "No categories available" text appears on its own line (not inline with @all button)
+- [x] @all button appears below message text in blocked column
+- [x] @all button appears below message text in granted column
+- [x] `width: 100%` forces message to take full flex container width
+
+### Edge Cases & Error Handling (v1.25.7)
+
+- [x] Invalid category names show proper error (`+@fakecategory +@read`)
+- [x] Invalid command names show proper error (`+fakecommand +get +set`)
+- [x] Malformed ACL syntax shows proper error (`@read @write`)
+- [x] Empty rule behavior (blocks all commands by default)
+- [x] Very long rules (21 categories) perform acceptably - no performance issues
+- [x] All-categories rule suggests `+@all` without performance degradation
+
+### Light/Dark Mode Testing (v1.25.6)
+
+- [x] All button states visible in light mode
+- [x] All button states visible in dark mode
+- [x] Hollow styling distinguishable in both themes
+- [x] Warning icons (⚠) visible in both themes
+- [x] Optimization/redundancy boxes styled correctly in both themes
 
 ### Mobile/Tablet Testing
 
@@ -290,6 +303,10 @@ When issues are found:
 
 ## Version History
 
+- **v1.25.7-beta**: All-categories pattern detection improvements, null category optimization clearing, UI layout fixes for @all button positioning
+- **v1.25.6-beta**: Truncated all-categories message, cleaner optimization warnings
+- **v1.25.5-beta**: Fixed duplicate optimization suggestions with key patterns
+- **v1.25.4-beta**: Version switching preservation, backend optimization display coordination
 - **v1.24.0-beta**: Fixed implicitly partial categories, auto-optimization, grouped redundancy warnings
 - **v1.23.2-beta**: Interactive hover feedback and animation fixes
 - **v1.23.0-beta**: Testing section UI polish

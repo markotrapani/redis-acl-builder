@@ -379,11 +379,30 @@ const InteractiveACLBuilder = {
      * Display optimization suggestions for manually typed redundant exclusions
      */
     async displayOptimizationSuggestions() {
+        // IMPORTANT: Check if textarea is empty FIRST before running detection functions
+        // Detection functions use this.lastApiResponse which may contain stale data from previous rule
+        // If textarea is empty, there's nothing to optimize - hide warnings and return immediately
+        const ruleText = this.elements.aclRuleInput?.value?.trim() || '';
+        if (!ruleText) {
+            // Import RuleManager to hide warnings for empty rules
+            import('../managers/rule-manager.js').then(({ default: RuleManager }) => {
+                RuleManager.hideRedundancyWarnings();
+            });
+            return;
+        }
+
         const redundantExclusions = await this.detectRedundantExclusions();
         const implicitCategories = await this.detectImplicitFullyGrantedCategories();
         const blockThenRegrantPatterns = await this.detectBlockThenRegrantPatterns();
 
-        if (redundantExclusions.length > 0 || implicitCategories.length > 0 || blockThenRegrantPatterns.length > 0) {
+        const hasOptimizations = redundantExclusions.length > 0 || implicitCategories.length > 0 || blockThenRegrantPatterns.length > 0;
+
+        // If no frontend optimizations were detected, no need to show anything
+        if (!hasOptimizations) {
+            return;
+        }
+
+        if (hasOptimizations) {
             // Use the existing redundancy warning system to show optimization suggestions
             const warningsList = document.getElementById('warningsList');
             const suggestionsList = document.getElementById('suggestionsList');
@@ -1219,7 +1238,7 @@ const InteractiveACLBuilder = {
             if (shouldUpdateRuleText) {
                 await this.updateRuleText(addToHistory);
             }
-            
+
             // Then refresh API response data for partial category detection
             const currentRule = this.elements.aclRuleInput.value.trim();
             try {
@@ -1229,6 +1248,22 @@ const InteractiveACLBuilder = {
                 }
             } catch (error) {
                 console.error('Error refreshing API response:', error);
+            }
+
+            // After updating rule text, analyze for redundancy/optimization (this will hide warnings for empty rules)
+            if (shouldUpdateRuleText) {
+                try {
+                    await import('../managers/rule-manager.js').then(({ default: RuleManager }) => {
+                        RuleManager.analyzeRedundancy();
+                    });
+
+                    // Wait for redundancy analysis to complete, then add frontend optimization suggestions
+                    setTimeout(async () => {
+                        await this.displayOptimizationSuggestions();
+                    }, 100);
+                } catch (error) {
+                    console.error('Error during post-render redundancy analysis:', error);
+                }
             }
 
             // Auto-optimize redundant exclusions if requested (after API response is fresh)
@@ -1536,6 +1571,7 @@ const InteractiveACLBuilder = {
                 const message = document.createElement('div');
                 message.className = 'text-muted';
                 message.style.padding = '10px';
+                message.style.width = '100%'; // Force full width in flex container
                 message.textContent = 'No categories granted';
                 this.elements.grantedCategoriesButtons.appendChild(message);
             } else {
@@ -1785,6 +1821,18 @@ const InteractiveACLBuilder = {
                 this.elements.blockedCategoriesButtons.appendChild(button);
             }
 
+            // Check if we should show "No categories available" message
+            // Show it if only @all is in the blocked list (no regular categories)
+            const nonAllBlockedCategories = blockedCategories.filter(c => c.category !== 'all');
+            if (blockedCategories.length > 0 && nonAllBlockedCategories.length === 0) {
+                const message = document.createElement('div');
+                message.className = 'text-muted';
+                message.style.padding = '10px';
+                message.style.width = '100%'; // Force full width in flex container to push @all button to next line
+                message.textContent = 'No categories available';
+                this.elements.blockedCategoriesButtons.appendChild(message);
+            }
+
             // Now render blockedCategories (if @all is in this list, it will be first due to sort)
             if (blockedCategories.length > 0) {
 
@@ -1892,13 +1940,8 @@ const InteractiveACLBuilder = {
                 }
             }
 
-            if (availableCategories.length === 0 && effectivelyBlockedCategories.length === 0) {
-                const message = document.createElement('div');
-                message.className = 'text-muted';
-                message.style.padding = '10px';
-                message.textContent = 'No categories available';
-                this.elements.blockedCategoriesButtons.appendChild(message);
-            }
+            // The "No categories available" message is now shown earlier (before @all button)
+            // This block is no longer needed
 
             // Update the blocked categories header (exclude @all and partial categories from count)
             // Only count FULLY blocked categories (explicit blocks + available/not granted)

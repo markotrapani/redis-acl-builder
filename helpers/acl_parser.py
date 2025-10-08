@@ -1821,7 +1821,10 @@ class ACLParser:
         grouped_terms = other_terms.copy()
 
         # Group redundant inclusions
-        if len(inclusion_warnings) >= 2:  # Group if 2 or more similar warnings
+        # BUT: Skip if the all-categories pattern was detected (those warnings are more accurate)
+        has_all_categories_warning = any('categories explicitly granted' in w for w in other_warnings)
+
+        if len(inclusion_warnings) >= 2 and not has_all_categories_warning:  # Group if 2 or more similar warnings
             # Create a single grouped warning with comma-separated list
             # Use ellipsis if too many terms (more than 5)
             if len(inclusion_warnings) <= 5:
@@ -1896,19 +1899,32 @@ class ACLParser:
                     if category in self.data['categories'] and category != 'all':
                         granted_categories.add(category)
 
-            # Get all available categories (excluding 'all')
+            # Get all available categories and commands
             all_categories = set(self.data['categories'].keys()) - {'all'}
 
-            # Check if all categories are explicitly granted
-            if granted_categories == all_categories and len(granted_categories) >= 10:
-                # All categories are explicitly granted - suggest +@all
+            # Get all commands that would be granted by the given categories
+            all_granted_commands = set()
+            for category in granted_categories:
+                if category in self.data['categories']:
+                    all_granted_commands.update(self.data['categories'][category])
+
+            # Get total number of available commands
+            all_commands = set(self.data['commands'].keys())
+
+            # Check if ALL commands are granted (even if not all categories are present)
+            # This handles cases like 20/21 categories that together cover all commands
+            if all_granted_commands >= all_commands and len(granted_categories) >= 10:
+                # All commands are covered - suggest +@all
 
                 # Find key patterns to preserve
                 key_tokens = [token for token in tokens if token.startswith('~')]
-                key_part = ' '.join(key_tokens) if key_tokens else '~*'
+                key_part = ' '.join(key_tokens) if key_tokens else ''
 
                 # Replace existing suggestion with +@all optimization
-                all_suggestion = f"Optimized rule: +@all {key_part}"
+                if key_part:
+                    all_suggestion = f"Optimized rule: +@all {key_part}"
+                else:
+                    all_suggestion = "Optimized rule: +@all"
 
                 # Clear existing suggestions and add the @all optimization
                 suggestions.clear()
@@ -1922,7 +1938,9 @@ class ACLParser:
                     category_list = "', '".join(sorted_cats[:3]) + "', ..."
                 else:
                     category_list = "', '".join(sorted_cats)
-                all_categories_warning = f"All {len(granted_categories)} categories explicitly granted:\n'{category_list}"
+
+                # More accurate message: these categories cover all commands (even if not all categories)
+                all_categories_warning = f"Categories cover all {len(all_commands)} commands:\n'{category_list}'"
                 warnings.append(all_categories_warning)
 
                 # Mark all category tokens as redundant for UI highlighting

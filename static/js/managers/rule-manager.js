@@ -191,9 +191,7 @@ const RuleManager = {
      */
     async checkForOptimization(rule, redundancyAnalysis) {
         try {
-            console.log('[DEBUG] checkForOptimization called with version:', AppState.currentVersion);
             const optimizeResponse = await API.optimizeRule(rule, AppState.currentVersion);
-            console.log('[DEBUG] Optimization response:', optimizeResponse);
 
             if (optimizeResponse.success && optimizeResponse.savings > 0) {
                 // Check if backend already has suggestions (empty rule or other simplifications)
@@ -235,12 +233,6 @@ const RuleManager = {
                 const simplifiedRule = optimizeResponse.optimized_rule || '(empty rule)';
                 const isEmptyRule = !optimizeResponse.optimized_rule || optimizeResponse.optimized_rule.trim() === '';
 
-                console.log('[DEBUG] Building optimization suggestion:', {
-                    simplifiedRule,
-                    isEmptyRule,
-                    savings: optimizeResponse.savings
-                });
-
                 // For empty rules, don't show "Saves X terms" - the warning already explains it
                 // Put "Simplified rule" first (most important), then "Saves X terms" below
                 let optimizationSuggestion;
@@ -249,9 +241,6 @@ const RuleManager = {
                 } else {
                     optimizationSuggestion = `Simplified rule: ${simplifiedRule}\nSaves ${optimizeResponse.savings} term${optimizeResponse.savings > 1 ? 's' : ''}`;
                 }
-
-                console.log('[DEBUG] Final optimization suggestion:', optimizationSuggestion);
-                console.log('[DEBUG] Backend suggestions before replacement:', redundancyAnalysis.suggestions);
 
                 if (!redundancyAnalysis.suggestions) {
                     redundancyAnalysis.suggestions = [];
@@ -299,8 +288,6 @@ const RuleManager = {
      * Display redundancy warnings in the UI
      */
     displayRedundancyWarnings(analysis) {
-        console.log('[DEBUG] displayRedundancyWarnings called with:', analysis);
-        console.trace('[DEBUG] Call stack');
         const warningsContainer = document.getElementById('redundancyWarnings');
         const warningsList = document.getElementById('warningsList');
         const suggestionsList = document.getElementById('suggestionsList');
@@ -388,18 +375,7 @@ const RuleManager = {
                     const actualRule = afterRule[0]; // First line is the actual rule
                     const additionalText = afterRule.slice(1).join('<br>'); // Remaining lines
 
-                    console.log('[DEBUG] Rendering suggestion:', {
-                        suggestion,
-                        parts,
-                        afterRule,
-                        actualRule,
-                        additionalText,
-                        additionalTextLength: additionalText.length
-                    });
-
                     suggestionDiv.innerHTML = `${formattedFirstPart}Simplified rule: <span class="simplified-rule">${actualRule}</span>${additionalText ? '<br>' + additionalText : ''}`;
-
-                    console.log('[DEBUG] suggestionDiv.innerHTML:', suggestionDiv.innerHTML);
 
                     // Make simplified rule clickable
                     const ruleSpan = suggestionDiv.querySelector('.simplified-rule');
@@ -442,14 +418,11 @@ const RuleManager = {
                 }
 
                 suggestionsList.appendChild(suggestionDiv);
-                console.log('[DEBUG] Appended suggestion to DOM. suggestionsList.innerHTML:', suggestionsList.innerHTML);
             });
         }
 
         // Show the warnings container
         warningsContainer.style.display = 'block';
-
-        console.log('[DEBUG] Final suggestionsList.innerHTML:', suggestionsList.innerHTML);
     },
     
     /**
