@@ -3,6 +3,8 @@
  * Handles UI rendering for buttons, tooltips, and multi-column content
  */
 
+import DOMUtils from '../core/dom-utils.js';
+
 const ACLUIRenderer = {
     /**
      * Create multi-column content for tooltips
