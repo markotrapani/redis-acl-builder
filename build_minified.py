@@ -65,7 +65,7 @@ def minify_css() -> Tuple[int, int]:
 
     # Minify combined CSS
     combined_content: str = '\n'.join(combined_css)
-    minified: str = csscompressor.compress(combined_content)
+    minified: str = csscompressor.compress(combined_content)  # type: ignore[arg-type]
 
     # Write minified file
     output_file: Path = CSS_DIR / 'styles.min.css'
@@ -106,7 +106,7 @@ def minify_javascript() -> Tuple[int, int]:
             original_size: int = len(content.encode('utf-8'))
 
         # Minify
-        minified: str = rjsmin.jsmin(content)
+        minified: str = str(rjsmin.jsmin(content))  # type: ignore[arg-type]
 
         # Write minified version
         output_file: Path = js_file.parent / f"{js_file.stem}.min.js"
