@@ -461,10 +461,10 @@ docker run -d -p 7380:7380 markotrapani608/redis-acl-builder:latest
                 
                 <h3>📦 Available Tags</h3>
                 <ul>
-                    <li><strong>latest:</strong> <code>markotrapani608/redis-acl-builder:latest</code> - Always the most recent stable release (currently v1.13.0-beta)</li>
-                    <li><strong>v1.13.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.13.0-beta</code> - Enhanced light mode with adaptive SVG background, optimized container shadows, and code quality improvements</li>
-                    <li><strong>v1.10.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.10.0-beta</code> - Enhanced interactive ACL builder with comprehensive category logic improvements</li>
-                    <li><strong>v1.9.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.9.0-beta</code> - Advanced search system with independent fuzzy/exact modes and multi-column tooltips</li>
+                    <li><strong>latest:</strong> <code>markotrapani608/redis-acl-builder:latest</code> - Always the most recent stable release (currently v1.26.0-beta)</li>
+                    <li><strong>v1.26.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.26.0-beta</code> - Complete E2E test suite with Playwright (28/28 tests passing), enhanced type safety, optimized Docker builds</li>
+                    <li><strong>v1.25.x-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.25.9-beta</code> - Rule optimization display, version switching enhancements, backend category analysis</li>
+                    <li><strong>v1.24.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.24.0-beta</code> - Smart category detection and auto-optimization with implicitly partial category detection</li>
                 </ul>
                 
                 <h3>🛠️ Container Management</h3>
@@ -596,11 +596,11 @@ docker rm redis-acl-builder
                     # Parse ACL rule and return permissions<br>
                     POST /api/parse<br>
                     <br>
-                    # Test specific command access<br>              
-                    POST /api/test-command<br>
+                    # Test integrated command + key access<br>
+                    POST /api/test-command-key<br>
                     <br>
-                    # Test key pattern matching with glob support<br>
-                    POST /api/test-keyspace<br>
+                    # Optimize ACL rule to shortest equivalent<br>
+                    POST /api/optimize-rule<br>
                     <br>
                     # Validate ACL syntax<br>
                     POST /api/validate-rule<br>
@@ -613,17 +613,20 @@ docker rm redis-acl-builder
                     <br>
                     # Application health check<br>
                     GET /health<br>
+                    <br>
+                    # Note: Keyspace pattern testing is client-side only (JavaScript glob matching)
                 </div>
                 
                 <h3>🏗️ Architecture</h3>
                 <ul>
-                    <li><strong>Frontend:</strong> Modular ES6 JavaScript (8 modules) + Optimized CSS (5 modules)</li>
-                    <li><strong>Backend:</strong> Flask with comprehensive Redis ACL parsing engine</li>
-                    <li><strong>Testing:</strong> 35 automated tests with 82% code coverage (Core logic: 95-100%, API: 71%)</li>
-                    <li><strong>Theming:</strong> Explicit light/dark mode support with CSS custom properties</li>
-                    <li><strong>Performance:</strong> Debounced rendering, optimized command previews, smooth transitions</li>
-                    <li><strong>UX:</strong> Dismissible results, smart button states, auto-expanding textareas, synchronized search linking</li>
-                    <li><strong>Auto-Simplification:</strong> Advanced rule optimization with comprehensive pattern detection</li>
+                    <li><strong>Frontend:</strong> Modular ES6 JavaScript (13 modules: 5 specialized + 8 core/UI) + Optimized Modular CSS (6 modules)</li>
+                    <li><strong>Backend:</strong> Flask with comprehensive Redis ACL parsing engine and type-safe Pydantic API models</li>
+                    <li><strong>Testing:</strong> 223 total tests (195 backend with 85% coverage + 28 E2E Playwright tests with 100% pass rate)</li>
+                    <li><strong>Type Safety:</strong> Enterprise-grade type annotations across entire codebase with zero Pylance warnings</li>
+                    <li><strong>Theming:</strong> Explicit light/dark mode support with CSS custom properties and theme-aware loading states</li>
+                    <li><strong>Performance:</strong> Debounced rendering, optimized command previews, smooth transitions, anti-flash rendering</li>
+                    <li><strong>UX:</strong> Dismissible results, smart button states, auto-expanding textareas, synchronized search linking, drag-drop panel reordering</li>
+                    <li><strong>Auto-Optimization:</strong> Advanced rule optimization engine with 4-strategy analysis and auto-simplification</li>
                 </ul>
             </section>
 
