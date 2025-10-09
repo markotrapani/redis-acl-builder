@@ -78,11 +78,7 @@ redis-acl-builder/
 │   ├── build-web.sh           # Build Docker image
 │   └── build-desktop.sh       # Build Electron app with electron-builder
 │
-├── docs/                       # Documentation
-│   ├── ELECTRON-ROADMAP.md    # Preserved from v2-electron branch
-│   ├── WEB-DEPLOYMENT.md      # Web app deployment guide
-│   └── DEVELOPMENT.md         # Development workflow guide
-│
+├── ELECTRON-ROADMAP.md         # Electron v2.0 implementation plan
 ├── CLAUDE.md                   # Project instructions (updated for monorepo)
 ├── README.md                   # Main project README (updated for monorepo)
 ├── .gitignore                  # Updated for new structure
@@ -146,10 +142,10 @@ git mv pytest.ini backend/
 git mv static/ templates/ frontend/
 ```
 
-**Step 1.4: Move documentation**
+**Step 1.4: Verify Electron roadmap exists**
 ```bash
-# Copy Electron roadmap from v2-electron branch
-git show v2-electron:ELECTRON-ROADMAP.md > docs/ELECTRON-ROADMAP.md
+# Electron roadmap already moved to redis-acl-builder/ELECTRON-ROADMAP.md
+# No action needed - already completed
 ```
 
 **Step 1.5: Update import paths**
@@ -382,7 +378,7 @@ from app import app
 - [ ] Docker build successful
 - [ ] Web app runs at localhost:5001
 - [ ] Documentation updated (README, CLAUDE.md)
-- [ ] Electron roadmap preserved in `docs/ELECTRON-ROADMAP.md`
+- [x] Electron roadmap preserved in `ELECTRON-ROADMAP.md`
 - [ ] Helper scripts created (`run-web.sh`, `run-desktop.sh`)
 - [ ] Git history preserved (using `git mv`)
 
@@ -405,7 +401,10 @@ from app import app
 2. **Execute Phase 1** - Reorganize directories and update paths
 3. **Execute Phase 2** - Test everything works
 4. **Commit as v1.27.0** - "refactor: Monorepo structure for web + desktop support"
-5. **Delete v2-electron branch** - No longer needed (roadmap preserved in docs/)
+
+**Already Completed:**
+- ✅ Electron roadmap preserved in `ELECTRON-ROADMAP.md`
+- ✅ v2-electron branch deleted (no longer needed)
 
 ---
 
