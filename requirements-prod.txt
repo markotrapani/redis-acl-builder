@@ -9,6 +9,9 @@ Werkzeug==3.1.3
 # Production WSGI server
 gunicorn==23.0.0
 
+# Compression middleware
+flask-compress==1.15
+
 # Flask core dependencies (explicit for clarity)
 click>=8.0.0          # CLI support (Flask dependency)
 itsdangerous>=2.0.0   # Security utilities (Flask dependency)

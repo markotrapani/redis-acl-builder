@@ -173,3 +173,6 @@ Thumbs.db
 # Docker images (too large for GitHub)
 docker/*.tar
 
+# Minified assets (generated during build)
+static/**/*.min.css
+static/**/*.min.js

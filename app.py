@@ -5,6 +5,7 @@ Redis Enterprise ACL Builder - Main Flask Application
 
 from flask import Flask, render_template, request, jsonify
 from flask.wrappers import Response
+from flask_compress import Compress
 import logging
 import sys
 import os
@@ -40,6 +41,21 @@ DEBUG_MODE = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
 # Initialize Flask app
 app = Flask(__name__)
 app.config['DEBUG'] = DEBUG_MODE
+
+# Enable Gzip compression for all responses
+Compress(app)
+
+# Configure static file caching
+@app.after_request
+def add_cache_headers(response: Response) -> Response:
+    """Add cache headers for static files in production."""
+    if not DEBUG_MODE and request.path.startswith('/static/'):
+        # Cache static files for 1 year (immutable assets)
+        # When files change, update version in HTML to bust cache
+        response.cache_control.max_age = 31536000  # 1 year in seconds
+        response.cache_control.public = True
+        response.cache_control.immutable = True
+    return response
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

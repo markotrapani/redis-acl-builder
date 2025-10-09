@@ -12,3 +12,7 @@ coverage==7.6.9       # Code coverage with ARM64 wheel support (upgraded from 7.
 # Development utilities
 wheel>=0.37.0         # For building packages
 setuptools>=65.0.0    # Package management
+
+# Build tools for minification
+csscompressor==0.9.5  # CSS minification
+rjsmin==1.2.4         # JavaScript minification
