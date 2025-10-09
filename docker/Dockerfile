@@ -12,11 +12,12 @@ RUN apk upgrade --no-cache
 # Install runtime dependencies (curl for health checks)
 RUN apk add --no-cache curl
 
-# Install Python dependencies (production only - no test/dev dependencies)
-# This significantly speeds up multi-arch builds by excluding coverage (20-50s savings)
-COPY requirements-prod.txt .
+# Install Python dependencies (production + build tools)
+# Build tools needed for minification during image build
+COPY requirements-prod.txt requirements-test.txt ./
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements-prod.txt
+    pip install --no-cache-dir -r requirements-prod.txt && \
+    pip install --no-cache-dir csscompressor rjsmin
 
 # Set working directory
 WORKDIR /app
@@ -29,11 +30,14 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
 # Copy only necessary application files (production optimized)
-COPY app.py .
+COPY app.py build_minified.py ./
 COPY helpers/ helpers/
 COPY models/ models/
 COPY templates/ templates/
 COPY static/ static/
+
+# Build minified assets for production
+RUN python build_minified.py
 
 # Create non-root user for security (Alpine Linux syntax)
 RUN adduser -D -s /bin/sh -u 1000 app && \
