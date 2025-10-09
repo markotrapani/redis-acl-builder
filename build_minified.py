@@ -11,35 +11,39 @@ Usage:
     python build_minified.py
 """
 
+from __future__ import annotations
+
 import os
-import glob
 from pathlib import Path
-import csscompressor
-import rjsmin
+from typing import Tuple
+
+import csscompressor  # type: ignore[import-untyped]
+import rjsmin  # type: ignore[import-untyped]
 
 # Directories
 STATIC_DIR = Path(__file__).parent / 'static'
 CSS_DIR = STATIC_DIR / 'css'
 JS_DIR = STATIC_DIR / 'js'
 
-def get_file_size(path):
+def get_file_size(path: Path) -> int:
     """Get file size in bytes."""
     return os.path.getsize(path)
 
-def format_size(bytes_size):
+def format_size(bytes_size: float) -> str:
     """Format bytes as human-readable size."""
+    size: float = bytes_size
     for unit in ['B', 'KB', 'MB']:
-        if bytes_size < 1024:
-            return f"{bytes_size:.2f} {unit}"
-        bytes_size /= 1024
-    return f"{bytes_size:.2f} GB"
+        if size < 1024:
+            return f"{size:.2f} {unit}"
+        size /= 1024
+    return f"{size:.2f} GB"
 
-def minify_css():
+def minify_css() -> Tuple[int, int]:
     """Minify all CSS files and combine into styles.min.css."""
     print("\n=== Minifying CSS ===")
 
     # Find all CSS files (excluding already minified)
-    css_files = sorted([
+    css_files: list[Path] = sorted([
         f for f in CSS_DIR.glob('*.css')
         if not f.name.endswith('.min.css')
     ])
@@ -49,8 +53,8 @@ def minify_css():
         return 0, 0
 
     # Combine and minify
-    combined_css = []
-    original_size = 0
+    combined_css: list[str] = []
+    original_size: int = 0
 
     for css_file in css_files:
         print(f"  Processing: {css_file.name}")
@@ -60,15 +64,15 @@ def minify_css():
             combined_css.append(f"/* {css_file.name} */\n{content}\n")
 
     # Minify combined CSS
-    combined_content = '\n'.join(combined_css)
-    minified = csscompressor.compress(combined_content)
+    combined_content: str = '\n'.join(combined_css)
+    minified: str = csscompressor.compress(combined_content)
 
     # Write minified file
-    output_file = CSS_DIR / 'styles.min.css'
+    output_file: Path = CSS_DIR / 'styles.min.css'
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(minified)
 
-    minified_size = get_file_size(output_file)
+    minified_size: int = get_file_size(output_file)
 
     print(f"\n  Combined {len(css_files)} files:")
     print(f"    Original:  {format_size(original_size)}")
@@ -78,12 +82,12 @@ def minify_css():
 
     return original_size, minified_size
 
-def minify_javascript():
+def minify_javascript() -> Tuple[int, int]:
     """Minify JavaScript files individually (preserve ES6 modules)."""
     print("\n=== Minifying JavaScript ===")
 
     # Find all JS files (excluding already minified)
-    js_files = sorted([
+    js_files: list[Path] = sorted([
         f for f in JS_DIR.rglob('*.js')
         if not f.name.endswith('.min.js')
     ])
@@ -92,30 +96,30 @@ def minify_javascript():
         print("No JavaScript files found to minify")
         return 0, 0
 
-    total_original = 0
-    total_minified = 0
+    total_original: int = 0
+    total_minified: int = 0
 
     for js_file in js_files:
         # Read original
         with open(js_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-            original_size = len(content.encode('utf-8'))
+            content: str = f.read()
+            original_size: int = len(content.encode('utf-8'))
 
         # Minify
-        minified = rjsmin.jsmin(content)
+        minified: str = rjsmin.jsmin(content)
 
         # Write minified version
-        output_file = js_file.parent / f"{js_file.stem}.min.js"
+        output_file: Path = js_file.parent / f"{js_file.stem}.min.js"
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(minified)
 
-        minified_size = get_file_size(output_file)
+        minified_size: int = get_file_size(output_file)
         total_original += original_size
         total_minified += minified_size
 
         # Relative path for cleaner output
-        rel_path = js_file.relative_to(STATIC_DIR)
-        savings = 100 * (1 - minified_size/original_size)
+        rel_path: Path = js_file.relative_to(STATIC_DIR)
+        savings: float = 100 * (1 - minified_size/original_size)
         print(f"  {rel_path}")
         print(f"    {format_size(original_size)} → {format_size(minified_size)} ({savings:.1f}% smaller)")
 
@@ -126,21 +130,25 @@ def minify_javascript():
 
     return total_original, total_minified
 
-def main():
+def main() -> None:
     """Run the build process."""
     print("=" * 60)
     print("Redis ACL Builder - Production Build")
     print("=" * 60)
 
     # Minify CSS
+    css_original: int
+    css_minified: int
     css_original, css_minified = minify_css()
 
     # Minify JavaScript
+    js_original: int
+    js_minified: int
     js_original, js_minified = minify_javascript()
 
     # Overall summary
-    total_original = css_original + js_original
-    total_minified = css_minified + js_minified
+    total_original: int = css_original + js_original
+    total_minified: int = css_minified + js_minified
 
     print("\n" + "=" * 60)
     print("Build Summary")

@@ -41,9 +41,18 @@ Thumbs.db
 tests/
 test_*.py
 
+# E2E test files
+playwright.config.js
+package.json
+package-lock.json
+node_modules/
+playwright-report/
+test-results/
+
 # Development scripts
 run_tests.sh
 test_imports.py
+build_minified.py
 
 # Docker files (exclude during build to avoid recursion)
 docker/

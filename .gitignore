@@ -176,3 +176,13 @@ docker/*.tar
 # Minified assets (generated during build)
 static/**/*.min.css
 static/**/*.min.js
+
+# Node.js dependencies
+node_modules/
+
+# Playwright E2E testing artifacts
+tests/e2e-results/
+test-results/
+playwright-report/
+playwright-test-output.txt
+playwright-test-results.txt

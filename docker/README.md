@@ -1,8 +1,8 @@
 # Redis ACL Builder - Docker Deployment
 
-**Version v1.24.0-beta** - Smart Category Detection & Auto-Optimization
+**Version v1.26.0-beta** - Complete E2E Test Suite & Type Safety Enhancement
 
-A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced Key Permissions, and an elegant drag-drop interface.
+A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced Key Permissions, comprehensive E2E testing with 100% test coverage, and an elegant drag-drop interface.
 
 ## 🚀 Quick Start
 
@@ -117,14 +117,14 @@ For questions about usage, feedback, or to report bugs, please reach out to:
 
 ## 🏷️ Available Tags
 
-- `latest` - Latest stable release (currently v1.24.0-beta)
+- `latest` - Latest stable release (currently v1.26.0-beta)
 - `beta` - Latest beta release
-- `v1.24.0-beta` - Specific version tag
+- `v1.26.0-beta` - Specific version tag with complete E2E test suite
 - Multi-architecture support (AMD64/ARM64)
 
 ## 🔒 Security
 
-**Current Security Status (v1.24.0-beta):**
+**Current Security Status (v1.26.0-beta):**
 - ✅ **0 Critical vulnerabilities**
 - ✅ **0 High vulnerabilities**
 - ⚠️ **1 Medium vulnerability** - CVE-2025-8869 (pip 25.2) - waiting for pip 25.3 release

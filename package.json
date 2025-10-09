@@ -1,0 +1,21 @@
+{
+  "name": "redis-acl-builder",
+  "version": "1.0.0",
+  "description": "**Version v1.25.1-beta** - Optimization Box Persistence & Backend Error Fix",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.56.0"
+  }
+}
