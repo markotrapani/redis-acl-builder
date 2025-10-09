@@ -462,7 +462,7 @@ const InteractiveACLBuilder = {
                     if (!backendHasWarnings) {
                         const warningDiv = document.createElement('div');
                         warningDiv.className = 'warning-item';
-                        warningDiv.innerHTML = `Redundant exclusion "-${command}" is overridden by later category grant.`;
+                        warningDiv.textContent = `Redundant exclusion "-${command}" is overridden by later category grant.`;
                         warningsList.appendChild(warningDiv);
                     }
 
@@ -471,17 +471,12 @@ const InteractiveACLBuilder = {
                         return;
                     }
 
-                    // Add suggestion (blue box) with clickable simplified rule
+                    // Add suggestion (blue box) with clickable simplified rule (XSS-safe)
                     const suggestionDiv = document.createElement('div');
                     suggestionDiv.className = 'suggestion-item';
-                    suggestionDiv.innerHTML = `Simplified rule: <span class="simplified-rule">${optimizedRule}</span>`;
+                    suggestionDiv.appendChild(document.createTextNode('Simplified rule: '));
 
-                    // Make simplified rule clickable (same pattern as existing simplifications)
-                    const ruleSpan = suggestionDiv.querySelector('.simplified-rule');
-                    if (ruleSpan) {
-                        ruleSpan.style.cursor = 'pointer';
-                        ruleSpan.title = 'Click to apply this simplified rule';
-                        ruleSpan.addEventListener('click', async () => {
+                    const ruleSpan = DOMUtils.createClickableRule(optimizedRule, async () => {
                             // Remove the redundant exclusion
                             this.state.blockedCommands.delete(command);
                             this.state.orderedTerms = this.state.orderedTerms.filter(term =>
@@ -503,8 +498,8 @@ const InteractiveACLBuilder = {
                             import('../core/utils.js').then(({ default: Utils }) => {
                                 Utils.showNotification(`Applied optimization: removed "-${command}"`, 'success');
                             });
-                        });
-                    }
+                    });
+                    suggestionDiv.appendChild(ruleSpan);
 
                     suggestionsList.appendChild(suggestionDiv);
                 });
@@ -537,7 +532,7 @@ const InteractiveACLBuilder = {
                     if (!backendHasWarnings) {
                         const warningDiv = document.createElement('div');
                         warningDiv.className = 'warning-item';
-                        warningDiv.innerHTML = `Category "@${category}" is fully granted via ${commands.length} individual commands.`;
+                        warningDiv.textContent = `Category "@${category}" is fully granted via ${commands.length} individual commands.`;
                         warningsList.appendChild(warningDiv);
                     }
 
@@ -549,14 +544,9 @@ const InteractiveACLBuilder = {
                     // Add suggestion (blue box) with clickable simplified rule
                     const suggestionDiv = document.createElement('div');
                     suggestionDiv.className = 'suggestion-item';
-                    suggestionDiv.innerHTML = `Simplified rule: <span class="simplified-rule">${optimizedRule}</span>`;
+                    suggestionDiv.appendChild(document.createTextNode('Simplified rule: '));
 
-                    // Make simplified rule clickable
-                    const ruleSpan = suggestionDiv.querySelector('.simplified-rule');
-                    if (ruleSpan) {
-                        ruleSpan.style.cursor = 'pointer';
-                        ruleSpan.title = 'Click to apply this simplified rule';
-                        ruleSpan.addEventListener('click', async () => {
+                    const ruleSpan = DOMUtils.createClickableRule(optimizedRule, async () => {
                             // Remove the individual command grants
                             commands.forEach(command => {
                                 this.state.grantedCommands.delete(command);
@@ -585,8 +575,8 @@ const InteractiveACLBuilder = {
                             import('../core/utils.js').then(({ default: Utils }) => {
                                 Utils.showNotification(`Applied optimization: replaced ${commands.length} commands with "+@${category}"`, 'success');
                             });
-                        });
-                    }
+                    });
+                    suggestionDiv.appendChild(ruleSpan);
 
                     suggestionsList.appendChild(suggestionDiv);
                 });
@@ -624,7 +614,7 @@ const InteractiveACLBuilder = {
                     if (!backendHasWarnings) {
                         const warningDiv = document.createElement('div');
                         warningDiv.className = 'warning-item';
-                        warningDiv.innerHTML = `Category "@${category}" is blocked then re-granted via ${commands.length} individual commands. This cancels out.`;
+                        warningDiv.textContent = `Category "@${category}" is blocked then re-granted via ${commands.length} individual commands. This cancels out.`;
                         warningsList.appendChild(warningDiv);
                     }
 
@@ -636,14 +626,9 @@ const InteractiveACLBuilder = {
                     // Add suggestion (blue box) with clickable simplified rule
                     const suggestionDiv = document.createElement('div');
                     suggestionDiv.className = 'suggestion-item';
-                    suggestionDiv.innerHTML = `Simplified rule: <span class="simplified-rule">${optimizedRule}</span>`;
+                    suggestionDiv.appendChild(document.createTextNode('Simplified rule: '));
 
-                    // Make simplified rule clickable
-                    const ruleSpan = suggestionDiv.querySelector('.simplified-rule');
-                    if (ruleSpan) {
-                        ruleSpan.style.cursor = 'pointer';
-                        ruleSpan.title = 'Click to apply this simplified rule';
-                        ruleSpan.addEventListener('click', async () => {
+                    const ruleSpan = DOMUtils.createClickableRule(optimizedRule, async () => {
                             // Remove the category block
                             this.state.blockedCategories.delete(category);
 
@@ -679,8 +664,8 @@ const InteractiveACLBuilder = {
                             import('../core/utils.js').then(({ default: Utils }) => {
                                 Utils.showNotification(`Applied optimization: removed redundant "-@${category}" and ${commands.length} individual commands`, 'success');
                             });
-                        });
-                    }
+                    });
+                    suggestionDiv.appendChild(ruleSpan);
 
                     suggestionsList.appendChild(suggestionDiv);
                 });

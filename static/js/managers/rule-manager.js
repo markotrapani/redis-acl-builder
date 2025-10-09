@@ -445,16 +445,19 @@ const RuleManager = {
         if (!DOMElements.resultsSummary) {
             return;
         }
-        
+
+        // Clear previous content
+        DOMElements.resultsSummary.textContent = '';
+
         if (rule === '') {
-            DOMElements.resultsSummary.innerHTML = `<strong>No ACL rule specified</strong><br>All ${Utils.formatNumber(data.total_available)} commands are blocked by default`;
+            DOMElements.resultsSummary.appendChild(
+                DOMUtils.createEmptyRuleSummary(data.total_available)
+            );
         } else {
-            DOMElements.resultsSummary.innerHTML = `<strong>${Utils.formatNumber(data.total_granted)}</strong> of ${Utils.formatNumber(data.total_available)} commands granted`;
-            
-            if (data.impact_summary) {
-                const percentage = data.impact_summary.overall_percentage;
-                DOMElements.resultsSummary.innerHTML += ` <span class="text-muted">(${percentage}%)</span>`;
-            }
+            const percentage = data.impact_summary ? data.impact_summary.overall_percentage : null;
+            DOMElements.resultsSummary.appendChild(
+                DOMUtils.createGrantedSummary(data.total_granted, data.total_available, percentage)
+            );
         }
         DOMElements.resultsSummary.style.display = 'block';
     },
@@ -467,37 +470,26 @@ const RuleManager = {
         if (!DOMElements.commandResults) {
             return;
         }
-        
-        let html = '';
-        
+
+        // Clear previous content
+        DOMElements.commandResults.textContent = '';
+
         const sortedCategories = Object.keys(groupedCommands).sort();
-        
+
         if (sortedCategories.length === 0) {
-            html = '<p class="text-muted" style="text-align: center; padding: 20px;">No commands granted by this rule</p>';
+            DOMElements.commandResults.appendChild(DOMUtils.createNoCommandsMessage());
         } else {
             sortedCategories.forEach(category => {
                 const commands = groupedCommands[category];
-                // Sanitize category name for use as HTML ID
-                const safeCategoryId = category.replace(/[^a-zA-Z0-9]/g, '-');
-                const categoryId = `category-${safeCategoryId}`;
-                const commandsHtml = commands.map(cmd => 
-                    `<div class="command-item" title="Command: ${Utils.escapeHtml(cmd.toUpperCase())}">${Utils.escapeHtml(cmd)}</div>`
-                ).join('');
-                
-                html += `
-                    <div class="category-section">
-                        <div class="category-header" onclick="CategoryManager.toggle('${safeCategoryId}')" role="button" tabindex="0" aria-expanded="true" data-category="${safeCategoryId}">
-                            ${Utils.escapeHtml(category)} (${Utils.formatNumber(commands.length)})
-                        </div>
-                        <div class="category-commands" id="${categoryId}">
-                            ${commandsHtml}
-                        </div>
-                    </div>
-                `;
+                const section = DOMUtils.createCategorySection(
+                    category,
+                    commands,
+                    Utils.escapeHtml,
+                    Utils.formatNumber
+                );
+                DOMElements.commandResults.appendChild(section);
             });
         }
-        
-        DOMElements.commandResults.innerHTML = html;
     }
 };
 

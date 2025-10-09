@@ -48,12 +48,16 @@ const Utils = {
      */
     showMessage(element, message, type = 'info') {
         if (!element) return;
-        
-        const messageClass = type === 'error' ? 'error-message' : 
+
+        const messageClass = type === 'error' ? 'error-message' :
                            type === 'success' ? 'success-message' :
                            type === 'warning' ? 'warning-message' : 'info-message';
-        
-        element.innerHTML = `<div class="${messageClass}">${message}</div>`;
+
+        element.textContent = '';
+        const div = document.createElement('div');
+        div.className = messageClass;
+        div.textContent = message;
+        element.appendChild(div);
     },
 
     /**
@@ -96,7 +100,7 @@ const Utils = {
         // Create close button
         const closeBtn = document.createElement('button');
         closeBtn.className = 'close-btn';
-        closeBtn.innerHTML = '×';
+        closeBtn.textContent = '×';
         closeBtn.setAttribute('aria-label', 'Close notification');
         
         notification.appendChild(messageContent);
@@ -536,16 +540,31 @@ Do you want to continue and automatically clean the rule?`;
             this._dismissTimeouts.delete(container);
         }
 
-        // Create result with close button
-        const resultHtml = `
-            <div class="test-result ${resultClass}">
-                <button class="test-result-close" type="button" aria-label="Close result">×</button>
-                ${html}
-            </div>
-        `;
+        // Clear container
+        container.textContent = '';
 
-        container.innerHTML = resultHtml;
-        const resultDiv = container.querySelector('.test-result');
+        // Create result div with close button
+        const resultDiv = document.createElement('div');
+        resultDiv.className = `test-result ${resultClass}`;
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'test-result-close';
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', 'Close result');
+        closeBtn.textContent = '×';
+
+        resultDiv.appendChild(closeBtn);
+
+        // Create a temporary container to parse the HTML content
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+
+        // Move all content from tempDiv to resultDiv
+        while (tempDiv.firstChild) {
+            resultDiv.appendChild(tempDiv.firstChild);
+        }
+
+        container.appendChild(resultDiv);
 
         // Function to smoothly dismiss the result
         const dismissResult = () => {
@@ -565,9 +584,9 @@ Do you want to continue and automatically clean the rule?`;
         };
 
         // Add click handler for close button
-        const closeBtn = container.querySelector('.test-result-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', dismissResult);
+        const closeBtnElement = resultDiv.querySelector('.test-result-close');
+        if (closeBtnElement) {
+            closeBtnElement.addEventListener('click', dismissResult);
         }
 
         // Auto-dismiss after specified time

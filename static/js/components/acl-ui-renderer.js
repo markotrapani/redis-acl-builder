@@ -13,11 +13,21 @@ const ACLUIRenderer = {
      */
     createMultiColumnContent(title, items, prefix = '') {
         const itemCount = items.length;
+        const fragment = document.createDocumentFragment();
+
+        // Add title
+        fragment.appendChild(document.createTextNode(title));
 
         // Use single column for small lists
         if (itemCount <= 12) {
-            const itemsWithPrefix = items.map(item => `${prefix}${item}`);
-            return `${title}<br/>• ${itemsWithPrefix.join('<br/>• ')}`;
+            fragment.appendChild(document.createElement('br'));
+            items.forEach((item, index) => {
+                fragment.appendChild(document.createTextNode(`• ${prefix}${item}`));
+                if (index < items.length - 1) {
+                    fragment.appendChild(document.createElement('br'));
+                }
+            });
+            return fragment;
         }
 
         // Determine number of columns based on item count
@@ -41,19 +51,27 @@ const ACLUIRenderer = {
             columnData.push(items.slice(start, end));
         }
 
-        // Build HTML with grid layout
-        let html = `${title}<div class="tooltip-columns cols-${columns}">`;
+        // Build DOM with grid layout
+        const columnsContainer = document.createElement('div');
+        columnsContainer.className = `tooltip-columns cols-${columns}`;
 
         columnData.forEach(columnItems => {
-            html += '<div class="tooltip-column"><ul>';
+            const columnDiv = document.createElement('div');
+            columnDiv.className = 'tooltip-column';
+
+            const ul = document.createElement('ul');
             columnItems.forEach(item => {
-                html += `<li>${prefix}${item}</li>`;
+                const li = document.createElement('li');
+                li.textContent = `${prefix}${item}`;
+                ul.appendChild(li);
             });
-            html += '</ul></div>';
+
+            columnDiv.appendChild(ul);
+            columnsContainer.appendChild(columnDiv);
         });
 
-        html += '</div>';
-        return html;
+        fragment.appendChild(columnsContainer);
+        return fragment;
     },
 
     /**
@@ -205,8 +223,6 @@ const ACLUIRenderer = {
                 }
 
                 try {
-                    let content = '';
-
                     // Get state information from the button
                     const stateInfo = button.dataset.stateInfo || '';
 
@@ -216,7 +232,6 @@ const ACLUIRenderer = {
                     // Check if button is in granted column by looking at its container
                     const isInGrantedColumn = button.closest('#grantedCategories, #grantedCommands');
                     const isInBlockedColumn = button.closest('#blockedCategories, #blockedCommands');
-
 
                     if (isInGrantedColumn) {
                         titleClass += ' granted'; // Green for granted
@@ -259,54 +274,107 @@ const ACLUIRenderer = {
                         }
                     }
 
-                    content = `<div class="${titleClass}">${titleText}</div>`;
+                    // Create tooltip element and build content with DOM
+                    tooltipElement = document.createElement('div');
+                    tooltipElement.className = 'enhanced-tooltip';
+
+                    // Add title
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = titleClass;
+                    titleDiv.textContent = titleText;
+                    tooltipElement.appendChild(titleDiv);
 
                     // Add state information if available
                     if (stateInfo) {
-                        content += `<div class="tooltip-state">${stateInfo.replace(/\n/g, '<br/>')}</div>`;
+                        const stateDiv = document.createElement('div');
+                        stateDiv.className = 'tooltip-state';
+                        // Replace newlines with <br> elements
+                        const lines = stateInfo.split('\n');
+                        lines.forEach((line, index) => {
+                            stateDiv.appendChild(document.createTextNode(line));
+                            if (index < lines.length - 1) {
+                                stateDiv.appendChild(document.createElement('br'));
+                            }
+                        });
+                        tooltipElement.appendChild(stateDiv);
                     }
 
                     // Add relationship information
                     if (type === 'command') {
                         // Get categories for this command
                         const response = await API.getCommandInfo(name, AppState.currentVersion);
+                        const contentDiv = document.createElement('div');
+                        contentDiv.className = 'tooltip-content';
+
                         if (response.success && response.categories && response.categories.length > 0) {
                             const categories = response.categories.sort();
                             const displayCategories = categories.slice(0, 8);
                             const remaining = categories.length - displayCategories.length;
 
-                            let relationshipContent = `Member of categories:<br/>• @${displayCategories.join('<br/>• @')}`;
+                            contentDiv.appendChild(document.createTextNode('Member of categories:'));
+                            contentDiv.appendChild(document.createElement('br'));
+
+                            displayCategories.forEach((cat, index) => {
+                                contentDiv.appendChild(document.createTextNode(`• @${cat}`));
+                                if (index < displayCategories.length - 1 || remaining > 0) {
+                                    contentDiv.appendChild(document.createElement('br'));
+                                }
+                            });
+
                             if (remaining > 0) {
+                                contentDiv.appendChild(document.createTextNode('• '));
                                 const linkColorClass = isInGrantedColumn ? 'granted' : (isInBlockedColumn ? 'blocked' : '');
-                                relationshipContent += `<br/>• <span class="expandable-link ${linkColorClass}" data-type="categories" data-full-list="${categories.join(',')}" data-showing="${displayCategories.length}">... and ${remaining} more</span>`;
+                                const expandLink = document.createElement('span');
+                                expandLink.className = `expandable-link ${linkColorClass}`;
+                                expandLink.dataset.type = 'categories';
+                                expandLink.dataset.fullList = categories.join(',');
+                                expandLink.dataset.showing = displayCategories.length.toString();
+                                expandLink.textContent = `... and ${remaining} more`;
+                                contentDiv.appendChild(expandLink);
                             }
-                            content += `<div class="tooltip-content">${relationshipContent}</div>`;
                         } else {
-                            content += `<div class="tooltip-content">No category information available</div>`;
+                            contentDiv.textContent = 'No category information available';
                         }
+
+                        tooltipElement.appendChild(contentDiv);
                     } else if (type === 'category') {
                         // Get commands for this category
                         const commands = await getCategoryCommandsCached(name);
+                        const contentDiv = document.createElement('div');
+                        contentDiv.className = 'tooltip-content';
+
                         if (commands && commands.length > 0) {
                             const sortedCommands = commands.sort();
                             const displayCommands = sortedCommands.slice(0, 8);
                             const remaining = sortedCommands.length - displayCommands.length;
 
-                            let relationshipContent = `Contains ${sortedCommands.length} commands:<br/>• ${displayCommands.join('<br/>• ')}`;
-                            if (remaining > 0) {
-                                const linkColorClass = isInGrantedColumn ? 'granted' : (isInBlockedColumn ? 'blocked' : '');
-                                relationshipContent += `<br/>• <span class="expandable-link ${linkColorClass}" data-type="commands" data-full-list="${sortedCommands.join(',')}" data-showing="${displayCommands.length}">... and ${remaining} more</span>`;
-                            }
-                            content += `<div class="tooltip-content">${relationshipContent}</div>`;
-                        } else {
-                            content += `<div class="tooltip-content">No commands found</div>`;
-                        }
-                    }
+                            contentDiv.appendChild(document.createTextNode(`Contains ${sortedCommands.length} commands:`));
+                            contentDiv.appendChild(document.createElement('br'));
 
-                    // Create tooltip element
-                    tooltipElement = document.createElement('div');
-                    tooltipElement.className = 'enhanced-tooltip';
-                    tooltipElement.innerHTML = content;
+                            displayCommands.forEach((cmd, index) => {
+                                contentDiv.appendChild(document.createTextNode(`• ${cmd}`));
+                                if (index < displayCommands.length - 1 || remaining > 0) {
+                                    contentDiv.appendChild(document.createElement('br'));
+                                }
+                            });
+
+                            if (remaining > 0) {
+                                contentDiv.appendChild(document.createTextNode('• '));
+                                const linkColorClass = isInGrantedColumn ? 'granted' : (isInBlockedColumn ? 'blocked' : '');
+                                const expandLink = document.createElement('span');
+                                expandLink.className = `expandable-link ${linkColorClass}`;
+                                expandLink.dataset.type = 'commands';
+                                expandLink.dataset.fullList = sortedCommands.join(',');
+                                expandLink.dataset.showing = displayCommands.length.toString();
+                                expandLink.textContent = `... and ${remaining} more`;
+                                contentDiv.appendChild(expandLink);
+                            }
+                        } else {
+                            contentDiv.textContent = 'No commands found';
+                        }
+
+                        tooltipElement.appendChild(contentDiv);
+                    }
 
                     // Get positioning info BEFORE adding to DOM
                     const rect = button.getBoundingClientRect();
@@ -397,10 +465,12 @@ const ACLUIRenderer = {
                             // Replace the abbreviated list with the full list using multi-column layout for large lists
                             if (type === 'categories') {
                                 const newContent = createMultiColumnContent('Member of categories:', fullList, '@');
-                                link.parentNode.innerHTML = newContent;
+                                link.parentNode.textContent = '';
+                                link.parentNode.appendChild(newContent);
                             } else if (type === 'commands') {
                                 const newContent = createMultiColumnContent(`Contains ${fullList.length} commands:`, fullList);
-                                link.parentNode.innerHTML = newContent;
+                                link.parentNode.textContent = '';
+                                link.parentNode.appendChild(newContent);
                             }
 
                             // Mark tooltip as expanded for larger sizing
@@ -591,8 +661,10 @@ const ACLUIRenderer = {
         }
 
         // Add visual debug indicator for partial categories
+        button.textContent = '';
         if (buttonClass.includes('partial')) {
-            button.innerHTML = `@${category}<span class="warning-icon">⚠</span>`;
+            const content = DOMUtils.createCategoryButtonContent(category, true);
+            button.appendChild(content);
         } else {
             button.textContent = `@${category}`;
         }

@@ -221,7 +221,7 @@ const SavedRules = {
             const deleteButton = document.createElement('button');
             deleteButton.type = 'button';
             deleteButton.className = 'saved-rule-delete';
-            deleteButton.innerHTML = '✕';
+            deleteButton.textContent = '✕';
             deleteButton.title = `Delete saved rule: ${rule}`;
             deleteButton.addEventListener('click', (e) => {
                 e.preventDefault();

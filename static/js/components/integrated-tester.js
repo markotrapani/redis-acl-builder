@@ -224,41 +224,99 @@ function showIntegratedResult(result, isError) {
     const statusIcon = result.is_allowed ? '✅' : '❌';
     const statusText = result.is_allowed ? 'ACCESS GRANTED' : 'ACCESS DENIED';
 
-    let html = `
-        <div class="integrated-result test-result ${statusClass}" style="opacity: 0; transform: scale(0.95);">
-            <button class="test-result-close" onclick="dismissIntegratedResult()" aria-label="Dismiss result">✕</button>
-            <h4 class="result-header">${statusIcon} ${statusText}</h4>
-    `;
+    // Clear previous content
+    integratedResultDiv.textContent = '';
+
+    // Create main result div
+    const resultDiv = document.createElement('div');
+    resultDiv.className = `integrated-result test-result ${statusClass}`;
+    resultDiv.style.opacity = '0';
+    resultDiv.style.transform = 'scale(0.95)';
+
+    // Create close button
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'test-result-close';
+    closeBtn.onclick = dismissIntegratedResult;
+    closeBtn.setAttribute('aria-label', 'Dismiss result');
+    closeBtn.textContent = '✕';
+    resultDiv.appendChild(closeBtn);
+
+    // Create header
+    const header = document.createElement('h4');
+    header.className = 'result-header';
+    header.textContent = `${statusIcon} ${statusText}`;
+    resultDiv.appendChild(header);
 
     if (!isError) {
         // Show detailed breakdown
-        html += `
-            <div class="breakdown">
-                <div class="check-item ${result.command_granted ? 'pass' : 'fail'}">
-                    ${result.command_granted ? '✅' : '❌'}
-                    <strong>Command Permission:</strong> ${result.command}
-                    ${result.command_categories && result.command_categories.length > 0
-                        ? `<br><small class="categories">Categories: ${result.command_categories.join(', ')}</small>`
-                        : ''}
-                </div>
+        const breakdownDiv = document.createElement('div');
+        breakdownDiv.className = 'breakdown';
 
-                <div class="check-item ${result.key_access_granted ? 'pass' : 'fail'}">
-                    ${result.key_access_granted ? '✅' : '❌'}
-                    <strong>Key Access:</strong> ${result.key}
-                    ${result.matched_pattern
-                        ? `<br><small class="pattern-match">Pattern: <code>${result.matched_pattern}</code> <span class="permission-badge ${result.permission_type}">(${formatPermissionType(result.permission_type)})</span></small>`
-                        : ''}
-                </div>
-            </div>
-        `;
+        // Command permission check item
+        const commandCheckItem = document.createElement('div');
+        commandCheckItem.className = `check-item ${result.command_granted ? 'pass' : 'fail'}`;
+
+        commandCheckItem.appendChild(document.createTextNode(result.command_granted ? '✅ ' : '❌ '));
+
+        const commandStrong = document.createElement('strong');
+        commandStrong.textContent = 'Command Permission:';
+        commandCheckItem.appendChild(commandStrong);
+
+        commandCheckItem.appendChild(document.createTextNode(` ${result.command}`));
+
+        if (result.command_categories && result.command_categories.length > 0) {
+            commandCheckItem.appendChild(document.createElement('br'));
+            const categoriesSmall = document.createElement('small');
+            categoriesSmall.className = 'categories';
+            categoriesSmall.textContent = `Categories: ${result.command_categories.join(', ')}`;
+            commandCheckItem.appendChild(categoriesSmall);
+        }
+
+        breakdownDiv.appendChild(commandCheckItem);
+
+        // Key access check item
+        const keyCheckItem = document.createElement('div');
+        keyCheckItem.className = `check-item ${result.key_access_granted ? 'pass' : 'fail'}`;
+
+        keyCheckItem.appendChild(document.createTextNode(result.key_access_granted ? '✅ ' : '❌ '));
+
+        const keyStrong = document.createElement('strong');
+        keyStrong.textContent = 'Key Access:';
+        keyCheckItem.appendChild(keyStrong);
+
+        keyCheckItem.appendChild(document.createTextNode(` ${result.key}`));
+
+        if (result.matched_pattern) {
+            keyCheckItem.appendChild(document.createElement('br'));
+            const patternSmall = document.createElement('small');
+            patternSmall.className = 'pattern-match';
+            patternSmall.appendChild(document.createTextNode('Pattern: '));
+
+            const patternCode = document.createElement('code');
+            patternCode.textContent = result.matched_pattern;
+            patternSmall.appendChild(patternCode);
+
+            patternSmall.appendChild(document.createTextNode(' '));
+
+            const permissionBadge = document.createElement('span');
+            permissionBadge.className = `permission-badge ${result.permission_type}`;
+            permissionBadge.textContent = `(${formatPermissionType(result.permission_type)})`;
+            patternSmall.appendChild(permissionBadge);
+
+            keyCheckItem.appendChild(patternSmall);
+        }
+
+        breakdownDiv.appendChild(keyCheckItem);
+        resultDiv.appendChild(breakdownDiv);
     }
 
-    html += `
-            <div class="explanation">${result.reason}</div>
-        </div>
-    `;
+    // Add explanation
+    const explanationDiv = document.createElement('div');
+    explanationDiv.className = 'explanation';
+    explanationDiv.textContent = result.reason;
+    resultDiv.appendChild(explanationDiv);
 
-    integratedResultDiv.innerHTML = html;
+    integratedResultDiv.appendChild(resultDiv);
 
     // Trigger fade-in animation
     setTimeout(() => {

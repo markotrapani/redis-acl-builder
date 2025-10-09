@@ -153,6 +153,116 @@ export const DOMUtils = {
         }
 
         return fragment;
+    },
+
+    /**
+     * Create results summary for empty ACL rule
+     * @param {number} totalAvailable - Total available commands
+     * @returns {DocumentFragment}
+     */
+    createEmptyRuleSummary(totalAvailable) {
+        const fragment = document.createDocumentFragment();
+
+        const strong = document.createElement('strong');
+        strong.textContent = 'No ACL rule specified';
+        fragment.appendChild(strong);
+
+        fragment.appendChild(document.createElement('br'));
+
+        const formattedTotal = totalAvailable.toLocaleString();
+        fragment.appendChild(document.createTextNode(`All ${formattedTotal} commands are blocked by default`));
+
+        return fragment;
+    },
+
+    /**
+     * Create results summary with granted commands count
+     * @param {number} totalGranted - Total granted commands
+     * @param {number} totalAvailable - Total available commands
+     * @param {string} [percentage] - Optional percentage string (e.g., "42.5")
+     * @returns {DocumentFragment}
+     */
+    createGrantedSummary(totalGranted, totalAvailable, percentage = null) {
+        const fragment = document.createDocumentFragment();
+
+        const strong = document.createElement('strong');
+        strong.textContent = totalGranted.toLocaleString();
+        fragment.appendChild(strong);
+
+        const formattedTotal = totalAvailable.toLocaleString();
+        fragment.appendChild(document.createTextNode(` of ${formattedTotal} commands granted`));
+
+        if (percentage) {
+            const span = document.createElement('span');
+            span.className = 'text-muted';
+            span.textContent = ` (${percentage}%)`;
+            fragment.appendChild(span);
+        }
+
+        return fragment;
+    },
+
+    /**
+     * Create a category section with commands for grouped display
+     * @param {string} category - Category name
+     * @param {Array<string>} commands - Array of command names
+     * @param {Function} escapeHtml - HTML escaping function
+     * @param {Function} formatNumber - Number formatting function
+     * @returns {HTMLElement}
+     */
+    createCategorySection(category, commands, escapeHtml, formatNumber) {
+        const safeCategoryId = category.replace(/[^a-zA-Z0-9]/g, '-');
+        const categoryId = `category-${safeCategoryId}`;
+
+        const section = document.createElement('div');
+        section.className = 'category-section';
+
+        // Create category header
+        const header = document.createElement('div');
+        header.className = 'category-header';
+        header.setAttribute('role', 'button');
+        header.setAttribute('tabindex', '0');
+        header.setAttribute('aria-expanded', 'true');
+        header.setAttribute('data-category', safeCategoryId);
+        header.onclick = () => {
+            // Import CategoryManager and call toggle
+            import('../managers/category-manager.js').then(({ default: CategoryManager }) => {
+                CategoryManager.toggle(safeCategoryId);
+            });
+        };
+        header.textContent = `${category} (${formatNumber(commands.length)})`;
+
+        // Create commands container
+        const commandsContainer = document.createElement('div');
+        commandsContainer.className = 'category-commands';
+        commandsContainer.id = categoryId;
+
+        // Add command items
+        commands.forEach(cmd => {
+            const commandItem = document.createElement('div');
+            commandItem.className = 'command-item';
+            commandItem.setAttribute('title', `Command: ${escapeHtml(cmd.toUpperCase())}`);
+            commandItem.textContent = cmd;
+            commandsContainer.appendChild(commandItem);
+        });
+
+        section.appendChild(header);
+        section.appendChild(commandsContainer);
+
+        return section;
+    },
+
+    /**
+     * Create "no commands" message
+     * @returns {HTMLElement}
+     */
+    createNoCommandsMessage() {
+        const p = document.createElement('p');
+        p.className = 'text-muted';
+        p.style.textAlign = 'center';
+        p.style.padding = '20px';
+        p.textContent = 'No commands granted by this rule';
+        return p;
     }
 };
 
