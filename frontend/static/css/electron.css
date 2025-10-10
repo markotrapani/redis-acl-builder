@@ -1,0 +1,133 @@
+/**
+ * Electron Desktop App Specific Styles
+ * These styles override the web app defaults to make the UI fill the window
+ */
+
+/* Make body fill the entire window with no scrollbars - removes background visibility */
+body.electron-app {
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;  /* Remove body padding - panel-container will handle all spacing */
+    box-sizing: border-box;
+    background-image: none !important;  /* Hide background SVG pattern */
+}
+
+/* Hide the light mode background overlay */
+body.electron-app::before {
+    display: none !important;
+}
+
+/* Panel container fills entire viewport */
+body.electron-app .panel-container {
+    max-width: none !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    overflow: hidden;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Inner container fills panel-container and manages layout */
+body.electron-app .inner-container {
+    max-width: none !important;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* During tester dragging, allow inner-container overflow so testers can float above three-column-layout */
+body.electron-app.tester-drag-active .inner-container {
+    overflow: visible !important;
+}
+
+/* Header stays at natural size */
+body.electron-app header {
+    flex-shrink: 0;
+    margin-bottom: 8px;
+}
+
+/* Main content wrapper - contains three-column-layout and test sections */
+body.electron-app .inner-container > * {
+    flex-shrink: 0;  /* Don't shrink by default */
+}
+
+/* Three-column layout expands to fill available space */
+body.electron-app .three-column-layout {
+    flex: 1;  /* Take up all available space */
+    min-height: 0;  /* Allow flex child to shrink below content size */
+    height: auto !important;  /* Override fixed height from CSS */
+    overflow: auto;
+}
+
+/* During panel dragging, allow overflow to be visible so panels can float above other sections */
+body.electron-app.panel-drag-active .three-column-layout {
+    overflow: visible !important;
+}
+
+/* During tester dragging, allow overflow to be visible */
+body.electron-app.tester-drag-active .testing-container {
+    overflow: visible !important;
+}
+
+/* Individual panels in three-column layout fill the height */
+body.electron-app .three-column-layout > .panel {
+    height: 100% !important;  /* Fill the grid cell height */
+}
+
+/* Testing container - reduce top margin for tighter layout */
+body.electron-app .testing-container {
+    margin-top: 8px !important;  /* Minimal gap between three-column layout and test sections */
+}
+
+/* Test sections stay at natural size with minimal gap */
+body.electron-app .test-section {
+    flex-shrink: 0;  /* Don't shrink */
+    margin-top: 0 !important;  /* No margin - testing-container handles spacing */
+    margin-bottom: 0 !important;  /* Remove bottom margin */
+}
+
+/* Disable resizable features in Electron (window handles resizing) */
+body.electron-app .panel-container::before,
+body.electron-app .panel-container::after,
+body.electron-app .resize-handle {
+    display: none !important;
+}
+
+/* Update panel-container cursor - not resizable in Electron */
+body.electron-app .panel-container {
+    cursor: default !important;
+}
+
+/* Ensure proper z-index layering for drag-and-drop */
+body.electron-app header {
+    position: relative;
+    z-index: 10;  /* Header in middle layer */
+}
+
+body.electron-app .testing-container {
+    position: relative;
+    z-index: 10;  /* Test sections in middle layer normally */
+}
+
+body.electron-app .three-column-layout {
+    position: relative;
+    z-index: 20;  /* Three-column panels higher than header/tests normally */
+}
+
+/* When panel dragging is active, boost the three-column-layout z-index */
+body.electron-app.panel-drag-active .three-column-layout {
+    z-index: 1000 !important;  /* Boost container to top layer during drag */
+}
+
+/* When tester dragging is active, boost the testing-container z-index ABOVE three-column-layout */
+body.electron-app.tester-drag-active .testing-container {
+    z-index: 2000 !important;  /* Boost container ABOVE three-column-layout during tester drag */
+}

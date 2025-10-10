@@ -221,11 +221,29 @@
     
     <!-- Modular CSS Architecture - Minified for production (34% smaller) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.min.css') }}">
+
+    <!-- Electron-specific styles -->
+    <script>
+        // Detect Electron and add electron.css + body class
+        if (window.electronAPI && window.electronAPI.isElectron) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = "{{ url_for('static', filename='css/electron.css') }}";
+            document.head.appendChild(link);
+        }
+    </script>
+
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
     <meta name="description" content="Redis Enterprise ACL Builder - Build and validate Redis ACL rules with real-time command & keyspace access analysis">
     <meta name="keywords" content="Redis, ACL, Access Control, Security, Database">
 </head>
 <body>
+    <!-- CRITICAL: Add electron-app class IMMEDIATELY to prevent flash on page refresh -->
+    <script>
+        if (window.electronAPI && window.electronAPI.isElectron) {
+            document.body.classList.add('electron-app');
+        }
+    </script>
     <div class="panel-container" id="panel-container">
         <div class="inner-container">
             <header>

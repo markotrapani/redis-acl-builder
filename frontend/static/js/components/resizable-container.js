@@ -177,6 +177,13 @@ const ResizableContainer = {
      * Initialize the resizable container system
      */
     init() {
+        // Skip resizable functionality in Electron - window handles resizing
+        if (window.electronAPI && window.electronAPI.disableResizing) {
+            console.log('🖥️ Electron mode detected - disabling manual panel resizing');
+            this.findElements();  // Still find elements for other code that references them
+            return;  // Skip all resize-related initialization
+        }
+
         this.findElements();
         this.loadSavedDimensions();
 

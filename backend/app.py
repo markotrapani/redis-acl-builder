@@ -49,16 +49,31 @@ app.config['DEBUG'] = DEBUG_MODE
 # Enable Gzip compression for all responses
 Compress(app)
 
-# Configure static file caching
+# Configure static file caching and security headers
 @app.after_request
 def add_cache_headers(response: Response) -> Response:
-    """Add cache headers for static files in production."""
+    """Add cache headers for static files in production and security headers."""
     if not DEBUG_MODE and request.path.startswith('/static/'):
         # Cache static files for 1 year (immutable assets)
         # When files change, update version in HTML to bust cache
         response.cache_control.max_age = 31536000  # 1 year in seconds
         response.cache_control.public = True
         response.cache_control.immutable = True
+
+    # Add Content Security Policy for Electron security
+    # Allow inline scripts/styles for our app, but from same origin only
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "  # Our app uses inline scripts
+        "style-src 'self' 'unsafe-inline'; "   # Our app uses inline styles
+        "img-src 'self' data:; "
+        "connect-src 'self'; "
+        "font-src 'self'; "
+        "object-src 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self'"
+    )
+
     return response
 
 # Set up logging

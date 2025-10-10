@@ -8,7 +8,8 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+# Note: Don't use build/ here - it would exclude electron/build/
+# Python build artifacts are covered by dist/, *.egg-info, etc.
 develop-eggs/
 dist/
 downloads/

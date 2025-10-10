@@ -1,0 +1,67 @@
+{
+  "name": "redis-acl-builder-desktop",
+  "version": "2.0.0-alpha",
+  "description": "Redis ACL Builder - Desktop Application",
+  "main": "main.js",
+  "scripts": {
+    "start": "unset ELECTRON_RUN_AS_NODE && electron .",
+    "start:devtools": "unset ELECTRON_RUN_AS_NODE && ELECTRON_DEVTOOLS=true electron .",
+    "dev": "unset ELECTRON_RUN_AS_NODE && electron . --dev",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "keywords": [
+    "redis",
+    "acl",
+    "electron",
+    "desktop"
+  ],
+  "author": "Marko Trapani",
+  "license": "ISC",
+  "devDependencies": {
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "electron": "^27.3.11",
+    "electron-is-dev": "^3.0.1"
+  },
+  "build": {
+    "appId": "com.redis.acl-builder",
+    "productName": "Redis ACL Builder",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "build/**/*",
+      "../backend/**/*",
+      "../frontend/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "icon": "build/icon.icns",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        "nsis",
+        "zip"
+      ]
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Development"
+    }
+  }
+}

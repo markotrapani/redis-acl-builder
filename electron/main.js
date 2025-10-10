@@ -1,0 +1,178 @@
+const { app, BrowserWindow, nativeImage } = require('electron');
+const { spawn } = require('child_process');
+const path = require('path');
+const fs = require('fs');
+
+let mainWindow = null;
+let pythonProcess = null;
+const FLASK_PORT = 7381;  // Use 7381 for Electron desktop, 7380 for Docker, 5001 for web dev
+
+// Simple development mode detection
+function isDevelopment() {
+    // Check if we're running from source (electron/main.js exists) vs packaged
+    return fs.existsSync(path.join(__dirname, '..', 'backend', 'app.py'));
+}
+
+// Start Python Flask backend
+function startPythonBackend() {
+    const projectRoot = path.join(__dirname, '..');
+    const backendPath = path.join(projectRoot, 'backend', 'app.py');
+
+    console.log('Starting Python backend...');
+    console.log('Backend path:', backendPath);
+    console.log('Project root:', projectRoot);
+
+    // Use shell script to activate venv and run Python
+    // On Windows, use batch script; on Unix, use bash script
+    const isWindows = process.platform === 'win32';
+    const shell = isWindows ? 'cmd.exe' : '/bin/bash';
+    const shellArgs = isWindows
+        ? ['/c', `cd ${projectRoot} && venv\\Scripts\\activate && python backend\\app.py`]
+        : ['-c', `cd "${projectRoot}" && source venv/bin/activate && python backend/app.py`];
+
+    pythonProcess = spawn(shell, shellArgs, {
+        env: {
+            ...process.env,
+            FLASK_PORT: FLASK_PORT.toString(),
+            FLASK_ENV: isDevelopment() ? 'development' : 'production',
+            FLASK_DEBUG: isDevelopment() ? 'True' : 'False'
+        },
+        cwd: projectRoot
+    });
+
+    pythonProcess.stdout.on('data', (data) => {
+        console.log(`[Python] ${data.toString().trim()}`);
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+        console.error(`[Python Error] ${data.toString().trim()}`);
+    });
+
+    pythonProcess.on('close', (code) => {
+        console.log(`Python process exited with code ${code}`);
+        pythonProcess = null;
+    });
+}
+
+// Stop Python backend
+function stopPythonBackend() {
+    if (pythonProcess) {
+        console.log('Stopping Python backend...');
+        pythonProcess.kill();
+        pythonProcess = null;
+    }
+}
+
+// Create the main window
+function createWindow() {
+    // Electron window dimensions for optimal layout:
+    // Width: 1416px matches web app panel-container width
+    // Height: 965px fits header + three-column panels + test sections perfectly
+    const PANEL_WIDTH = 1416;
+    const PANEL_HEIGHT = 965;
+
+    mainWindow = new BrowserWindow({
+        width: PANEL_WIDTH,   // 1416px - matches web app width
+        height: PANEL_HEIGHT,  // 965px - perfect fit without scrolling or excess space
+        minWidth: PANEL_WIDTH,  // Same as default - prevents resizing smaller than optimal
+        minHeight: PANEL_HEIGHT,  // Same as default - prevents resizing smaller than optimal
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            contextIsolation: true,
+            nodeIntegration: false,
+            // Set Content Security Policy for security
+            webSecurity: true,
+            allowRunningInsecureContent: false
+        },
+        title: 'Redis ACL Builder',
+        // Set app icon (platform-specific formats)
+        icon: path.join(__dirname, 'build',
+            process.platform === 'darwin' ? 'icon.icns' :   // macOS
+            process.platform === 'win32' ? 'icon.ico' :      // Windows
+            'icon.png'                                        // Linux
+        ),
+        show: false // Don't show until ready
+    });
+
+    // Load the app
+    mainWindow.loadURL(`http://localhost:${FLASK_PORT}`);
+
+    // Show window when ready
+    mainWindow.once('ready-to-show', () => {
+        mainWindow.show();
+    });
+
+    // Open DevTools based on env var
+    if (process.env.ELECTRON_DEVTOOLS === 'true') {
+        mainWindow.webContents.openDevTools();
+    }
+
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
+}
+
+// App lifecycle
+app.whenReady().then(async () => {
+    console.log('🚀 Redis ACL Builder - Desktop App Starting...');
+
+    // Set app name (important for macOS - shows in menu bar and About panel)
+    app.setName('Redis ACL Builder');
+
+    // Set dock icon on macOS using larger cropped icon
+    if (process.platform === 'darwin') {
+        const iconPath = path.join(__dirname, 'build', 'icon-cropped-larger.png');
+        if (fs.existsSync(iconPath)) {
+            try {
+                // Use the larger cropped icon (15% bigger to match dock icon sizes)
+                await app.dock.setIcon(iconPath);
+                console.log('✅ Dock icon set with larger icon (matches dock size)');
+            } catch (err) {
+                console.error('❌ Failed to set dock icon:', err.message);
+            }
+        } else {
+            console.warn('⚠️  Icon not found:', iconPath);
+        }
+    }
+
+    try {
+        // Start Python backend
+        startPythonBackend();
+
+        // Wait for Flask to initialize (Flask reloader needs time)
+        console.log('⏳ Waiting for backend to start...');
+        await new Promise(resolve => setTimeout(resolve, 5000));  // Simple 5s wait
+
+        // Create window
+        createWindow();
+
+        console.log('✅ Application ready!');
+    } catch (error) {
+        console.error('❌ Failed to start application:', error);
+        stopPythonBackend();
+        app.quit();
+    }
+});
+
+// Quit when all windows are closed (including macOS for this single-window app)
+app.on('window-all-closed', () => {
+    // Unlike typical macOS apps, we want to quit completely when window closes
+    // since this is a single-window application with a backend server
+    app.quit();
+});
+
+// Recreate window on macOS when dock icon is clicked
+app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+    }
+});
+
+// Cleanup on quit
+app.on('will-quit', () => {
+    stopPythonBackend();
+});
+
+app.on('before-quit', () => {
+    stopPythonBackend();
+});
