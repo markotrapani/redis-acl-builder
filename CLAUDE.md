@@ -40,6 +40,7 @@ ps aux | grep "redis-acl-builder-desktop"
 ```
 
 **Ports used by different environments:**
+
 - **Port 7381**: Electron desktop app (Flask backend for Electron)
 - **Port 5001**: Web development server (Flask for browser testing)
 - **Port 7380**: Docker production deployment
@@ -532,6 +533,7 @@ No immediate priorities - all critical UX flows are polished and working perfect
 **Security Monitoring**:
 
 Monitor and address remaining Docker image vulnerabilities when upstream fixes become available:
+
 - **CVE-2025-8869** (pip 25.2) - MEDIUM severity - Waiting for pip 25.3 release (patch available, not yet released)
   - **Risk**: Only affects pip install operations; production containers don't install packages
   - **Mitigation**: All dependencies installed during build phase; runtime doesn't use pip

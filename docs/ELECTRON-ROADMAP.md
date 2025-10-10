@@ -1,8 +1,11 @@
 # Redis ACL Builder - Electron Desktop App Conversion Roadmap
 
 **Version:** v2.0.0-alpha
+
 **Branch:** `v2-electron`
+
 **Status:** Planning Phase
+
 **Last Updated:** 2025-10-03
 
 ---
@@ -14,6 +17,7 @@ Converting the Redis ACL Builder Flask web application to an Electron desktop ap
 **Key Strategy:** Wrap existing Python backend in Electron, keep frontend unchanged.
 
 **Estimated Timeline:** 8-13 days of focused development
+
 **Risk Level:** Low (minimal code changes required)
 
 ---
@@ -22,7 +26,7 @@ Converting the Redis ACL Builder Flask web application to an Electron desktop ap
 
 ### Current Architecture (v1.x - Flask Web App)
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │         Web Browser                     │
 │  - Renders HTML/CSS/JS                  │
@@ -43,7 +47,7 @@ Converting the Redis ACL Builder Flask web application to an Electron desktop ap
 
 ### Target Architecture (v2.x - Electron Desktop App)
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │         Electron Main Process           │
 │  (Node.js - main.js)                    │
@@ -87,7 +91,8 @@ Converting the Redis ACL Builder Flask web application to an Electron desktop ap
 
 ## ✅ What Works Without Changes
 
-### Frontend Code (100% - ZERO changes required!)
+### Frontend Code (100% - ZERO changes required)
+
 - ✅ All 23 JavaScript ES6 modules
 - ✅ localStorage API (identical in Electron renderer)
 - ✅ fetch() API calls
@@ -97,7 +102,8 @@ Converting the Redis ACL Builder Flask web application to an Electron desktop ap
 - ✅ Saved rules and history
 - ✅ All interactive features
 
-### Backend Logic (100% - ZERO changes required!)
+### Backend Logic (100% - ZERO changes required)
+
 - ✅ All Python helper modules (data_loader.py, acl_parser.py)
 - ✅ Flask API endpoints (12 total)
 - ✅ Pydantic validation
@@ -110,21 +116,25 @@ Converting the Redis ACL Builder Flask web application to an Electron desktop ap
 ## 🔧 Required Changes
 
 ### 1. Electron Wrapper (NEW - ~300 lines total)
+
 - **main.js** - Main process entry point
 - **preload.js** - IPC bridge for security
 - **package.json** - Electron dependencies and build config
 
 ### 2. HTML Template (MINOR - ~20 line changes)
+
 - Remove `<body>` background (panel-container becomes viewport)
 - Add optional custom title bar for window controls
 - No changes to panel-container internals!
 
 ### 3. CSS Additions (MINOR - ~50 lines)
+
 - Custom title bar styling
 - Window control buttons (minimize, maximize, close)
 - Theme-aware title bar
 
 ### 4. Build Configuration (NEW)
+
 - electron-builder configuration
 - Platform-specific icons (macOS, Windows, Linux)
 - Python backend bundling (PyInstaller)
@@ -133,7 +143,7 @@ Converting the Redis ACL Builder Flask web application to an Electron desktop ap
 
 ## 📦 New Project Structure
 
-```
+```text
 redis-acl-builder/
 ├── electron/                    # NEW - Electron app wrapper
 │   ├── main.js                 # Main process (spawn Python, create window)
@@ -178,11 +188,15 @@ redis-acl-builder/
 ## 🚀 Development Phases
 
 ## Phase 1: Minimal Viable Electron App
+
 **Goal:** Get existing app running in Electron window
+
 **Timeline:** 1-2 days
+
 **Status:** Not Started
 
-### Tasks:
+### Phase 1 Tasks
+
 - [ ] Create `electron/` directory structure
 - [ ] Implement basic `main.js`
   - [ ] Create BrowserWindow (1200x740px default)
@@ -201,7 +215,8 @@ redis-acl-builder/
   - [ ] All UI features work (resizing, drag-drop, themes)
   - [ ] Flask backend starts/stops correctly
 
-### Success Criteria:
+### Phase 1 Success Criteria
+
 ✅ App launches in Electron window
 ✅ All v1.x features work identically
 ✅ Panel-container is the viewport (no body background)
@@ -211,11 +226,15 @@ redis-acl-builder/
 ---
 
 ## Phase 2: Native Desktop Integration
+
 **Goal:** Add desktop-specific features
+
 **Timeline:** 2-3 days
+
 **Status:** Not Started
 
-### Tasks:
+### Phase 2 Tasks
+
 - [ ] Custom Title Bar
   - [ ] Design title bar component (32px height)
   - [ ] Add window control buttons (minimize, maximize, close)
@@ -238,7 +257,8 @@ redis-acl-builder/
   - [ ] System tray integration (minimize to tray)
   - [ ] Multi-window support (open multiple ACL rules)
 
-### Success Criteria:
+### Phase 2 Success Criteria
+
 ✅ Custom title bar works on all platforms
 ✅ File dialogs save/load ACL rules correctly
 ✅ Application menu fully functional
@@ -249,11 +269,15 @@ redis-acl-builder/
 ---
 
 ## Phase 3: Build & Distribution
+
 **Goal:** Create distributable app packages
+
 **Timeline:** 3-5 days
+
 **Status:** Not Started
 
-### Tasks:
+### Phase 3 Tasks
+
 - [ ] App Icons
   - [ ] Design 1024x1024 base icon
   - [ ] Generate macOS .icns (16, 32, 64, 128, 256, 512, 1024px)
@@ -283,7 +307,8 @@ redis-acl-builder/
   - [ ] Implement update notification UI
   - [ ] Test auto-update flow
 
-### Success Criteria:
+### Phase 3 Success Criteria
+
 ✅ macOS .app launches on Intel and Apple Silicon
 ✅ Windows installer works on Win10/11
 ✅ Linux AppImage works on Ubuntu/Debian
@@ -294,11 +319,15 @@ redis-acl-builder/
 ---
 
 ## Phase 4: Testing & Release
+
 **Goal:** Comprehensive testing and v2.0.0 release
+
 **Timeline:** 2-3 days
+
 **Status:** Not Started
 
-### Tasks:
+### Phase 4 Tasks
+
 - [ ] Comprehensive Testing
   - [ ] Test all ACL parsing features
   - [ ] Test Redis 7 and Redis 8 modes
@@ -329,7 +358,8 @@ redis-acl-builder/
   - [ ] Publish auto-update manifests
   - [ ] Announce release
 
-### Success Criteria:
+### Phase 4 Success Criteria
+
 ✅ All features tested and working on all platforms
 ✅ Startup time < 3 seconds
 ✅ Memory usage < 200MB
@@ -345,7 +375,8 @@ redis-acl-builder/
 
 **Problem:** Users won't have Python installed.
 
-**Solutions:**
+### Solutions
+
 - **Recommended:** Use PyInstaller to create standalone executable from `app.py`
   - Bundles Python interpreter + dependencies
   - ~50MB size increase
@@ -355,7 +386,8 @@ redis-acl-builder/
   - ~100MB size increase
   - Easier debugging during development
 
-**Implementation:**
+### Implementation
+
 ```bash
 # PyInstaller build command
 pyinstaller --onefile \
@@ -370,6 +402,7 @@ pyinstaller --onefile \
 **Problem:** Port 5001 might be in use on user's machine.
 
 **Solution:** Dynamic port allocation
+
 ```javascript
 // In electron/main.js
 const getPort = require('get-port');
@@ -392,6 +425,7 @@ async function startPythonBackend() {
 **Problem:** Electron requires context isolation for security.
 
 **Solution:** Use preload script with contextBridge
+
 ```javascript
 // electron/preload.js
 const { contextBridge, ipcRenderer } = require('electron');
@@ -412,13 +446,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 **Problem:** Different behaviors on macOS, Windows, Linux.
 
-**Solutions:**
+### Platform-Specific Solutions
+
 - Use `electron-is-dev` for dev vs production logic
 - Platform-specific code with `process.platform` checks
 - Test on all platforms before each release
 - Use platform-agnostic paths (`path.join()`)
 
-**Example:**
+### Platform Detection Example
+
 ```javascript
 const isDev = require('electron-is-dev');
 const isMac = process.platform === 'darwin';
@@ -435,7 +471,8 @@ const pythonExecutable = isDev
 
 **Problem:** macOS and Windows require code signing for distribution.
 
-**Solutions:**
+### Code Signing Solutions
+
 - **macOS:**
   - Apple Developer account required ($99/year)
   - Code signing certificate
@@ -449,7 +486,8 @@ const pythonExecutable = isDev
 - **Linux:**
   - No signing required for AppImage
 
-**Configuration in package.json:**
+### Code Signing Configuration
+
 ```json
 {
   "build": {
@@ -474,6 +512,7 @@ const pythonExecutable = isDev
 **Problem:** Users expect desktop apps to auto-update.
 
 **Solution:** Use electron-updater with GitHub releases
+
 ```javascript
 // electron/main.js
 const { autoUpdater } = require('electron-updater');
@@ -512,7 +551,8 @@ autoUpdater.on('update-downloaded', () => {
 
 ## 🎁 Bonus Features (Electron-Exclusive)
 
-### Included in v2.0.0:
+### Included in v2.0.0
+
 ✅ **Native File Dialogs** - Save/load ACL rules from file system
 ✅ **System Theme Sync** - Auto-detect macOS dark mode
 ✅ **Custom Title Bar** - Native window controls
@@ -520,7 +560,8 @@ autoUpdater.on('update-downloaded', () => {
 ✅ **System Tray Integration** - Minimize to tray, quick access menu
 ✅ **Multi-Window Support** - Open multiple ACL rules in separate windows
 
-### Future Enhancements (v2.1+):
+### Future Enhancements (v2.1+)
+
 - **Rule Comparison Mode** - Side-by-side comparison of two ACL rules
 - **Export to PDF** - Generate PDF documentation of ACL rules
 - **Command Palette** - Quick action launcher (Cmd/Ctrl + P)
@@ -529,21 +570,25 @@ autoUpdater.on('update-downloaded', () => {
 - **ACL Rule Templates** - Pre-built templates for common use cases
 - **Rule Validation History** - Track changes and validation results over time
 
-### Distribution & Build Optimization (Future):
+### Distribution & Build Optimization (Future)
 
-**Multi-Architecture macOS Builds:**
+#### Multi-Architecture macOS Builds
+
 - ✅ **ARM64 DMG** (~89MB) - Apple Silicon optimized (current)
 - 🔲 **x64 DMG** (~85MB) - Intel Mac optimized
 - 🔲 **Universal DMG** (~160MB) - Works on all Macs
 - **Build Commands:**
   - Development: `npm run build:mac` (ARM64 only, ~32s)
   - Production: `npm run build:mac:all` (all 3 versions, ~120s)
-- **Build Time Comparison:**
-  - ARM64 only: ~32 seconds
+
+#### Build Time Comparison
+
+- ARM64 only: ~32 seconds
   - Universal: ~82 seconds (2.5x slower)
   - All three: ~120 seconds
 
-**File Size Optimization Opportunities:**
+#### File Size Optimization Opportunities
+
 1. **Python Backend** (40-50MB currently)
    - Use PyInstaller with `--exclude-module` for unused dependencies
    - Strip Flask debug tools in production
@@ -562,9 +607,12 @@ autoUpdater.on('update-downloaded', () => {
    - Alternative: Consider Tauri (Rust) for 10x smaller apps in v3.0+
    - Estimated savings: Minimal
 
-**Potential Total Savings:** 25-40MB (89MB → 50-65MB per architecture)
+#### Potential Total Savings
 
-**Cross-Platform Builds:**
+25-40MB (89MB → 50-65MB per architecture)
+
+#### Cross-Platform Builds
+
 - 🔲 **Windows .exe installer** - `npm run build:win` (~45-60s build time)
 - 🔲 **Linux AppImage + .deb** - `npm run build:linux` (~30-40s build time)
 
@@ -572,51 +620,60 @@ autoUpdater.on('update-downloaded', () => {
 
 ## 📊 Code Reuse Analysis
 
-### Unchanged (95%+ of codebase):
+### Unchanged (95%+ of codebase)
+
 - ✅ **All Python backend** (app.py, helpers/, models/) - 2,500+ lines
 - ✅ **All JavaScript modules** (23 files) - 3,200+ lines
 - ✅ **All CSS modules** (6 files) - 2,800+ lines
 - ✅ **Test suite** (127 tests) - 1,500+ lines
 - ✅ **Total:** ~10,000 lines of code work unchanged!
 
-### New Code Required (~5% of codebase):
+### New Code Required (~5% of codebase)
+
 - 🆕 **Electron wrapper** (main.js, preload.js) - ~300 lines
 - 🆕 **Build configuration** (package.json, electron-builder) - ~100 lines
 - 🆕 **Title bar component** (HTML + CSS + IPC) - ~100 lines
 - 🆕 **File dialog integration** (IPC handlers) - ~50 lines
 - 🆕 **Total:** ~550 lines of new code
 
-### Modified Code (~1% of codebase):
+### Modified Code (~1% of codebase)
+
 - 🔧 **index.html** - Remove body background, add title bar (~20 lines)
 - 🔧 **components.css** - Title bar styling (~50 lines)
 - 🔧 **Total:** ~70 lines modified
 
-**Code Change Summary:**
+#### Code Change Summary
+
 - **Unchanged:** 95% (10,000 lines)
 - **New:** 4% (550 lines)
 - **Modified:** 1% (70 lines)
 
-**Risk Assessment:** ⭐⭐⭐⭐⭐ VERY LOW (minimal changes to battle-tested code)
+#### Risk Assessment
+
+⭐⭐⭐⭐⭐ VERY LOW (minimal changes to battle-tested code)
 
 ---
 
 ## 🎯 Success Metrics
 
-### Development Metrics:
+### Development Metrics
+
 - [ ] Phase 1 complete in ≤ 2 days
 - [ ] Phase 2 complete in ≤ 3 days
 - [ ] Phase 3 complete in ≤ 5 days
 - [ ] Phase 4 complete in ≤ 3 days
 - [ ] **Total time:** ≤ 13 days
 
-### Technical Metrics:
+### Technical Metrics
+
 - [ ] App size ≤ 150MB per platform
 - [ ] Startup time < 3 seconds
 - [ ] Memory usage < 200MB
 - [ ] All 127 tests passing
 - [ ] Zero breaking changes to v1.x features
 
-### Quality Metrics:
+### Quality Metrics
+
 - [ ] Works on macOS (Intel + Apple Silicon)
 - [ ] Works on Windows 10/11
 - [ ] Works on Linux (Ubuntu, Debian, Fedora)
@@ -628,13 +685,16 @@ autoUpdater.on('update-downloaded', () => {
 
 ## 📝 Development Notes
 
-### Current Status (2025-10-09):
+### Current Status (2025-10-09)
+
 - **Branch:** `main` (monorepo structure)
 - **Version:** v2.0.0-alpha (Electron app + Web app)
 - **Status:** Phase 1 COMPLETE ✅, Phase 3 partially complete
 
-### Actual Progress (Completed):
+### Actual Progress (Completed)
+
 ✅ **Phase 1: Minimal Viable Electron App - COMPLETE**
+
 - ✅ Electron directory structure created
 - ✅ Basic main.js implemented (1416×965px optimized window)
 - ✅ Python Flask backend spawning working
@@ -644,6 +704,7 @@ autoUpdater.on('update-downloaded', () => {
 - ✅ localStorage, fetch(), UI features all functional
 
 ✅ **Phase 3: Build & Distribution - PARTIALLY COMPLETE**
+
 - ✅ App icons created (icon.icns, icon.ico, icon.png)
 - ✅ electron-builder configuration complete
 - ✅ macOS ARM64 DMG installer with custom background
@@ -659,16 +720,17 @@ autoUpdater.on('update-downloaded', () => {
 
 ### Development Strategy - Path B First (Production Distribution)
 
-**🎯 DECISION: Complete Phase 3 (Distribution) Before Phase 2 (Native Features)**
+#### Decision: Complete Phase 3 (Distribution) Before Phase 2 (Native Features)
 
 **Rationale:**
+
 1. **Current blocker:** App requires Python installed on user's machine
 2. **Can't distribute yet:** Users without Python can't run the app
 3. **PyInstaller bundling is critical** for true standalone desktop app
 4. **Once bundled:** Can distribute to testers immediately for feedback
 5. **Then:** Come back to Phase 2 for enhanced native features
 
-**Immediate Next Steps (Priority Order):**
+#### Immediate Next Steps (Priority Order)
 
 1. **Python Backend Bundling with PyInstaller** (CRITICAL - 4-6 hours)
    - Install PyInstaller in venv
@@ -706,7 +768,8 @@ autoUpdater.on('update-downloaded', () => {
 
 **After Path B Complete:** Return to Phase 2 for native desktop features (custom title bar, file dialogs, system tray, etc.)
 
-### Deferred to Later (Phase 2):
+### Deferred to Later (Phase 2)
+
 - [ ] Custom title bar with window controls
 - [ ] File system dialogs (Save/Open ACL rules)
 - [ ] Application menu (File, Edit, View, Help)
@@ -715,7 +778,8 @@ autoUpdater.on('update-downloaded', () => {
 - [ ] System tray integration
 - [ ] Multi-window support
 
-### Decision Points:
+### Decision Points
+
 - [x] **Python Bundling Method:** PyInstaller vs ship venv? → **APPROVED: PyInstaller**
 - [x] **Custom Title Bar:** Implement immediately or wait? → **APPROVED: Phase 2**
 - [x] **Auto-Update:** Implement in initial release or later? → **APPROVED: Phase 3**
@@ -728,24 +792,28 @@ autoUpdater.on('update-downloaded', () => {
 
 ## 📚 Resources & References
 
-### Electron Documentation:
+### Electron Documentation
+
 - [Electron Quick Start](https://www.electronjs.org/docs/latest/tutorial/quick-start)
 - [Security Best Practices](https://www.electronjs.org/docs/latest/tutorial/security)
 - [IPC Communication](https://www.electronjs.org/docs/latest/tutorial/ipc)
 - [Application Distribution](https://www.electronjs.org/docs/latest/tutorial/application-distribution)
 
-### electron-builder:
+### electron-builder
+
 - [Configuration](https://www.electron.build/configuration/configuration)
 - [Multi-Platform Build](https://www.electron.build/multi-platform-build)
 - [Code Signing](https://www.electron.build/code-signing)
 - [Auto-Update](https://www.electron.build/auto-update)
 
-### PyInstaller:
+### PyInstaller
+
 - [Documentation](https://pyinstaller.org/en/stable/)
 - [Spec Files](https://pyinstaller.org/en/stable/spec-files.html)
 - [Hidden Imports](https://pyinstaller.org/en/stable/when-things-go-wrong.html#listing-hidden-imports)
 
-### Hybrid Electron+Python Examples:
+### Hybrid Electron+Python Examples
+
 - [electron-python-example](https://github.com/fyears/electron-python-example)
 - [python-electron-tutorial](https://github.com/Abdur-rahmaanJ/python-electron-tutorial)
 
@@ -753,17 +821,20 @@ autoUpdater.on('update-downloaded', () => {
 
 ## 🚧 Known Limitations
 
-### v2.0.0 Release:
+### v2.0.0 Release
+
 - **No Redis Connection:** Cannot connect to live Redis instances (planned for v2.1.0)
 - **No Rule Templates:** Pre-built templates planned for v2.2.0
 - **No Keyboard Shortcuts:** Global shortcuts not implemented (available in v2.1+ if requested)
 
-### Platform Limitations:
+### Platform Limitations
+
 - **macOS:** Requires macOS 10.15+ (Catalina or later)
 - **Windows:** Requires Windows 10 or later
 - **Linux:** AppImage requires FUSE (may need installation on some distros)
 
-### Performance:
+### Performance
+
 - **Startup Time:** 2-3 seconds (acceptable for desktop app)
 - **Memory Usage:** ~150-200MB (includes bundled Python + Chromium)
 - **App Size:** ~120-150MB per platform (includes Python backend)
@@ -772,7 +843,8 @@ autoUpdater.on('update-downloaded', () => {
 
 ## ✅ Approval Checklist
 
-Before proceeding to Phase 1:
+Before proceeding to Phase 1
+
 - [x] Roadmap reviewed and approved by maintainer
 - [x] Architecture approach confirmed (hybrid Electron + Python)
 - [x] Timeline acceptable (8-13 days)
@@ -781,11 +853,15 @@ Before proceeding to Phase 1:
 - [x] v2-electron branch ready for development
 
 **Approved by:** Marko Trapani
+
 **Date:** 2025-10-03
 
 ---
 
 **Last Updated:** 2025-10-03
+
 **Document Version:** 1.0
+
 **Author:** Claude Code
+
 **Review Status:** ✅ APPROVED - Ready for Phase 1 Implementation

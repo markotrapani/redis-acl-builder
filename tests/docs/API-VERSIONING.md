@@ -1,7 +1,9 @@
 # Redis ACL Builder - API Versioning Strategy
 
 **Current Stable Version**: v1
+
 **Last Updated**: 2025-10-08
+
 **Status**: Production Ready (GA)
 
 ---
@@ -15,12 +17,15 @@ Redis ACL Builder provides a stable, production-ready REST API for parsing, vali
 ## Current Version: v1 (Stable)
 
 ### Endpoint Prefix
+
 - **Current endpoints**: `/api/*` (implies v1)
 - **Future versions**: `/api/v2/*`, `/api/v3/*`, etc.
 - **Version-agnostic**: `/health` (no versioning, always stable)
 
 ### Stability Guarantee
+
 All v1 endpoints maintain **strict backward compatibility**:
+
 - ✅ **Additive changes only** - New optional fields, new endpoints
 - ❌ **No breaking changes** - No field removals, renames, or structure changes
 - ✅ **Response format stability** - JSON structure remains consistent
@@ -31,11 +36,13 @@ All v1 endpoints maintain **strict backward compatibility**:
 ## Version Support Policy
 
 ### Support Lifecycle
+
 - **Current version (v1)**: ✅ Fully supported, production-ready
 - **Previous versions**: N/A (v1 is first stable GA release)
 - **Future versions**: Will coexist with v1 for minimum 12 months
 
 ### Deprecation Policy
+
 1. **Announcement**: Minimum 6 months notice before deprecation
 2. **Warning headers**: Deprecated endpoints return `X-API-Deprecated: true` header
 3. **Migration guide**: Detailed guide for moving to new version
@@ -43,7 +50,8 @@ All v1 endpoints maintain **strict backward compatibility**:
 5. **Removal**: Only after deprecation period + migration support
 
 ### Deprecation Timeline Example
-```
+
+```text
 v2 Released (Jan 2026)
     ↓
 v1 Deprecation Announced (Jan 2026)
@@ -62,9 +70,11 @@ v1 Removal (Jul 2027)
 ## Semantic Versioning for API Responses
 
 ### Non-Breaking Changes (Patch/Minor)
+
 These changes **do NOT require** a new API version:
 
 ✅ **Adding new optional request fields**
+
 ```json
 // Before
 {"rule": "+@read", "version": "redis8"}
@@ -74,6 +84,7 @@ These changes **do NOT require** a new API version:
 ```
 
 ✅ **Adding new response fields**
+
 ```json
 // Before
 {"granted_commands": [...], "blocked_commands": [...]}
@@ -83,15 +94,19 @@ These changes **do NOT require** a new API version:
 ```
 
 ✅ **Adding new endpoints**
+
 - `/api/export-rule` (new endpoint, doesn't affect existing endpoints)
 
 ✅ **Expanding enums/allowed values**
+
 - Adding "redis9" to version field (doesn't break "redis7" or "redis8")
 
 ### Breaking Changes (Major)
+
 These changes **DO require** a new API version (v2):
 
 ❌ **Removing or renaming fields**
+
 ```json
 // v1
 {"granted_commands": [...]}
@@ -101,6 +116,7 @@ These changes **DO require** a new API version (v2):
 ```
 
 ❌ **Changing response structure**
+
 ```json
 // v1
 {"granted_commands": ["get", "set"]}
@@ -110,6 +126,7 @@ These changes **DO require** a new API version (v2):
 ```
 
 ❌ **Removing or renaming required request fields**
+
 ```json
 // v1
 POST /api/parse
@@ -121,10 +138,12 @@ POST /api/v2/parse
 ```
 
 ❌ **Changing HTTP status codes**
+
 - v1 returns 400 for validation errors
 - v2 returns 422 - BREAKING change
 
 ❌ **Removing endpoints**
+
 - Requires deprecation process and minimum 18-month notice
 
 ---
@@ -134,6 +153,7 @@ POST /api/v2/parse
 All endpoints under `/api/*` are **stable and production-ready**:
 
 ### Core ACL Parsing
+
 | Endpoint | Method | Status | Description |
 |----------|--------|--------|-------------|
 | `/api/parse` | POST | ✅ Stable | Parse ACL rules and return command permissions |
@@ -142,12 +162,14 @@ All endpoints under `/api/*` are **stable and production-ready**:
 | `/api/analyze-redundancy` | POST | ✅ Stable | Detect redundant patterns in ACL rules |
 
 ### Command Testing
+
 | Endpoint | Method | Status | Description |
 |----------|--------|--------|-------------|
 | `/api/test-command` | POST | ✅ Stable | Test if command is allowed by ACL rule |
 | `/api/test-command-key` | POST | ✅ Stable | Test command + key pattern access |
 
 ### Command Information
+
 | Endpoint | Method | Status | Description |
 |----------|--------|--------|-------------|
 | `/api/command-info` | POST | ✅ Stable | Get categories for specific command |
@@ -155,6 +177,7 @@ All endpoints under `/api/*` are **stable and production-ready**:
 | `/api/search-commands` | POST | ✅ Stable | Fuzzy search for commands by pattern |
 
 ### Health & Monitoring
+
 | Endpoint | Method | Status | Description |
 |----------|--------|--------|-------------|
 | `/health` | GET | ✅ Stable | Health check endpoint (version-agnostic) |
@@ -164,6 +187,7 @@ All endpoints under `/api/*` are **stable and production-ready**:
 ## Request/Response Contracts
 
 ### Standard Request Model
+
 All POST endpoints follow Pydantic validation:
 
 ```json
@@ -175,6 +199,7 @@ All POST endpoints follow Pydantic validation:
 ```
 
 ### Standard Response Model (Success)
+
 ```json
 {
   "success": true,
@@ -184,6 +209,7 @@ All POST endpoints follow Pydantic validation:
 ```
 
 ### Standard Error Response
+
 ```json
 {
   "error": true,
@@ -193,6 +219,7 @@ All POST endpoints follow Pydantic validation:
 ```
 
 ### HTTP Status Codes
+
 - **200 OK**: Successful request
 - **400 Bad Request**: Validation error, malformed JSON, invalid ACL syntax
 - **404 Not Found**: Endpoint doesn't exist
@@ -205,7 +232,9 @@ All POST endpoints follow Pydantic validation:
 ### When v2 is Released (Future)
 
 #### Strategy 1: Dual Support (Recommended)
+
 Run both v1 and v2 endpoints simultaneously:
+
 ```python
 # v1 endpoints (backward compatible)
 @app.route('/api/parse', methods=['POST'])
@@ -221,7 +250,9 @@ def api_parse_v2():
 ```
 
 #### Strategy 2: Version Header
+
 Alternative: Use `X-API-Version` header instead of URL prefix:
+
 ```bash
 # v1
 curl -H "X-API-Version: 1" POST /api/parse
@@ -237,6 +268,7 @@ curl -H "X-API-Version: 2" POST /api/parse
 ### ✅ Example 1: Adding Optimization Hint (Non-Breaking)
 
 **v1.25.0** - Original response:
+
 ```json
 {
   "granted_commands": ["get", "set", "append"],
@@ -246,6 +278,7 @@ curl -H "X-API-Version: 2" POST /api/parse
 ```
 
 **v1.26.0** - Added optimization hint (backward compatible):
+
 ```json
 {
   "granted_commands": ["get", "set", "append"],
@@ -262,6 +295,7 @@ curl -H "X-API-Version: 2" POST /api/parse
 ### ❌ Example 2: Restructuring Response (Breaking - Requires v2)
 
 **v1** - Current structure:
+
 ```json
 {
   "granted_commands": ["get", "set"],
@@ -270,6 +304,7 @@ curl -H "X-API-Version: 2" POST /api/parse
 ```
 
 **v2** - Hypothetical restructure (would be BREAKING):
+
 ```json
 {
   "permissions": {
@@ -303,11 +338,13 @@ Before making any API change, check:
 ### For API Consumers
 
 1. **Pin to specific version** (when available):
+
    ```python
    API_BASE = "https://acl-builder.example.com/api/v1"
    ```
 
 2. **Ignore unknown fields** (forward compatibility):
+
    ```python
    response = requests.post(f"{API_BASE}/parse", json=payload).json()
    granted_commands = response.get("granted_commands", [])
@@ -315,12 +352,14 @@ Before making any API change, check:
    ```
 
 3. **Check success/error flags**:
+
    ```python
    if response.get("error"):
        handle_error(response["message"])
    ```
 
 4. **Handle HTTP errors gracefully**:
+
    ```python
    try:
        response.raise_for_status()
@@ -329,6 +368,7 @@ Before making any API change, check:
    ```
 
 5. **Monitor deprecation headers**:
+
    ```python
    if "X-API-Deprecated" in response.headers:
        logger.warning("API endpoint is deprecated, migrate soon!")
@@ -354,19 +394,24 @@ These are **examples only** of what might warrant v2:
 ## Questions & Support
 
 ### How do I know which version I'm using?
+
 All responses include `"version": "redis8"` field. For API version, check the URL prefix:
+
 - `/api/*` → v1 (current stable)
 - `/api/v2/*` → v2 (when released)
 
 ### What if I find a bug in the API?
+
 - **Bug fixes are non-breaking** and released immediately
-- File issue at: https://github.com/anthropics/redis-acl-builder/issues
+- File issue at: <https://github.com/anthropics/redis-acl-builder/issues>
 - Security issues: Email maintainer directly
 
 ### Can I request a new endpoint?
+
 Yes! Feature requests are welcome. New endpoints are **non-breaking** and can be added to v1.
 
 ### How long will v1 be supported?
+
 **Minimum 12 months** after v2 is released (if v2 ever happens). Currently, v1 is the only version and indefinitely supported.
 
 ---
@@ -383,11 +428,13 @@ Yes! Feature requests are welcome. New endpoints are **non-breaking** and can be
 ## Changelog Policy
 
 All API changes are documented in:
+
 - **CHANGELOG.md** - High-level feature changes
 - **API-VERSIONING.md** (this file) - API-specific changes
 - **GitHub Releases** - Tagged releases with migration notes
 
 ### Changelog Categories
+
 - **Added**: New endpoints, new fields (non-breaking)
 - **Changed**: Behavior changes, performance improvements
 - **Deprecated**: Endpoints/fields scheduled for removal
@@ -400,10 +447,11 @@ All API changes are documented in:
 ## Contact
 
 - **Maintainer**: marko.trapani@redis.com
-- **Issues**: https://github.com/anthropics/redis-acl-builder/issues
-- **Documentation**: https://github.com/anthropics/redis-acl-builder/blob/main/README.md
+- **Issues**: <https://github.com/anthropics/redis-acl-builder/issues>
+- **Documentation**: <https://github.com/anthropics/redis-acl-builder/blob/main/README.md>
 
 ---
 
 **Last Updated**: 2025-10-08
+
 **Next Review**: 2026-01-01 (Quarterly review cycle)

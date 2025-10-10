@@ -14,7 +14,7 @@ This guide explains how to set up automated Docker image building and publishing
 
 ### Create Docker Hub Personal Access Token
 
-1. Log in to [Docker Hub](https://hub.docker.com/)
+1. Log in to [Docker Hub](<https://hub.docker.com/>)
 2. Go to **Account Settings** → **Security**
 3. Click **New Access Token**
 4. Name: `github-actions-redis-acl-builder`

@@ -1,8 +1,9 @@
 # Redis ACL Builder - GA Release Testing Plan
 
-**Version**: v1.26.0 (Target GA Release)
+**Version**: v2.0.x (Target GA Release - Web + Electron Desktop)
 **Current Status**: Pre-GA Testing Phase
-**Test Completion**: 0% (0/180+ test cases)
+**Test Completion**: 0% (0/200+ test cases)
+**Architecture**: Dual deployment (Docker web app + Electron desktop app)
 
 ---
 
@@ -21,11 +22,12 @@ This document outlines comprehensive testing requirements for promoting Redis AC
 7. [Data Persistence & State](#7-data-persistence--state-management) - 15 tests
 8. [Edge Cases & Errors](#8-edge-cases--error-scenarios) - 18 tests
 9. [Docker & Deployment](#9-docker--deployment) - 16 tests
-10. [Documentation & UX](#10-documentation--user-experience) - 12 tests
-11. [Automated Testing](#11-automated-testing-coverage) - 10 tests
-12. [Production Readiness](#12-production-readiness) - 12 tests
+10. [Electron Desktop App](#10-electron-desktop-app-testing) - 20 tests **[NEW]**
+11. [Documentation & UX](#11-documentation--user-experience) - 12 tests
+12. [Automated Testing](#12-automated-testing-coverage) - 10 tests
+13. [Production Readiness](#13-production-readiness) - 12 tests
 
-**Total Test Cases**: 180+
+**Total Test Cases**: 200+
 
 ---
 
@@ -842,211 +844,320 @@ This document outlines comprehensive testing requirements for promoting Redis AC
 ### CI/CD Pipeline (P0)
 
 - [ ] **Test 9.16**: GitHub Actions build workflow
-  - Trigger: Push git tag `v1.26.0`
+  - Trigger: Push git tag `v2.0.x` (without `-desktop` or `-docs` suffix)
   - Expected: Multi-arch build, push to Docker Hub, CVE scan
   - Acceptance: Automated build succeeds, images published
 
 ---
 
-## 10. Documentation & User Experience
+## 10. Electron Desktop App Testing
+
+**Priority**: P0 (Critical)
+**Objective**: Ensure Electron desktop app stability, performance, and platform compatibility.
+
+### macOS Desktop App (P0)
+
+- [ ] **Test 10.1**: macOS DMG installer (Intel x64)
+  - Platform: macOS 12+ (Monterey, Ventura, Sonoma)
+  - Expected: DMG opens, app installs via drag-drop, launches successfully
+  - Acceptance: App icon in Applications, opens without Gatekeeper issues
+
+- [ ] **Test 10.2**: macOS DMG installer (Apple Silicon arm64)
+  - Platform: macOS 12+ on M1/M2/M3 Macs
+  - Expected: Native arm64 performance, no Rosetta translation
+  - Acceptance: Fast launch, native architecture confirmed
+
+- [ ] **Test 10.3**: Code signing verification
+  - Test: `codesign -dv --verbose=4 /Applications/Redis\ ACL\ Builder.app`
+  - Expected: Valid signature, no warnings
+  - Acceptance: App not flagged as "damaged" or "untrusted"
+
+- [ ] **Test 10.4**: Notarization status (if implemented)
+  - Test: `spctl -a -vv /Applications/Redis\ ACL\ Builder.app`
+  - Expected: Notarized by Apple, passes Gatekeeper
+  - Acceptance: No security warnings on first launch
+
+- [ ] **Test 10.5**: App bundle structure
+  - Test: Verify icns icon, Info.plist metadata, entitlements
+  - Expected: Proper macOS app bundle structure
+  - Acceptance: App displays correctly in Finder, Dock, Launchpad
+
+### Windows Desktop App (P1 - Future)
+
+- [ ] **Test 10.6**: Windows installer (.exe)
+  - Platform: Windows 10/11 (x64)
+  - Expected: NSIS/Squirrel installer, Start Menu shortcut
+  - Acceptance: Clean install, uninstall, no registry issues
+
+- [ ] **Test 10.7**: Windows portable (.zip)
+  - Expected: Extract and run without installation
+  - Acceptance: Fully portable, no admin rights required
+
+- [ ] **Test 10.8**: Windows certificate signing (if implemented)
+  - Expected: Signed binary, no SmartScreen warnings
+  - Acceptance: Users trust the installer
+
+### Linux Desktop App (P1 - Future)
+
+- [ ] **Test 10.9**: Linux AppImage (x64)
+  - Platform: Ubuntu 20.04+, Fedora 38+
+  - Expected: Single-file executable, no dependencies
+  - Acceptance: Runs on major distributions
+
+- [ ] **Test 10.10**: Linux Snap package (if implemented)
+  - Expected: Snap install, sandboxed execution
+  - Acceptance: Works on Ubuntu, other Snap-supported distros
+
+- [ ] **Test 10.11**: Linux .deb package (Debian/Ubuntu)
+  - Expected: apt installable package
+  - Acceptance: Integrates with system package manager
+
+### Electron App Functionality (P0)
+
+- [ ] **Test 10.12**: Menu bar functionality
+  - Test: File, Edit, View, Window, Help menus
+  - Expected: All menu items work, keyboard shortcuts functional
+  - Acceptance: macOS menu bar integration correct
+
+- [ ] **Test 10.13**: Window state persistence
+  - Action: Resize window, move position, close, reopen
+  - Expected: Window remembers size and position
+  - Acceptance: State persists across launches
+
+- [ ] **Test 10.14**: Dark mode system integration
+  - Action: Toggle macOS dark mode
+  - Expected: App theme follows system preference
+  - Acceptance: Seamless theme switching
+
+- [ ] **Test 10.15**: Fullscreen mode
+  - Test: View → Enter Full Screen (macOS native fullscreen)
+  - Expected: Smooth fullscreen transition
+  - Acceptance: Exit fullscreen works correctly
+
+- [ ] **Test 10.16**: App updates (if auto-update implemented)
+  - Expected: Check for updates, download, install seamlessly
+  - Acceptance: No data loss during updates
+
+### Electron Performance (P0)
+
+- [ ] **Test 10.17**: Cold start time
+  - Expected: App launches in <3 seconds on modern hardware
+  - Acceptance: Reasonable startup time, no splash screen needed
+
+- [ ] **Test 10.18**: Memory usage
+  - Test: Monitor memory while running for 1 hour
+  - Expected: Stable memory usage <200MB
+  - Acceptance: No memory leaks, efficient resource use
+
+- [ ] **Test 10.19**: CPU usage (idle)
+  - Expected: <5% CPU when idle
+  - Acceptance: App doesn't drain battery on laptops
+
+- [ ] **Test 10.20**: App bundle size
+  - Expected: Final .app or .dmg <150MB
+  - Acceptance: Reasonable download size for users
+
+---
+
+## 11. Documentation & User Experience
 
 **Priority**: P1 (Important)
 **Objective**: Clear, accurate, helpful documentation.
 
 ### Documentation Accuracy (P1)
 
-- [ ] **Test 10.1**: README.md quick start works
+- [ ] **Test 11.1**: README.md quick start works
   - Test: Follow exact commands in README
   - Expected: App runs successfully within 5 minutes
   - Acceptance: No missing steps, no errors
 
-- [ ] **Test 10.2**: Docker Hub description matches features
-  - Expected: Description reflects current v1.26.0 features
+- [ ] **Test 11.2**: Docker Hub description matches features
+  - Expected: Description reflects current v2.0.x features
   - Acceptance: No outdated information
 
-- [ ] **Test 10.3**: CLAUDE.md reflects current architecture
+- [ ] **Test 11.3**: CLAUDE.md reflects current architecture
   - Expected: File structure, command counts, versions accurate
   - Acceptance: Developers can understand codebase
 
 ### Error Messages (P0)
 
-- [ ] **Test 10.4**: Error messages are actionable
+- [ ] **Test 11.4**: Error messages are actionable
   - Test: Trigger 10 different error scenarios
   - Expected: Each error explains what went wrong + how to fix
   - Acceptance: Users can self-recover from errors
 
-- [ ] **Test 10.5**: Error message consistency
+- [ ] **Test 11.5**: Error message consistency
   - Expected: All errors follow same format, tone
   - Acceptance: Professional, helpful, concise
 
 ### Tooltips & Help Text (P1)
 
-- [ ] **Test 10.6**: Tooltip accuracy
+- [ ] **Test 11.6**: Tooltip accuracy
   - Test: Hover over 20+ category buttons
   - Expected: Tooltips show correct command lists
   - Acceptance: No outdated or missing commands
 
-- [ ] **Test 10.7**: Tooltip responsiveness
+- [ ] **Test 11.7**: Tooltip responsiveness
   - Expected: Tooltips appear within 500ms of hover
   - Acceptance: Smooth, no lag
 
-- [ ] **Test 10.8**: Info page content accuracy
+- [ ] **Test 11.8**: Info page content accuracy
   - Expected: Info page reflects all current features
   - Acceptance: No placeholder text, complete information
 
 ### First-Time User Experience (P0)
 
-- [ ] **Test 10.9**: New user onboarding
+- [ ] **Test 11.9**: New user onboarding
   - Test: Give app to someone unfamiliar, observe
   - Expected: User can create first ACL rule within 5 minutes
   - Acceptance: Intuitive UI, self-explanatory
 
-- [ ] **Test 10.10**: Quick start examples work
+- [ ] **Test 11.10**: Quick start examples work
   - Test: Click all preset examples
   - Expected: Each example loads and explains use case
   - Acceptance: Examples are pedagogically valuable
 
 ### Visual Consistency (P1)
 
-- [ ] **Test 10.11**: Color scheme consistency
+- [ ] **Test 11.11**: Color scheme consistency
   - Expected: Same colors used for same states throughout
   - Acceptance: Brand colors consistent, no random variations
 
-- [ ] **Test 10.12**: Typography consistency
+- [ ] **Test 11.12**: Typography consistency
   - Expected: Font families, sizes, weights consistent
   - Acceptance: Professional, readable hierarchy
 
 ---
 
-## 11. Automated Testing Coverage
+## 12. Automated Testing Coverage
 
 **Priority**: P0 (Critical)
 **Objective**: Comprehensive automated test suite for CI/CD.
 
 ### Backend Test Coverage (P0)
 
-- [ ] **Test 11.1**: Increase backend coverage 85% → 95%+
+- [ ] **Test 12.1**: Increase backend coverage 85% → 95%+
   - Focus: Edge cases in acl_parser.py, error paths
   - Expected: 95%+ line coverage, 90%+ branch coverage
   - Acceptance: Coverage report shows improvement
 
-- [ ] **Test 11.2**: API endpoint integration tests
+- [ ] **Test 12.2**: API endpoint integration tests
   - Expected: All 10 endpoints have integration tests
   - Acceptance: Tests cover success + error cases
 
 ### Frontend E2E Tests (P1)
 
-- [ ] **Test 11.3**: Playwright/Cypress setup
+- [ ] **Test 12.3**: Playwright/Cypress setup
   - Tool: Playwright (recommended for modern apps)
   - Expected: E2E framework installed, basic test passing
   - Acceptance: Can run `npm test` for E2E tests
 
-- [ ] **Test 11.4**: Critical user flows covered
+- [ ] **Test 12.4**: Critical user flows covered
   - Tests: Load app → edit rule → submit → test command → save
   - Expected: E2E tests pass consistently
   - Acceptance: 10+ E2E test scenarios
 
-- [ ] **Test 11.5**: Visual regression testing
+- [ ] **Test 12.5**: Visual regression testing
   - Tool: Percy, Chromatic, or Playwright screenshots
   - Expected: Visual diffs caught automatically
   - Acceptance: Screenshots compared on each PR
 
 ### Unit Tests (P1)
 
-- [ ] **Test 11.6**: JavaScript module unit tests
+- [ ] **Test 12.6**: JavaScript module unit tests
   - Framework: Jest or Vitest
   - Expected: 80%+ coverage for JS modules
   - Acceptance: All core functions have unit tests
 
-- [ ] **Test 11.7**: CSS regression tests
+- [ ] **Test 12.7**: CSS regression tests
   - Tool: BackstopJS or visual regression
   - Expected: UI changes flagged for review
   - Acceptance: Prevents accidental style breaks
 
 ### CI/CD Integration (P0)
 
-- [ ] **Test 11.8**: Tests run on every PR
+- [ ] **Test 12.8**: Tests run on every PR
   - Expected: GitHub Actions runs full test suite
   - Acceptance: PRs blocked if tests fail
 
-- [ ] **Test 11.9**: Coverage reports in PRs
+- [ ] **Test 12.9**: Coverage reports in PRs
   - Tool: Codecov or Coveralls
   - Expected: Coverage diff shown in PR comments
   - Acceptance: Declining coverage flagged
 
 ### Performance Benchmarks (P2)
 
-- [ ] **Test 11.10**: Automated Lighthouse CI
+- [ ] **Test 12.10**: Automated Lighthouse CI
   - Tool: Lighthouse CI
   - Expected: Performance regression detection
   - Acceptance: PRs flagged if Lighthouse score drops >5 points
 
 ---
 
-## 12. Production Readiness
+## 13. Production Readiness
 
 **Priority**: P0 (Critical)
 **Objective**: Production-grade configuration and operational excellence.
 
 ### Gunicorn Configuration (P0)
 
-- [ ] **Test 12.1**: Worker count optimization
+- [ ] **Test 13.1**: Worker count optimization
   - Test: Load test with 1, 2, 4, 8 workers
   - Expected: Optimal worker count determined (likely 4)
   - Acceptance: Documented in deployment guide
 
-- [ ] **Test 12.2**: Worker timeout tuning
+- [ ] **Test 13.2**: Worker timeout tuning
   - Expected: Timeout set to 30s for slow requests
   - Acceptance: No premature worker kills
 
-- [ ] **Test 12.3**: Worker restart on failure
+- [ ] **Test 13.3**: Worker restart on failure
   - Action: Crash a worker (raise exception)
   - Expected: Gunicorn restarts worker automatically
   - Acceptance: Other workers unaffected, no downtime
 
 ### Logging & Monitoring (P1)
 
-- [ ] **Test 12.4**: Production logging configuration
+- [ ] **Test 13.4**: Production logging configuration
   - Expected: INFO level logs in production, DEBUG disabled
   - Acceptance: No sensitive data in logs
 
-- [ ] **Test 12.5**: Log rotation (if persistent logs)
+- [ ] **Test 13.5**: Log rotation (if persistent logs)
   - Expected: Logs rotated daily, compressed, limited retention
   - Acceptance: Disk space managed
 
-- [ ] **Test 12.6**: Health check endpoint
+- [ ] **Test 13.6**: Health check endpoint
   - Endpoint: `GET /health`
   - Expected: Returns 200 OK with app version, uptime
   - Acceptance: Can be used by load balancers
 
 ### HTTPS/TLS Support (P1)
 
-- [ ] **Test 12.7**: HTTPS documentation
+- [ ] **Test 13.7**: HTTPS documentation
   - Expected: Guide for using Nginx/Traefik reverse proxy
   - Acceptance: Users can deploy with TLS easily
 
-- [ ] **Test 12.8**: HSTS header recommendation
+- [ ] **Test 13.8**: HSTS header recommendation
   - Expected: Security headers documented
   - Acceptance: Best practices included
 
 ### Reverse Proxy Setup (P1)
 
-- [ ] **Test 12.9**: Nginx reverse proxy guide
+- [ ] **Test 13.9**: Nginx reverse proxy guide
   - Expected: Sample nginx.conf provided
   - Acceptance: Copy-paste config works
 
-- [ ] **Test 12.10**: Traefik reverse proxy guide
+- [ ] **Test 13.10**: Traefik reverse proxy guide
   - Expected: Docker Compose with Traefik + app
   - Acceptance: Automatic HTTPS with Let's Encrypt
 
 ### Monitoring & Observability (P2)
 
-- [ ] **Test 12.11**: Prometheus metrics endpoint
+- [ ] **Test 13.11**: Prometheus metrics endpoint
   - Endpoint: `GET /metrics`
   - Expected: Prometheus-compatible metrics (requests, latency, errors)
   - Acceptance: Can be scraped by Prometheus
 
-- [ ] **Test 12.12**: Grafana dashboard template
+- [ ] **Test 13.12**: Grafana dashboard template
   - Expected: Pre-built dashboard JSON
   - Acceptance: Instant visualization of app metrics
 
@@ -1106,7 +1217,8 @@ This document outlines comprehensive testing requirements for promoting Redis AC
 - [ ] **Security vulnerabilities addressed** (0 Critical, 0 High CVEs)
 - [ ] **Performance targets met** (Lighthouse ≥90, page load <3s)
 - [ ] **Docker deployment working** (multi-arch builds, health checks)
-- [ ] **Documentation complete** (README, Docker Hub, API docs)
+- [ ] **Electron desktop app working** (macOS DMG installer, code signed)
+- [ ] **Documentation complete** (README, Docker Hub, API docs, Electron build docs)
 
 ### Nice-to-Have (Can defer)
 
@@ -1119,8 +1231,10 @@ This document outlines comprehensive testing requirements for promoting Redis AC
 
 ## Version History
 
-- **v1.26.0** (Planned GA Release) - Comprehensive testing before GA
-- **v1.25.9-beta** - Latest beta with all features
+- **v2.0.x** (Planned GA Release) - Web + Electron desktop app, comprehensive testing
+- **v2.0.1-alpha** - Smart version tag strategy, Electron DMG installer
+- **v2.0.0-alpha** - Complete Electron desktop app implementation
+- **v1.27.0-beta** - Monorepo restructure for web + desktop support
 
 ---
 

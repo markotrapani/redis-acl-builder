@@ -1,10 +1,16 @@
 # Redis ACL Builder - Docker Deployment
 
+**Related Documentation:**
+
+- [Multi-Architecture Builds](MULTI-ARCH-README.md) - Building for AMD64/ARM64
+- [CI/CD Setup Guide](CI-CD-SETUP.md) - GitHub Actions automation
+
 **Version v2.0.0-alpha** - Desktop + Web App
 
 A comprehensive application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced Key Permissions, comprehensive E2E testing with 100% test coverage, and an elegant drag-drop interface. Also available as a native macOS desktop application.
 
 **What's New in v2.0.0-alpha**:
+
 - **Desktop App**: Native macOS Electron application with DMG installer (89MB)
 - **Shared Codebase**: Monorepo structure (`backend/`, `frontend/`, `electron/`, `scripts/`, `tests/`) powers both web and desktop versions
 - **Web App**: Same production-ready web application with all v1.27.0 features
@@ -51,18 +57,21 @@ docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped mar
 ## 🎯 Key Features
 
 ### Rule Selectors
+
 - Full UI integration for selector syntax `(+@read ~logs:*)`
 - Perfect isolation between root and selector key patterns
 - OR logic: commands granted if root OR any selector permits
 - Enhanced testing showing which selector granted access
 
 ### Advanced Key Permissions
+
 - Read-only keys: `%R~pattern`
 - Write-only keys: `%W~pattern`
 - Read-write keys: `%RW~pattern` or `~pattern`
 - Smart error messages for permission mismatches
 
 ### Interactive Interface
+
 - 8-way resizable panels with drag-drop reordering
 - Dual testing modes: split or integrated with smooth animations
 - Interactive hover feedback showing button actions (emoji swap)
@@ -70,6 +79,7 @@ docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped mar
 - Light/dark theme with system preference detection
 
 ### Redis Support
+
 - Full Redis 7 (311 commands, 21 categories)
 - Full Redis 8 (446 commands, 29 categories including modules)
 - Module support: RediSearch, RedisJSON, TimeSeries, Bloom, etc.
@@ -86,6 +96,7 @@ docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped mar
 ## 🔧 Configuration
 
 The image is production-ready with:
+
 - Production Flask environment
 - Debug mode disabled
 - Automatic health checks every 30 seconds
@@ -111,7 +122,8 @@ docker restart redis-acl-builder
 ## 📧 Support
 
 For questions about usage, feedback, or to report bugs, please reach out to:
-- **Email**: marko.trapani@redis.com
+
+- **Email**: <marko.trapani@redis.com>
 - **GitHub Issues**: [Report bugs and feature requests](https://github.com/markotrapani/marko-projects/issues)
 
 ## 📚 Additional Resources
@@ -133,6 +145,7 @@ For questions about usage, feedback, or to report bugs, please reach out to:
 ## 🔒 Security
 
 **Current Security Status (v2.0.0-alpha):**
+
 - ✅ **0 Critical vulnerabilities**
 - ✅ **0 High vulnerabilities**
 - ⚠️ **1 Medium vulnerability** - CVE-2025-8869 (pip 25.2) - waiting for pip 25.3 release
@@ -141,6 +154,7 @@ For questions about usage, feedback, or to report bugs, please reach out to:
 - ⚠️ **2 Low vulnerabilities** in BusyBox (waiting for Alpine upstream to package BusyBox 1.38.0+)
 
 **Security Features:**
+
 - **Python 3.13.7** with latest security patches
 - **Gunicorn 23.0.0** with HTTP Request Smuggling fixes (CVE-2024-1135, CVE-2024-6827 resolved)
 - **OpenSSL 3.5.4-r0** with CVE-2025-9230 patch
