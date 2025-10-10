@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version v1.25.1-beta** - Optimization Box Persistence & Backend Error Fix
+**Version v1.27.0-beta** - Monorepo Restructure
 
 A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
 
@@ -20,12 +20,13 @@ open http://localhost:7380
 
 ## 🏗️ Architecture
 
-The application features modern, modular frontend and backend architectures:
+The application features modern, modular frontend and backend architectures with a **monorepo structure** (v1.27.0):
 
-- **Frontend**: Modular ES6 JavaScript (9 modules) + Optimized Modular CSS (6 modules) with professional desktop-like resize experience
+- **Monorepo**: Organized into `backend/`, `frontend/`, `scripts/`, and `tests/` directories - single source of truth for both web app and future Electron desktop app
+- **Frontend**: Modular ES6 JavaScript (13 modules) + Optimized Modular CSS (6 modules) with professional desktop-like resize experience
 - **Backend**: Flask with comprehensive Redis ACL parsing and API layer
 - **Database**: Hardcoded Redis command databases for Redis 7 (311 commands) and Redis 8 (446 commands)
-- **Testing**: 195 automated tests with 85% code coverage (195 passing, 0 failing, 0 skipped)
+- **Testing**: 223 automated tests - 195 backend (pytest) + 28 E2E (Playwright) with 100% pass rate
 - **Type Safety**: Enterprise-grade type annotations with 94% reduction in Pylance strict errors (comprehensive typing across all modules)
 - **UI/UX**: Elegant resizable container system with real-time content synchronization, drag-drop panel reordering, and perfect responsive design
 
@@ -523,21 +524,37 @@ pytest tests/test_app.py -v
 3. **Install dependencies:**
 
    ```bash
-   pip install -r requirements.txt
+   pip install -r backend/requirements.txt
+   npm install  # For E2E testing
    ```
 
-4. **Run tests:**
+4. **Run the application:**
 
    ```bash
-   ./tests/run_tests.sh
+   # Option 1: Use helper script
+   ./scripts/run-web.sh
+
+   # Option 2: Run directly
+   python backend/app.py
    ```
 
-### Code Organization
+5. **Run tests:**
 
-- **Backend Logic**: `helpers/` folder
-- **Frontend Assets**: `static/` folder  
-- **Templates**: `templates/` folder
-- **Tests**: `tests/` folder
+   ```bash
+   # Backend tests
+   pytest tests/backend/ -v
+
+   # E2E tests
+   npx playwright test
+   ```
+
+### Code Organization (Monorepo Structure - v1.27.0)
+
+- **Backend**: `backend/` - Python Flask app, helpers, models
+- **Frontend**: `frontend/` - Static assets (CSS/JS) and templates
+- **Scripts**: `scripts/` - Helper scripts (run-web.sh, build-web.sh)
+- **Tests**: `tests/backend/` (pytest) and `tests/e2e/` (Playwright)
+- **Electron**: `electron/` - Desktop app wrapper (v2.0 - see [docs/ELECTRON-ROADMAP.md](docs/ELECTRON-ROADMAP.md))
 
 ## Production Deployment
 

@@ -20,8 +20,8 @@ from typing import Tuple
 import csscompressor  # type: ignore[import-untyped]
 import rjsmin  # type: ignore[import-untyped]
 
-# Directories
-STATIC_DIR = Path(__file__).parent / 'static'
+# Directories (monorepo structure)
+STATIC_DIR = Path(__file__).parent / 'frontend' / 'static'
 CSS_DIR = STATIC_DIR / 'css'
 JS_DIR = STATIC_DIR / 'js'
 

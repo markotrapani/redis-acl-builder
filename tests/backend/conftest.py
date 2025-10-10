@@ -6,8 +6,11 @@ import pytest
 import sys
 import os
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add backend directory to path for imports
+# tests/backend/conftest.py -> ../../backend/
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+backend_dir = os.path.join(project_root, 'backend')
+sys.path.insert(0, backend_dir)
 
 from app import app
 from helpers.data_loader import get_redis_data, build_command_indexes

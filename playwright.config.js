@@ -58,7 +58,7 @@ module.exports = defineConfig({
 
   // Run your local dev server before starting the tests
   webServer: {
-    command: 'source venv/bin/activate && python app.py',
+    command: 'source venv/bin/activate && python backend/app.py',
     url: 'http://localhost:5001',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

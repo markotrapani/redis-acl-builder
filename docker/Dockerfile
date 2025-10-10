@@ -14,7 +14,7 @@ RUN apk add --no-cache curl
 
 # Install Python dependencies (production + build tools)
 # Build tools needed for minification during image build
-COPY requirements-prod.txt requirements-test.txt ./
+COPY ../backend/requirements-prod.txt ../backend/requirements-test.txt ./
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-prod.txt && \
     pip install --no-cache-dir csscompressor rjsmin
@@ -23,18 +23,18 @@ RUN pip install --no-cache-dir --upgrade pip && \
 WORKDIR /app
 
 # Set environment variables
-ENV FLASK_APP=app.py
+ENV FLASK_APP=backend/app.py
 ENV FLASK_ENV=production
 ENV FLASK_DEBUG=False
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# Copy only necessary application files (production optimized)
-COPY app.py build_minified.py ./
-COPY helpers/ helpers/
-COPY models/ models/
-COPY templates/ templates/
-COPY static/ static/
+# Copy monorepo structure (backend/ and frontend/ directories)
+COPY ../backend/ backend/
+COPY ../frontend/ frontend/
+
+# Copy build script to root
+COPY ../build_minified.py ./
 
 # Build minified assets for production
 RUN python build_minified.py
@@ -52,4 +52,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:7380/api/categories || exit 1
 
 # Start command using gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:7380", "--workers", "4", "--timeout", "120", "--max-requests", "1000", "--max-requests-jitter", "100", "app:app"]
+# Update PYTHONPATH to include backend directory, then run app from backend/app.py
+CMD ["sh", "-c", "cd /app && PYTHONPATH=/app/backend gunicorn --bind 0.0.0.0:7380 --workers 4 --timeout 120 --max-requests 1000 --max-requests-jitter 100 backend.app:app"]

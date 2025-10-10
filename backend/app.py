@@ -38,8 +38,12 @@ DEFAULT_PORT = int(os.getenv('FLASK_PORT', '5001'))
 DEFAULT_SEARCH_LIMIT = int(os.getenv('DEFAULT_SEARCH_LIMIT', '50'))
 DEBUG_MODE = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
 
-# Initialize Flask app
-app = Flask(__name__)
+# Initialize Flask app with custom template and static folders
+# In monorepo structure, frontend/ is a sibling directory to backend/
+frontend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend')
+app = Flask(__name__,
+            static_folder=os.path.join(frontend_dir, 'static'),
+            template_folder=os.path.join(frontend_dir, 'templates'))
 app.config['DEBUG'] = DEBUG_MODE
 
 # Enable Gzip compression for all responses
