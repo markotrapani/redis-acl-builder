@@ -529,6 +529,45 @@ autoUpdater.on('update-downloaded', () => {
 - **ACL Rule Templates** - Pre-built templates for common use cases
 - **Rule Validation History** - Track changes and validation results over time
 
+### Distribution & Build Optimization (Future):
+
+**Multi-Architecture macOS Builds:**
+- ✅ **ARM64 DMG** (~89MB) - Apple Silicon optimized (current)
+- 🔲 **x64 DMG** (~85MB) - Intel Mac optimized
+- 🔲 **Universal DMG** (~160MB) - Works on all Macs
+- **Build Commands:**
+  - Development: `npm run build:mac` (ARM64 only, ~32s)
+  - Production: `npm run build:mac:all` (all 3 versions, ~120s)
+- **Build Time Comparison:**
+  - ARM64 only: ~32 seconds
+  - Universal: ~82 seconds (2.5x slower)
+  - All three: ~120 seconds
+
+**File Size Optimization Opportunities:**
+1. **Python Backend** (40-50MB currently)
+   - Use PyInstaller with `--exclude-module` for unused dependencies
+   - Strip Flask debug tools in production
+   - Consider static linking Python
+   - Estimated savings: 20-30MB
+
+2. **Asset Optimization** (5-10MB potential savings)
+   - Compress background images with better encoding
+   - Minify CSS/JS more aggressively
+   - Remove unused fonts/icons
+   - Estimated savings: 5-10MB
+
+3. **Electron Optimization** (Limited impact)
+   - Already using production mode
+   - Could explore asar archive compression
+   - Alternative: Consider Tauri (Rust) for 10x smaller apps in v3.0+
+   - Estimated savings: Minimal
+
+**Potential Total Savings:** 25-40MB (89MB → 50-65MB per architecture)
+
+**Cross-Platform Builds:**
+- 🔲 **Windows .exe installer** - `npm run build:win` (~45-60s build time)
+- 🔲 **Linux AppImage + .deb** - `npm run build:linux` (~30-40s build time)
+
 ---
 
 ## 📊 Code Reuse Analysis

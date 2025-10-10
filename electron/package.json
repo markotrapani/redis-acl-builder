@@ -9,6 +9,8 @@
     "dev": "unset ELECTRON_RUN_AS_NODE && electron . --dev",
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
+    "build:mac:universal": "electron-builder --mac --universal",
+    "build:mac:all": "electron-builder --mac --arm64 --x64 --universal",
     "build:win": "electron-builder --win",
     "build:linux": "electron-builder --linux"
   },
@@ -20,11 +22,16 @@
   ],
   "author": "Marko Trapani",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/markotrapani/marko-projects.git",
+    "directory": "redis-acl-builder"
+  },
   "devDependencies": {
-    "electron-builder": "^24.9.1"
+    "electron": "^27.3.11",
+    "electron-builder": "^24.13.3"
   },
   "dependencies": {
-    "electron": "^27.3.11",
     "electron-is-dev": "^3.0.1"
   },
   "build": {
@@ -47,6 +54,26 @@
         "dmg",
         "zip"
       ]
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 165,
+          "y": 200
+        },
+        {
+          "x": 495,
+          "y": 200,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 660,
+        "height": 420
+      },
+      "iconSize": 120,
+      "background": "build/background-light.png"
     },
     "win": {
       "icon": "build/icon.ico",

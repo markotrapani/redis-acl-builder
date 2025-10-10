@@ -65,6 +65,8 @@ body.electron-app .three-column-layout {
     min-height: 0;  /* Allow flex child to shrink below content size */
     height: auto !important;  /* Override fixed height from CSS */
     overflow: auto;
+    will-change: height;  /* Hint to browser for performance optimization */
+    transform: translateZ(0);  /* Force GPU acceleration for smoother resizing */
 }
 
 /* During panel dragging, allow overflow to be visible so panels can float above other sections */
