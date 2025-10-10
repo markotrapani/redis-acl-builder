@@ -628,15 +628,92 @@ autoUpdater.on('update-downloaded', () => {
 
 ## 📝 Development Notes
 
-### Current Status (2025-10-03):
-- **Branch:** `v2-electron` created and pushed to GitHub
-- **Version:** v1.23.2-beta (baseline for conversion)
-- **Status:** Planning phase complete, ready to begin Phase 1
+### Current Status (2025-10-09):
+- **Branch:** `main` (monorepo structure)
+- **Version:** v2.0.0-alpha (Electron app + Web app)
+- **Status:** Phase 1 COMPLETE ✅, Phase 3 partially complete
 
-### Next Steps:
-1. Review and approve this roadmap
-2. Begin Phase 1: Create basic Electron wrapper
-3. Test proof-of-concept with existing app
+### Actual Progress (Completed):
+✅ **Phase 1: Minimal Viable Electron App - COMPLETE**
+- ✅ Electron directory structure created
+- ✅ Basic main.js implemented (1416×965px optimized window)
+- ✅ Python Flask backend spawning working
+- ✅ preload.js with security context isolation
+- ✅ package.json with Electron dependencies and build scripts
+- ✅ App launches successfully with all v1.x features working
+- ✅ localStorage, fetch(), UI features all functional
+
+✅ **Phase 3: Build & Distribution - PARTIALLY COMPLETE**
+- ✅ App icons created (icon.icns, icon.ico, icon.png)
+- ✅ electron-builder configuration complete
+- ✅ macOS ARM64 DMG installer with custom background
+- ✅ Professional DMG layout (660×420, centered icons, arrow indicator)
+- ✅ Multi-architecture build scripts (`build:mac`, `build:mac:universal`, `build:mac:all`)
+- ✅ GitHub Actions workflow updated for unified versioning
+- ⚠️ **Python backend bundling - NOT YET DONE (CRITICAL BLOCKER)**
+- ⚠️ Intel Mac (x64) build - Not done
+- ⚠️ Universal binary - Not done
+- ⚠️ Windows/Linux builds - Not done
+- ⚠️ Auto-update system - Not done
+- ⚠️ Code signing - Not done
+
+### Development Strategy - Path B First (Production Distribution)
+
+**🎯 DECISION: Complete Phase 3 (Distribution) Before Phase 2 (Native Features)**
+
+**Rationale:**
+1. **Current blocker:** App requires Python installed on user's machine
+2. **Can't distribute yet:** Users without Python can't run the app
+3. **PyInstaller bundling is critical** for true standalone desktop app
+4. **Once bundled:** Can distribute to testers immediately for feedback
+5. **Then:** Come back to Phase 2 for enhanced native features
+
+**Immediate Next Steps (Priority Order):**
+
+1. **Python Backend Bundling with PyInstaller** (CRITICAL - 4-6 hours)
+   - Install PyInstaller in venv
+   - Create `.spec` file for backend bundling
+   - Build standalone Flask executable from app.py
+   - Update `main.js` to spawn bundled executable instead of system Python
+   - Test app works without system Python installed
+   - Rebuild DMG with bundled backend
+   - **Deliverable:** Truly standalone app with no external dependencies
+
+2. **Multi-Architecture macOS Builds** (2-3 hours)
+   - Build Intel (x64) DMG for Intel Macs
+   - Build Universal DMG for maximum compatibility
+   - Test on Intel Mac hardware
+   - **Deliverable:** Support all Mac users (Apple Silicon + Intel)
+
+3. **Cross-Platform Builds** (4-6 hours)
+   - Windows .exe installer (NSIS)
+   - Linux AppImage + .deb packages
+   - Test on Windows 10/11 and Ubuntu
+   - **Deliverable:** Multi-platform desktop app
+
+4. **Code Signing & Notarization** (2-4 hours)
+   - Apple Developer account setup
+   - Code signing certificate acquisition
+   - macOS notarization (required for Catalina+)
+   - Windows code signing (optional but recommended)
+   - **Deliverable:** No Gatekeeper warnings, professional distribution
+
+5. **Auto-Update System** (3-4 hours)
+   - Integrate electron-updater
+   - Configure GitHub releases integration
+   - Add update notification UI
+   - **Deliverable:** Seamless updates for end users
+
+**After Path B Complete:** Return to Phase 2 for native desktop features (custom title bar, file dialogs, system tray, etc.)
+
+### Deferred to Later (Phase 2):
+- [ ] Custom title bar with window controls
+- [ ] File system dialogs (Save/Open ACL rules)
+- [ ] Application menu (File, Edit, View, Help)
+- [ ] System theme detection
+- [ ] Native notifications
+- [ ] System tray integration
+- [ ] Multi-window support
 
 ### Decision Points:
 - [x] **Python Bundling Method:** PyInstaller vs ship venv? → **APPROVED: PyInstaller**
