@@ -5,7 +5,7 @@ Redis Enterprise ACL Builder - Main Flask Application
 
 from flask import Flask, render_template, request, jsonify
 from flask.wrappers import Response
-from flask_compress import Compress
+from flask_compress import Compress  # type: ignore[import-untyped]
 import logging
 import sys
 import os
@@ -16,7 +16,7 @@ from pydantic import BaseModel, ValidationError
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Import our helper modules
-from helpers.data_loader import get_redis_data, build_command_indexes
+from helpers.data_loader import get_redis_data, build_command_indexes, RedisVersionData
 from helpers.acl_parser import ACLParser
 
 # Import Pydantic models
@@ -83,7 +83,7 @@ logger = logging.getLogger(__name__)
 # Load Redis data on startup
 logger.info("Loading Redis command data...")
 _redis_data = get_redis_data()
-REDIS_DATA: Dict[str, Dict[str, Any]] = build_command_indexes(_redis_data)
+REDIS_DATA: Dict[str, RedisVersionData] = build_command_indexes(_redis_data)
 logger.info(f"Loaded data for Redis 7 ({len(REDIS_DATA['redis7']['commands'])} commands) and Redis 8 ({len(REDIS_DATA['redis8']['commands'])} commands)")
 
 # Global parsers for each version
