@@ -1,8 +1,8 @@
 # Redis Enterprise ACL Builder
 
-**Version v1.27.0-beta** - Monorepo Restructure
+**Version v2.0.0-alpha** - Desktop + Web App
 
-A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering.
+A comprehensive application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering. Available as both a web application and native macOS desktop app.
 
 ## 🚀 Quick Start - Docker Hub
 
@@ -20,9 +20,9 @@ open http://localhost:7380
 
 ## 🏗️ Architecture
 
-The application features modern, modular frontend and backend architectures with a **monorepo structure** (v1.27.0):
+The application features modern, modular frontend and backend architectures with a **monorepo structure** (v2.0.0-alpha):
 
-- **Monorepo**: Organized into `backend/`, `frontend/`, `scripts/`, and `tests/` directories - single source of truth for both web app and future Electron desktop app
+- **Monorepo**: Organized into `backend/`, `frontend/`, `electron/`, `scripts/`, and `tests/` directories - single source of truth for both web app and Electron desktop app
 - **Frontend**: Modular ES6 JavaScript (13 modules) + Optimized Modular CSS (6 modules) with professional desktop-like resize experience
 - **Backend**: Flask with comprehensive Redis ACL parsing and API layer
 - **Database**: Hardcoded Redis command databases for Redis 7 (311 commands) and Redis 8 (446 commands)

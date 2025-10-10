@@ -1,8 +1,13 @@
 # Redis ACL Builder - Docker Deployment
 
-**Version v1.26.1-beta** - Documentation Update
+**Version v2.0.0-alpha** - Desktop + Web App
 
-A comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced Key Permissions, comprehensive E2E testing with 100% test coverage, and an elegant drag-drop interface.
+A comprehensive application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced Key Permissions, comprehensive E2E testing with 100% test coverage, and an elegant drag-drop interface. Also available as a native macOS desktop application.
+
+**What's New in v2.0.0-alpha**:
+- **Desktop App**: Native macOS Electron application with DMG installer (89MB)
+- **Shared Codebase**: Monorepo structure (`backend/`, `frontend/`, `electron/`, `scripts/`, `tests/`) powers both web and desktop versions
+- **Web App**: Same production-ready web application with all v1.27.0 features
 
 ## 🚀 Quick Start
 
@@ -27,7 +32,7 @@ open http://localhost:7380
 docker pull markotrapani608/redis-acl-builder:latest
 
 # Specific version
-docker pull markotrapani608/redis-acl-builder:1.21.0-beta
+docker pull markotrapani608/redis-acl-builder:2.0.0-alpha
 
 # Beta releases
 docker pull markotrapani608/redis-acl-builder:beta
@@ -117,15 +122,17 @@ For questions about usage, feedback, or to report bugs, please reach out to:
 
 ## 🏷️ Available Tags
 
-- `latest` - Latest stable release (currently v1.26.1-beta)
-- `beta` - Latest beta release
+- `latest` - Latest release (currently v2.0.0-alpha)
+- `beta` - Latest beta/alpha release
+- `v2.0.0-alpha` - Desktop + Web App: Native macOS Electron app + web app with shared codebase
+- `v1.27.0-beta` - Monorepo restructure for web + desktop support
 - `v1.26.1-beta` - Documentation update with accurate API endpoints and test coverage
 - `v1.26.0-beta` - Complete E2E test suite with Playwright (28/28 tests passing)
 - Multi-architecture support (AMD64/ARM64)
 
 ## 🔒 Security
 
-**Current Security Status (v1.26.1-beta):**
+**Current Security Status (v2.0.0-alpha):**
 - ✅ **0 Critical vulnerabilities**
 - ✅ **0 High vulnerabilities**
 - ⚠️ **1 Medium vulnerability** - CVE-2025-8869 (pip 25.2) - waiting for pip 25.3 release
