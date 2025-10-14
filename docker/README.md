@@ -5,15 +5,15 @@
 - [Multi-Architecture Builds](MULTI-ARCH-README.md) - Building for AMD64/ARM64
 - [CI/CD Setup Guide](CI-CD-SETUP.md) - GitHub Actions automation
 
-**Version v2.0.0-alpha** - Desktop + Web App
+**Version v2.0.3-alpha** - Desktop + Web App
 
 A comprehensive application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced Key Permissions, comprehensive E2E testing with 100% test coverage, and an elegant drag-drop interface. Also available as a native macOS desktop application.
 
-**What's New in v2.0.0-alpha**:
+**What's New in v2.0.3-alpha**:
 
-- **Desktop App**: Native macOS Electron application with DMG installer (89MB)
-- **Shared Codebase**: Monorepo structure (`backend/`, `frontend/`, `electron/`, `scripts/`, `tests/`) powers both web and desktop versions
-- **Web App**: Same production-ready web application with all v1.27.0 features
+- **🎨 Enhanced Tooltips**: Category tooltips now show relevant commands first with color-coded bold text (green for granted, red for blocked)
+- **✅ Bug Fixes**: Tooltip expansion now correctly displays all commands, fixed parameter passing through function wrappers
+- **🧹 Code Cleanup**: Removed debug code, optimized CSS/JS with clean architecture
 
 ## 🚀 Quick Start
 
@@ -134,8 +134,9 @@ For questions about usage, feedback, or to report bugs, please reach out to:
 
 ## 🏷️ Available Tags
 
-- `latest` - Latest release (currently v2.0.0-alpha)
+- `latest` - Latest release (currently v2.0.3-alpha)
 - `beta` - Latest beta/alpha release
+- `v2.0.3-alpha` - Enhanced tooltips with smart command highlighting
 - `v2.0.0-alpha` - Desktop + Web App: Native macOS Electron app + web app with shared codebase
 - `v1.27.0-beta` - Monorepo restructure for web + desktop support
 - `v1.26.1-beta` - Documentation update with accurate API endpoints and test coverage
@@ -144,7 +145,7 @@ For questions about usage, feedback, or to report bugs, please reach out to:
 
 ## 🔒 Security
 
-**Current Security Status (v2.0.0-alpha):**
+**Current Security Status (v2.0.3-alpha):**
 
 - ✅ **0 Critical vulnerabilities**
 - ✅ **0 High vulnerabilities**

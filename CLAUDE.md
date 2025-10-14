@@ -55,15 +55,15 @@ This is a collection of Redis-related projects, with the main project being **Re
 
 ### Key Project: Redis Enterprise ACL Builder
 
-- **Version**: v2.0.0-alpha (Desktop + Web App)
+- **Version**: v2.0.3-alpha (Desktop + Web App)
 - **Test Coverage**: Backend 85% (Core logic: 95-100%, API: 78%) | E2E: 100% (28/28 Playwright tests passing)
 - **Status**: 195 backend tests passing, 28 E2E tests passing, 0 failing, 0 skipped
 - **Purpose**: Interactive web interface for parsing, testing, and validating Redis ACL permissions
 - **Redis Support**: Full Redis 7 (311 commands) and Redis 8 (446 commands) including all module commands
-- **UI Features**: Advanced search system with independent fuzzy/exact modes, comprehensive custom tooltips with multi-column layouts, perfect anti-flash rendering, theme-aware loading animations, enhanced redundancy detection, comprehensive 8-way resizable container system with triangular corner indicators and edge resize handles, drag-drop panel reordering for both three-column panels and testing sections, polished tester controls with proper button positioning and theme-aware styling, complete responsive design for tablet and mobile with optimized layouts and form interactions
+- **UI Features**: Advanced search system with independent fuzzy/exact modes, comprehensive custom tooltips with multi-column layouts and smart command highlighting (color-coded bold text for relevant commands), perfect anti-flash rendering, theme-aware loading animations, enhanced redundancy detection, comprehensive 8-way resizable container system with triangular corner indicators and edge resize handles, drag-drop panel reordering for both three-column panels and testing sections, polished tester controls with proper button positioning and theme-aware styling, complete responsive design for tablet and mobile with optimized layouts and form interactions
 - **Architecture**: Modular ES6 JavaScript (13 modules: 5 specialized modules + 8 core/UI modules) + Optimized Modular CSS (6 modules) with enterprise-grade visual polish, real-time synchronization, and professional desktop-like resize experience
 - **Code Organization**: Interactive ACL Builder massively refactored from 4,286 → 3,195 lines (-1,091 lines, -25.5%) through systematic extraction of 1,636 lines of business logic and UI rendering into 5 specialized modules (ACLOptimizer, ACLCategoryManager, ACLRuleParser, ACLStateManager, ACLUIRenderer)
-- **Monorepo Structure (v2.0.0-alpha)**: Reorganized into `backend/`, `frontend/`, `electron/`, and `scripts/` directories for single source of truth supporting both web app and Electron desktop app with zero code duplication
+- **Monorepo Structure (v2.0.3-alpha)**: Reorganized into `backend/`, `frontend/`, `electron/`, and `scripts/` directories for single source of truth supporting both web app and Electron desktop app with zero code duplication
 
 ## Commands and Development Workflow
 
@@ -92,6 +92,27 @@ python backend/app.py
 
 # Application runs at http://localhost:5001
 ```
+
+### Building Frontend Assets
+
+**⚠️ CRITICAL: After editing CSS or JavaScript files, you MUST rebuild minified assets:**
+
+```bash
+# Rebuild minified CSS and JavaScript
+python3 build_minified.py
+
+# This regenerates:
+# - frontend/static/css/styles.min.css (from all .css files)
+# - frontend/static/js/**/*.min.js (individual minified JS files)
+
+# The HTML loads styles.min.css, so CSS changes won't appear until rebuilt!
+```
+
+**Why this is needed:**
+- The app loads `styles.min.css` (minified/combined CSS) in production
+- Individual CSS files (base.css, components.css, etc.) are source files only
+- You MUST run `python3 build_minified.py` after ANY CSS edit for changes to appear
+- Same applies to JavaScript - minified versions are loaded in production
 
 ### Testing Commands
 

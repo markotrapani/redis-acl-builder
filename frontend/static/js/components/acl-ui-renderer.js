@@ -11,11 +11,14 @@ const ACLUIRenderer = {
      * @param {string} title - Title text
      * @param {Array<string>} items - Array of items to display
      * @param {string} prefix - Optional prefix for each item
+     * @param {Array<string>} boldItems - Optional array of items to display in bold
+     * @param {string} boldColor - Optional color for bold items
      * @returns {string} HTML string for multi-column content
      */
-    createMultiColumnContent(title, items, prefix = '') {
+    createMultiColumnContent(title, items, prefix = '', boldItems = [], boldColor = null) {
         const itemCount = items.length;
         const fragment = document.createDocumentFragment();
+        const boldSet = new Set(boldItems);
 
         // Add title
         fragment.appendChild(document.createTextNode(title));
@@ -24,7 +27,17 @@ const ACLUIRenderer = {
         if (itemCount <= 12) {
             fragment.appendChild(document.createElement('br'));
             items.forEach((item, index) => {
-                fragment.appendChild(document.createTextNode(`• ${prefix}${item}`));
+                const isBold = boldSet.has(item);
+
+                if (isBold) {
+                    const boldSpan = document.createElement('strong');
+                    boldSpan.textContent = `• ${prefix}${item}`;
+                    boldSpan.className = 'tooltip-highlight';
+                    fragment.appendChild(boldSpan);
+                } else {
+                    fragment.appendChild(document.createTextNode(`• ${prefix}${item}`));
+                }
+
                 if (index < items.length - 1) {
                     fragment.appendChild(document.createElement('br'));
                 }
@@ -64,7 +77,17 @@ const ACLUIRenderer = {
             const ul = document.createElement('ul');
             columnItems.forEach(item => {
                 const li = document.createElement('li');
-                li.textContent = `${prefix}${item}`;
+                const isBold = boldSet.has(item);
+
+                if (isBold) {
+                    const boldSpan = document.createElement('strong');
+                    boldSpan.textContent = `${prefix}${item}`;
+                    boldSpan.className = 'tooltip-highlight';
+                    li.appendChild(boldSpan);
+                } else {
+                    li.textContent = `${prefix}${item}`;
+                }
+
                 ul.appendChild(li);
             });
 
@@ -280,6 +303,13 @@ const ACLUIRenderer = {
                     tooltipElement = document.createElement('div');
                     tooltipElement.className = 'enhanced-tooltip';
 
+                    // Add data attribute to identify which column this tooltip belongs to
+                    if (isInGrantedColumn) {
+                        tooltipElement.dataset.column = 'granted';
+                    } else if (isInBlockedColumn) {
+                        tooltipElement.dataset.column = 'blocked';
+                    }
+
                     // Add title
                     const titleDiv = document.createElement('div');
                     titleDiv.className = titleClass;
@@ -346,7 +376,32 @@ const ACLUIRenderer = {
                         contentDiv.className = 'tooltip-content';
 
                         if (commands && commands.length > 0) {
-                            const sortedCommands = commands.sort();
+                            // Get granted/blocked status for all commands in this category
+                            const grantedCommands = new Set(lastApiResponse?.granted_commands || []);
+                            const blockedCommands = new Set(lastApiResponse?.blocked_commands || []);
+
+                            // Separate commands based on current state
+                            const relevantCommands = [];
+                            const otherCommands = [];
+
+                            commands.forEach(cmd => {
+                                // In granted column, prioritize granted commands
+                                // In blocked column, prioritize blocked commands
+                                if (isInGrantedColumn && grantedCommands.has(cmd)) {
+                                    relevantCommands.push(cmd);
+                                } else if (isInBlockedColumn && blockedCommands.has(cmd)) {
+                                    relevantCommands.push(cmd);
+                                } else {
+                                    otherCommands.push(cmd);
+                                }
+                            });
+
+                            // Sort each group alphabetically
+                            relevantCommands.sort();
+                            otherCommands.sort();
+
+                            // Combine: relevant commands first, then others
+                            const sortedCommands = [...relevantCommands, ...otherCommands];
                             const displayCommands = sortedCommands.slice(0, 8);
                             const remaining = sortedCommands.length - displayCommands.length;
 
@@ -354,7 +409,19 @@ const ACLUIRenderer = {
                             contentDiv.appendChild(document.createElement('br'));
 
                             displayCommands.forEach((cmd, index) => {
-                                contentDiv.appendChild(document.createTextNode(`• ${cmd}`));
+                                const isBold = relevantCommands.includes(cmd);
+
+                                if (isBold) {
+                                    // Create bold and colored text for relevant commands
+                                    const boldSpan = document.createElement('strong');
+                                    boldSpan.textContent = `• ${cmd}`;
+                                    // Green for granted column, red for blocked column
+                                    boldSpan.style.color = isInGrantedColumn ? '#22c55e' : '#f44336';
+                                    contentDiv.appendChild(boldSpan);
+                                } else {
+                                    contentDiv.appendChild(document.createTextNode(`• ${cmd}`));
+                                }
+
                                 if (index < displayCommands.length - 1 || remaining > 0) {
                                     contentDiv.appendChild(document.createElement('br'));
                                 }
@@ -368,6 +435,8 @@ const ACLUIRenderer = {
                                 expandLink.dataset.type = 'commands';
                                 expandLink.dataset.fullList = sortedCommands.join(',');
                                 expandLink.dataset.showing = displayCommands.length.toString();
+                                expandLink.dataset.relevantCommands = relevantCommands.join(','); // Store for expansion
+                                expandLink.dataset.columnType = isInGrantedColumn ? 'granted' : 'blocked'; // Store column type for color
                                 expandLink.textContent = `... and ${remaining} more`;
                                 contentDiv.appendChild(expandLink);
                             }
@@ -462,21 +531,42 @@ const ACLUIRenderer = {
                             e.stopPropagation();
 
                             const type = link.dataset.type;
-                            const fullList = link.dataset.fullList.split(',');
+                            const fullList = link.dataset.fullList.split(',').map(s => s.trim());
+                            const relevantCommandsStr = link.dataset.relevantCommands || '';
+                            const relevantCommands = relevantCommandsStr ? relevantCommandsStr.split(',').map(s => s.trim()) : [];
+                            const columnType = link.dataset.columnType;
 
-                            // Replace the abbreviated list with the full list using multi-column layout for large lists
-                            if (type === 'categories') {
-                                const newContent = createMultiColumnContent('Member of categories:', fullList, '@');
-                                link.parentNode.textContent = '';
-                                link.parentNode.appendChild(newContent);
-                            } else if (type === 'commands') {
-                                const newContent = createMultiColumnContent(`Contains ${fullList.length} commands:`, fullList);
-                                link.parentNode.textContent = '';
-                                link.parentNode.appendChild(newContent);
+                            // Determine color based on column type
+                            const boldColor = columnType === 'granted' ? '#22c55e' :
+                                             columnType === 'blocked' ? '#f44336' :
+                                             null;
+
+                            // Find the parent .tooltip-content div
+                            const contentDiv = link.closest('.tooltip-content');
+
+                            if (contentDiv) {
+                                // Clear and rebuild the entire content div
+                                contentDiv.innerHTML = '';
+
+                                // Replace the abbreviated list with the full list using multi-column layout for large lists
+                                if (type === 'categories') {
+                                    const newContent = createMultiColumnContent('Member of categories:', fullList, '@');
+                                    contentDiv.appendChild(newContent);
+                                } else if (type === 'commands') {
+                                    // Create multi-column content with bold styling and color for relevant commands
+                                    const newContent = createMultiColumnContent(
+                                        `Contains ${fullList.length} commands:`,
+                                        fullList,
+                                        '',
+                                        relevantCommands,
+                                        boldColor
+                                    );
+                                    contentDiv.appendChild(newContent);
+                                }
+
+                                // Mark tooltip as expanded for larger sizing
+                                tooltipElement.classList.add('expanded');
                             }
-
-                            // Mark tooltip as expanded for larger sizing
-                            tooltipElement.classList.add('expanded');
                         });
                     });
 

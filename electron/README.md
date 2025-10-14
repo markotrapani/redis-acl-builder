@@ -1,6 +1,6 @@
 # Redis ACL Builder - Desktop App (Electron)
 
-> **Status**: v2.0.0-alpha - In Development
+> **Status**: v2.0.3-alpha - In Development
 
 Desktop application wrapper for Redis ACL Builder using Electron.
 

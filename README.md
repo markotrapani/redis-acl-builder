@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version v2.0.0-alpha** - Desktop + Web App
+**Version v2.0.3-alpha** - Desktop + Web App
 
 A comprehensive application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring an elegant resizable interface with drag-drop panel reordering. Available as both a web application and native macOS desktop app.
 
@@ -20,7 +20,7 @@ open http://localhost:7380
 
 ## 🏗️ Architecture
 
-The application features modern, modular frontend and backend architectures with a **monorepo structure** (v2.0.0-alpha):
+The application features modern, modular frontend and backend architectures with a **monorepo structure** (v2.0.3-alpha):
 
 - **Monorepo**: Organized into `backend/`, `frontend/`, `electron/`, `scripts/`, and `tests/` directories - single source of truth for both web app and Electron desktop app
 - **Frontend**: Modular ES6 JavaScript (13 modules) + Optimized Modular CSS (6 modules) with professional desktop-like resize experience
@@ -70,26 +70,26 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 - **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
 - **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
 
-## ✨ What's New in v1.25.4-beta
+## ✨ What's New in v2.0.3-alpha
 
-### Rule Optimization Display & Version Switching Enhancements
+### Enhanced Category Tooltips with Smart Command Highlighting
 
-- **✨ Clean Optimization Display**: Fixed optimization to show single descriptive warning with backend suggestion and "Saves X terms" (no duplicates)
-  - Frontend now preserves backend warnings/suggestions intelligently
-  - Removed redundant "Commands match exactly" explanation when category completion warning exists
-  - Example: `+pfadd +pfcount +pfmerge` shows clean single warning: "Individual commands cover entire @hyperloglog category (3 commands)"
-- **🔄 Smart Version Switching**: Preserve unsaved textarea content when switching between Redis 7 and Redis 8
-  - Skips redundancy analysis when Submit Changes button is visible
-  - Skips interactive builder refresh to prevent overwriting textarea
-  - Unsaved edits remain intact across version toggles
-- **🎯 Version-Aware Optimization**: Optimization suggestions update correctly between Redis versions
-  - Example: 25 @hash commands in Redis 7 → `+@hash` (Saves 24 terms)
-  - Same 25 commands in Redis 8 → `+@hash -hgetdel -hgetex -hsetex` (Saves 21 terms)
-  - Automatically adapts to version-specific category differences
-- **✅ Comprehensive Testing**: Edge cases validated (empty rules, invalid syntax, already optimal, category exclusions)
-- **🎨 Visual Consistency**: Light/dark mode optimization box styling verified
+- **🎨 Intelligent Command Highlighting**: Category tooltips now display relevant commands first with color-coded bold text
+  - Granted commands highlighted in **bold green** (#22c55e)
+  - Blocked commands highlighted in **bold red** (#f44336)
+  - Works in both abbreviated and expanded tooltip views
+  - Example: Hovering over partially granted `@read` category shows granted commands (like `get`, `mget`) first in green
+- **🔧 Parameter Passing Fix**: Resolved three-layer function wrapper issue preventing bold/color styling
+  - Fixed wrapper in InteractiveACLBuilder passing all 5 parameters correctly
+  - Fixed method signature accepting boldItems and boldColor parameters
+  - Ensured proper parameter flow from tooltip expansion to ACLUIRenderer
+- **🧹 Code Cleanup**: Removed all debug console.log statements and redundant inline styling
+  - Clean CSS-based styling using data-column attributes
+  - Removed unnecessary CSS rules and placeholder code
+  - Rebuilt minified assets (110.71 KB, 34.5% savings)
+- **✅ Bug Fix**: Tooltip expansion now correctly displays full command list without hiding commands
 
-### Previous Release (v1.25.3-beta)
+### Previous Release (v2.0.0-alpha)
 
 #### Command Sort Order & Rule Preservation Fixes
 

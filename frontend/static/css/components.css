@@ -2267,13 +2267,23 @@ button.test-button[disabled] {
   padding: 0;
   list-style: none;
   line-height: 1.6;
+  color: var(--text-primary);
 }
 
 .enhanced-tooltip .tooltip-column li {
   margin-bottom: 2px;
   word-break: break-word;
   font-size: 0.8rem;
-  color: var(--text-color);
+}
+
+/* Granted column highlights - green */
+.enhanced-tooltip[data-column="granted"] .tooltip-column li strong.tooltip-highlight {
+  color: #22c55e !important;
+}
+
+/* Blocked column highlights - red */
+.enhanced-tooltip[data-column="blocked"] .tooltip-column li strong.tooltip-highlight {
+  color: #f44336 !important;
 }
 
 /* Expanded tooltip sizing */

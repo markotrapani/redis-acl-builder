@@ -2013,9 +2013,43 @@ const InteractiveACLBuilder = {
     },
 
     /**
+     * Clear originalIndex attributes from all buttons
+     * This prevents search filters from capturing stale sort orders during re-renders
+     */
+    clearOriginalIndices() {
+        // Clear from all category buttons
+        const categoryContainers = ['#grantedCategories', '#blockedCategories'];
+        categoryContainers.forEach(selector => {
+            const container = document.querySelector(selector);
+            if (container) {
+                const buttons = container.querySelectorAll('.category-button');
+                buttons.forEach(button => {
+                    delete button.dataset.originalIndex;
+                });
+            }
+        });
+
+        // Clear from all command buttons
+        const commandContainers = ['#grantedCommands', '#blockedCommands'];
+        commandContainers.forEach(selector => {
+            const container = document.querySelector(selector);
+            if (container) {
+                const buttons = container.querySelectorAll('.command-button');
+                buttons.forEach(button => {
+                    delete button.dataset.originalIndex;
+                });
+            }
+        });
+    },
+
+    /**
      * Render command buttons in both columns
      */
     async renderCommandButtons() {
+        // Clear any stale originalIndex attributes from previous renders
+        // This ensures search filters always capture the correct alphabetical order
+        this.clearOriginalIndices();
+
         // Render granted commands
         if (this.elements.grantedCommandsButtons) {
             // Clear any existing content (including initial placeholders from HTML)
@@ -2654,7 +2688,7 @@ const InteractiveACLBuilder = {
             API,
             AppState,
             getCategoryCommandsCached: (cat) => this.getCategoryCommandsCached(cat),
-            createMultiColumnContent: (title, items, prefix) => this.createMultiColumnContent(title, items, prefix),
+            createMultiColumnContent: (title, items, prefix, boldItems, boldColor) => this.createMultiColumnContent(title, items, prefix, boldItems, boldColor),
             lastApiResponse: this.lastApiResponse
         });
     },
@@ -2662,8 +2696,8 @@ const InteractiveACLBuilder = {
     /**
      * Create multi-column content for large lists in tooltips
      */
-    createMultiColumnContent(title, items, prefix = '') {
-        return ACLUIRenderer.createMultiColumnContent(title, items, prefix);
+    createMultiColumnContent(title, items, prefix = '', boldItems = [], boldColor = null) {
+        return ACLUIRenderer.createMultiColumnContent(title, items, prefix, boldItems, boldColor);
     },
 
     /**
