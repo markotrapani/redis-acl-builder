@@ -634,7 +634,7 @@
 #testResult,
 #testKeyspaceResult {
   position: relative;
-  z-index: 10; /* Ensure results appear above other content */
+  z-index: 9999; /* Ensure results appear above all content including three-column panels */
   box-shadow: var(--shadow-md);
 }
 

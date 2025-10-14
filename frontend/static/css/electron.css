@@ -25,7 +25,7 @@ body.electron-app .panel-container {
     width: 100vw !important;
     height: 100vh !important;
     margin: 0 !important;
-    overflow: hidden;
+    overflow: visible;  /* Allow test result popups to overflow */
     position: relative !important;
     left: auto !important;
     top: auto !important;
@@ -40,7 +40,7 @@ body.electron-app .inner-container {
     height: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;  /* Allow test result popups to overflow */
 }
 
 /* During tester dragging, allow inner-container overflow so testers can float above three-column-layout */
@@ -64,7 +64,7 @@ body.electron-app .three-column-layout {
     flex: 1;  /* Take up all available space */
     min-height: 0;  /* Allow flex child to shrink below content size */
     height: auto !important;  /* Override fixed height from CSS */
-    overflow: auto;
+    overflow: visible;  /* Allow test result popups to overflow and appear above */
     will-change: height;  /* Hint to browser for performance optimization */
     transform: translateZ(0);  /* Force GPU acceleration for smoother resizing */
 }
@@ -116,12 +116,20 @@ body.electron-app header {
 
 body.electron-app .testing-container {
     position: relative;
-    z-index: 10;  /* Test sections in middle layer normally */
+    z-index: 30;  /* Test sections above three-column panels so popups are visible */
 }
 
 body.electron-app .three-column-layout {
     position: relative;
-    z-index: 20;  /* Three-column panels higher than header/tests normally */
+    z-index: 20;  /* Three-column panels higher than header */
+}
+
+/* Ensure test result popups always appear above three-column panels in Electron app */
+body.electron-app .test-result,
+body.electron-app #testResult,
+body.electron-app #testKeyspaceResult,
+body.electron-app #integratedTestResult {
+    z-index: 9999 !important;  /* Override parent container z-index to ensure results always on top */
 }
 
 /* When panel dragging is active, boost the three-column-layout z-index */

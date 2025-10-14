@@ -310,7 +310,7 @@ button.test-button[disabled] {
   left: var(--panel-padding);
   right: var(--panel-padding);
   width: calc(100% - 2 * var(--panel-padding)); /* Match exact width of form area */
-  z-index: 10;
+  z-index: 9999; /* Ensure results appear above all content including three-column panels */
   /* Use fadeIn animation defined in layout.css (slides up from below) */
   animation: fadeIn 0.3s ease-out forwards;
 }
@@ -2560,7 +2560,7 @@ button.test-button[disabled] {
   left: var(--panel-padding);
   right: var(--panel-padding);
   width: calc(100% - 2 * var(--panel-padding)); /* Narrower than full width - matches split testers */
-  z-index: 100;
+  z-index: 9999; /* Ensure results appear above all content including three-column panels */
   pointer-events: none; /* Allow clicks to pass through empty container */
 }
 
