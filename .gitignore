@@ -187,3 +187,7 @@ test-results/
 playwright-report/
 playwright-test-output.txt
 playwright-test-results.txt
+
+# Sibling projects (multi-repo structure - ignore other projects in marko-projects)
+../ldap-bind-tester/
+../gtlogs-link-generator/
