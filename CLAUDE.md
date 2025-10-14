@@ -58,9 +58,10 @@ This is a collection of Redis-related projects, with the main project being **Re
 - **Version**: v2.0.3-alpha (Desktop + Web App)
 - **Test Coverage**: Backend 85% (Core logic: 95-100%, API: 78%) | E2E: 100% (28/28 Playwright tests passing)
 - **Status**: 195 backend tests passing, 28 E2E tests passing, 0 failing, 0 skipped
+- **Latest Fix**: Electron app z-index stacking for test result popups (v2.0.3-alpha)
 - **Purpose**: Interactive web interface for parsing, testing, and validating Redis ACL permissions
 - **Redis Support**: Full Redis 7 (311 commands) and Redis 8 (446 commands) including all module commands
-- **UI Features**: Advanced search system with independent fuzzy/exact modes, comprehensive custom tooltips with multi-column layouts and smart command highlighting (color-coded bold text for relevant commands), perfect anti-flash rendering, theme-aware loading animations, enhanced redundancy detection, comprehensive 8-way resizable container system with triangular corner indicators and edge resize handles, drag-drop panel reordering for both three-column panels and testing sections, polished tester controls with proper button positioning and theme-aware styling, complete responsive design for tablet and mobile with optimized layouts and form interactions
+- **UI Features**: Advanced search system with independent fuzzy/exact modes, comprehensive custom tooltips with multi-column layouts and smart command highlighting (color-coded bold text for relevant commands), perfect anti-flash rendering, theme-aware loading animations, enhanced redundancy detection, comprehensive 8-way resizable container system with triangular corner indicators and edge resize handles, drag-drop panel reordering for both three-column panels and testing sections, polished tester controls with proper button positioning and theme-aware styling, complete responsive design for tablet and mobile with optimized layouts and form interactions, **fixed z-index stacking for Electron app test result popups**
 - **Architecture**: Modular ES6 JavaScript (13 modules: 5 specialized modules + 8 core/UI modules) + Optimized Modular CSS (6 modules) with enterprise-grade visual polish, real-time synchronization, and professional desktop-like resize experience
 - **Code Organization**: Interactive ACL Builder massively refactored from 4,286 → 3,195 lines (-1,091 lines, -25.5%) through systematic extraction of 1,636 lines of business logic and UI rendering into 5 specialized modules (ACLOptimizer, ACLCategoryManager, ACLRuleParser, ACLStateManager, ACLUIRenderer)
 - **Monorepo Structure (v2.0.3-alpha)**: Reorganized into `backend/`, `frontend/`, `electron/`, and `scripts/` directories for single source of truth supporting both web app and Electron desktop app with zero code duplication
@@ -109,6 +110,7 @@ python3 build_minified.py
 ```
 
 **Why this is needed:**
+
 - The app loads `styles.min.css` (minified/combined CSS) in production
 - Individual CSS files (base.css, components.css, etc.) are source files only
 - You MUST run `python3 build_minified.py` after ANY CSS edit for changes to appear
@@ -547,9 +549,17 @@ redis-acl-builder/
 - **Docker Image Size**: ~110MB (Alpine-based, builds locally to avoid GitHub 100MB limit)
 - **Deployment Options**: 4 different deployment methods for maximum flexibility
 
-**Next Development Priorities (v1.x)**:
+**Current Development Status (v2.0.3-alpha)**:
 
-No immediate priorities - all critical UX flows are polished and working perfectly!
+- ✅ Electron desktop app fully functional with all features
+- ✅ Z-index stacking issues resolved for test result popups
+- ✅ Category tooltips with smart command highlighting working perfectly
+- ✅ All 223 tests passing (195 backend + 28 E2E)
+- ✅ Production-ready for both web and desktop deployments
+
+**Next Development Priorities (v2.x)**:
+
+Focus on stability and user feedback - all critical UX flows are polished and working perfectly!
 
 **Security Monitoring**:
 
@@ -563,16 +573,16 @@ Monitor and address remaining Docker image vulnerabilities when upstream fixes b
 
 Current status (v1.21.0-beta): 0 Critical, 0 High, 1 Medium (low runtime risk), 2 Low vulnerabilities. All HIGH/CRITICAL issues resolved.
 
-**Future Roadmap (v2.0)**:
+**Future Roadmap (v2.x+)**:
 
-1. **Electron Desktop App**: Convert Python + JavaScript web app into standalone Electron application
-   - Native desktop experience with system integration
-   - Enhanced UI/UX without browser limitations
-   - Local file system access for ACL rule import/export
-   - Better performance and offline capability
-   - Professional desktop application packaging (macOS, Windows, Linux)
+1. **Electron Desktop App Enhancements** (COMPLETED in v2.0.3-alpha):
+   - ✅ Native macOS desktop experience with system integration
+   - ✅ Enhanced UI/UX without browser limitations
+   - ✅ Better performance and offline capability
+   - ✅ Professional desktop application packaging for macOS
+   - 🔄 Future: Windows and Linux packaging
 
-2. **Multi-Key Command Validation**: Advanced command+key testing with Redis command signature awareness
+2. **Multi-Key Command Validation** (Future v2.x): Advanced command+key testing with Redis command signature awareness
    - Support for commands with multiple key arguments (COPY, RENAME, MIGRATE, etc.)
    - Validate each key argument individually based on command signature
    - Per-argument access reporting (e.g., "source key allowed, destination key denied")
@@ -582,6 +592,7 @@ Current status (v1.21.0-beta): 0 Critical, 0 High, 1 Medium (low runtime risk), 
 
 **Completed Features**:
 
+- ✅ **Electron App Test Result Popup Fix** (v2.0.3-alpha): Fixed critical z-index stacking context issue where test result popups were getting buried under three-column ACL builder panels in the Electron desktop app. **Root cause**: `.testing-container` had z-index: 10 while `.three-column-layout` had z-index: 20, causing entire testing container (and all popups inside) to render behind panels regardless of popup's own z-index. **Solution**: Changed `.testing-container` to z-index: 30, fixed overflow clipping on parent containers (`.panel-container`, `.inner-container`, `.three-column-layout` changed from `overflow: hidden/auto` to `overflow: visible`), updated all test result popup z-index values to 9999 with !important. **Impact**: Test result popups now correctly appear above all three-column panels in both web and Electron app. Drag-drop functionality preserved with higher z-index values during drag operations (tester drag: 2000, panel drag: 1000). Version bumped from v2.0.0-alpha → v2.0.3-alpha.
 - ✅ **Monorepo Restructure** (v1.27.0-beta): Complete codebase reorganization into monorepo structure with `backend/`, `frontend/`, `electron/`, `scripts/`, and `tests/` directories. Single source of truth for both web app and future Electron desktop app with zero code duplication. All 195 backend tests + 28 E2E tests passing. Updated Flask app to reference `../frontend/` paths, updated Docker build to copy from `../backend/` and `../frontend/`, updated `build_minified.py` and `playwright.config.js` for new paths. Created helper scripts (`run-web.sh`, `build-web.sh`, `run-desktop.sh`). Backend and frontend code now exists ONCE and will be shared by both web and desktop versions in v2.0. Fast web development workflow preserved - iterate quickly in Flask, then test in Electron when ready.
 - ✅ **Documentation Update** (v1.26.1-beta): Updated /info page to reflect current v1.26.0-beta features. Updated version references from v1.13.0 to v1.26.0, test coverage stats to 223 total tests (195 backend + 28 E2E with 100% pass rate), removed non-existent `/api/test-keyspace` endpoint (keyspace testing is client-side JavaScript glob matching), added `/api/test-command-key` and `/api/optimize-rule` endpoints, updated Docker tag examples, enhanced architecture section with type safety and modular structure details.
 - ✅ **Complete E2E Test Suite & Type Safety Enhancement** (v1.26.0-beta): Comprehensive Playwright end-to-end test suite with 100% pass rate (28/28 tests). Fixed all test failures by adapting to integrated tester mode with correct element selectors (`#integratedCommand`, `#integratedKey`, `#integratedTestResult`, `.integrated-test-button`) and API endpoints (`/api/test-command-key`). Tests cover: page load and layout (5 tests), ACL rule editing and validation (5 tests), interactive builder click-to-grant/revoke (4 tests), command permission testing (3 tests), keyspace pattern testing (2 tests), saved rules management (2 tests), Redis version switching (3 tests), theme switching (2 tests), and complete user workflows (2 tests). Enhanced `build_minified.py` with comprehensive type annotations - added function signatures with return types, explicit variable type hints for all locals, and `# type: ignore` comments for untyped imports. Achieved enterprise-grade type safety across entire codebase.
