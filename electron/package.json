@@ -1,6 +1,6 @@
 {
   "name": "redis-acl-builder-desktop",
-  "version": "2.0.3-alpha",
+  "version": "2.1.0-beta",
   "description": "Redis ACL Builder - Desktop Application",
   "main": "main.js",
   "scripts": {
@@ -31,16 +31,23 @@
   },
   "devDependencies": {
     "electron": "^27.3.11",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^24.13.3",
+    "@electron/notarize": "^2.1.0"
   },
   "dependencies": {
-    "electron-is-dev": "^3.0.1"
+    "electron-is-dev": "^3.0.1",
+    "electron-updater": "^6.1.4"
   },
   "build": {
     "appId": "com.redis.acl-builder",
     "productName": "Redis ACL Builder",
     "directories": {
       "output": "dist"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "markotrapani",
+      "repo": "redis-acl-builder"
     },
     "files": [
       "main.js",
@@ -63,8 +70,13 @@
       "target": [
         "dmg",
         "zip"
-      ]
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
+    "afterSign": "scripts/notarize.js",
     "dmg": {
       "contents": [
         {

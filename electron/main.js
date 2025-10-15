@@ -1,7 +1,8 @@
-const { app, BrowserWindow, nativeImage } = require('electron');
+const { app, BrowserWindow, nativeImage, dialog } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const { autoUpdater } = require('electron-updater');
 
 let mainWindow = null;
 let pythonProcess = null;
@@ -11,6 +12,80 @@ const FLASK_PORT = 7381;  // Use 7381 for Electron desktop, 7380 for Docker, 500
 function isDevelopment() {
     // Check if we're running from source (electron/main.js exists) vs packaged
     return fs.existsSync(path.join(__dirname, '..', 'backend', 'app.py'));
+}
+
+// Configure auto-updater
+function setupAutoUpdater() {
+    const isDevMode = isDevelopment();
+
+    // Skip auto-update in development mode
+    if (isDevMode) {
+        console.log('🔧 Development mode: Auto-update disabled');
+        return;
+    }
+
+    console.log('🔄 Setting up auto-updater...');
+
+    // Configure updater
+    autoUpdater.autoDownload = false; // We'll ask user first
+    autoUpdater.autoInstallOnAppQuit = true;
+
+    // Check for updates when app starts
+    autoUpdater.checkForUpdates();
+
+    // Auto-updater event handlers
+    autoUpdater.on('checking-for-update', () => {
+        console.log('🔍 Checking for updates...');
+    });
+
+    autoUpdater.on('update-available', (info) => {
+        console.log('✨ Update available:', info.version);
+
+        dialog.showMessageBox(mainWindow, {
+            type: 'info',
+            title: 'Update Available',
+            message: `A new version (${info.version}) is available!`,
+            detail: 'Would you like to download and install it?',
+            buttons: ['Download', 'Later'],
+            defaultId: 0,
+            cancelId: 1
+        }).then((result) => {
+            if (result.response === 0) {
+                autoUpdater.downloadUpdate();
+            }
+        });
+    });
+
+    autoUpdater.on('update-not-available', (info) => {
+        console.log('✅ App is up to date:', info.version);
+    });
+
+    autoUpdater.on('error', (err) => {
+        console.error('❌ Auto-update error:', err);
+    });
+
+    autoUpdater.on('download-progress', (progressObj) => {
+        const message = `Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}%`;
+        console.log(`📥 ${message}`);
+    });
+
+    autoUpdater.on('update-downloaded', (info) => {
+        console.log('✅ Update downloaded:', info.version);
+
+        dialog.showMessageBox(mainWindow, {
+            type: 'info',
+            title: 'Update Ready',
+            message: 'Update has been downloaded',
+            detail: 'The application will restart to install the update.',
+            buttons: ['Restart Now', 'Later'],
+            defaultId: 0,
+            cancelId: 1
+        }).then((result) => {
+            if (result.response === 0) {
+                autoUpdater.quitAndInstall();
+            }
+        });
+    });
 }
 
 // Start Python Flask backend
@@ -196,6 +271,9 @@ app.whenReady().then(async () => {
 
         // Create window
         createWindow();
+
+        // Set up auto-updater (after window is created)
+        setupAutoUpdater();
 
         console.log('✅ Application ready!');
     } catch (error) {

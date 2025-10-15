@@ -103,17 +103,34 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false  # Disable code signing for now
+          # For future: Add these when code signing is set up
+          # APPLE_ID: ${{ secrets.APPLE_ID }}
+          # APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           # Build separate ARM64 and x64 DMGs (skip universal due to Python backend conflicts)
-          npx electron-builder --mac --arm64 --x64
+          # Add --publish=always when pushing a tag to publish to GitHub releases for auto-updates
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            npx electron-builder --mac --arm64 --x64 --publish=always
+          else
+            npx electron-builder --mac --arm64 --x64
+          fi
 
       - name: Build Electron app (Windows)
         if: matrix.platform == 'win'
         working-directory: electron
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # For future: Add these when code signing is set up
+          # WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          # WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
         run: |
-          npm run build:win
+          # Add --publish=always when pushing a tag to publish to GitHub releases for auto-updates
+          if ("${{ github.ref }}".StartsWith("refs/tags/")) {
+            npx electron-builder --win --publish=always
+          } else {
+            npm run build:win
+          }
 
       - name: Build Electron app (Linux)
         if: matrix.platform == 'linux'
@@ -121,7 +138,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm run build:linux
+          # Add --publish=always when pushing a tag to publish to GitHub releases for auto-updates
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            npx electron-builder --linux --publish=always
+          else
+            npm run build:linux
+          fi
 
       - name: List build artifacts (macOS/Linux)
         if: matrix.platform != 'win'
@@ -182,7 +204,8 @@ jobs:
             electron/dist/*.exe
             electron/dist/*.AppImage
             electron/dist/*.deb
-          draft: true
+          draft: false  # Published releases enable auto-updates
+          prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
