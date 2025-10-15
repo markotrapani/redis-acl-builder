@@ -337,6 +337,66 @@ npx playwright test --ui
   - Complex ACL rule patterns
   - Real-world use cases
 
+## CI/CD & Build System
+
+**All automated builds are now managed in the redis-acl-builder repository.**
+
+### GitHub Actions Workflows
+
+**Repository**: [github.com/markotrapani/redis-acl-builder/actions](https://github.com/markotrapani/redis-acl-builder/actions)
+
+#### 🐳 Docker Builds (Web Application)
+- **Workflow**: `.github/workflows/docker-publish.yml`
+- **Triggers**: Version tags (`v*.*.*`, `v*.*.*-alpha`, `v*.*.*-beta`)
+- **Platforms**: linux/amd64, linux/arm64 (multi-arch)
+- **Outputs**: Docker images published to [Docker Hub](https://hub.docker.com/r/markotrapani608/redis-acl-builder)
+- **Features**: Automated CVE scanning with Docker Scout
+
+#### 💻 Desktop Builds (Electron App)
+- **Workflow**: `.github/workflows/build-desktop.yml`
+- **Triggers**: Version tags (`v*.*.*`, `v*.*.*-desktop*`) + manual dispatch
+- **Platforms**: Windows (x64), macOS (ARM64 + Intel x64), Linux (x64)
+- **Outputs**:
+  - Windows: NSIS installer + ZIP
+  - macOS: DMG + ZIP (separate ARM64 and Intel builds)
+  - Linux: AppImage + .deb package
+- **Features**: PyInstaller backend bundling, platform-specific installers
+
+### Migration Notice (October 2025)
+
+> **Important**: CI/CD workflows were migrated from the parent `marko-projects` repository to `redis-acl-builder` on 2025-10-15.
+>
+> - **Old builds** (pre-October 2025): Available at [github.com/markotrapani/marko-projects/actions](https://github.com/markotrapani/marko-projects/actions) (historical reference only)
+> - **New builds** (October 2025+): All builds now run in [github.com/markotrapani/redis-acl-builder/actions](https://github.com/markotrapani/redis-acl-builder/actions)
+>
+> This consolidation provides better organization, with each submodule owning its own build pipelines.
+
+### Version Tag Strategy
+
+**For Docker builds** (web app):
+```bash
+git tag v2.0.4-alpha    # Triggers Docker build
+git push origin v2.0.4-alpha
+```
+
+**For Desktop builds** (Electron app):
+```bash
+git tag v2.0.4-desktop  # Triggers Desktop build only
+git push origin v2.0.4-desktop
+```
+
+**For both Docker + Desktop**:
+```bash
+git tag v2.0.4          # Triggers BOTH Docker and Desktop builds
+git push origin v2.0.4
+```
+
+**For documentation updates only**:
+```bash
+git tag v2.0.4-docs     # No builds triggered
+git push origin v2.0.4-docs
+```
+
 ## Project Structure
 
 ```txt

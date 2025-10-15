@@ -165,6 +165,78 @@ pip install gunicorn
 gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
 ```
 
+## CI/CD & Automated Builds
+
+**All automated builds are managed in the redis-acl-builder repository.**
+
+### GitHub Actions Workflows
+
+**Repository**: https://github.com/markotrapani/redis-acl-builder/actions
+
+#### Docker Builds (Web Application)
+- **File**: `.github/workflows/docker-publish.yml`
+- **Triggers**: Version tags without `-desktop` or `-docs` suffixes
+  - `v*.*.*` (e.g., v2.0.4, v2.1.0)
+  - `v*.*.*-alpha`, `v*.*.*-beta`, `v*.*.*-rc*`
+- **Platforms**: linux/amd64, linux/arm64 (multi-architecture)
+- **Registry**: Docker Hub - `markotrapani608/redis-acl-builder`
+- **Features**:
+  - Automated multi-arch builds with QEMU and Buildx
+  - Docker Hub description sync from `docker/README.md`
+  - Docker Scout CVE scanning (critical/high severity)
+  - GitHub Actions caching for faster builds
+  - Automatic tagging: version, major.minor, major, latest, beta
+
+#### Desktop Builds (Electron App)
+- **File**: `.github/workflows/build-desktop.yml`
+- **Triggers**:
+  - Version tags: `v*.*.*`, `v*.*.*-alpha`, `v*.*.*-beta`
+  - Desktop-specific tags: `v*.*.*-desktop*`
+  - Manual workflow dispatch
+- **Matrix Build Platforms**:
+  - **macOS-latest**: ARM64 + Intel x64 DMG installers
+  - **Windows-latest**: NSIS .exe installer + ZIP
+  - **Ubuntu-latest**: AppImage + .deb package
+- **Build Process**:
+  1. PyInstaller bundles Python backend (Flask + dependencies)
+  2. Electron-builder packages desktop app with bundled backend
+  3. Creates platform-specific installers
+  4. Uploads artifacts (30-day retention)
+  5. Creates GitHub release (on version tags)
+
+### Migration History (October 2025)
+
+**Migration Date**: 2025-10-15
+
+**Before**:
+- Docker workflows lived in parent `marko-projects` repository
+- Historical builds: https://github.com/markotrapani/marko-projects/actions
+
+**After**:
+- All CI/CD consolidated in `redis-acl-builder` submodule
+- New builds: https://github.com/markotrapani/redis-acl-builder/actions
+- Better organization: each submodule owns its build pipelines
+
+**Secrets Required**:
+- `DOCKERHUB_USERNAME`: Docker Hub username
+- `DOCKERHUB_TOKEN`: Docker Hub Personal Access Token (with workflow scope)
+
+### Version Tagging Strategy
+
+```bash
+# Docker build (web app)
+git tag v2.0.4-alpha && git push origin v2.0.4-alpha
+
+# Desktop build (Electron app)
+git tag v2.0.4-desktop && git push origin v2.0.4-desktop
+
+# Both Docker + Desktop
+git tag v2.0.4 && git push origin v2.0.4
+
+# Documentation only (no builds)
+git tag v2.0.4-docs && git push origin v2.0.4-docs
+```
+
 ## Architecture and Code Structure
 
 ### High-Level Architecture
