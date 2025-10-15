@@ -240,7 +240,7 @@ function createWindow() {
 
 // App lifecycle
 app.whenReady().then(async () => {
-    console.log('🚀 Redis ACL Builder - Desktop App Starting...');
+    console.log('🚀 Redis ACL Builder v2.1.1-beta - Desktop App Starting (UPDATED VERSION)...');
 
     // Set app name (important for macOS - shows in menu bar and About panel)
     app.setName('Redis ACL Builder');
