@@ -16,28 +16,79 @@ function isDevelopment() {
 // Start Python Flask backend
 function startPythonBackend() {
     const projectRoot = path.join(__dirname, '..');
-    const backendPath = path.join(projectRoot, 'backend', 'app.py');
+    const isDevMode = isDevelopment();
 
     console.log('Starting Python backend...');
-    console.log('Backend path:', backendPath);
+    console.log('Development mode:', isDevMode);
     console.log('Project root:', projectRoot);
 
-    // Use shell script to activate venv and run Python
-    // On Windows, use batch script; on Unix, use bash script
-    const isWindows = process.platform === 'win32';
-    const shell = isWindows ? 'cmd.exe' : '/bin/bash';
-    const shellArgs = isWindows
-        ? ['/c', `cd ${projectRoot} && venv\\Scripts\\activate && python backend\\app.py`]
-        : ['-c', `cd "${projectRoot}" && source venv/bin/activate && python backend/app.py`];
+    let command;
+    let args = [];
+    let cwd = projectRoot;
 
-    pythonProcess = spawn(shell, shellArgs, {
+    if (isDevMode) {
+        // DEVELOPMENT MODE: Use venv with Python script
+        console.log('📝 Using development mode (venv + Python script)');
+        const backendPath = path.join(projectRoot, 'backend', 'app.py');
+        console.log('Backend path:', backendPath);
+
+        // Use shell script to activate venv and run Python
+        const isWindows = process.platform === 'win32';
+        const shell = isWindows ? 'cmd.exe' : '/bin/bash';
+        const shellArgs = isWindows
+            ? ['/c', `cd ${projectRoot} && venv\\Scripts\\activate && python backend\\app.py`]
+            : ['-c', `cd "${projectRoot}" && source venv/bin/activate && python backend/app.py`];
+
+        command = shell;
+        args = shellArgs;
+    } else {
+        // PRODUCTION MODE: Use bundled PyInstaller executable
+        console.log('📦 Using production mode (bundled executable)');
+
+        // Path to bundled backend executable inside .app bundle
+        // When packaged with electron-builder, resources are in app.asar or app.asar.unpacked
+        const backendExecutableName = process.platform === 'win32'
+            ? 'redis-acl-builder-backend.exe'
+            : 'redis-acl-builder-backend';
+
+        // Try multiple possible locations for the backend executable
+        const possiblePaths = [
+            // Location when bundled with electron-builder (Resources/dist/)
+            path.join(process.resourcesPath, 'dist', 'redis-acl-builder-backend', backendExecutableName),
+            // Alternative: Resources root
+            path.join(process.resourcesPath, 'redis-acl-builder-backend', backendExecutableName),
+            // Fallback: relative to electron directory (for local testing without packaging)
+            path.join(projectRoot, 'dist', 'redis-acl-builder-backend', backendExecutableName),
+        ];
+
+        let backendExecutable = null;
+        for (const execPath of possiblePaths) {
+            if (fs.existsSync(execPath)) {
+                backendExecutable = execPath;
+                console.log('✅ Found backend executable:', execPath);
+                break;
+            }
+        }
+
+        if (!backendExecutable) {
+            console.error('❌ ERROR: Could not find bundled backend executable!');
+            console.error('Searched paths:', possiblePaths);
+            throw new Error('Backend executable not found. Please rebuild the application.');
+        }
+
+        command = backendExecutable;
+        args = [];
+    }
+
+    // Spawn Python process
+    pythonProcess = spawn(command, args, {
         env: {
             ...process.env,
             FLASK_PORT: FLASK_PORT.toString(),
-            FLASK_ENV: isDevelopment() ? 'development' : 'production',
-            FLASK_DEBUG: isDevelopment() ? 'True' : 'False'
+            FLASK_ENV: isDevMode ? 'development' : 'production',
+            FLASK_DEBUG: isDevMode ? 'True' : 'False'
         },
-        cwd: projectRoot
+        cwd: cwd
     });
 
     pythonProcess.stdout.on('data', (data) => {

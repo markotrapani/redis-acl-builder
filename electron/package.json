@@ -43,9 +43,17 @@
     "files": [
       "main.js",
       "preload.js",
-      "build/**/*",
-      "../backend/**/*",
-      "../frontend/**/*"
+      "build/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../dist/redis-acl-builder-backend",
+        "to": "dist/redis-acl-builder-backend",
+        "filter": ["**/*"]
+      }
+    ],
+    "asarUnpack": [
+      "**/dist/redis-acl-builder-backend/**/*"
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
