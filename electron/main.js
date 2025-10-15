@@ -321,7 +321,7 @@ function createWindow() {
 
 // App lifecycle
 app.whenReady().then(async () => {
-    console.log('🚀 Redis ACL Builder v2.1.3-beta - Fixed menu name (package.json name field)!');
+    console.log('🚀 Redis ACL Builder v2.1.4-beta - AUTO-UPDATE TEST VERSION - You should see this after updating!');
 
     // Set app name (important for macOS - shows in menu bar and About panel)
     app.setName('Redis ACL Builder');
