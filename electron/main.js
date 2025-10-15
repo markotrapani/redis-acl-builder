@@ -1,4 +1,4 @@
-const { app, BrowserWindow, nativeImage, dialog } = require('electron');
+const { app, BrowserWindow, nativeImage, dialog, Menu } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -12,6 +12,87 @@ const FLASK_PORT = 7381;  // Use 7381 for Electron desktop, 7380 for Docker, 500
 function isDevelopment() {
     // Check if we're running from source (electron/main.js exists) vs packaged
     return fs.existsSync(path.join(__dirname, '..', 'backend', 'app.py'));
+}
+
+// Create application menu
+function createAppMenu() {
+    const isMac = process.platform === 'darwin';
+    const isDevMode = isDevelopment();
+
+    const template = [
+        // App menu (macOS only)
+        ...(isMac ? [{
+            label: 'Redis ACL Builder',
+            submenu: [
+                { role: 'about', label: 'About Redis ACL Builder' },
+                { type: 'separator' },
+                ...(!isDevMode ? [{
+                    label: 'Check for Updates...',
+                    click: () => {
+                        console.log('🔍 Manual update check requested');
+                        autoUpdater.checkForUpdates();
+                    }
+                }] : []),
+                { type: 'separator' },
+                { role: 'services' },
+                { type: 'separator' },
+                { role: 'hide', label: 'Hide Redis ACL Builder' },
+                { role: 'hideOthers' },
+                { role: 'unhide' },
+                { type: 'separator' },
+                { role: 'quit', label: 'Quit Redis ACL Builder' }
+            ]
+        }] : []),
+        // Edit menu
+        {
+            label: 'Edit',
+            submenu: [
+                { role: 'undo' },
+                { role: 'redo' },
+                { type: 'separator' },
+                { role: 'cut' },
+                { role: 'copy' },
+                { role: 'paste' },
+                { role: 'selectAll' }
+            ]
+        },
+        // View menu
+        {
+            label: 'View',
+            submenu: [
+                { role: 'reload' },
+                { role: 'forceReload' },
+                { role: 'toggleDevTools' },
+                { type: 'separator' },
+                { role: 'resetZoom' },
+                { role: 'zoomIn' },
+                { role: 'zoomOut' },
+                { type: 'separator' },
+                { role: 'togglefullscreen' }
+            ]
+        },
+        // Window menu
+        {
+            label: 'Window',
+            submenu: [
+                { role: 'minimize' },
+                { role: 'zoom' },
+                ...(isMac ? [
+                    { type: 'separator' },
+                    { role: 'front' },
+                    { type: 'separator' },
+                    { role: 'window' }
+                ] : [
+                    { role: 'close' }
+                ])
+            ]
+        }
+    ];
+
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
+
+    console.log('✅ Application menu created');
 }
 
 // Configure auto-updater
@@ -240,10 +321,13 @@ function createWindow() {
 
 // App lifecycle
 app.whenReady().then(async () => {
-    console.log('🚀 Redis ACL Builder v2.1.1-beta - Desktop App Starting (UPDATED VERSION)...');
+    console.log('🚀 Redis ACL Builder v2.1.2-beta - Desktop App Starting with native menu and manual update check!');
 
     // Set app name (important for macOS - shows in menu bar and About panel)
     app.setName('Redis ACL Builder');
+
+    // Create application menu
+    createAppMenu();
 
     // Set dock icon on macOS using larger cropped icon
     if (process.platform === 'darwin') {

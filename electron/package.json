@@ -1,6 +1,6 @@
 {
   "name": "redis-acl-builder-desktop",
-  "version": "2.1.1-beta",
+  "version": "2.1.2-beta",
   "description": "Redis ACL Builder - Desktop Application",
   "main": "main.js",
   "scripts": {
