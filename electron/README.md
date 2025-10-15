@@ -24,7 +24,7 @@ The Electron app wraps the existing Flask + JavaScript web application:
 
 ## Project Structure
 
-```
+```text
 electron/
 ├── main.js           # Main Electron process
 ├── preload.js        # Preload script for security
@@ -47,6 +47,7 @@ npm start
 ```
 
 The app will:
+
 1. Activate the Python virtual environment (`../venv`)
 2. Start Flask backend on port 7381
 3. Open Electron window loading `http://localhost:7381`
@@ -54,15 +55,18 @@ The app will:
 ### Making Changes
 
 **Backend changes** (Python):
+
 - Edit files in `../backend/`
 - Flask will auto-reload (development mode)
 - Refresh the Electron window (Cmd+R / Ctrl+R)
 
 **Frontend changes** (HTML/CSS/JS):
+
 - Edit files in `../frontend/`
 - Refresh the Electron window (Cmd+R / Ctrl+R)
 
 **Electron wrapper changes** (main.js, preload.js):
+
 - Edit files in `electron/`
 - Restart the Electron app (npm start)
 
@@ -116,6 +120,7 @@ python3 /tmp/scale_icon.py icon-cropped.png icon-cropped-larger.png 1.10
 ```
 
 Scale factors:
+
 - `1.00` = Original size
 - `1.10` = 10% larger (current, matches VS Code icon size)
 - `1.15` = 15% larger (too big)
@@ -141,9 +146,11 @@ Built apps will be in `dist/` directory.
 ### Window Size
 
 Default: 1416×938 (matches web version panel-container)
+
 - Minimum: 1016×800
 
 Edit in `main.js`:
+
 ```javascript
 const PANEL_WIDTH = 1416;
 const PANEL_HEIGHT = 938;
@@ -154,6 +161,7 @@ const PANEL_HEIGHT = 938;
 Default: 7381 (Electron), 5001 (web dev), 7380 (Docker)
 
 Edit in `main.js`:
+
 ```javascript
 const FLASK_PORT = 7381;
 ```
@@ -161,6 +169,7 @@ const FLASK_PORT = 7381;
 ### Development vs Production
 
 Auto-detected based on file structure:
+
 - **Development**: Source files exist (`../backend/app.py`)
 - **Production**: Packaged app bundle
 
@@ -195,6 +204,7 @@ python backend/app.py
 ### Icon doesn't appear
 
 Check icon files exist:
+
 ```bash
 ls -lh build/icon*
 ```
