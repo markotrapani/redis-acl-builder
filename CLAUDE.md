@@ -55,16 +55,16 @@ This is a collection of Redis-related projects, with the main project being **Re
 
 ### Key Project: Redis Enterprise ACL Builder
 
-- **Version**: v2.0.3-alpha (Desktop + Web App)
+- **Version**: v2.1.0-beta (Desktop + Web App)
 - **Test Coverage**: Backend 85% (Core logic: 95-100%, API: 78%) | E2E: 100% (28/28 Playwright tests passing)
 - **Status**: 195 backend tests passing, 28 E2E tests passing, 0 failing, 0 skipped
-- **Latest Fix**: Electron app z-index stacking for test result popups (v2.0.3-alpha)
+- **Latest Release**: Auto-update system and code signing infrastructure (v2.1.0-beta)
 - **Purpose**: Interactive web interface for parsing, testing, and validating Redis ACL permissions
 - **Redis Support**: Full Redis 7 (311 commands) and Redis 8 (446 commands) including all module commands
 - **UI Features**: Advanced search system with independent fuzzy/exact modes, comprehensive custom tooltips with multi-column layouts and smart command highlighting (color-coded bold text for relevant commands), perfect anti-flash rendering, theme-aware loading animations, enhanced redundancy detection, comprehensive 8-way resizable container system with triangular corner indicators and edge resize handles, drag-drop panel reordering for both three-column panels and testing sections, polished tester controls with proper button positioning and theme-aware styling, complete responsive design for tablet and mobile with optimized layouts and form interactions, **fixed z-index stacking for Electron app test result popups**
 - **Architecture**: Modular ES6 JavaScript (13 modules: 5 specialized modules + 8 core/UI modules) + Optimized Modular CSS (6 modules) with enterprise-grade visual polish, real-time synchronization, and professional desktop-like resize experience
 - **Code Organization**: Interactive ACL Builder massively refactored from 4,286 → 3,195 lines (-1,091 lines, -25.5%) through systematic extraction of 1,636 lines of business logic and UI rendering into 5 specialized modules (ACLOptimizer, ACLCategoryManager, ACLRuleParser, ACLStateManager, ACLUIRenderer)
-- **Monorepo Structure (v2.0.3-alpha)**: Reorganized into `backend/`, `frontend/`, `electron/`, and `scripts/` directories for single source of truth supporting both web app and Electron desktop app with zero code duplication
+- **Monorepo Structure (v2.1.0-beta)**: Reorganized into `backend/`, `frontend/`, `electron/`, and `scripts/` directories for single source of truth supporting both web app and Electron desktop app with zero code duplication
 
 ## Commands and Development Workflow
 
@@ -621,11 +621,13 @@ redis-acl-builder/
 - **Docker Image Size**: ~110MB (Alpine-based, builds locally to avoid GitHub 100MB limit)
 - **Deployment Options**: 4 different deployment methods for maximum flexibility
 
-**Current Development Status (v2.0.3-alpha)**:
+**Current Development Status (v2.1.0-beta)**:
 
 - ✅ Electron desktop app fully functional with all features
-- ✅ Z-index stacking issues resolved for test result popups
-- ✅ Category tooltips with smart command highlighting working perfectly
+- ✅ **Auto-update system working** - Users get update notifications automatically
+- ✅ **Code signing infrastructure ready** - Waiting for Apple Developer approval
+- ✅ **Multi-platform builds** - macOS (ARM64 + x64), Windows, Linux
+- ✅ **Docker image published** - markotrapani608/redis-acl-builder:v2.1.0-beta
 - ✅ All 223 tests passing (195 backend + 28 E2E)
 - ✅ Production-ready for both web and desktop deployments
 
@@ -652,11 +654,11 @@ Monitor and address remaining Docker image vulnerabilities when upstream fixes b
   - **CVSS Score**: 2.5 (LOW) - High attack complexity, local access required
   - **Status**: BusyBox 1.38 not yet released; Alpine tracking the issue
 
-Current status (v2.0.3-alpha): 0 Critical, 0 High, 0 Medium, 2 Low vulnerabilities. All HIGH/MEDIUM/CRITICAL issues resolved.
+Current status (v2.1.0-beta): 0 Critical, 0 High, 0 Medium, 2 Low vulnerabilities. All HIGH/MEDIUM/CRITICAL issues resolved.
 
 **Future Roadmap (v2.x+)**:
 
-1. **Electron Desktop App - Multi-Platform Distribution Ready** (v2.0.3-alpha):
+1. **Electron Desktop App - Multi-Platform Distribution Ready** (v2.1.0-beta):
    - ✅ Native desktop experience across all platforms
    - ✅ Enhanced UI/UX without browser limitations
    - ✅ Better performance and offline capability
