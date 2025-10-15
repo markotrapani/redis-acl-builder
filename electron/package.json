@@ -1,6 +1,7 @@
 {
-  "name": "redis-acl-builder-desktop",
-  "version": "2.1.2-beta",
+  "name": "redis-acl-builder",
+  "productName": "Redis ACL Builder",
+  "version": "2.1.3-beta",
   "description": "Redis ACL Builder - Desktop Application",
   "main": "main.js",
   "scripts": {
@@ -40,7 +41,6 @@
   },
   "build": {
     "appId": "com.redis.acl-builder",
-    "productName": "Redis ACL Builder",
     "directories": {
       "output": "dist"
     },
