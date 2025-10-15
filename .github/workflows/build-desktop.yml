@@ -75,6 +75,10 @@ jobs:
         working-directory: backend
         run: |
           pyinstaller redis-acl-builder.spec
+          ls -lah dist/redis-acl-builder-backend/
+          # Move to project root dist/ for electron-builder
+          mkdir -p ../dist
+          mv dist/redis-acl-builder-backend ../dist/
           ls -lah ../dist/redis-acl-builder-backend/
 
       - name: Build Python backend with PyInstaller (Windows)
@@ -83,6 +87,10 @@ jobs:
         shell: pwsh
         run: |
           pyinstaller redis-acl-builder.spec
+          Get-ChildItem -Path dist/redis-acl-builder-backend/ -Recurse
+          # Move to project root dist/ for electron-builder
+          New-Item -ItemType Directory -Force -Path ../dist
+          Move-Item -Path dist/redis-acl-builder-backend -Destination ../dist/
           Get-ChildItem -Path ../dist/redis-acl-builder-backend/ -Recurse
 
       - name: Install Electron dependencies
