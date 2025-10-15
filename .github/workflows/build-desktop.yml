@@ -130,7 +130,7 @@ jobs:
           echo "=== Build artifacts ==="
           ls -lah dist/
           echo "=== File details ==="
-          find dist/ -type f -name "*.dmg" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.zip" | xargs ls -lh
+          find dist/ -type f \( -name "*.dmg" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.zip" \) -print0 | xargs -0 ls -lh
 
       - name: List build artifacts (Windows)
         if: matrix.platform == 'win'
