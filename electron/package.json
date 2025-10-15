@@ -20,7 +20,10 @@
     "electron",
     "desktop"
   ],
-  "author": "Marko Trapani",
+  "author": {
+    "name": "Marko Trapani",
+    "email": "marko.trapani@redis.com"
+  },
   "license": "ISC",
   "repository": {
     "type": "git",
@@ -84,7 +87,7 @@
       "background": "build/background-light.png"
     },
     "win": {
-      "icon": "build/icon.ico",
+      "icon": "build/icon.png",
       "target": [
         "nsis",
         "zip"

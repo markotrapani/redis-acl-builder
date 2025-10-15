@@ -104,7 +104,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false  # Disable code signing for now
         run: |
-          npm run build:mac:all
+          # Build separate ARM64 and x64 DMGs (skip universal due to Python backend conflicts)
+          npx electron-builder --mac --arm64 --x64
 
       - name: Build Electron app (Windows)
         if: matrix.platform == 'win'
