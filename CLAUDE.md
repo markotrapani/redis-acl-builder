@@ -565,13 +565,22 @@ Focus on stability and user feedback - all critical UX flows are polished and wo
 
 Monitor and address remaining Docker image vulnerabilities when upstream fixes become available:
 
-- **CVE-2025-8869** (pip 25.2) - MEDIUM severity - Waiting for pip 25.3 release (patch available, not yet released)
-  - **Risk**: Only affects pip install operations; production containers don't install packages
-  - **Mitigation**: All dependencies installed during build phase; runtime doesn't use pip
-- **CVE-2025-46394** (busybox 1.37.0-r19) - LOW severity - Waiting for Alpine to package BusyBox 1.38.0+
-- **CVE-2024-58251** (busybox 1.37.0-r19) - LOW severity - Waiting for Alpine to package BusyBox 1.38.0+
+- **CVE-2025-8869** (pip 25.2) - ✅ **NOT VULNERABLE** - Mitigated by Python 3.13.8
+  - **Status**: Docker image uses Python 3.13.8 which implements PEP 706
+  - **Protection**: PEP 706 implementation prevents pip from using vulnerable fallback tar extraction code
+  - **Action Required**: None - Python 3.13+ provides built-in protection regardless of pip version
+  - **Note**: Pip 25.3 will include the fix, but upgrade is optional (already protected)
+- **CVE-2025-46394** (BusyBox 1.37.0) - LOW severity - Waiting for upstream BusyBox 1.38.0 release
+  - **Vulnerability**: TAR archives can hide filenames using terminal escape sequences
+  - **Impact**: Cosmetic display issue in tar listings only
+  - **Status**: BusyBox 1.38 not yet released; Alpine tracking the issue
+- **CVE-2024-58251** (BusyBox 1.37.0) - LOW severity - Waiting for upstream BusyBox 1.38.0 release
+  - **Vulnerability**: Netstat component allows ANSI escape sequences in argv[0]
+  - **Impact**: Potential terminal lockup when using netstat (requires local access, user interaction)
+  - **CVSS Score**: 2.5 (LOW) - High attack complexity, local access required
+  - **Status**: BusyBox 1.38 not yet released; Alpine tracking the issue
 
-Current status (v1.21.0-beta): 0 Critical, 0 High, 1 Medium (low runtime risk), 2 Low vulnerabilities. All HIGH/CRITICAL issues resolved.
+Current status (v2.0.3-alpha): 0 Critical, 0 High, 0 Medium, 2 Low vulnerabilities. All HIGH/MEDIUM/CRITICAL issues resolved.
 
 **Future Roadmap (v2.x+)**:
 
