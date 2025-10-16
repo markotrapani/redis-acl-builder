@@ -65,43 +65,15 @@ docker stop redis-acl-builder 2>/dev/null; docker rm redis-acl-builder 2>/dev/nu
 
 ## Overview
 
-Redis ACL Builder is a powerful tool that helps developers and system administrators understand and test Redis ACL configurations before deploying them to production. The application provides an intuitive web interface to:
+Redis ACL Builder is a powerful tool that helps developers and system administrators understand and test Redis ACL configurations before deploying them to production.
 
-- **Parse ACL Rules**: Validate and analyze Redis ACL rule syntax
-- **Dual Testing Interface**: Test both Redis commands and keyspace patterns with comprehensive validation
-- **Light/Dark Mode**: Complete theme system with localStorage persistence and system preference detection
-- **Visualize Permissions**: See exactly which commands are granted or denied
-- **Compare Versions**: Support for both Redis 7 and Redis 8 with their respective command sets
-- **Real-time Analysis**: Instant feedback as you modify ACL rules
-
-### Key Features
-
-- **Complete Command Database**: Pre-loaded with 311 Redis 7 commands and 446 Redis 8 commands
-- **Perfect Responsive Design**: Equal-width three-column layout (Blocked Commands ❌, ACL Config 📝, Granted Commands ✅) across all screen sizes
-- **Complete Theme System**: Light/Dark mode with explicit CSS selectors, theme toggle button, and localStorage persistence
-- **Dual Testing Interface**: Command Tester for Redis commands + Keyspace Tester for glob pattern validation
-- **Enhanced Test Command Button**: Modern gradient styling with hover animations, uppercase text, and mobile optimization
-- **Real-time Validation**: Live parsing with smooth pop-up notifications for invalid syntax
-- **Optimized Command Preview**: Intelligent 3-command threshold for compact, manageable displays
-- **Advanced UX Polish**: Debounced rendering, fade transitions, professional button interactions
-- **Command Exclusion Logic**: Exclude specific commands even when granted via categories
-- **Submit Changes Button**: Dynamic button appears when manual ACL edits are detected
-- **Bidirectional Sync**: Changes in interactive UI update text rule and vice versa
-- **Rule Precedence**: Correctly implements left-to-right Redis ACL rule evaluation
-- **Enhanced Error Handling**: Comprehensive validation with user-friendly error recovery
-- **Smooth Animations**: Eliminated screen flashing with optimized rendering
-- **Keyboard Shortcuts**: Enter key submits ACL changes
-- **Enhanced Resize Handles**: Rounded square corner handles with active state feedback
-- **Optimized CSS Architecture**: Streamlined stylesheets with reusable variables and reduced redundancy
-- **Redis Enterprise Compliance**: Full validation against Redis ACL specifications
-- **Advanced Keyspace Testing**: Full glob pattern support (*, ?, [abc], [a-z], [^abc]) with real-time validation
-- **Dismissible Test Results**: Auto-timeout after 5 seconds with manual close buttons and smooth fade animations
-- **Smart Button States**: Intelligent disabled states for empty inputs with visual feedback
-- **Version Switching**: Seamless switching between Redis 7/8 with full UI updates
-- **Theme Persistence**: User theme choice saved in localStorage with system preference fallback
-- **Comprehensive Testing**: 223 automated tests - 195 backend (pytest) + 28 E2E (Playwright) with 100% pass rate
-- **Optimized Architecture**: ES6 modules + streamlined CSS (27 lines of redundant code removed)
-- **Production Ready**: Professional code structure with perfect visual consistency and maintainable codebase
+**Core Capabilities:**
+- ✅ Parse and validate Redis ACL rule syntax with real-time feedback
+- ✅ Test commands and keyspace patterns with dual testing interface
+- ✅ Visualize granted/blocked commands organized by categories
+- ✅ Support for Redis 7 (311 commands) and Redis 8 (446 commands)
+- ✅ Light/Dark mode theme system with localStorage persistence
+- ✅ Available as web app (Docker/local) and native desktop app (macOS, Windows, Linux)
 
 ## Usage Guide
 
@@ -438,38 +410,6 @@ The application features modern, modular frontend and backend architectures with
 - **Testing**: 223 automated tests - 195 backend (pytest) + 28 E2E (Playwright) with 100% pass rate
 - **Type Safety**: Enterprise-grade type annotations with 94% reduction in Pylance strict errors (comprehensive typing across all modules)
 - **UI/UX**: Elegant resizable container system with real-time content synchronization, drag-drop panel reordering, and perfect responsive design
-
-## Features
-
-### Current Features (v1.3.0)
-
-- **Complete Redis ACL rule parsing and validation**
-- **Support for Redis 7 (311 commands) and Redis 8 (446 commands)**
-- **Interactive three-column layout** with emoji branding (📝✅❌)
-- **Real-time validation** with smooth pop-up notifications
-- **Advanced UX polish**: debounced rendering, fade transitions, consistent styling
-- **Collapsible preview rows** showing first 8 commands when collapsed
-- **Submit Changes button** with automatic change detection
-- **Command exclusion logic** for granular permission control
-- **Enhanced error handling** for categories, commands, and syntax validation
-- **Smooth animations** eliminating screen flashing and visual inconsistencies
-- **Redis Enterprise compliance** with comprehensive validation
-- **Bidirectional sync** between manual text editing and interactive UI
-- **Seamless version switching** between Redis 7/8 with full UI updates
-- **Comprehensive API** with full documentation and error handling
-- **Modular ES6 JavaScript architecture** with organized file structure
-- **29 automated tests** with 100% test pass rate
-- **Production-ready deployment** configuration
-- **Professional code organization** with maintainable architecture
-
-### Future Enhancements
-
-- Advanced Key Pattern Matching (`~` patterns with full glob support)
-- Pub/Sub Channel Support (`&` channel patterns)
-- Key Permissions (`%R`/`%W` flags)
-- ACL Selectors (parenthetical selectors)
-- Export Functionality (generate production ACL configs)
-- Syntax Highlighting (CodeMirror or Monaco editor)
 
 ## ✨ What's New
 
