@@ -55,10 +55,10 @@ This is a collection of Redis-related projects, with the main project being **Re
 
 ### Key Project: Redis Enterprise ACL Builder
 
-- **Version**: v2.1.0-beta (Desktop + Web App)
+- **Version**: v2.1.9-beta (Desktop + Web App)
 - **Test Coverage**: Backend 85% (Core logic: 95-100%, API: 78%) | E2E: 100% (28/28 Playwright tests passing)
 - **Status**: 195 backend tests passing, 28 E2E tests passing, 0 failing, 0 skipped
-- **Latest Release**: Auto-update system and code signing infrastructure (v2.1.0-beta)
+- **Latest Release**: Debug builds, build optimization, and automated release cleanup (v2.1.9-beta)
 - **Purpose**: Interactive web interface for parsing, testing, and validating Redis ACL permissions
 - **Redis Support**: Full Redis 7 (311 commands) and Redis 8 (446 commands) including all module commands
 - **UI Features**: Advanced search system with independent fuzzy/exact modes, comprehensive custom tooltips with multi-column layouts and smart command highlighting (color-coded bold text for relevant commands), perfect anti-flash rendering, theme-aware loading animations, enhanced redundancy detection, comprehensive 8-way resizable container system with triangular corner indicators and edge resize handles, drag-drop panel reordering for both three-column panels and testing sections, polished tester controls with proper button positioning and theme-aware styling, complete responsive design for tablet and mobile with optimized layouts and form interactions, **fixed z-index stacking for Electron app test result popups**
@@ -275,27 +275,45 @@ gh release delete-asset v2.1.8-beta "Source code (tar.gz)" --yes
 ### Version Tagging Strategy
 
 ```bash
-# Fast macOS ARM64 build ONLY (debugging/testing - ~2 minutes)
-git tag v2.1.8-test && git push origin v2.1.8-test
-git tag v2.1.8-debug && git push origin v2.1.8-debug
+# LOCAL BUILDS ONLY (on your Mac)
+# -test: Local manual builds, no GitHub workflows
+npm run build:mac  # Then tag: git tag v2.1.9-test (optional)
 
-# Full multi-platform build (production - ~5 minutes)
-git tag v2.1.8-beta && git push origin v2.1.8-beta
-git tag v2.1.8-alpha && git push origin v2.1.8-alpha
-git tag v2.1.8 && git push origin v2.1.8
+# GITHUB ACTIONS REMOTE BUILDS
 
-# Docker build ONLY (web app)
-git tag v2.1.8-docker && git push origin v2.1.8-docker
+# Fast macOS ARM64 build with GitHub release (~2 minutes)
+git tag v2.1.9-test-release && git push origin v2.1.9-test-release  # For auto-update testing
+
+# Fast macOS ARM64 build with DevTools (~2 minutes)
+git tag v2.1.9-debug && git push origin v2.1.9-debug  # Detached DevTools, no release
+
+# Multi-platform desktop builds (~5 minutes)
+git tag v2.1.9-desktop && git push origin v2.1.9-desktop  # Desktop-only (no Docker)
+
+# Full production builds (~8 minutes)
+git tag v2.1.9-beta && git push origin v2.1.9-beta   # Docker + all desktop platforms
+git tag v2.1.9-alpha && git push origin v2.1.9-alpha # Docker + all desktop platforms
+git tag v2.1.9 && git push origin v2.1.9             # GA release
+
+# Docker build ONLY (~3 minutes)
+git tag v2.1.9-docker && git push origin v2.1.9-docker
 
 # Documentation only (no builds)
-git tag v2.1.8-docs && git push origin v2.1.8-docs
+git tag v2.1.9-docs && git push origin v2.1.9-docs
 ```
 
 **Tag Suffix Guide:**
-- `-test` or `-debug`: Fast macOS ARM64 build only (for debugging)
-- `-beta`, `-alpha`, or no suffix: Full multi-platform + Docker builds
-- `-docker`: Docker build only
-- `-docs`: No builds (documentation milestone)
+
+| Suffix | Builds | Release | Use Case |
+|--------|--------|---------|----------|
+| `-test` | Local only (npm run build:mac) | No | Quick local testing |
+| `-test-release` | ARM64 (GitHub Actions) | Yes | Auto-update testing |
+| `-debug` | ARM64 + DevTools (GitHub Actions) | No | Debugging with DevTools |
+| `-desktop` | Multi-platform (GitHub Actions) | Yes | Desktop-only distribution |
+| `-beta`/`-alpha` | All platforms + Docker | Yes | Pre-release versions |
+| (no suffix/GA) | All platforms + Docker | Yes | Production release |
+| `-docker` | Docker only | N/A | Web app only |
+| `-docs` | None | No | Documentation milestone |
 
 ## Architecture and Code Structure
 
@@ -513,6 +531,39 @@ redis-acl-builder/
 - Original monolithic main.js is backed up as `main-original.js`
 
 ### Current Status and Roadmap
+
+**Production Status**: ENTERPRISE-READY with OPTIMIZED BUILDS & DEBUG INFRASTRUCTURE (v2.1.9-beta)
+
+**NEW in v2.1.9-beta: Debug Builds, Build Optimization & Release Cleanup**:
+- **Debug Build Configuration**: Detached DevTools for debugging without UI disruption
+  - `-debug` tags create builds with DevTools in separate window
+  - Marker-based detection via `.debug-build` file
+  - Perfect for debugging without obstructing the main application interface
+- **Build Performance Improvements**: 20-30% faster builds with aggressive caching
+  - Python pip dependency caching via setup-python@v5
+  - PyInstaller build artifact caching (backend/build and backend/dist)
+  - Multi-platform build time reduced from ~5m17s to ~4min
+  - Windows build (former bottleneck) reduced from ~5min to ~3.5-4min
+- **Automated Release Cleanup**: Source code archives automatically deleted
+  - Post-build cleanup job removes GitHub's auto-generated source archives
+  - No more manual cleanup needed after releases
+  - Cleaner release pages and better user experience
+- **Reduced Release Asset Bloat**: ~40% fewer files per release
+  - macOS: DMG only (removed redundant ZIP files)
+  - Windows: NSIS installer only (removed redundant ZIP files)
+  - Linux: AppImage only (removed .deb packages)
+  - Streamlined releases with only essential installer formats
+  - Kept blockmap files for delta updates (partial downloads)
+- **Enhanced Tag Strategy**: Clear separation of local vs remote builds
+  - `-test`: Reserved for local builds only (npm run build:mac) - no GitHub workflows
+  - `-test-release`: ARM64 + GitHub release for auto-update testing (~2 min)
+  - `-debug`: ARM64 with detached DevTools (~2 min)
+  - `-desktop`: Multi-platform desktop-only (no Docker rebuild, ~5 min)
+  - `-beta/-alpha`: Full production releases (Docker + all platforms, ~8 min)
+- **UI Polish**: Version indicator and visual consistency
+  - Version indicator in bottom-left corner showing current version (e.g., "v2.1.9-beta")
+  - Consistent light gray borders across all panels for unified visual design
+  - Better theme-aware styling and professional appearance
 
 **Production Status**: ENTERPRISE-READY with TYPE SAFETY & ADVANCED KEY PERMISSIONS (v1.18.0-beta)
 
