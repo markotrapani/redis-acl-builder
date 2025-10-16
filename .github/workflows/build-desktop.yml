@@ -10,6 +10,9 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+-desktop-alpha'      # v2.1.8-desktop-alpha
       - 'v[0-9]+.[0-9]+.[0-9]+-desktop-beta'       # v2.1.8-desktop-beta
       # Note: Excludes -test, -debug, -docker, and -docs by not listing them
+      #
+      # -docs suffix: Use ONLY for repository docs (README.md, CLAUDE.md, docs/)
+      #               NOT for app content (templates/, static/, Info page, etc.)
   workflow_dispatch:
     inputs:
       version:

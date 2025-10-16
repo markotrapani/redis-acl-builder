@@ -19,6 +19,8 @@ name: Build and Publish Docker Images
 # - v*.*.*-test              → Fast ARM64 desktop build (no Docker)
 # - v*.*.*-debug             → Fast ARM64 desktop build (no Docker)
 # - v*.*.*-docs              → Documentation-only (no builds)
+#   Use ONLY for repository docs (README.md, CLAUDE.md, docs/ folder)
+#   NOT for app content (templates/, static/, Info page, etc.)
 
 on:
   push:
