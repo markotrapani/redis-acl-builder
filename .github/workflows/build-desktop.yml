@@ -261,14 +261,55 @@ jobs:
 
           📦 **Multi-Platform Desktop Build** - macOS, Windows, Linux installers
           ⚡ **Auto-Update Ready** - Seamless update detection and download
+          🐳 **Docker Image** - Available on Docker Hub
 
           <details>
-          <summary><b>📦 Build Information</b></summary>
+          <summary><b>🐳 Docker Deployment</b></summary>
 
-          **Platforms:**
-          - macOS: ARM64 + Intel x64 DMG installers
-          - Windows: NSIS installer (.exe)
-          - Linux: AppImage portable
+          **Docker Hub:** [markotrapani608/redis-acl-builder](https://hub.docker.com/r/markotrapani608/redis-acl-builder)
+
+          **Pull this version:**
+          ```bash
+          docker pull markotrapani608/redis-acl-builder:$VERSION
+          ```
+
+          **Run with Docker:**
+          ```bash
+          docker run -d -p 7380:7380 --name redis-acl-builder \
+            markotrapani608/redis-acl-builder:$VERSION
+          ```
+          Then open http://localhost:7380
+
+          **Available tags for this release:**
+          - `$VERSION` - This specific version
+          - `2.2` - Latest 2.2.x release
+          - `2` - Latest 2.x release
+          - `latest` - Latest stable release
+          - `beta` - Latest beta release (for pre-releases)
+
+          **Supported platforms:**
+          - linux/amd64 (x86_64)
+          - linux/arm64 (Apple Silicon, ARM servers)
+
+          </details>
+
+          <details>
+          <summary><b>📦 Desktop App Installation</b></summary>
+
+          **macOS:**
+          - Download the `.dmg` file for your architecture (ARM64 for Apple Silicon, or universal)
+          - Open the DMG and drag to Applications folder
+          - Note: First launch may show security warning (app not signed yet)
+
+          **Windows:**
+          - Download the `.exe` installer
+          - Run the installer and follow prompts
+          - App will be available in Start Menu
+
+          **Linux:**
+          - Download the `.AppImage` file
+          - Make it executable: `chmod +x Redis-ACL-Builder-*.AppImage`
+          - Run: `./Redis-ACL-Builder-*.AppImage`
 
           **Build Infrastructure:**
           - Python 3.12 backend bundled with PyInstaller
