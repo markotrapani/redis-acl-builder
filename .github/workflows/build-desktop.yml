@@ -283,12 +283,6 @@ jobs:
           $COMMITS
 
           </details>
-
-          ---
-
-          **Full Changelog**: https://github.com/markotrapani/redis-acl-builder/compare/${PREV_TAG}...$VERSION
-
-          🤖 Generated with [Claude Code](https://claude.com/claude-code)
           EOF
 
           # Replace variables
