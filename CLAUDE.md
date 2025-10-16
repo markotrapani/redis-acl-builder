@@ -681,15 +681,56 @@ redis-acl-builder/
 - **Docker Image Size**: ~110MB (Alpine-based, builds locally to avoid GitHub 100MB limit)
 - **Deployment Options**: 4 different deployment methods for maximum flexibility
 
-**Current Development Status (v2.1.0-beta)**:
+**Current Development Status (v2.1.7-beta)**:
 
 - ✅ Electron desktop app fully functional with all features
-- ✅ **Auto-update system working** - Users get update notifications automatically
+- ✅ **Auto-update infrastructure ready** - Detection and download working (installation requires code signing)
 - ✅ **Code signing infrastructure ready** - Waiting for Apple Developer approval
 - ✅ **Multi-platform builds** - macOS (ARM64 + x64), Windows, Linux
-- ✅ **Docker image published** - markotrapani608/redis-acl-builder:v2.1.0-beta
+- ✅ **Fast build workflow** - 2-minute macOS ARM64 builds for debugging
+- ✅ **Docker image published** - markotrapani608/redis-acl-builder:v2.1.7-beta
 - ✅ All 223 tests passing (195 backend + 28 E2E)
 - ✅ Production-ready for both web and desktop deployments
+- ✅ **Repository now PRIVATE** - Source code protected, releases accessible via direct URLs
+
+**Repository Visibility Strategy**:
+
+**Current State**: Repository is **PRIVATE** (as of v2.1.7-beta)
+
+**Implementation Status**:
+1. ✅ Repository is **private** - Source code protected
+2. ✅ GitHub releases accessible via direct URLs (releases page requires auth)
+3. ⏳ Token-based authentication for auto-updates (pending code signing):
+   - Generate GitHub Personal Access Token with `public_repo` scope
+   - Add token to electron-updater configuration
+   - Token embedded in desktop app (read-only, release access only)
+   - Users can still download releases directly without authentication
+4. Benefits:
+   - Source code remains private
+   - Users get pre-built binaries (Docker + Desktop) publicly
+   - Auto-updates work with token authentication
+   - No source code in releases (Docker images + installers only)
+
+**Implementation Steps** (when ready to go private):
+```bash
+# 1. Make repository private
+gh repo edit markotrapani/redis-acl-builder --visibility private
+
+# 2. Generate token for auto-updates (do this in GitHub UI)
+# Settings → Developer settings → Personal access tokens → Fine-grained tokens
+# Permissions: Contents (read-only), Metadata (read-only)
+
+# 3. Update electron/main.js to use token
+# autoUpdater.setFeedURL({
+#   provider: 'github',
+#   owner: 'markotrapani',
+#   repo: 'redis-acl-builder',
+#   token: 'ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx'  # Read-only token
+# })
+
+# 4. Verify releases remain public
+# GitHub releases stay accessible even with private repos
+```
 
 **Next Development Priorities (v2.x)**:
 

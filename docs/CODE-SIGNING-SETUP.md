@@ -399,6 +399,89 @@ git push origin main
 
 ---
 
+## 🔒 Private Repository with Public Releases
+
+**Goal**: Keep source code private while making releases (Docker + Desktop installers) publicly available.
+
+### Current Status (as of v2.1.7-beta)
+- Repository: **PRIVATE** ✅
+- Releases: Accessible via direct download URLs
+- Auto-updates: Requires token configuration (see step 3 below)
+
+### What Changed When We Made It Private
+
+The repository was made private as of v2.1.7-beta. Here's what happened:
+
+**✅ What Still Works:**
+- GitHub release assets are **publicly accessible via direct URLs**
+- Docker images on Docker Hub remain public
+- Users can download installers if they have the direct link
+- CI/CD workflows continue to run
+- GitHub Actions can still publish releases
+
+**⚠️ What Changed:**
+- Releases page requires authentication to browse
+- Auto-update detection requires token configuration
+- Source code is no longer publicly visible
+
+### Implementation Steps (Already Done for v2.1.7-beta)
+
+**1. ✅ Repository Made Private:**
+```bash
+# Already completed:
+gh repo edit markotrapani/redis-acl-builder --visibility private --accept-visibility-change-consequences
+```
+
+**2. Generate GitHub Personal Access Token:**
+- Go to: Settings → Developer settings → Personal access tokens → Fine-grained tokens
+- Create token with:
+  - Repository: Only `redis-acl-builder`
+  - Permissions: Contents (Read-only), Metadata (Read-only)
+  - Expiration: No expiration (or 1 year)
+- Copy the token (e.g., `ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx`)
+
+**3. Update Auto-Update Configuration:**
+
+Edit `electron/main.js` to add token:
+
+```javascript
+// Before (public repo):
+const { autoUpdater } = require('electron-updater');
+
+// After (private repo):
+const { autoUpdater } = require('electron-updater');
+
+autoUpdater.setFeedURL({
+  provider: 'github',
+  owner: 'markotrapani',
+  repo: 'redis-acl-builder',
+  private: true,
+  token: 'ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx'  // Your read-only token
+});
+```
+
+**4. Rebuild and Test:**
+```bash
+# Bump version
+# Update electron/package.json version to v2.1.8-test
+
+# Build and publish
+git tag v2.1.8-test && git push origin v2.1.8-test
+
+# Test auto-update from older version
+# Should detect v2.1.8-test and download it
+```
+
+**Security Notes:**
+- Token is embedded in desktop app (visible if decompiled)
+- Use **read-only** token with minimal permissions
+- Token only grants access to public releases, not source code
+- Regenerate token annually for security hygiene
+
+**Recommendation**: Make the repo private now. Auto-updates won't work until you add code signing anyway, so you can add the token at the same time you enable code signing.
+
+---
+
 ## 🎯 Next Steps After v2.1-beta
 
 Once code signing and auto-updates are working:
