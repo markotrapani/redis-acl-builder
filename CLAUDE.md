@@ -58,7 +58,7 @@ This is a collection of Redis-related projects, with the main project being **Re
 - **Version**: v2.1.9-beta (Desktop + Web App)
 - **Test Coverage**: Backend 85% (Core logic: 95-100%, API: 78%) | E2E: 100% (28/28 Playwright tests passing)
 - **Status**: 195 backend tests passing, 28 E2E tests passing, 0 failing, 0 skipped
-- **Latest Release**: Debug builds, build optimization, and automated release cleanup (v2.1.9-beta)
+- **Latest Release**: Debug builds, build optimization, and streamlined installers (v2.1.9-beta)
 - **Purpose**: Interactive web interface for parsing, testing, and validating Redis ACL permissions
 - **Redis Support**: Full Redis 7 (311 commands) and Redis 8 (446 commands) including all module commands
 - **UI Features**: Advanced search system with independent fuzzy/exact modes, comprehensive custom tooltips with multi-column layouts and smart command highlighting (color-coded bold text for relevant commands), perfect anti-flash rendering, theme-aware loading animations, enhanced redundancy detection, comprehensive 8-way resizable container system with triangular corner indicators and edge resize handles, drag-drop panel reordering for both three-column panels and testing sections, polished tester controls with proper button positioning and theme-aware styling, complete responsive design for tablet and mobile with optimized layouts and form interactions, **fixed z-index stacking for Electron app test result popups**
@@ -219,41 +219,21 @@ gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
   3. Creates platform-specific installers
   4. Uploads artifacts (30-day retention)
   5. Creates GitHub release (on version tags)
-  6. **IMPORTANT: Delete source code archives after release creation**
 
-#### ⚠️ Post-Release Cleanup (REQUIRED)
+#### Source Code Archives (Private Repository)
 
-**GitHub automatically adds source code archives to every release. These must be deleted:**
+**GitHub UI shows "Source code (zip)" and "Source code (tar.gz)" for every release, but these are NOT accessible:**
 
-After a workflow completes and creates a release:
+- Repository is **private** - source code is protected
+- Source archive downloads return 404 (not accessible to public)
+- Only uploaded installer assets (DMG, NSIS, AppImage) are downloadable
+- No cleanup needed - private repo status prevents source code downloads automatically
 
-1. Go to the release page (e.g., https://github.com/markotrapani/redis-acl-builder/releases/tag/v2.1.8-beta)
-2. Delete the following auto-generated files:
-   - ❌ **Source code (zip)** - Delete this
-   - ❌ **Source code (tar.gz)** - Delete this
-3. Keep only the actual build artifacts:
-   - ✅ DMG files (macOS installers)
-   - ✅ ZIP files (macOS portable)
-   - ✅ NSIS .exe (Windows installer)
-   - ✅ AppImage (Linux portable)
-   - ✅ .deb (Debian/Ubuntu package)
-   - ✅ latest-mac.yml (auto-update metadata)
-   - ✅ latest.yml (Windows auto-update metadata)
-   - ✅ latest-linux.yml (Linux auto-update metadata)
-
-**Why delete source code?**
-- Users should download pre-built installers, not build from source
-- Reduces confusion about which files to download
-- Source code is always available in the git repository itself
-- Keeps releases clean and professional
-
-**Alternative**: You can also use the GitHub CLI to clean up releases automatically:
-
-```bash
-# Delete source code archives from a release
-gh release delete-asset v2.1.8-beta "Source code (zip)" --yes
-gh release delete-asset v2.1.8-beta "Source code (tar.gz)" --yes
-```
+**Release assets (downloadable):**
+- ✅ DMG files (macOS installers)
+- ✅ NSIS .exe (Windows installer)
+- ✅ AppImage (Linux portable)
+- ✅ latest-*.yml files (auto-update metadata)
 
 ### Migration History (October 2025)
 
@@ -534,7 +514,7 @@ redis-acl-builder/
 
 **Production Status**: ENTERPRISE-READY with OPTIMIZED BUILDS & DEBUG INFRASTRUCTURE (v2.1.9-beta)
 
-**NEW in v2.1.9-beta: Debug Builds, Build Optimization & Release Cleanup**:
+**NEW in v2.1.9-beta: Debug Builds & Build Optimization**:
 - **Debug Build Configuration**: Detached DevTools for debugging without UI disruption
   - `-debug` tags create builds with DevTools in separate window
   - Marker-based detection via `.debug-build` file
@@ -544,16 +524,16 @@ redis-acl-builder/
   - PyInstaller build artifact caching (backend/build and backend/dist)
   - Multi-platform build time reduced from ~5m17s to ~4min
   - Windows build (former bottleneck) reduced from ~5min to ~3.5-4min
-- **Automated Release Cleanup**: Source code archives automatically deleted
-  - Post-build cleanup job removes GitHub's auto-generated source archives
-  - No more manual cleanup needed after releases
-  - Cleaner release pages and better user experience
-- **Reduced Release Asset Bloat**: ~40% fewer files per release
+- **Reduced Release Asset Count**: ~40% fewer installer files per release
   - macOS: DMG only (removed redundant ZIP files)
   - Windows: NSIS installer only (removed redundant ZIP files)
   - Linux: AppImage only (removed .deb packages)
   - Streamlined releases with only essential installer formats
   - Kept blockmap files for delta updates (partial downloads)
+- **Source Code Protection**: Private repository prevents source downloads
+  - GitHub shows "Source code" links in UI but they return 404
+  - Only uploaded installers (DMG, NSIS, AppImage) are downloadable
+  - No automated cleanup needed - private status handles this automatically
 - **Enhanced Tag Strategy**: Clear separation of local vs remote builds
   - `-test`: Reserved for local builds only (npm run build:mac) - no GitHub workflows
   - `-test-release`: ARM64 + GitHub release for auto-update testing (~2 min)
