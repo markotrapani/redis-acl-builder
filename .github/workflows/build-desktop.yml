@@ -63,6 +63,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python_version }}
+          cache: 'pip'
+          cache-dependency-path: backend/requirements-prod.txt
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -76,6 +78,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements-prod.txt
           pip install pyinstaller
+
+      - name: Cache PyInstaller build
+        uses: actions/cache@v4
+        with:
+          path: |
+            backend/build
+            backend/dist
+          key: ${{ runner.os }}-pyinstaller-${{ hashFiles('backend/**/*.py', 'backend/requirements-prod.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pyinstaller-
 
       - name: Build Python backend with PyInstaller (macOS/Linux)
         if: matrix.platform != 'win'
