@@ -3,12 +3,16 @@ name: Build Desktop Apps (Multi-Platform)
 on:
   push:
     tags:
-      - 'v*.*.*'
       - 'v*.*.*-alpha'
       - 'v*.*.*-beta'
       - 'v*.*.*-desktop'
       - 'v*.*.*-desktop-alpha'
       - 'v*.*.*-desktop-beta'
+    tags-ignore:
+      - 'v*.*.*-test'
+      - 'v*.*.*-debug'
+      - 'v*.*.*-docker'
+      - 'v*.*.*-docs'
   workflow_dispatch:
     inputs:
       version:
