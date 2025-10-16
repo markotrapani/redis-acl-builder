@@ -10,8 +10,9 @@ on:
   push:
     tags:
       - 'v*.*.*-test'
+      - 'v*.*.*-test-release'
       - 'v*.*.*-debug'
-      # Note: Only triggers on -test and -debug tags, not -docker or -docs
+      # Note: Only triggers on -test, -test-release, and -debug tags
 
 permissions:
   contents: write  # Required for creating releases and uploading assets
@@ -76,9 +77,15 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: false  # Disable code signing for now
         run: |
           # Build ARM64 only for faster testing
-          # NOTE: -test and -debug builds do NOT publish to releases (artifacts only)
-          # This prevents conflicts with multi-platform builds
-          npx electron-builder --mac --arm64 --publish=never
+          # -test-release: Publish to GitHub releases (for auto-update testing)
+          # -test, -debug: Local builds only (no releases)
+          if [[ "${{ github.ref }}" == *"-test-release"* ]]; then
+            echo "📦 Building with --publish=always for auto-update testing"
+            npx electron-builder --mac --arm64 --publish=always
+          else
+            echo "🔨 Building with --publish=never (local testing only)"
+            npx electron-builder --mac --arm64 --publish=never
+          fi
 
       - name: List build artifacts
         working-directory: electron
