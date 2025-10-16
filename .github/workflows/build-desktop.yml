@@ -190,7 +190,7 @@ jobs:
           name: ${{ matrix.artifact_name }}
           path: |
             electron/dist/*.dmg
-            electron/dist/*.zip
+            electron/dist/latest-mac.yml
           retention-days: 30
 
       - name: Upload Windows artifacts
@@ -200,7 +200,7 @@ jobs:
           name: ${{ matrix.artifact_name }}
           path: |
             electron/dist/*.exe
-            electron/dist/*.zip
+            electron/dist/latest.yml
           retention-days: 30
 
       - name: Upload Linux artifacts
@@ -210,7 +210,7 @@ jobs:
           name: ${{ matrix.artifact_name }}
           path: |
             electron/dist/*.AppImage
-            electron/dist/*.deb
+            electron/dist/latest-linux.yml
           retention-days: 30
 
       # NOTE: Release creation moved to dedicated 'release' job below
@@ -305,6 +305,7 @@ jobs:
             artifacts/**/*.dmg
             artifacts/**/*.exe
             artifacts/**/*.AppImage
+            artifacts/**/*.yml
           body_path: release_notes.md
           draft: false
           prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') }}
