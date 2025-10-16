@@ -76,12 +76,9 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: false  # Disable code signing for now
         run: |
           # Build ARM64 only for faster testing
-          # Publish to releases if triggered by version tag
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            npx electron-builder --mac --arm64 --publish=always
-          else
-            npx electron-builder --mac --arm64
-          fi
+          # NOTE: -test and -debug builds do NOT publish to releases (artifacts only)
+          # This prevents conflicts with multi-platform builds
+          npx electron-builder --mac --arm64 --publish=never
 
       - name: List build artifacts
         working-directory: electron
