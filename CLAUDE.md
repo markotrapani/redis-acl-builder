@@ -235,6 +235,56 @@ gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
 - ✅ AppImage (Linux portable)
 - ✅ latest-*.yml files (auto-update metadata)
 
+#### GitHub Release Notes Format
+
+**IMPORTANT:** Always use collapsible sections for release notes to keep them scannable.
+
+**Format:**
+```markdown
+## vX.X.X-beta - Short Title
+
+### Key Improvements
+
+🎯 **Feature 1** - One-line description
+⚡ **Feature 2** - One-line description
+📦 **Feature 3** - One-line description
+
+<details>
+<summary><b>🎯 Feature 1</b></summary>
+
+- Detailed bullet point 1
+- Detailed bullet point 2
+- Additional context
+
+</details>
+
+<details>
+<summary><b>⚡ Feature 2</b></summary>
+
+- Detailed bullet point 1
+- Detailed bullet point 2
+
+</details>
+
+---
+
+**Note:** Any important notes or warnings here.
+```
+
+**Benefits:**
+- Compact summary visible by default (5-7 lines)
+- All details available in expandable sections
+- Better user experience - scannable at a glance
+- Professional appearance
+
+**To update a release:**
+```bash
+gh release edit vX.X.X-beta --repo markotrapani/redis-acl-builder --notes "$(cat <<'EOF'
+[Your markdown here]
+EOF
+)"
+```
+
 ### Migration History (October 2025)
 
 **Migration Date**: 2025-10-15
