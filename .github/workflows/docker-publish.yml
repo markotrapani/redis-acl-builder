@@ -4,13 +4,16 @@ name: Build and Publish Docker Images
 # - v*.*.* (no suffix)       → Triggers Docker build (backend/frontend changes)
 #   Examples: v2.0.0, v2.1.0, v2.0.0-alpha, v2.0.0-beta
 #
+# - v*.*.*-docker            → Docker-only build (no desktop builds)
+#   Examples: v2.1.8-docker
+#
 # - v*.*.*-desktop           → Electron-only changes (no Docker build)
 #   Examples: v2.0.1-desktop, v2.1.0-desktop-alpha
 #
 # - v*.*.*-docs              → Documentation-only changes (no builds)
 #   Examples: v2.0.1-docs, v2.1.0-docs
 #
-# This workflow only triggers on tags WITHOUT -desktop or -docs suffixes.
+# This workflow triggers on tags WITHOUT -desktop, -test, -debug, or -docs suffixes.
 
 on:
   push:
@@ -19,7 +22,8 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+-alpha'              # v2.0.0-alpha
       - 'v[0-9]+.[0-9]+.[0-9]+-beta'               # v2.0.0-beta
       - 'v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+'           # v2.0.0-rc1
-      # Note: Excludes -desktop and -docs suffixes
+      - 'v[0-9]+.[0-9]+.[0-9]+-docker'             # v2.1.8-docker
+      # Note: Excludes -desktop, -test, -debug, and -docs suffixes
   pull_request:
     branches: [ main ]
 
