@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version v2.1.7-beta** - Multi-Platform Desktop + Web App
+**Version v2.1.9-beta** - Multi-Platform Desktop + Web App
 
 A comprehensive application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis. Available as both a web application and native desktop app (macOS, Windows, Linux) with an elegant resizable interface, drag-drop panel reordering, and auto-update infrastructure.
 
@@ -472,6 +472,35 @@ The application features modern, modular frontend and backend architectures with
 - Syntax Highlighting (CodeMirror or Monaco editor)
 
 ## ✨ What's New
+
+### v2.1.9-beta - Debug Builds, Build Optimization & Release Cleanup
+
+- **🐛 Debug Build Configuration**: Detached DevTools for debugging without UI disruption
+  - `-debug` tags open DevTools in separate window (doesn't crush main app)
+  - Marker-based detection (`.debug-build` file created during builds)
+  - Perfect for debugging and testing without obstructing the interface
+- **⚡ Build Performance**: 20-30% faster builds with aggressive caching
+  - Python pip dependency caching
+  - PyInstaller build artifact caching
+  - Reduced multi-platform build time from ~5m17s to ~4min
+- **🧹 Automated Release Cleanup**: Auto-delete source code archives
+  - GitHub's auto-generated source archives removed automatically
+  - Cleaner release pages without manual intervention
+- **📦 Reduced Release Bloat**: ~40% fewer files per release
+  - macOS: DMG only (removed ZIP)
+  - Windows: NSIS installer only (removed ZIP)
+  - Linux: AppImage only (removed .deb)
+  - Streamlined releases with only essential installers
+- **🏷️ Enhanced Tag Strategy**: Clear separation of build types
+  - `-test`: Local builds only (npm run build:mac) - no workflows
+  - `-test-release`: ARM64 + GitHub release for auto-update testing
+  - `-debug`: ARM64 with detached DevTools
+  - `-desktop`: Multi-platform desktop-only (no Docker rebuild)
+  - `-beta/-alpha`: Full production releases (Docker + all platforms)
+- **🎨 UI Enhancements**: Version indicator and consistent panel borders
+  - Version indicator in bottom-left corner (e.g., "v2.1.9-beta")
+  - Consistent light gray borders across all panels
+  - Better visual hierarchy and polish
 
 ### v2.1.7-beta - Auto-Update Infrastructure & Fast Build Workflow
 
