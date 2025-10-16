@@ -3,11 +3,12 @@ name: Build Desktop Apps (Multi-Platform)
 on:
   push:
     tags:
-      - 'v*.*.*-alpha'
-      - 'v*.*.*-beta'
-      - 'v*.*.*-desktop'
-      - 'v*.*.*-desktop-alpha'
-      - 'v*.*.*-desktop-beta'
+      - 'v[0-9]+.[0-9]+.[0-9]+'                    # v2.1.8 (GA releases)
+      - 'v[0-9]+.[0-9]+.[0-9]+-alpha'              # v2.1.8-alpha
+      - 'v[0-9]+.[0-9]+.[0-9]+-beta'               # v2.1.8-beta
+      - 'v[0-9]+.[0-9]+.[0-9]+-desktop'            # v2.1.8-desktop (desktop-only)
+      - 'v[0-9]+.[0-9]+.[0-9]+-desktop-alpha'      # v2.1.8-desktop-alpha
+      - 'v[0-9]+.[0-9]+.[0-9]+-desktop-beta'       # v2.1.8-desktop-beta
       # Note: Excludes -test, -debug, -docker, and -docs by not listing them
   workflow_dispatch:
     inputs:
