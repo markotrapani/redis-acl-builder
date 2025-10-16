@@ -1,8 +1,8 @@
 # Redis Enterprise ACL Builder
 
-**Version v2.0.3-alpha** - Desktop + Web App
+**Version v2.1.7-beta** - Multi-Platform Desktop + Web App
 
-A comprehensive application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis. Available as both a web application and native macOS desktop app with an elegant resizable interface and drag-drop panel reordering.
+A comprehensive application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis. Available as both a web application and native desktop app (macOS, Windows, Linux) with an elegant resizable interface, drag-drop panel reordering, and auto-update infrastructure.
 
 ## 🚀 Quick Start
 
@@ -277,7 +277,7 @@ curl -X POST http://localhost:7380/api/validate-rule \
    npx playwright test
    ```
 
-### Code Organization (Monorepo Structure - v2.0.3)
+### Code Organization (Monorepo Structure - v2.1.7)
 
 - **Backend**: `backend/` - Python Flask app, helpers, models
 - **Frontend**: `frontend/` - Static assets (CSS/JS) and templates
@@ -373,28 +373,27 @@ npx playwright test --ui
 
 ### Version Tag Strategy
 
-**For Docker builds** (web app):
+**Fast macOS ARM64 build** (debugging/testing - ~2 minutes):
 ```bash
-git tag v2.0.4-alpha    # Triggers Docker build
-git push origin v2.0.4-alpha
+git tag v2.1.8-test && git push origin v2.1.8-test
+git tag v2.1.8-debug && git push origin v2.1.8-debug
 ```
 
-**For Desktop builds** (Electron app):
+**Full multi-platform build** (production - ~5 minutes):
 ```bash
-git tag v2.0.4-desktop  # Triggers Desktop build only
-git push origin v2.0.4-desktop
+git tag v2.1.8-beta && git push origin v2.1.8-beta   # macOS, Windows, Linux + Docker
+git tag v2.1.8-alpha && git push origin v2.1.8-alpha
+git tag v2.1.8 && git push origin v2.1.8
 ```
 
-**For both Docker + Desktop**:
+**Docker build only** (web app):
 ```bash
-git tag v2.0.4          # Triggers BOTH Docker and Desktop builds
-git push origin v2.0.4
+git tag v2.1.8-docker && git push origin v2.1.8-docker
 ```
 
-**For documentation updates only**:
+**Documentation updates only**:
 ```bash
-git tag v2.0.4-docs     # No builds triggered
-git push origin v2.0.4-docs
+git tag v2.1.8-docs && git push origin v2.1.8-docs
 ```
 
 ## Project Structure
@@ -430,7 +429,7 @@ redis-acl-builder/
 
 ## 🏗️ Architecture
 
-The application features modern, modular frontend and backend architectures with a **monorepo structure** (v2.0.3-alpha):
+The application features modern, modular frontend and backend architectures with a **monorepo structure** (v2.1.7-beta):
 
 - **Monorepo**: Organized into `backend/`, `frontend/`, `electron/`, `scripts/`, and `tests/` directories - single source of truth for both web app and Electron desktop app
 - **Frontend**: Modular ES6 JavaScript (13 modules) + Optimized Modular CSS (6 modules) with professional desktop-like resize experience
@@ -474,46 +473,52 @@ The application features modern, modular frontend and backend architectures with
 
 ## ✨ What's New
 
-### v2.0.3-alpha - Enhanced Category Tooltips with Smart Command Highlighting
+### v2.1.7-beta - Auto-Update Infrastructure & Fast Build Workflow
 
-- **🎨 Intelligent Command Highlighting**: Category tooltips now display relevant commands first with color-coded bold text
-  - Granted commands highlighted in **bold green** (#22c55e)
-  - Blocked commands highlighted in **bold red** (#f44336)
-  - Works in both abbreviated and expanded tooltip views
-  - Example: Hovering over partially granted `@read` category shows granted commands (like `get`, `mget`) first in green
-- **🔧 Parameter Passing Fix**: Resolved three-layer function wrapper issue preventing bold/color styling
-  - Fixed wrapper in InteractiveACLBuilder passing all 5 parameters correctly
-  - Fixed method signature accepting boldItems and boldColor parameters
-  - Ensured proper parameter flow from tooltip expansion to ACLUIRenderer
-- **🧹 Code Cleanup**: Removed all debug console.log statements and redundant inline styling
-  - Clean CSS-based styling using data-column attributes
-  - Removed unnecessary CSS rules and placeholder code
-  - Rebuilt minified assets (110.71 KB, 34.5% savings)
-- **✅ Bug Fix**: Tooltip expansion now correctly displays full command list without hiding commands
+- **🔄 Auto-Update System**: Complete auto-update infrastructure with electron-updater
+  - ✅ Automatic update detection on app launch
+  - ✅ Manual update check via application menu
+  - ✅ User-friendly download/install dialogs with progress tracking
+  - ✅ GitHub releases integration for update distribution
+  - ⚠️ Note: Installation requires code signing (Apple Developer account)
+- **⚡ Fast Build Workflow**: Dedicated macOS ARM64-only workflow for debugging
+  - 2-minute builds vs 5-minute multi-platform builds
+  - Auto-publishes to GitHub releases on `-test`/`-debug` tags
+  - Perfect for rapid iteration and testing
+- **🏷️ Smart Tag Strategy**: Tag suffixes control which builds run
+  - `-test`, `-debug`: Fast macOS ARM64 only
+  - `-beta`, `-alpha`: Full multi-platform + Docker
+  - `-docker`: Docker only
+  - `-docs`: No builds
+- **📦 Multi-Platform Ready**: macOS (ARM64 + Intel), Windows (NSIS + ZIP), Linux (AppImage + .deb)
+- **🔐 Code Signing Infrastructure**: Ready for Apple Developer setup
+  - Entitlements and notarization scripts prepared
+  - Auto-updates will work automatically once code signing enabled
 
-### v2.0.0-alpha - Command Sort Order & Rule Preservation Fixes
+### v2.0.3-alpha - Enhanced Category Tooltips
 
-- **🔧 Command Sort Order**: Fixed sorting to prioritize explicit commands before implicit (priority-based)
-- **💾 Rule Preservation**: Rules like `-get` now preserved on page refresh (no longer cleared to empty)
-- **🎯 Empty ACL Detection**: Fixed to check for blocked categories/commands too
-- **⚠️ Implicit Partial Styling**: Proper hollow yellow ⚠ display for implicitly partial categories
-- **📊 Search Enhancements**: Fuzzy relevance scoring, order restoration, "Showing X of Y" positioning
-- **🧹 Visual Polish**: Eliminated gaps from empty command-buttons containers
+- **🎨 Intelligent Command Highlighting**: Category tooltips display relevant commands with color-coded bold text
+- **🔧 Parameter Passing Fix**: Resolved function wrapper issues preventing bold/color styling
+- **✅ Bug Fix**: Tooltip expansion correctly displays full command list
+
+### v2.0.0-alpha - Electron Desktop App & UI Polish
+
+- **🖥️ Native Desktop App**: macOS desktop app with Electron + PyInstaller backend bundling
+- **🔧 Command Sort Order**: Fixed sorting to prioritize explicit commands before implicit
+- **💾 Rule Preservation**: Rules preserved on page refresh
+- **📊 Search Enhancements**: Fuzzy relevance scoring and improved UI feedback
+
+---
+
+<details>
+<summary><strong>View Full Version History</strong></summary>
 
 ### v1.25.1-beta - Optimization Box Persistence & Backend Error Fix
 
-- **🐛 Critical Backend Fix**: Fixed undefined `warnings` variable error in `optimize_rule()` method that broke all optimization
-  - Was returning `savings=0` instead of actual savings
-  - Changed to parse rule tokens directly to detect inefficient +@all placement patterns
-  - "Saves X terms" now displays correctly in optimization suggestions
+- **🐛 Critical Backend Fix**: Fixed undefined `warnings` variable error in `optimize_rule()` method
 - **📌 Optimization Persistence**: Optimization suggestions now remain visible while typing
-  - Suggestions persist when temporarily deleting text in textarea
-  - Only hide on: submit new rule, click X dismiss button, or explicit clear operation
-  - Skip redundancy analysis during typing no longer hides existing warnings
-- **✅ Manual Testing**: Complete validation of @all category button states, button ordering priorities, and auto-optimization triggers
-- **📝 Documentation**: Updated testing plan with all v1.25.0-v1.25.1 completed tests
 
-### v1.25.0-beta - Backend Category Analysis & Test Suite Expansion
+### v1.25.0-beta - Backend Category Analysis
 
 - **🧠 Backend Category Intelligence**: Complete category analysis engine classifies categories as fully granted, partially granted (with percentages), or blocked based on actual command permissions
 - **📊 API Enhancement**: `/api/parse` endpoint now returns comprehensive category analysis including `granted_categories`, `partial_categories` (with grant counts and percentages), and `blocked_categories`
@@ -597,6 +602,8 @@ The application features modern, modular frontend and backend architectures with
 - **🔒 Security Scanning**: Docker Scout CVE analysis with vulnerability management
 - **🏷️ Smart Tagging**: Automatic version tagging with :latest, :beta, and semver tags
 - **⚡ Optimized Builds**: Docker layer caching reducing build times from 15+ to 5-10 minutes
+
+</details>
 
 ## Acknowledgments
 
