@@ -1,5 +1,36 @@
 /* Redis Enterprise ACL Builder - Component Styles */
 
+/* Version Indicator (bottom-left corner) */
+.version-indicator {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  z-index: 9999;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Light mode - darker text on lighter background */
+.version-indicator {
+  background-color: rgba(220, 220, 220, 0.5);
+  color: #333333;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+/* Dark mode - bright text on darker background */
+body.dark-mode .version-indicator {
+  background-color: rgba(80, 80, 80, 0.6);
+  color: #E0E0E0;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
 /* FOUC Prevention: Test button disabled state - keep original background, fix text color */
 .test-button:disabled,
 .test-button[disabled],

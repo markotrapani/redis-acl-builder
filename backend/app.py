@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # Import our helper modules
 from helpers.data_loader import get_redis_data, build_command_indexes, RedisVersionData
 from helpers.acl_parser import ACLParser
+from helpers import __version__
 
 # Import Pydantic models
 from models.api_models import (
@@ -129,7 +130,7 @@ def validate_pydantic_request(model_class: type[BaseModel]) -> Any:
 @app.route('/')
 def index() -> str:
     """Serve the main web interface."""
-    return render_template('index.html')
+    return render_template('index.html', version=__version__)
 
 @app.route('/info')
 def info() -> str:
