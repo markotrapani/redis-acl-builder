@@ -8,11 +8,7 @@ on:
       - 'v*.*.*-desktop'
       - 'v*.*.*-desktop-alpha'
       - 'v*.*.*-desktop-beta'
-    tags-ignore:
-      - 'v*.*.*-test'
-      - 'v*.*.*-debug'
-      - 'v*.*.*-docker'
-      - 'v*.*.*-docs'
+      # Note: Excludes -test, -debug, -docker, and -docs by not listing them
   workflow_dispatch:
     inputs:
       version:
@@ -27,7 +23,6 @@ jobs:
   build:
     name: Build ${{ matrix.os }} Desktop App
     runs-on: ${{ matrix.os }}
-    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
 
     strategy:
       fail-fast: false
