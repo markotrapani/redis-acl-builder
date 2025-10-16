@@ -11,6 +11,9 @@ on:
     tags:
       - 'v*.*.*-test'
       - 'v*.*.*-debug'
+    tags-ignore:
+      - 'v*.*.*-docker'
+      - 'v*.*.*-docs'
 
 permissions:
   contents: write  # Required for creating releases and uploading assets
