@@ -188,7 +188,23 @@ gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
   - Automatic tagging: version, major.minor, major, latest, beta
 
 #### Desktop Builds (Electron App)
+
+**⚠️ FOR DEBUGGING: Always use the fast macOS ARM64 workflow!**
+
+##### Fast macOS ARM64 Build (Recommended for Testing)
+- **File**: `.github/workflows/build-desktop-macos-fast.yml`
+- **Purpose**: Quick iteration for debugging and testing (~2 minutes vs 5 minutes)
+- **Triggers**:
+  - **Debug tags**: `v*.*.*-test`, `v*.*.*-debug` (e.g., `v2.1.8-test`)
+  - Manual workflow dispatch
+- **Builds**: macOS ARM64 only (DMG + ZIP)
+- **Auto-publishes to GitHub releases** when triggered by version tags
+- **Use this for**: Testing auto-updates, quick bug fixes, debugging builds
+- **Tag strategy**: Use `-test` or `-debug` suffix to avoid triggering full multi-platform builds
+
+##### Full Multi-Platform Build (Production)
 - **File**: `.github/workflows/build-desktop.yml`
+- **Purpose**: Production releases with all platforms
 - **Triggers**:
   - Version tags: `v*.*.*`, `v*.*.*-alpha`, `v*.*.*-beta`
   - Desktop-specific tags: `v*.*.*-desktop*`
@@ -224,18 +240,27 @@ gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
 ### Version Tagging Strategy
 
 ```bash
-# Docker build (web app)
-git tag v2.0.4-alpha && git push origin v2.0.4-alpha
+# Fast macOS ARM64 build ONLY (debugging/testing - ~2 minutes)
+git tag v2.1.8-test && git push origin v2.1.8-test
+git tag v2.1.8-debug && git push origin v2.1.8-debug
 
-# Desktop build (Electron app)
-git tag v2.0.4-desktop && git push origin v2.0.4-desktop
+# Full multi-platform build (production - ~5 minutes)
+git tag v2.1.8-beta && git push origin v2.1.8-beta
+git tag v2.1.8-alpha && git push origin v2.1.8-alpha
+git tag v2.1.8 && git push origin v2.1.8
 
-# Both Docker + Desktop
-git tag v2.0.4 && git push origin v2.0.4
+# Docker build ONLY (web app)
+git tag v2.1.8-docker && git push origin v2.1.8-docker
 
 # Documentation only (no builds)
-git tag v2.0.4-docs && git push origin v2.0.4-docs
+git tag v2.1.8-docs && git push origin v2.1.8-docs
 ```
+
+**Tag Suffix Guide:**
+- `-test` or `-debug`: Fast macOS ARM64 build only (for debugging)
+- `-beta`, `-alpha`, or no suffix: Full multi-platform + Docker builds
+- `-docker`: Docker build only
+- `-docs`: No builds (documentation milestone)
 
 ## Architecture and Code Structure
 
@@ -658,7 +683,7 @@ Current status (v2.1.0-beta): 0 Critical, 0 High, 0 Medium, 2 Low vulnerabilitie
 
 **Future Roadmap (v2.x+)**:
 
-1. **Electron Desktop App - Multi-Platform Distribution Ready** (v2.1.0-beta):
+1. **Electron Desktop App - Multi-Platform Distribution Ready** (v2.1.7-beta):
    - ✅ Native desktop experience across all platforms
    - ✅ Enhanced UI/UX without browser limitations
    - ✅ Better performance and offline capability
@@ -669,10 +694,21 @@ Current status (v2.1.0-beta): 0 Critical, 0 High, 0 Medium, 2 Low vulnerabilitie
      - ✅ Windows NSIS installer + ZIP - Full Windows 10/11 support
      - ✅ Linux AppImage + .deb - Ubuntu/Debian compatible
    - ✅ **Automated CI/CD Pipeline** - GitHub Actions builds on version tags
+   - ✅ **Fast macOS ARM64 workflow** - Quick 2-minute builds for testing/debugging
+   - 🔄 **Auto-update system** (v2.1.7-beta) - Infrastructure ready, requires code signing
+     - ✅ Update detection working (checks GitHub releases)
+     - ✅ Download working (successfully downloads new versions)
+     - ❌ Installation blocked by macOS code signature validation
+     - ⚠️ **macOS requires valid code signatures for auto-update installation**
+     - 📝 Current workaround: Manual installation until code signing enabled
+     - 🎯 Will work automatically once Apple Developer code signing is set up
    - ✅ **Size optimization analysis** - 112MB is excellent (86% Electron Framework, 13% backend, 1% assets)
    - ✅ **Ready for beta distribution** - Fully functional standalone desktop app on all platforms!
-   - 🔄 Future: Code signing & notarization for professional distribution
-   - 🔄 Future: Auto-update system for seamless user updates (v2.1+)
+   - 🔄 **Next: Code signing & notarization for production** (requires Apple Developer account)
+     - Infrastructure ready: entitlements.mac.plist, notarize.js script, workflow placeholders
+     - Need: Apple Developer account ($99/year), certificates, App Store Connect setup
+     - Will eliminate Gatekeeper warnings and enable professional distribution
+     - Documentation: [docs/CODE-SIGNING-SETUP.md](docs/CODE-SIGNING-SETUP.md)
    - 🔄 Future: Native desktop features - custom title bar, file dialogs, system tray (Phase 2)
 
 2. **Multi-Key Command Validation** (Future v2.x): Advanced command+key testing with Redis command signature awareness

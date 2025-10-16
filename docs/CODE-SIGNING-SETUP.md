@@ -14,13 +14,28 @@ This guide walks you through setting up code signing for macOS and Windows, and 
 - ✅ GitHub Actions workflow with publish support
 - ✅ Update notification UI with user prompts
 - ✅ Automatic release creation on version tags
+- ✅ Update detection and download working
+
+**Current Status:**
+- ✅ **Detection**: App successfully detects new versions on GitHub
+- ✅ **Download**: App successfully downloads update files
+- ❌ **Installation**: macOS blocks installation due to missing code signature
+- ⚠️ **IMPORTANT**: macOS requires valid code signatures for auto-update installation
 
 **What You Need to Do:**
-- 🔐 Set up Apple Developer account (for macOS code signing)
+- 🔐 **REQUIRED**: Set up Apple Developer account (for macOS code signing)
+  - Without this, auto-updates will fail at installation step
+  - Users must manually download and install updates
 - 🔐 (Optional) Get Windows code signing certificate
 - 🔑 Add secrets to GitHub repository
-- 📦 Install new npm dependencies
 - 🧪 Test the auto-update flow
+
+**Temporary Workaround (Until Code Signing is Set Up):**
+Users can manually download new versions from GitHub releases and install them by:
+1. Downloading the DMG from releases page
+2. Opening the DMG
+3. Dragging to Applications folder
+4. Running `xattr -d com.apple.quarantine "/Applications/Redis ACL Builder.app"` if needed
 
 ---
 

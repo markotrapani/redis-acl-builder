@@ -1,7 +1,7 @@
 {
   "name": "redis-acl-builder",
   "productName": "Redis ACL Builder",
-  "version": "2.1.5-beta",
+  "version": "2.1.7-beta",
   "description": "Redis ACL Builder - Desktop Application",
   "main": "main.js",
   "scripts": {
@@ -71,12 +71,10 @@
         "dmg",
         "zip"
       ],
-      "hardenedRuntime": true,
+      "hardenedRuntime": false,
       "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist"
+      "identity": null
     },
-    "afterSign": "scripts/notarize.js",
     "dmg": {
       "contents": [
         {

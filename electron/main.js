@@ -339,7 +339,7 @@ function createWindow() {
 
 // App lifecycle
 app.whenReady().then(async () => {
-    console.log('🚀 Redis ACL Builder v2.1.5-beta - Added dialogs for update-not-available and error cases!');
+    console.log('🚀 Redis ACL Builder v2.1.7-beta - Testing unsigned builds for auto-update installation');
 
     // Set app name (important for macOS - shows in menu bar and About panel)
     app.setName('Redis ACL Builder');

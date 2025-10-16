@@ -4,9 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag (e.g., v2.1.5-beta)'
+        description: 'Version tag (e.g., v2.1.5-test)'
         required: false
         default: 'manual-build'
+  push:
+    tags:
+      - 'v*.*.*-test'
+      - 'v*.*.*-debug'
 
 permissions:
   contents: write  # Required for creating releases and uploading assets
@@ -61,7 +65,12 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: false  # Disable code signing for now
         run: |
           # Build ARM64 only for faster testing
-          npx electron-builder --mac --arm64
+          # Publish to releases if triggered by version tag
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            npx electron-builder --mac --arm64 --publish=always
+          else
+            npx electron-builder --mac --arm64
+          fi
 
       - name: List build artifacts
         working-directory: electron
@@ -78,7 +87,30 @@ jobs:
           path: |
             electron/dist/*.dmg
             electron/dist/*.zip
+            electron/dist/latest-mac.yml
           retention-days: 7  # Shorter retention for test builds
+
+      - name: Create/Update GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="${{ github.ref_name }}"
+
+          # Determine if this is a pre-release
+          if [[ "$TAG_NAME" == *-alpha* ]] || [[ "$TAG_NAME" == *-beta* ]]; then
+            PRERELEASE_FLAG="--prerelease"
+          else
+            PRERELEASE_FLAG=""
+          fi
+
+          # Create release (or update if exists)
+          gh release create "$TAG_NAME" \
+            --repo ${{ github.repository }} \
+            --title "$TAG_NAME" \
+            --notes "macOS ARM64 desktop app release - Fast build workflow" \
+            $PRERELEASE_FLAG \
+            --draft=false || echo "Release already exists, artifacts uploaded by electron-builder"
 
   summary:
     name: Build Summary
