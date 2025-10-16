@@ -9,10 +9,10 @@ on:
         default: 'manual-build'
   push:
     tags:
-      - 'v*.*.*-test'
       - 'v*.*.*-test-release'
       - 'v*.*.*-debug'
-      # Note: Only triggers on -test, -test-release, and -debug tags
+      # Note: Only triggers on -test-release and -debug tags
+      # -test is reserved for local builds only (npm run build:mac)
 
 permissions:
   contents: write  # Required for creating releases and uploading assets

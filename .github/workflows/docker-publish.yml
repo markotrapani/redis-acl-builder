@@ -16,7 +16,7 @@ name: Build and Publish Docker Images
 #
 # NO DOCKER BUILD (workflow tags):
 # - v*.*.*-desktop*          → Desktop-only builds (no Docker)
-# - v*.*.*-test              → Fast ARM64 desktop build, no release (no Docker)
+# - v*.*.*-test              → Local builds only (npm run build:mac) - no workflow
 # - v*.*.*-test-release      → Fast ARM64 desktop build + release for auto-update testing (no Docker)
 # - v*.*.*-debug             → Fast ARM64 desktop build with DevTools (no Docker)
 # - v*.*.*-docs              → Documentation-only (no builds)
