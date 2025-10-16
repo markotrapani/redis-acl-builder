@@ -14,6 +14,18 @@ function isDevelopment() {
     return fs.existsSync(path.join(__dirname, '..', 'backend', 'app.py'));
 }
 
+// Debug build detection - checks if built from a -debug tag
+function isDebugBuild() {
+    // Check for ELECTRON_DEVTOOLS environment variable (for local development)
+    if (process.env.ELECTRON_DEVTOOLS === 'true') {
+        return true;
+    }
+
+    // Check for .debug-build marker file (created during -debug builds)
+    const debugMarkerPath = path.join(__dirname, '.debug-build');
+    return fs.existsSync(debugMarkerPath);
+}
+
 // Create application menu
 function createAppMenu() {
     const isMac = process.platform === 'darwin';
@@ -325,12 +337,13 @@ function createWindow() {
     // Show window when ready
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
-    });
 
-    // Open DevTools based on env var
-    if (process.env.ELECTRON_DEVTOOLS === 'true') {
-        mainWindow.webContents.openDevTools();
-    }
+        // Open DevTools in detached mode for debug builds
+        if (isDebugBuild()) {
+            console.log('🐛 Debug build detected - opening DevTools in separate window');
+            mainWindow.webContents.openDevTools({ mode: 'detach' });
+        }
+    });
 
     mainWindow.on('closed', () => {
         mainWindow = null;

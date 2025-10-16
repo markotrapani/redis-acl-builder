@@ -59,6 +59,16 @@ jobs:
         working-directory: electron
         run: npm ci
 
+      - name: Create debug marker file for -debug builds
+        working-directory: electron
+        run: |
+          if [[ "${{ github.ref }}" == *"-debug"* ]]; then
+            echo "true" > .debug-build
+            echo "✅ Created .debug-build marker file"
+          else
+            echo "ℹ️  Not a debug build, skipping marker file"
+          fi
+
       - name: Build Electron app (macOS ARM64 only)
         working-directory: electron
         env:

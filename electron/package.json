@@ -52,7 +52,8 @@
     "files": [
       "main.js",
       "preload.js",
-      "build/**/*"
+      "build/**/*",
+      ".debug-build"
     ],
     "extraResources": [
       {
