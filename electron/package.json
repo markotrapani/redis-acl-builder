@@ -69,8 +69,7 @@
       "category": "public.app-category.developer-tools",
       "icon": "build/icon.icns",
       "target": [
-        "dmg",
-        "zip"
+        "dmg"
       ],
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
@@ -99,15 +98,13 @@
     "win": {
       "icon": "build/icon.png",
       "target": [
-        "nsis",
-        "zip"
+        "nsis"
       ]
     },
     "linux": {
       "icon": "build/icon.png",
       "target": [
-        "AppImage",
-        "deb"
+        "AppImage"
       ],
       "category": "Development"
     }
