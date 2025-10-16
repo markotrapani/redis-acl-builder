@@ -219,6 +219,41 @@ gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
   3. Creates platform-specific installers
   4. Uploads artifacts (30-day retention)
   5. Creates GitHub release (on version tags)
+  6. **IMPORTANT: Delete source code archives after release creation**
+
+#### ⚠️ Post-Release Cleanup (REQUIRED)
+
+**GitHub automatically adds source code archives to every release. These must be deleted:**
+
+After a workflow completes and creates a release:
+
+1. Go to the release page (e.g., https://github.com/markotrapani/redis-acl-builder/releases/tag/v2.1.8-beta)
+2. Delete the following auto-generated files:
+   - ❌ **Source code (zip)** - Delete this
+   - ❌ **Source code (tar.gz)** - Delete this
+3. Keep only the actual build artifacts:
+   - ✅ DMG files (macOS installers)
+   - ✅ ZIP files (macOS portable)
+   - ✅ NSIS .exe (Windows installer)
+   - ✅ AppImage (Linux portable)
+   - ✅ .deb (Debian/Ubuntu package)
+   - ✅ latest-mac.yml (auto-update metadata)
+   - ✅ latest.yml (Windows auto-update metadata)
+   - ✅ latest-linux.yml (Linux auto-update metadata)
+
+**Why delete source code?**
+- Users should download pre-built installers, not build from source
+- Reduces confusion about which files to download
+- Source code is always available in the git repository itself
+- Keeps releases clean and professional
+
+**Alternative**: You can also use the GitHub CLI to clean up releases automatically:
+
+```bash
+# Delete source code archives from a release
+gh release delete-asset v2.1.8-beta "Source code (zip)" --yes
+gh release delete-asset v2.1.8-beta "Source code (tar.gz)" --yes
+```
 
 ### Migration History (October 2025)
 
