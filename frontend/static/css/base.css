@@ -506,6 +506,7 @@ header {
   background: var(--surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
+  border: 1px solid var(--gray-500);
   padding: var(--panel-padding);
 }
 
