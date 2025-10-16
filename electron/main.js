@@ -139,10 +139,28 @@ function setupAutoUpdater() {
 
     autoUpdater.on('update-not-available', (info) => {
         console.log('✅ App is up to date:', info.version);
+
+        // Show dialog to user
+        dialog.showMessageBox(mainWindow, {
+            type: 'info',
+            title: 'No Updates Available',
+            message: 'You have the latest version!',
+            detail: `Current version: ${info.version}`,
+            buttons: ['OK']
+        });
     });
 
     autoUpdater.on('error', (err) => {
         console.error('❌ Auto-update error:', err);
+
+        // Show error dialog to user
+        dialog.showMessageBox(mainWindow, {
+            type: 'error',
+            title: 'Update Check Failed',
+            message: 'Failed to check for updates',
+            detail: err.message || 'An unknown error occurred',
+            buttons: ['OK']
+        });
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
@@ -321,7 +339,7 @@ function createWindow() {
 
 // App lifecycle
 app.whenReady().then(async () => {
-    console.log('🚀 Redis ACL Builder v2.1.4-beta - AUTO-UPDATE TEST VERSION - You should see this after updating!');
+    console.log('🚀 Redis ACL Builder v2.1.5-beta - Added dialogs for update-not-available and error cases!');
 
     // Set app name (important for macOS - shows in menu bar and About panel)
     app.setName('Redis ACL Builder');
