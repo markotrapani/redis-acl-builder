@@ -55,10 +55,10 @@ This is a collection of Redis-related projects, with the main project being **Re
 
 ### Key Project: Redis Enterprise ACL Builder
 
-- **Version**: v2.1.9-beta (Desktop + Web App)
+- **Version**: v2.2.0-beta (Desktop + Web App)
 - **Test Coverage**: Backend 85% (Core logic: 95-100%, API: 78%) | E2E: 100% (28/28 Playwright tests passing)
 - **Status**: 195 backend tests passing, 28 E2E tests passing, 0 failing, 0 skipped
-- **Latest Release**: Debug builds, build optimization, and streamlined installers (v2.1.9-beta)
+- **Latest Release**: Dead code cleanup and codebase optimization (v2.2.0-beta)
 - **Purpose**: Interactive web interface for parsing, testing, and validating Redis ACL permissions
 - **Redis Support**: Full Redis 7 (311 commands) and Redis 8 (446 commands) including all module commands
 - **UI Features**: Advanced search system with independent fuzzy/exact modes, comprehensive custom tooltips with multi-column layouts and smart command highlighting (color-coded bold text for relevant commands), perfect anti-flash rendering, theme-aware loading animations, enhanced redundancy detection, comprehensive 8-way resizable container system with triangular corner indicators and edge resize handles, drag-drop panel reordering for both three-column panels and testing sections, polished tester controls with proper button positioning and theme-aware styling, complete responsive design for tablet and mobile with optimized layouts and form interactions, **fixed z-index stacking for Electron app test result popups**
@@ -562,9 +562,17 @@ redis-acl-builder/
 
 ### Current Status and Roadmap
 
-**Production Status**: ENTERPRISE-READY with OPTIMIZED BUILDS & DEBUG INFRASTRUCTURE (v2.1.9-beta)
+**Production Status**: ENTERPRISE-READY - CLEAN CODEBASE (v2.2.0-beta)
 
-**NEW in v2.1.9-beta: Debug Builds & Build Optimization**:
+**NEW in v2.2.0-beta: Dead Code Cleanup & Optimization**:
+- **Dead Code Removal**: Removed unused acl-state-coordinator.js (26 lines of stub code)
+- **Build Artifact Cleanup**: Cleaned 711MB of local build artifacts (build/, dist/, electron/dist/)
+- **Cache Cleanup**: Removed Python __pycache__ and .pyc files
+- **Zero Dead Code**: Comprehensive analysis confirmed no unused imports, functions, or orphaned files
+- **Perfect .gitignore**: All build artifacts and cache files properly excluded from version control
+- **Codebase Health**: 100% clean source code with zero dead code or unused dependencies
+
+**Previous in v2.1.9-beta: Debug Builds & Build Optimization**:
 - **Debug Build Configuration**: Detached DevTools for debugging without UI disruption
   - `-debug` tags create builds with DevTools in separate window
   - Marker-based detection via `.debug-build` file
@@ -762,17 +770,18 @@ redis-acl-builder/
 - **Docker Image Size**: ~110MB (Alpine-based, builds locally to avoid GitHub 100MB limit)
 - **Deployment Options**: 4 different deployment methods for maximum flexibility
 
-**Current Development Status (v2.1.7-beta)**:
+**Current Development Status (v2.2.0-beta)**:
 
 - ✅ Electron desktop app fully functional with all features
 - ✅ **Auto-update infrastructure ready** - Detection and download working (installation requires code signing)
 - ✅ **Code signing infrastructure ready** - Waiting for Apple Developer approval
 - ✅ **Multi-platform builds** - macOS (ARM64 + x64), Windows, Linux
 - ✅ **Fast build workflow** - 2-minute macOS ARM64 builds for debugging
-- ✅ **Docker image published** - markotrapani608/redis-acl-builder:v2.1.7-beta
+- ✅ **Docker image published** - markotrapani608/redis-acl-builder:v2.2.0-beta
 - ✅ All 223 tests passing (195 backend + 28 E2E)
 - ✅ Production-ready for both web and desktop deployments
 - ✅ **Repository now PRIVATE** - Source code protected, releases accessible via direct URLs
+- ✅ **Dead code eliminated** - Zero unused files, perfect codebase health (v2.2.0-beta)
 
 **Repository Visibility Strategy**:
 
