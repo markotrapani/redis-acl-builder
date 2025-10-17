@@ -1,6 +1,6 @@
 # Redis Enterprise ACL Builder
 
-**Version v2.1.9-beta** - Multi-Platform Desktop + Web App
+**Version v2.2.0-beta** - Multi-Platform Desktop + Web App
 
 A comprehensive application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis. Available as both a web application and native desktop app (macOS, Windows, Linux) with an elegant resizable interface, drag-drop panel reordering, and auto-update infrastructure.
 
@@ -20,9 +20,13 @@ docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped mar
 open http://localhost:7380
 ```
 
-**Upgrade to latest version (one-liner):**
+**Upgrade to latest version:**
 ```bash
-docker stop redis-acl-builder 2>/dev/null; docker rm redis-acl-builder 2>/dev/null; docker pull markotrapani608/redis-acl-builder:latest && docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
+# Simple one-liner (stops, removes, and recreates with latest image)
+docker rm -f redis-acl-builder; docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
+
+# Or use docker-compose (recommended)
+docker compose pull && docker compose up -d
 ```
 
 ### Option 2: Local Installation
