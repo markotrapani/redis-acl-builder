@@ -1,12 +1,12 @@
 # Redis ACL Builder - Electron Desktop App Conversion Roadmap
 
-**Version:** v2.1.9-beta
+**Version:** v2.2.7-beta
 
 **Branch:** `main`
 
-**Status:** ✅ Production Ready - Multi-Platform Builds, Auto-Update & Debug Infrastructure
+**Status:** ✅ Production Ready - Multi-Platform Builds, Auto-Update, Debug Infrastructure & macOS Notarization
 
-**Last Updated:** 2025-10-15 (evening)
+**Last Updated:** 2025-10-19
 
 ---
 
@@ -743,20 +743,25 @@ autoUpdater.on('update-downloaded', () => {
   - Reason: Cross-compilation complexity, smaller download sizes
   - Alternative: Ship separate ARM64 and x64 DMGs (standard practice)
 
-**Deferred (Future Enhancement):**
-- ⏳ Code signing & notarization - Waiting for Apple Developer account approval
-  - Infrastructure ready: entitlements, notarization scripts, workflow secrets
-  - Auto-updates will work fully once code signing enabled
+**Completed (2025-10-19):**
+- ✅ **macOS Notarization - COMPLETE!** ✅
+  - App Store Connect API key authentication
+  - Custom afterSign hook with @electron/notarize
+  - GitHub Actions integration
+  - Professional first-install user experience
+  - Builds now take 10-20 minutes (notarization adds 5-15 min)
+  - See [docs/CODE-SIGNING.md](CODE-SIGNING.md) for complete guide
 
 ### Development Strategy - Distribution First (Phase 3)
 
-#### Status: MULTI-PLATFORM BUILDS COMPLETE! 🎉 ✅
+#### Status: MULTI-PLATFORM BUILDS + NOTARIZATION COMPLETE! 🎉 ✅
 
-**What Changed (2025-10-15):**
+**What Changed (2025-10-19):**
 - ✅ App no longer requires Python on user's machine
 - ✅ Fully standalone desktop application achieved
 - ✅ **Multi-platform builds working** - macOS, Windows, Linux!
 - ✅ **Automated CI/CD pipeline** - GitHub Actions builds on every tag
+- ✅ **macOS notarization complete** - Professional first-install experience
 - ✅ Ready for beta distribution on **all platforms**
 
 #### Completed Steps
@@ -784,20 +789,17 @@ autoUpdater.on('update-downloaded', () => {
 
 #### Next Steps (Priority Order)
 
-4. **Code Signing & Notarization** (2-4 hours) - **RECOMMENDED BEFORE PUBLIC RELEASE**
-   - Apple Developer account setup
-   - Code signing certificate acquisition
-   - macOS notarization (required for Catalina+)
-   - Windows code signing (optional but recommended)
-   - **Deliverable:** No Gatekeeper warnings, professional distribution
+4. ~~**Code Signing & Notarization**~~ - ✅ **COMPLETE** (see above)
 
-5. **Auto-Update System** (3-4 hours) - **OPTIONAL (can be v2.1)**
-   - Integrate electron-updater
-   - Configure GitHub releases integration
-   - Add update notification UI
-   - **Deliverable:** Seamless updates for end users
+5. **Windows Code Signing** (2-3 hours) - **OPTIONAL (can defer to v2.3+)**
+   - Purchase Windows code signing certificate (~$200-500/year)
+   - Add WIN_CSC_LINK and WIN_CSC_KEY_PASSWORD secrets
+   - Update GitHub Actions workflow
+   - **Deliverable:** No Windows SmartScreen warnings
+   - **Note:** Can skip for beta testing, add later for production
+   - See [docs/CODE-SIGNING.md](CODE-SIGNING.md#windows-code-signing) for details
 
-**After Phase 3 Complete (90%):** Return to Phase 2 for native desktop features (custom title bar, file dialogs, system tray, etc.) OR proceed with code signing for public release
+**After Phase 3 Complete (95%+ with macOS notarization):** Return to Phase 2 for native desktop features (custom title bar, file dialogs, system tray, etc.) OR proceed with Windows code signing for full production release
 
 ### Deferred to Later (Phase 2)
 

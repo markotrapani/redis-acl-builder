@@ -274,19 +274,63 @@ jobs:
           PREV_TAG=$(git describe --abbrev=0 --tags HEAD^ 2>/dev/null || echo "")
           if [ -n "$PREV_TAG" ]; then
             COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --no-merges)
+            COMMIT_LIST=$(git log ${PREV_TAG}..HEAD --pretty=format:"%s" --no-merges)
           else
             COMMITS=$(git log --pretty=format:"- %s" --no-merges -10)
+            COMMIT_LIST=$(git log --pretty=format:"%s" --no-merges -10)
+          fi
+
+          # Generate dynamic key changes from commits
+          KEY_CHANGES=""
+
+          # Check for major features/changes by analyzing commit messages
+          if echo "$COMMIT_LIST" | grep -qi "notari"; then
+            KEY_CHANGES="${KEY_CHANGES}🔐 **macOS Notarization** - Professional app signing with no security warnings\n"
+          fi
+
+          if echo "$COMMIT_LIST" | grep -qi "auto.update\|auto-update\|updater"; then
+            KEY_CHANGES="${KEY_CHANGES}⚡ **Auto-Update System** - Seamless update detection and installation\n"
+          fi
+
+          if echo "$COMMIT_LIST" | grep -qi "multi.platform\|build.*windows\|build.*linux\|build.*mac"; then
+            KEY_CHANGES="${KEY_CHANGES}📦 **Multi-Platform Builds** - macOS (ARM64 + Intel), Windows, Linux\n"
+          fi
+
+          if echo "$COMMIT_LIST" | grep -qi "pyinstaller\|bundle.*backend\|standalone"; then
+            KEY_CHANGES="${KEY_CHANGES}🐍 **Standalone Backend** - No Python installation required\n"
+          fi
+
+          if echo "$COMMIT_LIST" | grep -qi "docker\|container"; then
+            KEY_CHANGES="${KEY_CHANGES}🐳 **Docker Support** - Multi-architecture container images\n"
+          fi
+
+          if echo "$COMMIT_LIST" | grep -qi "fix:"; then
+            FIX_COUNT=$(echo "$COMMIT_LIST" | grep -c "^fix:" || echo "0")
+            if [ "$FIX_COUNT" -gt 0 ]; then
+              KEY_CHANGES="${KEY_CHANGES}🐛 **Bug Fixes** - ${FIX_COUNT} issues resolved\n"
+            fi
+          fi
+
+          if echo "$COMMIT_LIST" | grep -qi "perf:\|performance\|optimi"; then
+            KEY_CHANGES="${KEY_CHANGES}⚡ **Performance Improvements** - Faster builds and optimizations\n"
+          fi
+
+          if echo "$COMMIT_LIST" | grep -qi "docs:"; then
+            KEY_CHANGES="${KEY_CHANGES}📚 **Documentation Updates** - Improved guides and references\n"
+          fi
+
+          # If no specific changes detected, use generic message
+          if [ -z "$KEY_CHANGES" ]; then
+            KEY_CHANGES="🔄 **Maintenance Release** - Bug fixes and improvements\n\nSee commits below for details."
           fi
 
           # Create formatted release notes
           cat > release_notes.md << EOF
           ## ${VERSION} - Automated Release
 
-          ### Key Changes
+          ### What's New
 
-          📦 **Multi-Platform Desktop Build** - macOS, Windows, Linux installers
-          ⚡ **Auto-Update Ready** - Seamless update detection and download
-          🐳 **Docker Image** - Available on Docker Hub
+          ${KEY_CHANGES}
 
           <details>
           <summary><b>🐳 Docker Deployment</b></summary>
@@ -322,9 +366,9 @@ jobs:
           <summary><b>📦 Desktop App Installation</b></summary>
 
           **macOS:**
-          - Download the `.dmg` file for your architecture (ARM64 for Apple Silicon, or universal)
+          - Download the `.dmg` file for your architecture (ARM64 for Apple Silicon, or x64 for Intel)
           - Open the DMG and drag to Applications folder
-          - Note: First launch may show security warning (app not signed yet)
+          - App is signed and notarized - no security warnings!
 
           **Windows:**
           - Download the `.exe` installer
