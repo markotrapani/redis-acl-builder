@@ -40,11 +40,21 @@ DEFAULT_SEARCH_LIMIT = int(os.getenv('DEFAULT_SEARCH_LIMIT', '50'))
 DEBUG_MODE = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
 
 # Initialize Flask app with custom template and static folders
-# In monorepo structure, frontend/ is a sibling directory to backend/
-frontend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend')
+# Detect if running as PyInstaller bundle or from source
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    # Running as PyInstaller bundle - templates are in _internal/
+    base_dir = os.path.dirname(sys.executable)
+    static_folder = os.path.join(base_dir, '_internal', 'static')
+    template_folder = os.path.join(base_dir, '_internal', 'templates')
+else:
+    # Running from source - use monorepo structure
+    frontend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend')
+    static_folder = os.path.join(frontend_dir, 'static')
+    template_folder = os.path.join(frontend_dir, 'templates')
+
 app = Flask(__name__,
-            static_folder=os.path.join(frontend_dir, 'static'),
-            template_folder=os.path.join(frontend_dir, 'templates'))
+            static_folder=static_folder,
+            template_folder=template_folder)
 app.config['DEBUG'] = DEBUG_MODE
 
 # Enable Gzip compression for all responses

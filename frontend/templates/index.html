@@ -242,11 +242,18 @@
     <script>
         if (window.electronAPI && window.electronAPI.isElectron) {
             document.body.classList.add('electron-app');
+            // Hide version indicator in Electron (shown in About menu instead)
+            document.addEventListener('DOMContentLoaded', function() {
+                const versionIndicator = document.getElementById('versionIndicator');
+                if (versionIndicator) {
+                    versionIndicator.style.display = 'none';
+                }
+            });
         }
     </script>
 
-    <!-- Version indicator in bottom-left corner -->
-    <div class="version-indicator">v{{ version }}</div>
+    <!-- Version indicator in bottom-left corner (web app only - Electron shows version in About menu) -->
+    <div class="version-indicator" id="versionIndicator">v{{ version }}</div>
 
     <div class="panel-container" id="panel-container">
         <div class="inner-container">

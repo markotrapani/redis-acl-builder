@@ -266,7 +266,7 @@ function startPythonBackend() {
         args = [];
     }
 
-    // Spawn Python process
+    // Spawn Python process in its own process group for easier cleanup
     pythonProcess = spawn(command, args, {
         env: {
             ...process.env,
@@ -274,7 +274,8 @@ function startPythonBackend() {
             FLASK_ENV: isDevMode ? 'development' : 'production',
             FLASK_DEBUG: isDevMode ? 'True' : 'False'
         },
-        cwd: cwd
+        cwd: cwd,
+        detached: process.platform !== 'win32' // Create process group on Unix systems
     });
 
     pythonProcess.stdout.on('data', (data) => {
@@ -295,7 +296,22 @@ function startPythonBackend() {
 function stopPythonBackend() {
     if (pythonProcess) {
         console.log('Stopping Python backend...');
-        pythonProcess.kill();
+
+        // Kill the entire process tree (parent + all children like Flask reloader)
+        // On macOS/Linux, use negative PID to kill process group
+        try {
+            if (process.platform !== 'win32') {
+                process.kill(-pythonProcess.pid, 'SIGTERM');
+            } else {
+                // On Windows, use taskkill to kill process tree
+                spawn('taskkill', ['/pid', pythonProcess.pid, '/T', '/F']);
+            }
+        } catch (err) {
+            console.error('Error killing backend process tree:', err);
+            // Fallback to regular kill
+            pythonProcess.kill();
+        }
+
         pythonProcess = null;
     }
 }
