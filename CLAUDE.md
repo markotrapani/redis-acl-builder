@@ -55,7 +55,7 @@ This is a collection of Redis-related projects, with the main project being **Re
 
 ### Key Project: Redis Enterprise ACL Builder
 
-- **Version**: v2.2.0-beta (Desktop + Web App)
+- **Version**: v2.2.6-beta (Desktop + Web App)
 - **Test Coverage**: Backend 85% (Core logic: 95-100%, API: 78%) | E2E: 100% (28/28 Playwright tests passing)
 - **Status**: 195 backend tests passing, 28 E2E tests passing, 0 failing, 0 skipped
 - **Latest Release**: Dead code cleanup and codebase optimization (v2.2.0-beta)
@@ -562,9 +562,18 @@ redis-acl-builder/
 
 ### Current Status and Roadmap
 
-**Production Status**: ENTERPRISE-READY - CLEAN CODEBASE (v2.2.0-beta)
+**Production Status**: ENTERPRISE-READY - AUTO-UPDATE ENABLED (v2.2.6-beta)
 
-**NEW in v2.2.0-beta: Dead Code Cleanup & Optimization**:
+**NEW in v2.2.6-beta: Auto-Update System Fully Working! 🎉**:
+- **Code Signing Enabled**: macOS builds now signed with Developer ID Application certificate
+- **Auto-Update Working**: Successfully tested v2.2.5-beta → v2.2.6-beta update flow
+- **Artifact Naming Fixed**: Consistent hyphenated naming (`Redis-ACL-Builder-*.zip`)
+- **ZIP Files Included**: Auto-update ZIP files properly uploaded to GitHub releases
+- **Draft Cleanup Automation**: CI/CD automatically removes leftover draft releases
+- **Code Signature Validation**: Updates pass macOS signature validation
+- **Production Ready**: Users can now receive seamless automatic updates
+
+**Previous in v2.2.0-beta: Dead Code Cleanup & Optimization**:
 - **Dead Code Removal**: Removed unused acl-state-coordinator.js (26 lines of stub code)
 - **Build Artifact Cleanup**: Cleaned 711MB of local build artifacts (build/, dist/, electron/dist/)
 - **Cache Cleanup**: Removed Python __pycache__ and .pyc files
@@ -861,13 +870,16 @@ Current status (v2.1.0-beta): 0 Critical, 0 High, 0 Medium, 2 Low vulnerabilitie
      - ✅ Linux AppImage + .deb - Ubuntu/Debian compatible
    - ✅ **Automated CI/CD Pipeline** - GitHub Actions builds on version tags
    - ✅ **Fast macOS ARM64 workflow** - Quick 2-minute builds for testing/debugging
-   - 🔄 **Auto-update system** (v2.1.7-beta) - Infrastructure ready, requires code signing
+   - ✅ **Auto-update system** (v2.2.6-beta) - FULLY WORKING! 🎉
      - ✅ Update detection working (checks GitHub releases)
      - ✅ Download working (successfully downloads new versions)
-     - ❌ Installation blocked by macOS code signature validation
-     - ⚠️ **macOS requires valid code signatures for auto-update installation**
-     - 📝 Current workaround: Manual installation until code signing enabled
-     - 🎯 Will work automatically once Apple Developer code signing is set up
+     - ✅ Installation working (code signature validation passing)
+     - ✅ **macOS code signing enabled** (Developer ID Application certificate)
+     - ✅ Tested and verified: v2.2.5-beta → v2.2.6-beta auto-update successful
+     - ✅ Consistent artifact naming (hyphens: `Redis-ACL-Builder-*.zip`)
+     - ✅ ZIP files properly included in GitHub releases for auto-update
+     - ✅ Draft release cleanup automation in CI/CD
+     - 🔄 **Next: App notarization** (optional - improves first-install UX)
    - ✅ **Size optimization analysis** - 112MB is excellent (86% Electron Framework, 13% backend, 1% assets)
    - ✅ **Ready for beta distribution** - Fully functional standalone desktop app on all platforms!
    - 🔄 **Next: Code signing & notarization for production** (requires Apple Developer account)
