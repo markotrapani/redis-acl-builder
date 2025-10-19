@@ -47,6 +47,59 @@ ps aux | grep "redis-acl-builder-desktop"
 
 ---
 
+## 📝 VERSION UPDATE CHECKLIST
+
+**CRITICAL**: When bumping version (e.g., v2.2.7-beta → v2.2.8-beta), update ALL of these files:
+
+### Required Files (MUST update every release):
+- [ ] `README.md` - Line 3: `**Version v2.2.X-beta**`
+- [ ] `README.md` - Lines 18-41: Desktop installation file names (all platforms)
+- [ ] `CLAUDE.md` - Line 58: `**Version**: v2.2.X-beta`
+- [ ] `backend/helpers/__init__.py` - Line with `__version__ = "2.2.X-beta"`
+- [ ] `electron/package.json` - Line with `"version": "2.2.X-beta"`
+
+### Search Command to Find All Version References:
+```bash
+# Find all version references that might need updating
+grep -r "v2\.2\.[0-9]" . --exclude-dir=.git --exclude-dir=venv --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=build
+```
+
+### Post-Release Cleanup (GitHub Releases):
+After creating a new release via tag push:
+- [ ] Delete source code archives from GitHub release (not needed, confusing for users)
+  ```bash
+  gh release delete-asset <tag> "Source code (zip)" --yes
+  gh release delete-asset <tag> "Source code (tar.gz)" --yes
+  ```
+- [ ] Verify release notes are dynamic and version-specific (not generic)
+- [ ] Keep: DMG, ZIP, EXE, AppImage, .deb, latest-*.yml files
+
+### Artifact Cleanup Strategy:
+**IMPORTANT**: GitHub Actions artifacts cost $0.25/GB/month over 500MB free tier.
+
+**Smart Cleanup (Preserve Auto-Update)**:
+- ✅ **Keep**: Artifacts for last 3 releases (needed for auto-update downloads)
+- ❌ **Delete**: All other older artifacts
+- 📊 **Current Usage**: Check with `gh api repos/markotrapani/redis-acl-builder/actions/artifacts | jq '.total_count'`
+
+```bash
+# List artifacts older than last 3 releases
+gh api repos/markotrapani/redis-acl-builder/actions/artifacts --paginate | \
+  jq -r '.artifacts[] | "\(.id) \(.created_at) \(.name)"' | \
+  sort -k2 -r | tail -n +45  # Adjust based on how many to keep
+
+# Delete specific artifact by ID
+gh api --method DELETE /repos/markotrapani/redis-acl-builder/actions/artifacts/<ID>
+```
+
+### Why This Matters:
+- Users see version numbers in README/docs/release notes
+- Desktop apps need matching versions in package.json and __init__.py
+- Old artifacts cost money and aren't needed after 3 releases
+- Dynamic release notes prevent confusion between releases
+
+---
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
@@ -55,7 +108,7 @@ This is a collection of Redis-related projects, with the main project being **Re
 
 ### Key Project: Redis Enterprise ACL Builder
 
-- **Version**: v2.2.6-beta (Desktop + Web App)
+- **Version**: v2.2.8-beta (Desktop + Web App)
 - **Test Coverage**: Backend 85% (Core logic: 95-100%, API: 78%) | E2E: 100% (28/28 Playwright tests passing)
 - **Status**: 195 backend tests passing, 28 E2E tests passing, 0 failing, 0 skipped
 - **Latest Release**: Dead code cleanup and codebase optimization (v2.2.0-beta)

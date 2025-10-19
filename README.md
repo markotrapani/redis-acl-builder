@@ -1,12 +1,53 @@
 # Redis Enterprise ACL Builder
 
-**Version v2.2.0-beta** - Multi-Platform Desktop + Web App
+**Version v2.2.8-beta** - Multi-Platform Desktop + Web App
 
 A comprehensive application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis. Available as both a web application and native desktop app (macOS, Windows, Linux) with an elegant resizable interface, drag-drop panel reordering, and auto-update infrastructure.
 
 ## 🚀 Quick Start
 
-### Option 1: Docker (Fastest - Recommended)
+### Option 1: Desktop App (Recommended for End Users)
+
+**Native desktop application with auto-update:**
+
+📦 **[Download Latest Release](https://github.com/markotrapani/redis-acl-builder/releases/latest)** - Signed and notarized installers
+
+**macOS:**
+```bash
+# Download the .dmg for your architecture
+# - Redis-ACL-Builder-2.2.8-beta-arm64.dmg (Apple Silicon - M1/M2/M3)
+# - Redis-ACL-Builder-2.2.8-beta-x64.dmg (Intel Macs)
+
+# Install:
+# 1. Open the DMG file
+# 2. Drag "Redis ACL Builder" to Applications folder
+# 3. Launch from Applications (app is signed and notarized - no security warnings!)
+```
+
+**Windows:**
+```bash
+# Download Redis-ACL-Builder-Setup-2.2.8-beta.exe
+# Run the installer and follow the prompts
+# App will be available in Start Menu
+```
+
+**Linux:**
+```bash
+# Download Redis-ACL-Builder-2.2.8-beta.AppImage
+chmod +x Redis-ACL-Builder-2.2.8-beta.AppImage
+./Redis-ACL-Builder-2.2.8-beta.AppImage
+
+# Or install the .deb package (Debian/Ubuntu)
+sudo dpkg -i Redis-ACL-Builder_2.2.8-beta_amd64.deb
+```
+
+**Features:**
+- ✅ No Python installation required
+- ✅ Auto-update system (seamless updates)
+- ✅ Offline support (works without internet)
+- ✅ Native performance and integration
+
+### Option 2: Docker (Fastest for Servers/Web)
 
 **Ready to deploy? Get started in seconds:**
 
@@ -29,7 +70,7 @@ docker rm -f redis-acl-builder; docker run -d --name redis-acl-builder -p 7380:7
 docker compose pull && docker compose up -d
 ```
 
-### Option 2: Local Installation
+### Option 3: Local Development Installation
 
 **Prerequisites:**
 - Python 3.7 or higher
