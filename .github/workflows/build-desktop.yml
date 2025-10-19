@@ -326,69 +326,14 @@ jobs:
 
           # Create formatted release notes
           cat > release_notes.md << EOF
-          ## ${VERSION} - Automated Release
-
-          ### What's New
-
           ${KEY_CHANGES}
 
-          <details>
-          <summary><b>🐳 Docker Deployment</b></summary>
+          ---
 
-          **Docker Hub:** [markotrapani608/redis-acl-builder](https://hub.docker.com/r/markotrapani608/redis-acl-builder)
-
-          **Pull this version:**
-          \`\`\`bash
-          docker pull markotrapani608/redis-acl-builder:${VERSION}
-          \`\`\`
-
-          **Run with Docker:**
-          \`\`\`bash
-          docker run -d -p 7380:7380 --name redis-acl-builder \\
-            markotrapani608/redis-acl-builder:${VERSION}
-          \`\`\`
-          Then open http://localhost:7380
-
-          **Available tags for this release:**
-          - \`${VERSION}\` - This specific version
-          - `2.2` - Latest 2.2.x release
-          - `2` - Latest 2.x release
-          - `latest` - Latest stable release
-          - `beta` - Latest beta release (for pre-releases)
-
-          **Supported platforms:**
-          - linux/amd64 (x86_64)
-          - linux/arm64 (Apple Silicon, ARM servers)
-
-          </details>
+          **Installation:** See [README](https://github.com/markotrapani/redis-acl-builder#-quick-start) for Desktop, Docker, and local installation instructions.
 
           <details>
-          <summary><b>📦 Desktop App Installation</b></summary>
-
-          **macOS:**
-          - Download the `.dmg` file for your architecture (ARM64 for Apple Silicon, or x64 for Intel)
-          - Open the DMG and drag to Applications folder
-          - App is signed and notarized - no security warnings!
-
-          **Windows:**
-          - Download the `.exe` installer
-          - Run the installer and follow prompts
-          - App will be available in Start Menu
-
-          **Linux:**
-          - Download the `.AppImage` file
-          - Make it executable: `chmod +x Redis-ACL-Builder-*.AppImage`
-          - Run: `./Redis-ACL-Builder-*.AppImage`
-
-          **Build Infrastructure:**
-          - Python 3.12 backend bundled with PyInstaller
-          - Electron framework for native desktop experience
-          - GitHub Actions automated multi-platform builds
-
-          </details>
-
-          <details>
-          <summary><b>📝 Commits in This Release</b></summary>
+          <summary><b>📝 Full Changelog</b></summary>
 
           ${COMMITS}
 
