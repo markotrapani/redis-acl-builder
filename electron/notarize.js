@@ -23,8 +23,12 @@ exports.default = async function notarizing(context) {
 
   // Decode base64-encoded API key and write to temp file
   const apiKeyContent = Buffer.from(process.env.APPLE_API_KEY, 'base64').toString('utf8');
+  console.log(`Decoded API key length: ${apiKeyContent.length} bytes`);
+  console.log(`First 50 chars: ${apiKeyContent.substring(0, 50)}`);
+
   const tempKeyPath = path.join(os.tmpdir(), 'AuthKey.p8');
   fs.writeFileSync(tempKeyPath, apiKeyContent);
+  console.log(`Wrote API key to: ${tempKeyPath}`);
 
   try {
     await notarize({
