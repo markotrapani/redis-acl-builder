@@ -1,7 +1,7 @@
 {
   "name": "redis-acl-builder",
   "productName": "Redis ACL Builder",
-  "version": "2.2.4-beta",
+  "version": "2.2.5-beta",
   "description": "Redis ACL Builder - Desktop Application",
   "main": "main.js",
   "scripts": {
@@ -41,6 +41,7 @@
   },
   "build": {
     "appId": "com.redis.acl-builder",
+    "artifactName": "Redis-ACL-Builder-${version}-${arch}.${ext}",
     "directories": {
       "output": "dist"
     },
@@ -69,9 +70,16 @@
       "category": "public.app-category.developer-tools",
       "icon": "build/icon.icns",
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": ["arm64", "x64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["arm64", "x64"]
+        }
       ],
+      "artifactName": "Redis-ACL-Builder-${version}-${arch}.${ext}",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
