@@ -1,0 +1,84 @@
+name: Cleanup Old Artifacts
+
+on:
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  cleanup:
+    name: Delete Old Artifacts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history to get tags
+
+      - name: Clean up old artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Finding artifacts to delete (keeping last 3 releases)..."
+
+          # Get the 3 most recent release tags
+          RECENT_TAGS=$(git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | head -3)
+
+          echo "📌 Recent releases to preserve:"
+          echo "$RECENT_TAGS"
+
+          # Get the oldest of the 3 recent tags to use as cutoff date
+          CUTOFF_TAG=$(echo "$RECENT_TAGS" | tail -1)
+
+          # Get the date of the cutoff tag
+          CUTOFF_DATE=$(git log -1 --format=%aI "$CUTOFF_TAG" 2>/dev/null || echo "")
+
+          if [ -z "$CUTOFF_DATE" ]; then
+            echo "⚠️ Could not determine cutoff date from tags"
+            exit 1
+          fi
+
+          echo "📅 Cutoff date: $CUTOFF_DATE (artifacts before this will be deleted)"
+
+          # Get artifacts older than the cutoff date
+          OLD_ARTIFACTS=$(gh api repos/${{ github.repository }}/actions/artifacts --paginate | \
+            jq -r --arg cutoff "$CUTOFF_DATE" \
+            '.artifacts[] | select(.created_at < $cutoff) | "\(.id)\t\(.name)\t\(.created_at)\t\(.size_in_bytes)"')
+
+          if [ -z "$OLD_ARTIFACTS" ]; then
+            echo "✅ No old artifacts to delete"
+            exit 0
+          fi
+
+          # Calculate total size
+          TOTAL_SIZE=$(echo "$OLD_ARTIFACTS" | awk '{sum+=$4} END {print sum/1024/1024/1024}')
+          ARTIFACT_COUNT=$(echo "$OLD_ARTIFACTS" | wc -l)
+
+          echo "🗑️  Found $ARTIFACT_COUNT artifacts to delete (${TOTAL_SIZE} GB)"
+
+          # Delete each artifact
+          echo "$OLD_ARTIFACTS" | while IFS=$'\t' read -r id name created_at size; do
+            echo "Deleting: $name (ID: $id, Created: $created_at)"
+            gh api --method DELETE "/repos/${{ github.repository }}/actions/artifacts/$id" || echo "Failed to delete $id"
+            sleep 0.5  # Rate limiting
+          done
+
+          echo "✅ Artifact cleanup complete!"
+          echo "💰 Saved approximately \$$(echo "$TOTAL_SIZE * 0.25" | bc) per month"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Artifact Cleanup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Get current artifact stats
+          CURRENT_STATS=$(gh api repos/${{ github.repository }}/actions/artifacts | \
+            jq '{count: .total_count, size_gb: ([.artifacts[].size_in_bytes] | add / 1024 / 1024 / 1024)}')
+
+          echo "**Current Storage:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Artifacts: $(echo $CURRENT_STATS | jq -r '.count')" >> $GITHUB_STEP_SUMMARY
+          echo "- Size: $(echo $CURRENT_STATS | jq -r '.size_gb') GB" >> $GITHUB_STEP_SUMMARY
+          echo "- Monthly cost: \$$(echo $CURRENT_STATS | jq -r '.size_gb * 0.25' | bc)" >> $GITHUB_STEP_SUMMARY
