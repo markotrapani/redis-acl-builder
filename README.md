@@ -18,8 +18,8 @@ A comprehensive application for testing and validating Redis Access Control List
 **macOS:**
 ```bash
 # Download the .dmg for your architecture
-# - Redis-ACL-Builder-2.2.8-beta-arm64.dmg (Apple Silicon - M1/M2/M3)
-# - Redis-ACL-Builder-2.2.8-beta-x64.dmg (Intel Macs)
+# - Redis-ACL-Builder-2.2.10-beta-arm64.dmg (Apple Silicon - M1/M2/M3)
+# - Redis-ACL-Builder-2.2.10-beta-x64.dmg (Intel Macs)
 
 # Install:
 # 1. Open the DMG file
@@ -29,19 +29,19 @@ A comprehensive application for testing and validating Redis Access Control List
 
 **Windows:**
 ```bash
-# Download Redis-ACL-Builder-Setup-2.2.8-beta.exe
+# Download Redis-ACL-Builder-Setup-2.2.10-beta.exe
 # Run the installer and follow the prompts
 # App will be available in Start Menu
 ```
 
 **Linux:**
 ```bash
-# Download Redis-ACL-Builder-2.2.8-beta.AppImage
-chmod +x Redis-ACL-Builder-2.2.8-beta.AppImage
-./Redis-ACL-Builder-2.2.8-beta.AppImage
+# Download Redis-ACL-Builder-2.2.10-beta.AppImage
+chmod +x Redis-ACL-Builder-2.2.10-beta.AppImage
+./Redis-ACL-Builder-2.2.10-beta.AppImage
 
 # Or install the .deb package (Debian/Ubuntu)
-sudo dpkg -i Redis-ACL-Builder_2.2.8-beta_amd64.deb
+sudo dpkg -i Redis-ACL-Builder_2.2.10-beta_amd64.deb
 ```
 
 </details>
@@ -137,7 +137,8 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 5. **Test Commands**: Use the command tester at the top to check specific commands
 6. **Collapsible Sections**: Click on "Individual Commands" headers to expand/collapse sections
 
-### ACL Rule Syntax
+<details>
+<summary><b>📝 ACL Rule Syntax (Click to expand)</b></summary>
 
 The application supports standard Redis ACL syntax:
 
@@ -186,6 +187,8 @@ The application supports standard Redis ACL syntax:
 +@read +@bitmap +@hyperloglog -@admin
 ```
 
+</details>
+
 ### Command Testing
 
 Use the **Command Tester** section to:
@@ -217,13 +220,14 @@ See **Quick Start** section above for Docker deployment options.
 
 ```bash
 # Specific version
-docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:2.0.3-alpha
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:2.2.10-beta
 
 # Custom port mapping
 docker run -d --name redis-acl-builder -p 8080:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
 ```
 
-## API Endpoints
+<details>
+<summary><b>🔌 API Endpoints (Click to expand)</b></summary>
 
 The application provides a RESTful API for programmatic access:
 
@@ -255,6 +259,11 @@ curl -X POST http://localhost:7380/api/validate-rule \
   -H "Content-Type: application/json" \
   -d '{"rule": "+@read +get", "version": "redis7"}'
 ```
+
+</details>
+
+<details>
+<summary><b>💻 Development (Click to expand)</b></summary>
 
 ## Development
 
@@ -295,13 +304,18 @@ curl -X POST http://localhost:7380/api/validate-rule \
    npx playwright test
    ```
 
-### Code Organization (Monorepo Structure - v2.1.7)
+### Code Organization (Monorepo Structure - v2.2.10-beta)
 
 - **Backend**: `backend/` - Python Flask app, helpers, models
 - **Frontend**: `frontend/` - Static assets (CSS/JS) and templates
 - **Scripts**: `scripts/` - Helper scripts (run-web.sh, build-web.sh)
 - **Tests**: `tests/backend/` (pytest) and `tests/e2e/` (Playwright)
-- **Electron**: `electron/` - Desktop app wrapper (v2.0 - see [docs/ELECTRON-ROADMAP.md](docs/ELECTRON-ROADMAP.md))
+- **Electron**: `electron/` - Desktop app wrapper (v2.2.10-beta - see [docs/ELECTRON-ROADMAP.md](docs/ELECTRON-ROADMAP.md))
+
+</details>
+
+<details>
+<summary><b>🧪 Testing (Click to expand)</b></summary>
 
 ## Testing
 
@@ -354,6 +368,11 @@ npx playwright test --ui
   - Complete workflow testing
   - Complex ACL rule patterns
   - Real-world use cases
+
+</details>
+
+<details>
+<summary><b>🚀 CI/CD & Build System (Click to expand)</b></summary>
 
 ## CI/CD & Build System
 
@@ -414,6 +433,11 @@ git tag v2.1.8-docker && git push origin v2.1.8-docker
 git tag v2.1.8-docs && git push origin v2.1.8-docs
 ```
 
+</details>
+
+<details>
+<summary><b>📁 Project Structure (Click to expand)</b></summary>
+
 ## Project Structure
 
 ```txt
@@ -445,9 +469,11 @@ redis-acl-builder/
     └── ELECTRON-ROADMAP.md   # Desktop app roadmap
 ```
 
+</details>
+
 ## 🏗️ Architecture
 
-The application features modern, modular frontend and backend architectures with a **monorepo structure** (v2.1.7-beta):
+The application features modern, modular frontend and backend architectures with a **monorepo structure** (v2.2.10-beta):
 
 - **Monorepo**: Organized into `backend/`, `frontend/`, `electron/`, `scripts/`, and `tests/` directories - single source of truth for both web app and Electron desktop app
 - **Frontend**: Modular ES6 JavaScript (13 modules) + Optimized Modular CSS (6 modules) with professional desktop-like resize experience
@@ -458,6 +484,25 @@ The application features modern, modular frontend and backend architectures with
 - **UI/UX**: Elegant resizable container system with real-time content synchronization, drag-drop panel reordering, and perfect responsive design
 
 ## ✨ What's New
+
+### v2.2.10-beta - macOS Notarization & Production-Ready Desktop App
+
+- **🔐 macOS Notarization**: Professional Apple code signing with App Store Connect API
+  - Signed and notarized installers - no security warnings on macOS
+  - Apple App Store Connect API integration for automated notarization
+  - Full trust chain validation for macOS Gatekeeper
+- **✅ Auto-Update System**: Complete implementation with update detection and download
+  - Automatic update checks on app launch
+  - Manual update checks via application menu
+  - User-friendly download and install dialogs with progress tracking
+- **🚀 Production-Ready**: All platform builds working with auto-update infrastructure
+  - macOS (ARM64 + Intel): Signed, notarized DMG installers
+  - Windows: NSIS installers
+  - Linux: AppImage + .deb packages
+- **📦 Artifact Management**: Automated cleanup workflow to manage storage costs
+  - Weekly cleanup of old build artifacts
+  - Preserves last 3 releases for auto-update functionality
+  - Reduces GitHub Actions storage costs by ~70%
 
 ### v2.1.9-beta - Debug Builds, Build Optimization & Release Cleanup
 
