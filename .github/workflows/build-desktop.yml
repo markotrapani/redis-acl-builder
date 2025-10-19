@@ -254,8 +254,8 @@ jobs:
           fi
 
           # Create formatted release notes
-          cat > release_notes.md << 'EOF'
-          ## $VERSION - Automated Release
+          cat > release_notes.md << EOF
+          ## ${VERSION} - Automated Release
 
           ### Key Changes
 
@@ -269,19 +269,19 @@ jobs:
           **Docker Hub:** [markotrapani608/redis-acl-builder](https://hub.docker.com/r/markotrapani608/redis-acl-builder)
 
           **Pull this version:**
-          ```bash
-          docker pull markotrapani608/redis-acl-builder:$VERSION
-          ```
+          \`\`\`bash
+          docker pull markotrapani608/redis-acl-builder:${VERSION}
+          \`\`\`
 
           **Run with Docker:**
-          ```bash
-          docker run -d -p 7380:7380 --name redis-acl-builder \
-            markotrapani608/redis-acl-builder:$VERSION
-          ```
+          \`\`\`bash
+          docker run -d -p 7380:7380 --name redis-acl-builder \\
+            markotrapani608/redis-acl-builder:${VERSION}
+          \`\`\`
           Then open http://localhost:7380
 
           **Available tags for this release:**
-          - `$VERSION` - This specific version
+          - \`${VERSION}\` - This specific version
           - `2.2` - Latest 2.2.x release
           - `2` - Latest 2.x release
           - `latest` - Latest stable release
@@ -321,15 +321,10 @@ jobs:
           <details>
           <summary><b>📝 Commits in This Release</b></summary>
 
-          $COMMITS
+          ${COMMITS}
 
           </details>
           EOF
-
-          # Replace variables
-          sed -i "s/\$VERSION/$VERSION/g" release_notes.md
-          sed -i "s|\$COMMITS|$COMMITS|g" release_notes.md
-          sed -i "s|\${PREV_TAG}|$PREV_TAG|g" release_notes.md
 
           cat release_notes.md
 
