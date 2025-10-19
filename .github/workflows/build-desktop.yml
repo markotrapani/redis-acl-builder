@@ -180,13 +180,14 @@ jobs:
           Write-Host "=== Installer files ==="
           Get-ChildItem -Path dist/ -Recurse -Include *.exe, *.zip | Select-Object Name, Length, FullName
 
-      - name: Upload macOS DMG artifacts
+      - name: Upload macOS artifacts
         if: matrix.platform == 'mac'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: |
             electron/dist/*.dmg
+            electron/dist/*.zip
             electron/dist/latest-mac.yml
           retention-days: 30
 
@@ -236,6 +237,30 @@ jobs:
           VERSION="${GITHUB_REF#refs/tags/}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
+
+      - name: Clean up draft releases for this tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Checking for draft releases with tag: $VERSION"
+
+          # Get all draft release IDs for this tag
+          DRAFT_IDS=$(gh api /repos/${{ github.repository }}/releases \
+            --jq ".[] | select(.draft == true and .tag_name == \"$VERSION\") | .id")
+
+          if [ -n "$DRAFT_IDS" ]; then
+            echo "Found draft release(s) to delete:"
+            echo "$DRAFT_IDS"
+
+            # Delete each draft release
+            for ID in $DRAFT_IDS; do
+              echo "Deleting draft release ID: $ID"
+              gh api -X DELETE /repos/${{ github.repository }}/releases/$ID
+            done
+          else
+            echo "No draft releases found for tag $VERSION"
+          fi
 
       - name: Generate release notes with collapsible sections
         id: release_notes
@@ -330,6 +355,7 @@ jobs:
         with:
           files: |
             artifacts/**/*.dmg
+            artifacts/**/*.zip
             artifacts/**/*.exe
             artifacts/**/*.AppImage
             artifacts/**/*.yml
