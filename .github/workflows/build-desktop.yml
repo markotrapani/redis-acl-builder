@@ -116,38 +116,13 @@ jobs:
         working-directory: electron
         run: npm ci
 
-      - name: Import code signing certificate (macOS)
-        if: matrix.platform == 'mac'
-        env:
-          CERTIFICATE_BASE64: ${{ secrets.CSC_LINK }}
-          CERTIFICATE_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-        run: |
-          # Create temporary keychain
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-          # Import certificate
-          CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
-          echo -n "$CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-          security import $CERTIFICATE_PATH -k $KEYCHAIN_PATH -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-          # Add keychain to search list
-          security list-keychain -d user -s $KEYCHAIN_PATH login.keychain
-
-          # Verify certificate
-          security find-identity -v -p codesigning $KEYCHAIN_PATH
-
       - name: Build Electron app (macOS)
         if: matrix.platform == 'mac'
         working-directory: electron
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_LINK: ${{ secrets.MACOS_CERTIFICATE }}
-          CSC_KEY_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: L56TPJWPSM
