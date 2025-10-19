@@ -119,7 +119,17 @@ function setupAutoUpdater() {
 
     console.log('🔄 Setting up auto-updater...');
 
-    // Configure updater
+    // Configure updater to use GitHub provider explicitly
+    autoUpdater.setFeedURL({
+        provider: 'github',
+        owner: 'markotrapani',
+        repo: 'redis-acl-builder'
+    });
+
+    // Disable signature validation for unsigned builds (development/testing)
+    // TODO: Remove this once proper code signing is implemented
+    process.env.ELECTRON_ENABLE_SECURITY_WARNINGS = 'false';
+
     autoUpdater.autoDownload = false; // We'll ask user first
     autoUpdater.autoInstallOnAppQuit = true;
 
