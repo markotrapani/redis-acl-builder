@@ -8,9 +8,12 @@ A comprehensive application for testing and validating Redis Access Control List
 
 ### Option 1: Desktop App (Recommended for End Users)
 
-**Native desktop application with auto-update:**
-
 📦 **[Download Latest Release](https://github.com/markotrapani/redis-acl-builder/releases/latest)** - Signed and notarized installers
+
+**Features:** No Python required • Auto-updates • Offline support • Native performance
+
+<details>
+<summary><b>📱 Installation Instructions (Click to expand)</b></summary>
 
 **macOS:**
 ```bash
@@ -41,15 +44,9 @@ chmod +x Redis-ACL-Builder-2.2.8-beta.AppImage
 sudo dpkg -i Redis-ACL-Builder_2.2.8-beta_amd64.deb
 ```
 
-**Features:**
-- ✅ No Python installation required
-- ✅ Auto-update system (seamless updates)
-- ✅ Offline support (works without internet)
-- ✅ Native performance and integration
+</details>
 
 ### Option 2: Docker (Fastest for Servers/Web)
-
-**Ready to deploy? Get started in seconds:**
 
 🐳 **[Docker Hub Repository](https://hub.docker.com/r/markotrapani608/redis-acl-builder)** - Latest builds with automated CI/CD
 
@@ -61,7 +58,9 @@ docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped mar
 open http://localhost:7380
 ```
 
-**Upgrade to latest version:**
+<details>
+<summary><b>🔄 Upgrade Instructions (Click to expand)</b></summary>
+
 ```bash
 # Simple one-liner (stops, removes, and recreates with latest image)
 docker rm -f redis-acl-builder; docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
@@ -70,22 +69,22 @@ docker rm -f redis-acl-builder; docker run -d --name redis-acl-builder -p 7380:7
 docker compose pull && docker compose up -d
 ```
 
+</details>
+
 ### Option 3: Local Development Installation
 
-**Prerequisites:**
-- Python 3.7 or higher
-- pip (Python package installer)
+**For developers:** Python 3.7+ required
 
-**Installation Steps:**
+<details>
+<summary><b>💻 Development Setup (Click to expand)</b></summary>
 
 1. **Download/Clone the project:**
    ```bash
-   # Clone from repository
    git clone https://github.com/markotrapani/redis-acl-builder.git
    cd redis-acl-builder
    ```
 
-2. **Create virtual environment (recommended):**
+2. **Create virtual environment:**
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -107,6 +106,8 @@ docker compose pull && docker compose up -d
 
 5. **Open your browser:**
    Navigate to `http://localhost:7380`
+
+</details>
 
 ## Overview
 
