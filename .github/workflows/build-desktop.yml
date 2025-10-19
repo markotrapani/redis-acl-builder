@@ -123,9 +123,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: L56TPJWPSM
         run: |
           # Build separate ARM64 and x64 DMGs (skip universal due to Python backend conflicts)
           # Add --publish=always when pushing a tag to publish to GitHub releases for auto-updates
