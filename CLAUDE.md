@@ -833,7 +833,25 @@ gh repo edit markotrapani/redis-acl-builder --visibility private
 
 **Next Development Priorities (v2.x)**:
 
-Focus on stability and user feedback - all critical UX flows are polished and working perfectly!
+1. **Test Windows and Linux Auto-Update** (Untested)
+   - ⚠️ **macOS only tested** - v2.2.5-beta → v2.2.6-beta verified working
+   - ❓ Windows auto-update untested (uses .exe for updates)
+   - ❓ Linux auto-update untested (uses AppImage)
+   - Need Windows/Linux test environments to verify auto-update flow
+   - May require fixes to ensure cross-platform auto-update works
+
+2. **App Notarization** (Optional - macOS UX improvement)
+   - Eliminates "app from unidentified developer" warnings on first install
+   - Requires: Apple Developer account, App Store Connect API key
+   - Infrastructure ready: entitlements.mac.plist, notarize.js, workflow placeholders
+
+3. **Artifact Optimization Review** (Future)
+   - Current: 11 assets per release (~660 MB)
+   - All serve a purpose (auto-update metadata, installers, manual install DMGs)
+   - Could remove DMGs to save ~214 MB (worse UX for first-time macOS users)
+   - Recommendation: Keep current setup for professional distribution
+
+Focus on stability and user feedback - macOS auto-update working, Windows/Linux need testing!
 
 **Security Monitoring**:
 
