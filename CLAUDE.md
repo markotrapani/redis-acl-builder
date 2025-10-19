@@ -833,23 +833,35 @@ gh repo edit markotrapani/redis-acl-builder --visibility private
 
 **Next Development Priorities (v2.x)**:
 
-1. **Test Windows and Linux Auto-Update** (Untested)
+1. **Test Windows and Linux Auto-Update** (Untested - Complex Setup Required)
    - ⚠️ **macOS only tested** - v2.2.5-beta → v2.2.6-beta verified working
    - ❓ Windows auto-update untested (uses .exe for updates)
    - ❓ Linux auto-update untested (uses AppImage)
-   - Need Windows/Linux test environments to verify auto-update flow
+   - **Requires:** Windows VM (Parallels/VMware) + Linux VM setup
+   - **Complexity:** Significant time investment for VM setup and testing
+   - **Alternative:** Wait for user feedback from Windows/Linux beta testers
    - May require fixes to ensure cross-platform auto-update works
 
-2. **App Notarization** (Optional - macOS UX improvement)
-   - Eliminates "app from unidentified developer" warnings on first install
-   - Requires: Apple Developer account, App Store Connect API key
-   - Infrastructure ready: entitlements.mac.plist, notarize.js, workflow placeholders
+2. **App Notarization** (Optional - Improves First-Install UX)
+   - **Current:** Users see "cannot be verified" warning, must right-click → Open → Open Again
+   - **With Notarization:** Users see "from identified developer" and click Open once
+   - **Benefit:** Better first impression, less friction for new users
+   - **Cost:** $0 (included with existing Developer account)
+   - **Effort:** ~30-60 min setup (App Store Connect API key)
+   - **Infrastructure:** Ready (entitlements.mac.plist, notarize.js, workflow placeholders)
+   - **Auto-update:** Works with or without notarization (code signing handles that)
 
-3. **Artifact Optimization Review** (Future)
-   - Current: 11 assets per release (~660 MB)
-   - All serve a purpose (auto-update metadata, installers, manual install DMGs)
+**Completed Reviews:**
+
+✅ **Artifact Optimization Analysis** (v2.2.6-beta)
+   - **Analysis complete:** 11 assets per release (~660 MB total)
+   - All assets serve a clear purpose (auto-update metadata, installers, DMGs)
    - Could remove DMGs to save ~214 MB (worse UX for first-time macOS users)
-   - Recommendation: Keep current setup for professional distribution
+   - **Decision:** Keep current setup for professional distribution
+   - macOS: DMG + ZIP (manual install + auto-update)
+   - Windows: EXE (installer + auto-update)
+   - Linux: AppImage (installer + auto-update)
+   - Metadata: 3 YAML files for cross-platform auto-update
 
 Focus on stability and user feedback - macOS auto-update working, Windows/Linux need testing!
 
