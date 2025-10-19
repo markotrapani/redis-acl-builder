@@ -119,9 +119,9 @@ jobs:
       - name: Import code signing certificate (macOS)
         if: matrix.platform == 'mac'
         env:
-          CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE }}
-          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          CERTIFICATE_BASE64: ${{ secrets.CSC_LINK }}
+          CERTIFICATE_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
         run: |
           # Create temporary keychain
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
