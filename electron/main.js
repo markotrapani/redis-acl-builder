@@ -165,12 +165,26 @@ function setupAutoUpdater() {
     autoUpdater.on('error', (err) => {
         console.error('❌ Auto-update error:', err);
 
-        // Show error dialog to user
+        // Gracefully handle expected errors (404 when no releases.atom exists, network issues, etc.)
+        const errorMessage = err.message || '';
+        const isExpectedError =
+            errorMessage.includes('404') ||  // No releases.atom feed (expected for some repos)
+            errorMessage.includes('ENOTFOUND') ||  // Network offline
+            errorMessage.includes('ETIMEDOUT') ||  // Network timeout
+            errorMessage.includes('No published versions');  // No releases yet
+
+        if (isExpectedError) {
+            console.log('ℹ️  Auto-update check returned expected error (likely no updates available)');
+            // Don't show error dialog for expected cases - user already saw "checking" or "no updates" message
+            return;
+        }
+
+        // Only show error dialog for unexpected/serious errors
         dialog.showMessageBox(mainWindow, {
             type: 'error',
             title: 'Update Check Failed',
             message: 'Failed to check for updates',
-            detail: err.message || 'An unknown error occurred',
+            detail: errorMessage || 'An unknown error occurred',
             buttons: ['OK']
         });
     });
