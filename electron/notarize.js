@@ -36,7 +36,6 @@ exports.default = async function notarizing(context) {
       appleApiKey: tempKeyPath,
       appleApiIssuer: process.env.APPLE_API_ISSUER,
       appleApiKeyId: process.env.APPLE_API_KEY_ID,
-      teamId: 'L56TPJWPSM',
     });
     console.log('Notarization complete!');
   } catch (error) {
