@@ -273,44 +273,84 @@ jobs:
             echo "No draft releases found for tag $VERSION"
           fi
 
-      - name: Generate release notes from README
+      - name: Generate release notes from commits
         id: release_notes
         run: |
           VERSION="${{ steps.version.outputs.version }}"
 
-          # Get commit messages since last tag for changelog
+          # Get commit messages since last tag
           PREV_TAG=$(git describe --abbrev=0 --tags HEAD^ 2>/dev/null || echo "")
           if [ -n "$PREV_TAG" ]; then
-            COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --no-merges)
             COMMIT_COUNT=$(git log ${PREV_TAG}..HEAD --oneline --no-merges | wc -l | tr -d ' ')
           else
-            COMMITS=$(git log --pretty=format:"- %s" --no-merges -10)
             COMMIT_COUNT=$(git log --oneline --no-merges -10 | wc -l | tr -d ' ')
           fi
 
-          # Extract "What's New" section for this version from README.md
-          # Look for the version header and extract content until next version or section
-          WHATS_NEW=$(awk -v ver="$VERSION" '
-            BEGIN { found=0; capture=0 }
-            /^### '"$VERSION"'/ { found=1; capture=1; next }
-            found && capture && /^### v[0-9]+\.[0-9]+\.[0-9]+/ { capture=0 }
-            found && capture && /^<details>/ { capture=0 }
-            found && capture && /^---$/ { capture=0 }
-            found && capture { print }
-          ' README.md)
+          # Parse conventional commits and group by type
+          feat_commits=""
+          fix_commits=""
+          docs_commits=""
+          chore_commits=""
+          other_commits=""
 
-          # If no specific version section found, create generic message
-          if [ -z "$WHATS_NEW" ] || [ $(echo "$WHATS_NEW" | wc -l) -lt 2 ]; then
-            WHATS_NEW="## What's New"$'\n\n'"Maintenance Release - Bug fixes, improvements, and updates"$'\n\n'"See full changelog below for details."
+          if [ -n "$PREV_TAG" ]; then
+            while IFS= read -r commit; do
+              if [[ $commit =~ ^feat:|^feat\( ]]; then
+                msg=$(echo "$commit" | sed 's/^feat[^:]*: *//' | sed 's/^./\U&/')
+                feat_commits="${feat_commits}- ${msg}"$'\n'
+              elif [[ $commit =~ ^fix:|^fix\( ]]; then
+                msg=$(echo "$commit" | sed 's/^fix[^:]*: *//' | sed 's/^./\U&/')
+                fix_commits="${fix_commits}- ${msg}"$'\n'
+              elif [[ $commit =~ ^docs:|^docs\( ]]; then
+                msg=$(echo "$commit" | sed 's/^docs[^:]*: *//' | sed 's/^./\U&/')
+                docs_commits="${docs_commits}- ${msg}"$'\n'
+              elif [[ $commit =~ ^chore:|^chore\( ]]; then
+                msg=$(echo "$commit" | sed 's/^chore[^:]*: *//' | sed 's/^./\U&/')
+                chore_commits="${chore_commits}- ${msg}"$'\n'
+              else
+                other_commits="${other_commits}- ${commit}"$'\n'
+              fi
+            done < <(git log ${PREV_TAG}..HEAD --pretty=format:"%s" --no-merges)
+          fi
+
+          # Build "What's New" section from categorized commits
+          WHATS_NEW="## What's New in $VERSION"$'\n\n'
+
+          if [ -n "$feat_commits" ]; then
+            WHATS_NEW="${WHATS_NEW}**✨ New Features**"$'\n'"${feat_commits}"$'\n'
+          fi
+
+          if [ -n "$fix_commits" ]; then
+            WHATS_NEW="${WHATS_NEW}**🐛 Bug Fixes**"$'\n'"${fix_commits}"$'\n'
+          fi
+
+          if [ -n "$docs_commits" ]; then
+            WHATS_NEW="${WHATS_NEW}**📚 Documentation**"$'\n'"${docs_commits}"$'\n'
+          fi
+
+          if [ -n "$chore_commits" ]; then
+            WHATS_NEW="${WHATS_NEW}**🔧 Maintenance**"$'\n'"${chore_commits}"$'\n'
+          fi
+
+          if [ -n "$other_commits" ]; then
+            WHATS_NEW="${WHATS_NEW}**Other Changes**"$'\n'"${other_commits}"$'\n'
+          fi
+
+          # Fallback if no categorized commits found
+          if [ -z "$feat_commits" ] && [ -z "$fix_commits" ] && [ -z "$docs_commits" ] && [ -z "$chore_commits" ] && [ -z "$other_commits" ]; then
+            WHATS_NEW="## What's New in $VERSION"$'\n\n'"Maintenance release with improvements and updates."$'\n\n'"See full changelog below for details."
+          fi
+
+          # Get full commit list for changelog section
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --no-merges)
           else
-            # Add header to the extracted content
-            WHATS_NEW="## What's New in $VERSION"$'\n\n'"$WHATS_NEW"
+            COMMITS=$(git log --pretty=format:"- %s" --no-merges -10)
           fi
 
           # Create formatted release notes
           {
             echo "$WHATS_NEW"
-            echo ""
             echo "---"
             echo ""
             echo "**Installation:** See [README](https://github.com/markotrapani/redis-acl-builder#-quick-start) for Desktop, Docker, and local installation instructions."
