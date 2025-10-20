@@ -8,6 +8,26 @@ This file provides guidance to Claude Code when working with the **Redis ACL Bui
 
 ## ⚠️ CRITICAL REMINDERS ⚠️
 
+### CSS/JS Build System
+
+⚠️ **CRITICAL: ALWAYS rebuild minified CSS/JS after making changes!**
+
+**Why**: The app uses minified CSS/JS files (`styles.min.css`, minified `.js` files). Changes to source files won't appear until rebuilt.
+
+**After ANY changes to CSS or JS files, ALWAYS run:**
+```bash
+python3 build_minified.py
+```
+
+**What gets minified:**
+- All CSS files in `frontend/static/css/` → `styles.min.css`
+- All JS files in `frontend/static/js/` → individual `.min.js` files
+
+**Symptoms of forgetting to rebuild:**
+- CSS changes don't appear (buttons have wrong positioning/styling)
+- JS changes don't work (new features missing)
+- Generic/unstyled elements appear
+
 ### Development Server
 
 REMINDER: **NEVER START NEW SERVERS - USE THE EXISTING ONE**
@@ -108,7 +128,7 @@ This is a collection of Redis-related projects, with the main project being **Re
 
 ### Key Project: Redis ACL Builder
 
-- **Version**: v2.2.10-beta (Desktop + Web App)
+- **Version**: v2.3.0-beta (Desktop + Web App)
 - **Test Coverage**: Backend 85% (Core logic: 95-100%, API: 78%) | E2E: 100% (28/28 Playwright tests passing)
 - **Status**: 195 backend tests passing, 28 E2E tests passing, 0 failing, 0 skipped
 - **Latest Release**: Dead code cleanup and codebase optimization (v2.2.0-beta)

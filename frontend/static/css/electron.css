@@ -146,3 +146,8 @@ body.electron-app.tester-drag-active .testing-container {
 body.electron-app .version-footer {
     display: none !important;
 }
+
+/* Hide check for updates button in Electron app (web/Docker only feature) */
+body.electron-app .check-updates-btn {
+    display: none !important;
+}

@@ -1,6 +1,6 @@
 # Redis ACL Builder
 
-**Version v2.2.10-beta** - Multi-Platform Desktop + Web App
+**Version v2.3.0-beta** - Multi-Platform Desktop + Web App
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -20,8 +20,8 @@ A comprehensive application for testing and validating Redis Access Control List
 **macOS:**
 ```bash
 # Download the .dmg for your architecture
-# - Redis-ACL-Builder-2.2.10-beta-arm64.dmg (Apple Silicon - M1/M2/M3)
-# - Redis-ACL-Builder-2.2.10-beta-x64.dmg (Intel Macs)
+# - Redis-ACL-Builder-2.3.0-beta-arm64.dmg (Apple Silicon - M1/M2/M3)
+# - Redis-ACL-Builder-2.3.0-beta-x64.dmg (Intel Macs)
 
 # Install:
 # 1. Open the DMG file
@@ -31,19 +31,19 @@ A comprehensive application for testing and validating Redis Access Control List
 
 **Windows:**
 ```bash
-# Download Redis-ACL-Builder-Setup-2.2.10-beta.exe
+# Download Redis-ACL-Builder-Setup-2.3.0-beta.exe
 # Run the installer and follow the prompts
 # App will be available in Start Menu
 ```
 
 **Linux:**
 ```bash
-# Download Redis-ACL-Builder-2.2.10-beta.AppImage
-chmod +x Redis-ACL-Builder-2.2.10-beta.AppImage
-./Redis-ACL-Builder-2.2.10-beta.AppImage
+# Download Redis-ACL-Builder-2.3.0-beta.AppImage
+chmod +x Redis-ACL-Builder-2.3.0-beta.AppImage
+./Redis-ACL-Builder-2.3.0-beta.AppImage
 
 # Or install the .deb package (Debian/Ubuntu)
-sudo dpkg -i Redis-ACL-Builder_2.2.10-beta_amd64.deb
+sudo dpkg -i Redis-ACL-Builder_2.3.0-beta_amd64.deb
 ```
 
 </details>
@@ -222,7 +222,7 @@ See **Quick Start** section above for Docker deployment options.
 
 ```bash
 # Specific version
-docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:2.2.10-beta
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:2.3.0-beta
 
 # Custom port mapping
 docker run -d --name redis-acl-builder -p 8080:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
@@ -306,13 +306,13 @@ curl -X POST http://localhost:7380/api/validate-rule \
    npx playwright test
    ```
 
-### Code Organization (Monorepo Structure - v2.2.10-beta)
+### Code Organization (Monorepo Structure - v2.3.0-beta)
 
 - **Backend**: `backend/` - Python Flask app, helpers, models
 - **Frontend**: `frontend/` - Static assets (CSS/JS) and templates
 - **Scripts**: `scripts/` - Helper scripts (run-web.sh, build-web.sh)
 - **Tests**: `tests/backend/` (pytest) and `tests/e2e/` (Playwright)
-- **Electron**: `electron/` - Desktop app wrapper (v2.2.10-beta - see [docs/ELECTRON-ROADMAP.md](docs/ELECTRON-ROADMAP.md))
+- **Electron**: `electron/` - Desktop app wrapper (v2.3.0-beta - see [docs/ELECTRON-ROADMAP.md](docs/ELECTRON-ROADMAP.md))
 
 </details>
 
@@ -475,7 +475,7 @@ redis-acl-builder/
 
 ## 🏗️ Architecture
 
-The application features modern, modular frontend and backend architectures with a **monorepo structure** (v2.2.10-beta):
+The application features modern, modular frontend and backend architectures with a **monorepo structure** (v2.3.0-beta):
 
 - **Monorepo**: Organized into `backend/`, `frontend/`, `electron/`, `scripts/`, and `tests/` directories - single source of truth for both web app and Electron desktop app
 - **Frontend**: Modular ES6 JavaScript (13 modules) + Optimized Modular CSS (6 modules) with professional desktop-like resize experience
@@ -487,7 +487,7 @@ The application features modern, modular frontend and backend architectures with
 
 ## ✨ What's New
 
-### v2.2.10-beta - macOS Notarization & Production-Ready Desktop App
+### v2.3.0-beta - macOS Notarization & Production-Ready Desktop App
 
 - **🔐 macOS Notarization**: Professional Apple code signing with App Store Connect API
   - Signed and notarized installers - no security warnings on macOS
