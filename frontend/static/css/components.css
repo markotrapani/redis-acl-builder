@@ -2811,7 +2811,7 @@ button.test-button[disabled] {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
   font-weight: 600;
   letter-spacing: 0.3px;
-  padding: 7px 10px; /* Slightly more padding to match version badge height */
+  padding: 8px 10px; /* Increased padding to match version badge height */
   border-radius: 5px;
   z-index: 9999;
   cursor: pointer;
