@@ -487,24 +487,20 @@ The application features modern, modular frontend and backend architectures with
 
 ## ✨ What's New
 
-### v2.3.3-beta - macOS Notarization & Production-Ready Desktop App
+### v2.3.3-beta
 
-- **🔐 macOS Notarization**: Professional Apple code signing with App Store Connect API
-  - Signed and notarized installers - no security warnings on macOS
-  - Apple App Store Connect API integration for automated notarization
-  - Full trust chain validation for macOS Gatekeeper
-- **✅ Auto-Update System**: Complete implementation with update detection and download
-  - Automatic update checks on app launch
-  - Manual update checks via application menu
-  - User-friendly download and install dialogs with progress tracking
-- **🚀 Production-Ready**: All platform builds working with auto-update infrastructure
-  - macOS (ARM64 + Intel): Signed, notarized DMG installers
-  - Windows: NSIS installers
-  - Linux: AppImage + .deb packages
-- **📦 Artifact Management**: Automated cleanup workflow to manage storage costs
-  - Weekly cleanup of old build artifacts
-  - Preserves last 3 releases for auto-update functionality
-  - Reduces GitHub Actions storage costs by ~70%
+- **🎨 UI/UX Improvements** (from v2.3.2-beta): Version badge and update button repositioning
+  - Moved version badge from bottom-left to top-left corner for better visibility
+  - Positioned "Check for Updates" button to right of version badge with optimal spacing
+  - Fine-tuned heights and padding for visual consistency
+- **📦 Update Modal Cleanup** (from v2.3.2-beta): Simplified Docker upgrade experience
+  - Removed redundant "Alternative: Pull and restart manually" section
+  - Added browser refresh instruction for Docker users after upgrade
+  - Reduced minified JS by 31.7% (5.71 KB → 3.90 KB)
+- **📚 Documentation Consolidation**: Complete version synchronization
+  - Updated all version references across README.md, CLAUDE.md, ELECTRON-ROADMAP.md
+  - Added comprehensive v2.3.2-beta and v2.3.3-beta accomplishment tracking
+  - Ensures complete documentation parity between Docker and Desktop platforms
 
 <details>
 <summary><strong>View Previous v2.x Releases</strong></summary>
