@@ -482,7 +482,7 @@ The application features modern, modular frontend and backend architectures with
 - **Backend**: Flask with comprehensive Redis ACL parsing and API layer
 - **Database**: Hardcoded Redis command databases for Redis 7 (311 commands) and Redis 8 (446 commands)
 - **Testing**: 223 automated tests - 195 backend (pytest) + 28 E2E (Playwright) with 100% pass rate
-- **Type Safety**: Enterprise-grade type annotations with 94% reduction in Pylance strict errors (comprehensive typing across all modules)
+- **Type Safety**: Professional type annotations with 94% reduction in Pylance strict errors (comprehensive typing across all modules)
 - **UI/UX**: Elegant resizable container system with real-time content synchronization, drag-drop panel reordering, and perfect responsive design
 
 ## ✨ What's New
@@ -506,6 +506,8 @@ The application features modern, modular frontend and backend architectures with
   - Preserves last 3 releases for auto-update functionality
   - Reduces GitHub Actions storage costs by ~70%
 
+<details>
+<summary><strong>View Previous v2.x Releases</strong></summary>
 ### v2.1.9-beta - Debug Builds, Build Optimization & Release Cleanup
 
 - **🐛 Debug Build Configuration**: Detached DevTools for debugging without UI disruption
@@ -569,6 +571,8 @@ The application features modern, modular frontend and backend architectures with
 - **🔧 Command Sort Order**: Fixed sorting to prioritize explicit commands before implicit
 - **💾 Rule Preservation**: Rules preserved on page refresh
 - **📊 Search Enhancements**: Fuzzy relevance scoring and improved UI feedback
+
+</details>
 
 ---
 
@@ -651,7 +655,7 @@ The application features modern, modular frontend and backend architectures with
 - **🐳 Docker Hub Prominence**: Direct repository link and quick-start deployment prominently featured
 - **⚙️ Mandatory Process**: Systematic version update workflow ensuring documentation accuracy
 
-### v1.15.8-beta - Enterprise-Grade Type Safety
+### v1.15.8-beta - Professional Type Safety
 
 - **🔍 Pylance Compliance**: 94% reduction in strict type checking errors across all modules
 - **📝 Comprehensive Annotations**: Full type annotations for Flask routes, helper functions, and data structures
@@ -669,7 +673,7 @@ The application features modern, modular frontend and backend architectures with
 
 ## Acknowledgments
 
-Special thanks to **Michael Tchistopolskii** (<michael.tchistopolskii@redis.com>) for substantial improvement ideas and architectural guidance that helped shape the development of this application.
+Special thanks to **Michael Tchistopolskii** () for substantial improvement ideas and architectural guidance that helped shape the development of this application.
 
 ## License
 
@@ -679,7 +683,7 @@ This project is provided as-is for educational and development purposes.
 
 For questions, feedback, or issues:
 
-1. **Contact**: [Marko Trapani](mailto:marko.trapani@redis.com) - Project Developer
+1. **Contact**: [Marko Trapani](https://github.com/markotrapani) - Project Developer
 2. **Technical Issues**: Run `python test_imports.py` for diagnostics
 3. **Test Verification**: Check results with `./tests/run_tests.sh`
 4. **Docker Deployment**: See [Docker Hub Repository](https://hub.docker.com/r/markotrapani608/redis-acl-builder)
