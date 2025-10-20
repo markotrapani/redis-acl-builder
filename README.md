@@ -508,6 +508,41 @@ The application features modern, modular frontend and backend architectures with
 
 <details>
 <summary><strong>View Previous v2.x Releases</strong></summary>
+
+### v2.3.2-beta
+- **🎨 UI/UX Improvements**: Version badge and update button repositioning
+  - Moved version badge from bottom-left to top-left corner for better visibility
+  - Positioned "Check for Updates" button to right of version badge with optimal spacing
+  - Fine-tuned heights and padding for visual consistency
+- **📦 Update Modal Cleanup**: Simplified Docker upgrade experience
+  - Removed redundant "Alternative: Pull and restart manually" section
+  - Added browser refresh instruction for Docker users after upgrade
+  - Reduced minified JS by 31.7% (5.71 KB → 3.90 KB)
+
+### v2.3.1-beta
+- **✅ Auto-Update UX Refinement**: Improved update notification behavior
+  - Fixed annoying "You have the latest version!" dialog that appeared on EVERY app startup
+  - Silent background checks at startup (only shows dialog if update IS available)
+  - Manual "Check for Updates..." always shows dialog for all outcomes
+  - Matches standard desktop app auto-update UX patterns (Slack, VS Code, etc.)
+
+### v2.3.0-beta
+- **🔐 macOS Notarization**: Professional Apple code signing with App Store Connect API
+  - Signed and notarized installers - no security warnings on macOS
+  - Full trust chain validation for macOS Gatekeeper
+- **✅ Auto-Update System**: Complete implementation with update detection and download
+  - Automatic update checks on app launch
+  - Manual update checks via application menu
+  - User-friendly download and install dialogs with progress tracking
+- **🚀 Production-Ready**: All platform builds working with auto-update infrastructure
+  - macOS (ARM64 + Intel): Signed, notarized DMG installers
+  - Windows: NSIS installers
+  - Linux: AppImage + .deb packages
+- **📦 Artifact Management**: Automated cleanup workflow to manage storage costs
+  - Weekly cleanup of old build artifacts
+  - Preserves last 3 releases for auto-update functionality
+  - Reduces GitHub Actions storage costs by ~70%
+
 ### v2.1.9-beta - Debug Builds, Build Optimization & Release Cleanup
 
 - **🐛 Debug Build Configuration**: Detached DevTools for debugging without UI disruption
