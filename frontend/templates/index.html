@@ -693,10 +693,35 @@
         })();
     </script>
 
+    <!-- Version Footer -->
+    <div class="version-footer">
+        <span class="version-text">v{{ version }}</span>
+        <button class="check-updates-btn" id="checkUpdatesBtn">Check for Updates</button>
+    </div>
+
     <!-- Notification Container -->
     <div id="notificationContainer" class="notification-container"></div>
 
     <!-- Load modular JavaScript -->
     <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <!-- Version Checker -->
+    <script type="module">
+        import { VersionChecker } from '{{ url_for('static', filename='js/version-checker.js') }}';
+
+        const versionChecker = new VersionChecker();
+        const checkBtn = document.getElementById('checkUpdatesBtn');
+
+        checkBtn.addEventListener('click', async () => {
+            checkBtn.disabled = true;
+            checkBtn.textContent = 'Checking...';
+
+            const updateInfo = await versionChecker.checkForUpdates();
+            versionChecker.showUpdateModal(updateInfo);
+
+            checkBtn.disabled = false;
+            checkBtn.textContent = 'Check for Updates';
+        });
+    </script>
 </body>
 </html>

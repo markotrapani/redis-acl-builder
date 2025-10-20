@@ -23,3 +23,7 @@ pydantic==2.10.4      # Type-safe API contracts and validation
 annotated-types>=0.6.0 # Pydantic dependency
 pydantic-core==2.27.2  # Pydantic core functionality
 typing-extensions>=4.12.2 # Type hints support
+
+# Docker update checker
+requests>=2.31.0      # HTTP library for Docker Hub API
+packaging>=23.0       # Version comparison for update detection

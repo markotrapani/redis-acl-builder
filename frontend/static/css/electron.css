@@ -141,3 +141,8 @@ body.electron-app.panel-drag-active .three-column-layout {
 body.electron-app.tester-drag-active .testing-container {
     z-index: 2000 !important;  /* Boost container ABOVE three-column-layout during tester drag */
 }
+
+/* Hide version footer in Electron app (web/Docker only feature) */
+body.electron-app .version-footer {
+    display: none !important;
+}

@@ -465,6 +465,26 @@ def api_test_command_key() -> Union[Response, Tuple[Response, int]]:
         logger.error(f"Error in api_test_command_key: {str(e)}")
         return handle_api_error(f"Internal error: {str(e)}", 500)
 
+@app.route('/api/check-updates', methods=['GET'])
+def check_updates() -> Response:
+    """
+    Check for Docker image updates on Docker Hub.
+
+    Returns version information and upgrade commands if update is available.
+    """
+    try:
+        from helpers.version_checker import check_docker_updates
+
+        result = check_docker_updates()
+        return jsonify(result)
+
+    except Exception as e:
+        logger.error(f"Error checking for updates: {str(e)}")
+        return jsonify({
+            "error": f"Error checking for updates: {str(e)}",
+            "current_version": __version__
+        })
+
 @app.route('/health')
 def health_check() -> Response:
     """Health check endpoint."""
