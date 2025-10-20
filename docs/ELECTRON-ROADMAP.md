@@ -1,12 +1,12 @@
 # Redis ACL Builder - Electron Desktop App Conversion Roadmap
 
-**Version:** v2.3.0-beta
+**Version:** v2.3.1-beta
 
 **Branch:** `main`
 
-**Status:** ✅ Production Ready - Multi-Platform Builds, Auto-Update, macOS Notarization, Automated Maintenance & Critical Bug Fixes
+**Status:** ✅ Production Ready - Multi-Platform Builds, Auto-Update, macOS Notarization, Automated Maintenance & UX Refinements
 
-**Last Updated:** 2025-10-19
+**Last Updated:** 2025-10-20
 
 ---
 
@@ -791,6 +791,20 @@ autoUpdater.on('update-downloaded', () => {
   - Added critical reminder to ALWAYS rebuild minified CSS/JS after changes
   - Documented symptoms of forgetting to rebuild (styling doesn't appear)
   - Prevents future styling issues
+
+**v2.3.1-beta Accomplishments (2025-10-20):**
+- ✅ **Auto-Update UX Refinement - COMPLETE!** ✅
+  - Fixed annoying "You have the latest version!" dialog that appeared on EVERY app startup
+  - Implemented `isManualUpdateCheck` flag to distinguish automatic vs manual update checks
+  - **New Behavior:**
+    - Startup: Silent background check, only shows dialog if update IS available
+    - Manual "Check for Updates...": Shows dialog for all outcomes (available/not available/error)
+    - Logs still show all check results in console for debugging
+  - Matches standard desktop app auto-update UX patterns (Slack, VS Code, etc.)
+- ✅ **Parent Repository Tag Cleanup (Additional) - COMPLETE!** ✅
+  - Deleted 46 additional obsolete version tags from parent repo (v1.15.2-beta → v1.27.0-beta)
+  - Parent repo now completely clean of version tags (tags only exist in submodules)
+  - Total cleanup: 51 incorrect tags removed from parent repository
 
 ### Development Strategy - Distribution First (Phase 3)
 
