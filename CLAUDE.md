@@ -1245,8 +1245,15 @@ gh run view <RUN_ID> -R markotrapani/redis-acl-builder --json event,headBranch,h
 git show <COMMIT_SHA>:.github/workflows/build-desktop.yml | head -30
 ```
 
+**Failed Workaround Attempts:**
+1. ❌ Added `if: startsWith(github.ref, 'refs/tags/')` condition to build job (commit 0baf6af)
+   - Workflow STILL triggered on main push and STILL failed (run 18638853700)
+   - `if` condition was either ignored or evaluated as true despite being a branch push
+   - Reverted in next commit
+
 **Next Steps:**
-1. Attempt workaround (delete and recreate tag)
-2. If issue persists, consider filing GitHub Support ticket
-3. Consider adding workflow_dispatch trigger for manual fallback
-4. Document any additional occurrences to establish pattern
+1. Investigate why workflows show different names in GitHub Actions UI (`.github/workflows/build-desktop.yml` vs "Build Desktop Apps (Multi-Platform)")
+2. Check if there are TWO separate workflow files that need to work together (build-desktop.yml + docker-publish.yml)
+3. Consider temporarily disabling build-desktop.yml workflow to stop spurious failures
+4. File GitHub Support ticket with all evidence if issue persists
+5. Alternative: Use manual `workflow_dispatch` triggers only until resolved

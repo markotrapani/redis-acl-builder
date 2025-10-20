@@ -27,9 +27,6 @@ jobs:
   build:
     name: Build ${{ matrix.os }} Desktop App
     runs-on: ${{ matrix.os }}
-    # WORKAROUND: GitHub Actions bug - workflow triggers on main pushes despite only having tags: trigger
-    # This if condition prevents execution unless the ref is actually a tag
-    if: startsWith(github.ref, 'refs/tags/')
 
     strategy:
       fail-fast: false
