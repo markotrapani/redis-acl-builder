@@ -516,12 +516,9 @@ header {
   transition: all var(--transition-normal);
 }
 
-/* Update available state */
+/* Update available state - keep button red, only badge is blue */
 .check-updates-btn.update-available {
-  background: linear-gradient(135deg, #2196f3, #1976d2) !important;
-  color: white !important;
-  border-color: #1976d2 !important;
-  animation: pulse-glow 2s ease-in-out infinite;
+  /* No styling needed - button stays red, only badge indicates update */
 }
 
 /* Update notification badge */
