@@ -25,6 +25,7 @@ import DragDropPanels from './components/drag-drop-panels.js';
 import DragDropTesters from './components/drag-drop-testers.js';
 import IntegratedTester from './components/integrated-tester.js';
 import EventHandlers from './handlers/event-handlers.js';
+import { initElectronMenuHandlers } from './components/electron-menu-handlers.js';
 
 // Application main object
 const App = {
@@ -66,6 +67,9 @@ const App = {
 
             // Initialize integrated command+key tester
             IntegratedTester.initIntegratedTester();
+
+            // Initialize Electron menu handlers (if running in Electron)
+            initElectronMenuHandlers();
 
             // Clean up saved rule reference (already handled by init)
             if (this.savedRuleToSync) {

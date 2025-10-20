@@ -11,6 +11,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     disableResizing: true,  // Disable manual panel resizing (window handles it)
     disableDimensionSaving: true,  // Disable localStorage dimension persistence
 
+    // View menu handlers
+    onExpandAllTesters: (callback) => ipcRenderer.on('expand-all-testers', callback),
+    onCollapseAllTesters: (callback) => ipcRenderer.on('collapse-all-testers', callback),
+
     // Future: Window controls for custom title bar
     // minimize: () => ipcRenderer.send('window-minimize'),
     // maximize: () => ipcRenderer.send('window-maximize'),

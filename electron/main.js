@@ -3,7 +3,7 @@
  * Licensed under the MIT License - see LICENSE file for details
  */
 
-const { app, BrowserWindow, nativeImage, dialog, Menu } = require('electron');
+const { app, BrowserWindow, nativeImage, dialog, Menu, shell } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -103,6 +103,31 @@ function createAppMenu() {
                 ] : [
                     { role: 'close' }
                 ])
+            ]
+        },
+        // Help menu
+        {
+            label: 'Help',
+            submenu: [
+                {
+                    label: 'Documentation',
+                    accelerator: 'F1',
+                    click: () => {
+                        shell.openExternal('https://github.com/markotrapani/redis-acl-builder#readme');
+                    }
+                },
+                {
+                    label: 'Report Issue',
+                    click: () => {
+                        shell.openExternal('https://github.com/markotrapani/redis-acl-builder/issues/new');
+                    }
+                },
+                {
+                    label: 'View on GitHub',
+                    click: () => {
+                        shell.openExternal('https://github.com/markotrapani/redis-acl-builder');
+                    }
+                }
             ]
         }
     ];

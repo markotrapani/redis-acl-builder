@@ -148,7 +148,7 @@ def index() -> str:
 @app.route('/info')
 def info() -> str:
     """Serve the info page explaining the application."""
-    return render_template('info.html')
+    return render_template('info.html', version=__version__)
 
 @app.route('/api/parse', methods=['POST'])
 def api_parse() -> Union[Response, Tuple[Response, int]]:

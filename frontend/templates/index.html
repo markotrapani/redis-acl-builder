@@ -242,23 +242,24 @@
     <script>
         if (window.electronAPI && window.electronAPI.isElectron) {
             document.body.classList.add('electron-app');
-            // Hide version indicator in Electron (shown in About menu instead)
-            document.addEventListener('DOMContentLoaded', function() {
-                const versionIndicator = document.getElementById('versionIndicator');
-                if (versionIndicator) {
-                    versionIndicator.style.display = 'none';
-                }
-            });
         }
     </script>
 
     <!-- Version indicator in top-left corner (web app only - Electron shows version in About menu) -->
-    <div class="version-indicator" id="versionIndicator">v{{ version }}</div>
+    <div class="version-indicator" id="versionIndicator" style="display: none;">v{{ version }}</div>
 
     <!-- Check for Updates button positioned to the right of version (Docker/web only) -->
-    <button class="check-updates-btn" id="checkUpdatesBtn" title="Check for newer Docker image">
+    <button class="check-updates-btn" id="checkUpdatesBtn" title="Check for newer Docker image" style="display: none;">
         Check for Updates
     </button>
+
+    <!-- Show version elements only in web/Docker (not Electron) -->
+    <script>
+        if (!window.electronAPI || !window.electronAPI.isElectron) {
+            document.getElementById('versionIndicator').style.display = '';
+            document.getElementById('checkUpdatesBtn').style.display = '';
+        }
+    </script>
 
     <div class="panel-container" id="panel-container">
         <div class="inner-container">

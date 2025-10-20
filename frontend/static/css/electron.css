@@ -3,20 +3,49 @@
  * These styles override the web app defaults to make the UI fill the window
  */
 
-/* Make body fill the entire window with no scrollbars - removes background visibility */
-body.electron-app {
+/* Index page (has .panel-container): Fill entire window with no scrollbars, hide background */
+body.electron-app:has(.panel-container) {
     min-height: 100vh;
     height: 100vh;
     overflow: hidden;
     margin: 0;
     padding: 0;  /* Remove body padding - panel-container will handle all spacing */
     box-sizing: border-box;
-    background-image: none !important;  /* Hide background SVG pattern */
+    background-image: none !important;  /* Hide background SVG pattern on index page */
 }
 
-/* Hide the light mode background overlay */
-body.electron-app::before {
+/* Hide the light mode background overlay on index page only */
+body.electron-app:has(.panel-container)::before {
     display: none !important;
+}
+
+/* Info page (has .info-page): Allow scrolling and show background images */
+body.electron-app:has(.info-page) {
+    overflow: auto !important;  /* Enable scrolling */
+    height: auto !important;    /* Let content determine height */
+    min-height: 100vh;
+    background-image: url('/static/background.svg') !important;  /* Force background to show */
+    background-attachment: fixed;
+    background-repeat: repeat;
+}
+
+/* Light mode background overlay for info page */
+[data-theme="light"] body.electron-app:has(.info-page)::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/static/background.svg');
+    background-attachment: fixed;
+    background-repeat: repeat;
+    filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.8);
+    z-index: -1;
+}
+
+[data-theme="light"] body.electron-app:has(.info-page) {
+    background-image: none !important;
 }
 
 /* Panel container fills entire viewport */
@@ -31,6 +60,9 @@ body.electron-app .panel-container {
     top: auto !important;
     display: flex;
     flex-direction: column;
+    /* Remove top border radius to blend seamlessly with window title bar */
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
 }
 
 /* Inner container fills panel-container and manages layout */
@@ -48,8 +80,8 @@ body.electron-app.tester-drag-active .inner-container {
     overflow: visible !important;
 }
 
-/* Header stays at natural size */
-body.electron-app header {
+/* Header stays at natural size - only for index page */
+body.electron-app:has(.panel-container) header {
     flex-shrink: 0;
     margin-bottom: 8px;
 }
@@ -144,6 +176,11 @@ body.electron-app.tester-drag-active .testing-container {
 
 /* Hide version footer in Electron app (web/Docker only feature) */
 body.electron-app .version-footer {
+    display: none !important;
+}
+
+/* Hide version indicator in Electron app (shown in About menu instead) */
+body.electron-app .version-indicator {
     display: none !important;
 }
 
