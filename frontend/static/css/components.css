@@ -2806,12 +2806,12 @@ button.test-button[disabled] {
 .check-updates-btn {
   position: fixed;
   top: 10px;
-  left: 105px; /* Position to the right of version indicator */
+  left: 115px; /* Position to the right of version indicator with spacing */
   font-size: 12px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
   font-weight: 600;
   letter-spacing: 0.3px;
-  padding: 6px 10px;
+  padding: 7px 10px; /* Slightly more padding to match version badge height */
   border-radius: 5px;
   z-index: 9999;
   cursor: pointer;
