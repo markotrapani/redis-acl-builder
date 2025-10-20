@@ -293,16 +293,10 @@ jobs:
 
           # If no specific version section found, create generic message
           if [ -z "$WHATS_NEW" ] || [ $(echo "$WHATS_NEW" | wc -l) -lt 2 ]; then
-            WHATS_NEW="## What's New
-
-**Maintenance Release** - Bug fixes, improvements, and updates
-
-See full changelog below for details."
+            WHATS_NEW="## What's New"$'\n\n'"Maintenance Release - Bug fixes, improvements, and updates"$'\n\n'"See full changelog below for details."
           else
             # Add header to the extracted content
-            WHATS_NEW="## What's New in $VERSION
-
-$WHATS_NEW"
+            WHATS_NEW="## What's New in $VERSION"$'\n\n'"$WHATS_NEW"
           fi
 
           # Create formatted release notes
