@@ -1,10 +1,10 @@
 # Redis ACL Builder - Electron Desktop App Conversion Roadmap
 
-**Version:** v2.3.4-beta
+**Version:** v2.4.4-beta
 
 **Branch:** `main`
 
-**Status:** ✅ Production Ready - Multi-Platform Builds, Auto-Update, macOS Notarization, Automated Maintenance & UX Refinements
+**Status:** ✅ Production Ready - Multi-Platform Builds, Auto-Update, macOS Notarization, Automated Maintenance, UX Refinements & Auto-Update Notifications
 
 **Last Updated:** 2025-10-20
 
@@ -838,6 +838,36 @@ autoUpdater.on('update-downloaded', () => {
   - Updated all version references across README.md, CLAUDE.md, ELECTRON-ROADMAP.md
   - Added v2.3.2-beta and v2.3.1-beta sections to README "What's New"
   - Ensures documentation parity between Docker and Desktop app versions
+
+**v2.4.0-beta Accomplishments (2025-10-20):**
+- ✅ **Major UI/UX Enhancements - COMPLETE!** ✅
+  - Enhanced Electron app info page with comprehensive feature showcase
+  - Redesigned layout with feature cards and better visual hierarchy
+  - Improved icons, spacing, and typography throughout the app
+  - Better user experience for both web and desktop versions
+
+**v2.4.1-beta Accomplishments (2025-10-20):**
+- ✅ **Automatic Update Notifications for Web App - COMPLETE!** ✅
+  - Silent auto-check for updates on page load (web/Docker only, skips Electron)
+  - Blue pulsing notification badge appears on "Check for Updates" button
+  - Button text changes to "Update Available" when update detected
+  - Non-intrusive 1-second delay after page load
+  - Perfect integration with existing manual check functionality
+
+**v2.4.3-beta Accomplishments (2025-10-20):**
+- ✅ **Auto-Update Notification UX Refinement - COMPLETE!** ✅
+  - Fixed button color to stay red (normal) instead of blue
+  - Only notification badge is blue with pulse animation
+  - More subtle and professional appearance
+  - Maintains consistent button styling across the app
+
+**v2.4.4-beta Accomplishments (2025-10-20):**
+- ✅ **Release Notes Quality Improvement - COMPLETE!** ✅
+  - Fixed automated release notes to filter out "Bump version" commits
+  - Release notes now show actual user-facing changes in summary
+  - Version bump commits still appear in Full Changelog but not in "What's New"
+  - Prevents misleading release summaries (e.g., v2.4.1-beta now shows "Auto-update notifications" instead of just "Bump version")
+  - Better user experience when reading release notes on GitHub
 
 ### Development Strategy - Distribution First (Phase 3)
 
