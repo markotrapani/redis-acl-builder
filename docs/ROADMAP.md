@@ -217,19 +217,45 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 
 ## 🚀 Future Roadmap
 
-### Planned Features
+### Next Up: Phase 2 Native Desktop Features (v2.5.x)
 
-**v2.5.x - Enhanced Testing & Validation**
+**Priority: HIGH** - Make desktop app feel professional and native
+
+**v2.5.x - Native Desktop Features (Electron-only polish)**
+1. **Native File Dialogs** - Save/load ACL rules from file system
+   - Standard OS file picker for save/load operations
+   - Support `.acl` and `.json` file formats
+   - Quick wins, most useful feature
+2. **Native Application Menu** - Standard desktop app menus
+   - macOS menu bar (File, Edit, View, Window, Help)
+   - Windows application menu
+   - Standard keyboard shortcuts (Cmd+S, Cmd+O, etc.)
+3. **System Tray Integration** - Always accessible
+   - App icon in macOS menu bar / Windows system tray
+   - Quick access without window open
+   - "Hide to tray" functionality
+4. **Custom Title Bar** (Optional) - Professional appearance
+   - Replace default window chrome with custom design
+   - Match app's visual style
+   - Custom window controls
+
+**Technical Details:** See [ELECTRON-ROADMAP.md Phase 2](./ELECTRON-ROADMAP.md) for implementation specifics
+
+---
+
+### Future Features
+
+**v2.6.x - Enhanced Testing & Validation**
 - Live Redis connection testing
 - ACL rule validation against real Redis instances
 - Connection profiles for multiple Redis servers
 
-**v2.6.x - Templates & Presets**
+**v2.7.x - Templates & Presets**
 - Pre-built ACL templates for common use cases
 - Custom template creation and sharing
 - Template library with best practices
 
-**v2.7.x - Advanced Features**
+**v2.8.x - Advanced Features**
 - Rule comparison mode (side-by-side)
 - ACL diff tool
 
