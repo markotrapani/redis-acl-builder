@@ -1192,4 +1192,61 @@ Co-Authored-By: marko.trapani@redis.com
 
 ## Current Known Issues
 
-No known issues at this time. All major functionality is working as expected.
+### 🚨 CRITICAL: GitHub Actions Tag Trigger Bug (v2.3.0-beta)
+
+**Status:** Under Investigation | **Priority:** HIGH | **Discovered:** 2025-10-19
+
+**Problem:**
+GitHub Actions workflows are exhibiting inconsistent behavior with tag-based triggers:
+
+1. **Tag push for v2.3.0-beta triggered ONLY Docker build workflow** - Desktop build workflow (`.github/workflows/build-desktop.yml`) was NOT triggered despite having identical trigger pattern
+2. **Main branch pushes incorrectly triggered desktop builds** - Workflow runs 18638532885 and 18638532477 were triggered by `push` to `main` branch, but workflow file ONLY has `push: tags:` trigger (no `branches:` section)
+
+**Evidence:**
+```yaml
+# .github/workflows/build-desktop.yml (verified at commit 274c528)
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+-beta'  # Should match v2.3.0-beta
+  # NO branches: trigger - should NOT run on main pushes
+```
+
+**Observed Behavior:**
+- ✅ Docker workflow triggered by v2.3.0-beta tag (run 18638533176) - CORRECT
+- ❌ Desktop workflow NOT triggered by v2.3.0-beta tag - WRONG
+- ❌ Desktop workflow triggered by main branch push (runs 18638532885, 18638532477) - WRONG
+
+**Previous Successful Tags:**
+- v2.2.10-beta, v2.2.9-beta, v2.2.8-beta all triggered desktop builds correctly
+- Tag pattern is identical across all versions
+
+**Hypothesis:**
+- GitHub Actions workflow caching issue
+- Timing issue between tag push and workflow trigger evaluation
+- Potential GitHub Actions platform bug
+
+**Workaround:**
+1. Delete problematic tag: `git tag -d v2.3.0-beta && git push origin :v2.3.0-beta`
+2. Wait 2-5 minutes for GitHub Actions cache to clear
+3. Recreate tag: `git tag v2.3.0-beta && git push origin v2.3.0-beta`
+4. Monitor both Docker and Desktop workflow runs
+
+**To Debug in Future Sessions:**
+```bash
+# Check which workflows were triggered by a specific tag
+gh run list -R markotrapani/redis-acl-builder --json databaseId,name,event,headBranch,displayTitle --limit 20 | \
+  jq '.[] | select(.headBranch == "v2.3.0-beta")'
+
+# Check what triggered a specific run
+gh run view <RUN_ID> -R markotrapani/redis-acl-builder --json event,headBranch,headSha,conclusion,workflowName
+
+# Verify workflow file at specific commit
+git show <COMMIT_SHA>:.github/workflows/build-desktop.yml | head -30
+```
+
+**Next Steps:**
+1. Attempt workaround (delete and recreate tag)
+2. If issue persists, consider filing GitHub Support ticket
+3. Consider adding workflow_dispatch trigger for manual fallback
+4. Document any additional occurrences to establish pattern
