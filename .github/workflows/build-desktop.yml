@@ -295,7 +295,7 @@ jobs:
           if [ -z "$WHATS_NEW" ] || [ $(echo "$WHATS_NEW" | wc -l) -lt 2 ]; then
             WHATS_NEW="## What's New
 
-🔄 **Maintenance Release** - Bug fixes, improvements, and updates
+**Maintenance Release** - Bug fixes, improvements, and updates
 
 See full changelog below for details."
           else
