@@ -898,6 +898,142 @@ autoUpdater.on('update-downloaded', () => {
 - [ ] System tray integration
 - [ ] Multi-window support
 
+---
+
+## Future Goals and Enhancements
+
+### Menu Enhancement Goals
+
+**File Menu** (for desktop app):
+- [ ] **Export ACL Rules** - Save current rule configuration to JSON file
+  - Keyboard shortcut: Cmd/Ctrl+E
+  - Opens native file dialog for save location
+  - Time estimate: 3-4 hours
+- [ ] **Import ACL Rules** - Load rule configuration from JSON file
+  - Keyboard shortcut: Cmd/Ctrl+I
+  - Opens native file dialog for file selection
+  - Validates JSON structure before applying
+  - Time estimate: 3-4 hours
+- [ ] **Clear All Rules** - Reset all ACL rules to default state
+  - Keyboard shortcut: Cmd/Ctrl+Shift+C
+  - Shows confirmation dialog to prevent accidental data loss
+  - Time estimate: 1-2 hours
+
+**Enhanced View Menu** (for desktop app):
+- [ ] **Expand All Testers** - Expand all test result sections at once
+  - Keyboard shortcut: Cmd/Ctrl+Shift+E
+  - Time estimate: 1 hour
+- [ ] **Collapse All Testers** - Collapse all test result sections at once
+  - Keyboard shortcut: Cmd/Ctrl+Shift+C
+  - Time estimate: 1 hour
+
+**Help Menu** (for desktop app):
+- [ ] **Documentation** - Open GitHub README in browser
+  - Keyboard shortcut: F1
+  - Time estimate: 30 minutes
+- [ ] **Report Issue** - Open GitHub Issues page in browser
+  - Time estimate: 30 minutes
+- [ ] **View on GitHub** - Open repository homepage in browser
+  - Time estimate: 30 minutes
+
+**Total Menu Enhancement Time Estimate:** 10-13 hours
+
+---
+
+### Performance Optimization Goals
+
+**Tier 1: High Impact, Low Effort** (Quick wins - implement first)
+
+- [ ] **Debounce Input Updates** ⚡ HIGH IMPACT
+  - **Problem:** Every keystroke triggers full ACL generation + syntax highlighting
+  - **Solution:** Add 300ms debounce delay on text inputs
+  - **Impact:** 70-80% reduction in unnecessary processing
+  - **Time estimate:** 30 minutes
+  - **Implementation:** Update event listeners in JavaScript to use debounce wrapper
+
+- [ ] **Cache API Responses** ⚡ HIGH IMPACT
+  - **Problem:** Same API calls made repeatedly (especially during testing)
+  - **Solution:** Implement client-side cache with TTL (Time To Live)
+  - **Impact:** 50-60% reduction in API round-trips
+  - **Time estimate:** 1 hour
+  - **Implementation:** Add simple in-memory cache object with expiration logic
+
+- [ ] **Lazy Load Categories** ⚡ HIGH IMPACT
+  - **Problem:** All command categories loaded immediately on page load
+  - **Solution:** Load categories only when first expanded
+  - **Impact:** 40-50% faster initial page load
+  - **Time estimate:** 2 hours
+  - **Implementation:** Add click handlers that fetch category data on demand
+
+**Tier 1 Total Time:** ~3.5 hours | **Combined Impact:** 2-3x faster for common operations
+
+---
+
+**Tier 2: Medium Impact, Medium Effort** (Implement after Tier 1)
+
+- [ ] **Optimize DOM Manipulation** 🔧 MEDIUM IMPACT
+  - **Problem:** Individual DOM updates for each change (causes reflows)
+  - **Solution:** Batch DOM updates using DocumentFragment
+  - **Impact:** 30-40% reduction in render time
+  - **Time estimate:** 3 hours
+
+- [ ] **Request Deduplication** 🔧 MEDIUM IMPACT
+  - **Problem:** Multiple identical requests sent simultaneously
+  - **Solution:** Queue identical requests and share results
+  - **Impact:** 30-40% reduction in redundant API calls
+  - **Time estimate:** 2 hours
+
+- [ ] **Virtual Scrolling for Long Lists** 🔧 MEDIUM IMPACT
+  - **Problem:** Rendering hundreds of commands causes lag
+  - **Solution:** Only render visible items in viewport
+  - **Impact:** 50-60% faster rendering for large category lists
+  - **Time estimate:** 4-5 hours
+
+**Tier 2 Total Time:** ~9-10 hours | **Combined Impact:** 1.5-2x faster rendering
+
+---
+
+**Tier 3: High Impact, High Effort** (Long-term improvements)
+
+- [ ] **Backend Caching** 💎 HIGH IMPACT (long-term)
+  - **Problem:** Redis command metadata regenerated on every request
+  - **Solution:** Add server-side Redis cache or in-memory cache
+  - **Impact:** 80-90% reduction in backend processing time
+  - **Time estimate:** 6-8 hours
+  - **Implementation:** Add Flask-Caching with Redis backend
+
+- [ ] **Web Workers for ACL Generation** 💎 HIGH IMPACT (long-term)
+  - **Problem:** ACL generation blocks main UI thread
+  - **Solution:** Move heavy computation to background Web Worker
+  - **Impact:** 90-95% reduction in UI freezing
+  - **Time estimate:** 5-6 hours
+
+- [ ] **IndexedDB for Client-Side Storage** 💎 MEDIUM IMPACT (long-term)
+  - **Problem:** All state lost on page refresh
+  - **Solution:** Persist ACL rules and settings to IndexedDB
+  - **Impact:** Better user experience with state persistence
+  - **Time estimate:** 4-5 hours
+
+**Tier 3 Total Time:** ~15-19 hours | **Combined Impact:** 3-5x overall performance improvement
+
+---
+
+### Performance Optimization Summary
+
+**Recommended Implementation Order:**
+1. Start with **Tier 1** (3.5 hours) - Maximum impact for minimal time investment
+2. Evaluate results and user feedback
+3. Proceed to **Tier 2** (9-10 hours) if needed for better UX
+4. Consider **Tier 3** (15-19 hours) for production-ready polish
+
+**Total Estimated Time for All Tiers:** 27.5-32.5 hours
+
+**Expected Overall Performance Gains:**
+- Initial page load: **2-3x faster**
+- Input responsiveness: **5-10x faster**
+- API operations: **2-4x faster**
+- Large dataset handling: **10-20x faster**
+
 ### Decision Points
 
 - [x] **Python Bundling Method:** PyInstaller vs ship venv? → **APPROVED: PyInstaller**
