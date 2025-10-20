@@ -687,4 +687,3 @@ For questions, feedback, or issues:
 
 ---
 
-**Redis ACL Builder v1.15.14-beta** - Enterprise-Grade Optimized Docker Build & Simplified Dependencies
