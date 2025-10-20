@@ -104,9 +104,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a collection of Redis-related projects, with the main project being **Redis Enterprise ACL Builder** - a comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis.
+This is a collection of Redis-related projects, with the main project being **Redis ACL Builder** - a comprehensive web application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis.
 
-### Key Project: Redis Enterprise ACL Builder
+### Key Project: Redis ACL Builder
 
 - **Version**: v2.2.10-beta (Desktop + Web App)
 - **Test Coverage**: Backend 85% (Core logic: 95-100%, API: 78%) | E2E: 100% (28/28 Playwright tests passing)

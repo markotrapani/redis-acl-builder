@@ -1,6 +1,11 @@
+/*
+ * Copyright (c) 2025 Marko Trapani
+ * Licensed under the MIT License - see LICENSE file for details
+ */
+
 /**
  * Main Application Entry Point
- * Modular version of the Redis Enterprise ACL Builder application
+ * Modular version of the Redis ACL Builder application
  */
 
 // Import all modules

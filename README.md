@@ -1,6 +1,8 @@
-# Redis Enterprise ACL Builder
+# Redis ACL Builder
 
 **Version v2.2.10-beta** - Multi-Platform Desktop + Web App
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A comprehensive application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis. Available as both a web application and native desktop app (macOS, Windows, Linux) with an elegant resizable interface, drag-drop panel reordering, and auto-update infrastructure.
 

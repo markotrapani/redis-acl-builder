@@ -17,7 +17,7 @@ test.describe('Complete User Flow Tests', () => {
     await page.reload();
 
     // Step 1: Load page
-    await expect(page).toHaveTitle(/Redis Enterprise ACL Builder/);
+    await expect(page).toHaveTitle(/Redis ACL Builder/);
 
     // Step 2: Wait for interactive builder to load, then click a category to grant it
     const blockedColumn = page.locator('#blockedCategories');

@@ -11,10 +11,10 @@ test.describe('Page Load Tests', () => {
     await page.goto('/');
 
     // Check page title
-    await expect(page).toHaveTitle(/Redis Enterprise ACL Builder/);
+    await expect(page).toHaveTitle(/Redis ACL Builder/);
 
     // Check main UI elements are visible
-    await expect(page.locator('h1')).toContainText('Redis Enterprise ACL Builder');
+    await expect(page.locator('h1')).toContainText('Redis ACL Builder');
     await expect(page.locator('#aclRule')).toBeVisible();
   });
 
@@ -53,10 +53,10 @@ test.describe('Page Load Tests', () => {
     await page.goto('/info');
 
     // Check page title
-    await expect(page).toHaveTitle(/Info.*Redis Enterprise ACL Builder/);
+    await expect(page).toHaveTitle(/Info.*Redis ACL Builder/);
 
     // Check content is visible
-    await expect(page.locator('h1')).toContainText('Redis Enterprise ACL Builder');
-    await expect(page.locator('body')).toContainText('What is Redis Enterprise ACL Builder');
+    await expect(page.locator('h1')).toContainText('Redis ACL Builder');
+    await expect(page.locator('body')).toContainText('What is Redis ACL Builder');
   });
 });

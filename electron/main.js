@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2025 Marko Trapani
+ * Licensed under the MIT License - see LICENSE file for details
+ */
+
 const { app, BrowserWindow, nativeImage, dialog, Menu } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');

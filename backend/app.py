@@ -1,6 +1,9 @@
+# Copyright (c) 2025 Marko Trapani
+# Licensed under the MIT License - see LICENSE file for details
+#
 #!/usr/bin/env python3
 """
-Redis Enterprise ACL Builder - Main Flask Application
+Redis ACL Builder - Main Flask Application
 """
 
 from flask import Flask, render_template, request, jsonify
@@ -521,7 +524,7 @@ def internal_error(_error: Any) -> Tuple[Response, int]:
 
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("🔐 Redis Enterprise ACL Builder Starting Up")
+    print("🔐 Redis ACL Builder Starting Up")
     print("="*60)
     print(f"✅ Redis 7: {len(REDIS_DATA['redis7']['commands'])} commands, {len(REDIS_DATA['redis7']['categories'])} categories")
     print(f"✅ Redis 8: {len(REDIS_DATA['redis8']['commands'])} commands, {len(REDIS_DATA['redis8']['categories'])} categories")
