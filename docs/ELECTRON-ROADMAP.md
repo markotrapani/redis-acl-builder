@@ -1,10 +1,10 @@
 # Redis ACL Builder - Electron Desktop App Conversion Roadmap
 
-**Version:** v2.2.7-beta
+**Version:** v2.2.10-beta
 
 **Branch:** `main`
 
-**Status:** ✅ Production Ready - Multi-Platform Builds, Auto-Update, Debug Infrastructure & macOS Notarization
+**Status:** ✅ Production Ready - Multi-Platform Builds, Auto-Update, macOS Notarization & Automated Maintenance
 
 **Last Updated:** 2025-10-19
 
@@ -751,6 +751,16 @@ autoUpdater.on('update-downloaded', () => {
   - Professional first-install user experience
   - Builds now take 10-20 minutes (notarization adds 5-15 min)
   - See [docs/CODE-SIGNING.md](CODE-SIGNING.md) for complete guide
+- ✅ **Automated Artifact Cleanup Workflow - COMPLETE!** ✅
+  - Weekly cleanup of old GitHub Actions artifacts
+  - Preserves last 3 releases for auto-update functionality
+  - Reduces storage costs by ~70% (6.47 GB → 2.08 GB)
+  - Runs automatically every Sunday at 2 AM UTC
+- ✅ **Documentation Improvements - COMPLETE!** ✅
+  - README scannability improvements with collapsible sections
+  - All version references updated to v2.2.10-beta
+  - "What's New" section highlighting current release features
+  - Parent repo README updated with multi-platform desktop installation instructions
 
 ### Development Strategy - Distribution First (Phase 3)
 
