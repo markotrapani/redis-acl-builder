@@ -1,10 +1,10 @@
 # Redis ACL Builder - Electron Desktop App Conversion Roadmap
 
-**Version:** v2.2.10-beta
+**Version:** v2.3.0-beta
 
 **Branch:** `main`
 
-**Status:** ✅ Production Ready - Multi-Platform Builds, Auto-Update, macOS Notarization & Automated Maintenance
+**Status:** ✅ Production Ready - Multi-Platform Builds, Auto-Update, macOS Notarization, Automated Maintenance & Critical Bug Fixes
 
 **Last Updated:** 2025-10-19
 
@@ -761,6 +761,36 @@ autoUpdater.on('update-downloaded', () => {
   - All version references updated to v2.2.10-beta
   - "What's New" section highlighting current release features
   - Parent repo README updated with multi-platform desktop installation instructions
+
+**v2.3.0-beta Accomplishments (2025-10-19):**
+- ✅ **"Check for Updates" Feature for Docker/Web Users - COMPLETE!** ✅
+  - Added red button in top-left corner (Docker/web only, hidden in Electron)
+  - Queries Docker Hub API for latest version
+  - Professional modal with upgrade instructions
+  - Styled with CSS/JS minification system
+  - Helps Docker users discover new releases
+- ✅ **Critical GitHub Actions YAML Syntax Bug Fix - COMPLETE!** ✅
+  - **ROOT CAUSE**: Emoji (🔄) on line 298 of build-desktop.yml causing YAML parse error
+  - **Impact**: Invalid YAML made workflow trigger on ALL pushes instead of only tags
+  - **Fix**: Removed emoji from workflow file
+  - **Result**: Desktop builds now ONLY trigger on version tags as intended
+  - **Prevention**: Added "ABSOLUTELY NO EMOJIS IN CODE" rule to documentation
+- ✅ **Repository Confusion Prevention Documentation - COMPLETE!** ✅
+  - Added prominent "REPOSITORY LOCATION CHECK" sections to both CLAUDE.md files
+  - Clear visual indicators (emoji, formatting) to identify parent vs submodule
+  - Correct vs incorrect command examples for each context
+  - Quick check commands to verify current location
+- ✅ **Parent Repository Tag Cleanup - COMPLETE!** ✅
+  - Deleted 5 incorrect version tags from parent repo (marko-projects)
+  - Added critical warning about NEVER creating version tags in parent repo
+  - Documented proper `git -C redis-acl-builder tag` usage
+- ✅ **Outdated Documentation Cleanup - COMPLETE!** ✅
+  - Removed AUTO-UPDATE-TEST-PLAN.md (400 lines of premature, outdated docs)
+  - Reduced confusion by removing references to old versions (v2.1.0-beta, v2.1.1-beta)
+- ✅ **CSS/JS Build System Documentation - COMPLETE!** ✅
+  - Added critical reminder to ALWAYS rebuild minified CSS/JS after changes
+  - Documented symptoms of forgetting to rebuild (styling doesn't appear)
+  - Prevents future styling issues
 
 ### Development Strategy - Distribution First (Phase 3)
 
