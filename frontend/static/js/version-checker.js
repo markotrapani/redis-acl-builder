@@ -76,6 +76,8 @@ export class VersionChecker {
                         <button class="copy-btn" data-copy="${this.escapeHtml(updateInfo.docker_upgrade_command)}">Copy</button>
                     </div>
 
+                    <p style="margin-top: 15px; font-style: italic; color: #666;">After running the command, refresh your browser to load the updated version.</p>
+
                     <button class="close-modal-btn">Close</button>
                 </div>
             `;
