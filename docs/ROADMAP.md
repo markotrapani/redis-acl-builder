@@ -232,8 +232,6 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 **v2.7.x - Advanced Features**
 - Rule comparison mode (side-by-side)
 - ACL diff tool
-- Bulk operations for managing multiple ACL rules
-- Export to multiple formats (JSON, YAML, TOML)
 
 **v3.0.x - Redis Enterprise Integration**
 - Direct integration with Redis Enterprise clusters
