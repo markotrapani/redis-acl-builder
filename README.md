@@ -612,7 +612,7 @@ The application features modern, modular frontend and backend architectures with
 
 ### v1.25.1-beta - Optimization Box Persistence & Backend Error Fix
 
-- **🐛 Critical Backend Fix**: Fixed undefined `warnings` variable error in `optimize_rule()` method
+- **🐛 Critical Backend Fix**: Fixed undefined `warnings` variable error in `optimize_rule(michael.tchistopolskii@redis.com)` method
 - **📌 Optimization Persistence**: Optimization suggestions now remain visible while typing
 
 ### v1.25.0-beta - Backend Category Analysis
@@ -704,7 +704,7 @@ The application features modern, modular frontend and backend architectures with
 
 ## Acknowledgments
 
-Special thanks to **Michael Tchistopolskii** () for substantial improvement ideas and architectural guidance that helped shape the development of this application.
+Special thanks to **Michael Tchistopolskii** (michael.tchistopolskii@redis.com) for substantial improvement ideas and architectural guidance that helped shape the development of this application.
 
 ## License
 
