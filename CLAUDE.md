@@ -6,6 +6,61 @@ This file provides guidance to Claude Code when working with the **Redis ACL Bui
 
 ---
 
+## 🚨 REPOSITORY LOCATION CHECK 🚨
+
+**⚠️ CRITICAL: You are working in the REDIS-ACL-BUILDER SUBMODULE repository!**
+
+**Current Repository:** `redis-acl-builder` (submodule)
+**Parent Repository:** `marko-projects` (container repo with multiple submodules)
+
+### How to Tell Which Repo You're In:
+
+**If you see these directories, you're in `redis-acl-builder` (THIS FILE):**
+- `backend/`, `frontend/`, `electron/`, `docker/`, `tests/`, `venv/`
+- `build_minified.py`, `README.md`, `CLAUDE.md`
+- Git remote: `https://github.com/markotrapani/redis-acl-builder.git`
+
+**If you see these directories, you're in `marko-projects` (PARENT):**
+- `redis-acl-builder/`, `ldap-bind-tester/`, `gtlogs-link-generator/`, `impact-score-calculator/`
+- ONLY has `README.md`, `CLAUDE.md`, `LICENSE`, `.gitmodules`
+- Git remote: `https://github.com/markotrapani/marko-projects.git`
+
+### Critical Path Differences:
+
+**When IN redis-acl-builder submodule (pwd shows `/marko-projects/redis-acl-builder`):**
+```bash
+# ✅ CORRECT
+python3 build_minified.py
+git status
+git commit -m "message"
+
+# ❌ WRONG - Will fail because you're already IN the submodule
+cd redis-acl-builder && python3 build_minified.py
+```
+
+**When IN marko-projects parent (pwd shows just `/marko-projects`):**
+```bash
+# ✅ CORRECT - Need to specify submodule path
+cd redis-acl-builder && python3 build_minified.py
+git -C redis-acl-builder status
+
+# ❌ WRONG - Will fail because build_minified.py is in submodule
+python3 build_minified.py
+```
+
+### Quick Check Command:
+```bash
+# Run this to see which repo you're in:
+pwd && git remote get-url origin
+
+# redis-acl-builder outputs: .../marko-projects/redis-acl-builder + redis-acl-builder.git
+# marko-projects outputs: .../marko-projects + marko-projects.git
+```
+
+**🚨 ALWAYS run `pwd` before executing commands to avoid confusion!**
+
+---
+
 ## ⚠️ CRITICAL REMINDERS ⚠️
 
 ### CSS/JS Build System
