@@ -295,6 +295,11 @@ jobs:
 
           if [ -n "$PREV_TAG" ]; then
             while IFS= read -r commit; do
+              # Skip "Bump version" commits as they provide no user value
+              if [[ $commit =~ [Bb]ump[[:space:]]version ]]; then
+                continue
+              fi
+
               if [[ $commit =~ ^feat:|^feat\( ]]; then
                 msg=$(echo "$commit" | sed 's/^feat[^:]*: *//' | sed 's/^./\U&/')
                 feat_commits="${feat_commits}- ${msg}"$'\n'
