@@ -47,6 +47,7 @@ function createAppMenu() {
                     label: 'Check for Updates...',
                     click: () => {
                         console.log('🔍 Manual update check requested');
+                        isManualUpdateCheck = true;
                         autoUpdater.checkForUpdates();
                     }
                 }] : []),
@@ -112,6 +113,9 @@ function createAppMenu() {
     console.log('✅ Application menu created');
 }
 
+// Track whether update check was manually triggered by user
+let isManualUpdateCheck = false;
+
 // Configure auto-updater
 function setupAutoUpdater() {
     const isDevMode = isDevelopment();
@@ -138,7 +142,8 @@ function setupAutoUpdater() {
     autoUpdater.autoDownload = false; // We'll ask user first
     autoUpdater.autoInstallOnAppQuit = true;
 
-    // Check for updates when app starts
+    // Check for updates when app starts (silently - no dialog if up to date)
+    isManualUpdateCheck = false;
     autoUpdater.checkForUpdates();
 
     // Auto-updater event handlers
@@ -167,27 +172,37 @@ function setupAutoUpdater() {
     autoUpdater.on('update-not-available', (info) => {
         console.log('✅ App is up to date:', info.version);
 
-        // Show dialog to user
-        dialog.showMessageBox(mainWindow, {
-            type: 'info',
-            title: 'No Updates Available',
-            message: 'You have the latest version!',
-            detail: `Current version: ${info.version}`,
-            buttons: ['OK']
-        });
+        // Only show dialog if user manually requested update check
+        if (isManualUpdateCheck) {
+            dialog.showMessageBox(mainWindow, {
+                type: 'info',
+                title: 'No Updates Available',
+                message: 'You have the latest version!',
+                detail: `Current version: ${info.version}`,
+                buttons: ['OK']
+            });
+        }
+
+        // Reset flag after check completes
+        isManualUpdateCheck = false;
     });
 
     autoUpdater.on('error', (err) => {
         console.error('❌ Auto-update error:', err);
 
-        // Show error dialog to user
-        dialog.showMessageBox(mainWindow, {
-            type: 'error',
-            title: 'Update Check Failed',
-            message: 'Failed to check for updates',
-            detail: err.message || 'An unknown error occurred',
-            buttons: ['OK']
-        });
+        // Only show error dialog if user manually requested update check
+        if (isManualUpdateCheck) {
+            dialog.showMessageBox(mainWindow, {
+                type: 'error',
+                title: 'Update Check Failed',
+                message: 'Failed to check for updates',
+                detail: err.message || 'An unknown error occurred',
+                buttons: ['OK']
+            });
+        }
+
+        // Reset flag after check completes
+        isManualUpdateCheck = false;
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
