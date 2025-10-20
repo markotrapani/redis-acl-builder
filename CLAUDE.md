@@ -130,6 +130,7 @@ ps aux | grep "redis-acl-builder-desktop"
 - [ ] `README.md` - Line 3: `**Version v2.2.X-beta**`
 - [ ] `README.md` - Lines 18-41: Desktop installation file names (all platforms)
 - [ ] `CLAUDE.md` - Line 58: `**Version**: v2.2.X-beta`
+- [ ] `electron/README.md` - Line 3: `**Status**: vX.X.X-beta` (**IMPORTANT: Don't forget!**)
 - [ ] `backend/helpers/__init__.py` - Line with `__version__ = "2.2.X-beta"`
 - [ ] `electron/package.json` - Line with `"version": "2.2.X-beta"`
 
