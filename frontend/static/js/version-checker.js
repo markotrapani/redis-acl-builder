@@ -76,15 +76,6 @@ export class VersionChecker {
                         <button class="copy-btn" data-copy="${this.escapeHtml(updateInfo.docker_upgrade_command)}">Copy</button>
                     </div>
 
-                    <details>
-                        <summary>Alternative: Pull and restart manually</summary>
-                        <div class="code-block">
-                            <code>${this.escapeHtml(updateInfo.docker_pull_command)}</code>
-                            <button class="copy-btn" data-copy="${this.escapeHtml(updateInfo.docker_pull_command)}">Copy</button>
-                        </div>
-                        <p style="margin-top: 10px;">Then restart your container.</p>
-                    </details>
-
                     <button class="close-modal-btn">Close</button>
                 </div>
             `;
