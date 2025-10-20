@@ -184,7 +184,7 @@ This is a collection of Redis-related projects, with the main project being **Re
 
 ### Key Project: Redis ACL Builder
 
-- **Version**: v2.3.3-beta (Desktop + Web App)
+- **Version**: v2.3.4-beta (Desktop + Web App)
 - **Test Coverage**: Backend 85% (Core logic: 95-100%, API: 78%) | E2E: 100% (28/28 Playwright tests passing)
 - **Status**: 195 backend tests passing, 28 E2E tests passing, 0 failing, 0 skipped
 - **Latest Release**: Dead code cleanup and codebase optimization (v2.2.0-beta)
@@ -1193,14 +1193,14 @@ Co-Authored-By: marko.trapani@redis.com
 
 ## Current Known Issues
 
-### 🚨 CRITICAL: GitHub Actions Tag Trigger Bug (v2.3.3-beta)
+### 🚨 CRITICAL: GitHub Actions Tag Trigger Bug (v2.3.4-beta)
 
 **Status:** Under Investigation | **Priority:** HIGH | **Discovered:** 2025-10-19
 
 **Problem:**
 GitHub Actions workflows are exhibiting inconsistent behavior with tag-based triggers:
 
-1. **Tag push for v2.3.3-beta triggered ONLY Docker build workflow** - Desktop build workflow (`.github/workflows/build-desktop.yml`) was NOT triggered despite having identical trigger pattern
+1. **Tag push for v2.3.4-beta triggered ONLY Docker build workflow** - Desktop build workflow (`.github/workflows/build-desktop.yml`) was NOT triggered despite having identical trigger pattern
 2. **Main branch pushes incorrectly triggered desktop builds** - Workflow runs 18638532885 and 18638532477 were triggered by `push` to `main` branch, but workflow file ONLY has `push: tags:` trigger (no `branches:` section)
 
 **Evidence:**
@@ -1209,13 +1209,13 @@ GitHub Actions workflows are exhibiting inconsistent behavior with tag-based tri
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+-beta'  # Should match v2.3.3-beta
+      - 'v[0-9]+.[0-9]+.[0-9]+-beta'  # Should match v2.3.4-beta
   # NO branches: trigger - should NOT run on main pushes
 ```
 
 **Observed Behavior:**
-- ✅ Docker workflow triggered by v2.3.3-beta tag (run 18638533176) - CORRECT
-- ❌ Desktop workflow NOT triggered by v2.3.3-beta tag - WRONG
+- ✅ Docker workflow triggered by v2.3.4-beta tag (run 18638533176) - CORRECT
+- ❌ Desktop workflow NOT triggered by v2.3.4-beta tag - WRONG
 - ❌ Desktop workflow triggered by main branch push (runs 18638532885, 18638532477) - WRONG
 
 **Previous Successful Tags:**
@@ -1228,16 +1228,16 @@ on:
 - Potential GitHub Actions platform bug
 
 **Workaround:**
-1. Delete problematic tag: `git tag -d v2.3.3-beta && git push origin :v2.3.3-beta`
+1. Delete problematic tag: `git tag -d v2.3.4-beta && git push origin :v2.3.4-beta`
 2. Wait 2-5 minutes for GitHub Actions cache to clear
-3. Recreate tag: `git tag v2.3.3-beta && git push origin v2.3.3-beta`
+3. Recreate tag: `git tag v2.3.4-beta && git push origin v2.3.4-beta`
 4. Monitor both Docker and Desktop workflow runs
 
 **To Debug in Future Sessions:**
 ```bash
 # Check which workflows were triggered by a specific tag
 gh run list -R markotrapani/redis-acl-builder --json databaseId,name,event,headBranch,displayTitle --limit 20 | \
-  jq '.[] | select(.headBranch == "v2.3.3-beta")'
+  jq '.[] | select(.headBranch == "v2.3.4-beta")'
 
 # Check what triggered a specific run
 gh run view <RUN_ID> -R markotrapani/redis-acl-builder --json event,headBranch,headSha,conclusion,workflowName

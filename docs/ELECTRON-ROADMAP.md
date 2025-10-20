@@ -1,6 +1,6 @@
 # Redis ACL Builder - Electron Desktop App Conversion Roadmap
 
-**Version:** v2.3.3-beta
+**Version:** v2.3.4-beta
 
 **Branch:** `main`
 
@@ -822,10 +822,10 @@ autoUpdater.on('update-downloaded', () => {
   - Successfully published v2.3.2-beta to Docker Hub
   - Update checker now properly detects v2.3.2-beta availability
 
-**v2.3.3-beta Accomplishments (2025-10-20):**
+**v2.3.4-beta Accomplishments (2025-10-20):**
 - ✅ **Documentation Consolidation - COMPLETE!** ✅
   - Updated all version references across README.md, CLAUDE.md, ELECTRON-ROADMAP.md
-  - Consolidated v2.3.2-beta improvements into comprehensive v2.3.3-beta release
+  - Consolidated v2.3.2-beta improvements into comprehensive v2.3.4-beta release
   - Ensures documentation parity between Docker and Desktop app versions
 
 ### Development Strategy - Distribution First (Phase 3)
