@@ -5,13 +5,16 @@
 export class VersionChecker {
     constructor() {
         this.checkInProgress = false;
+        this.lastCheckResult = null;
+        this.updateAvailable = false;
     }
 
     /**
      * Check for Docker image updates
+     * @param {boolean} silent - If true, won't show modal on error or if up to date
      * @returns {Promise<Object>} Update information
      */
-    async checkForUpdates() {
+    async checkForUpdates(silent = false) {
         if (this.checkInProgress) {
             return { error: 'Update check already in progress' };
         }
@@ -21,14 +24,68 @@ export class VersionChecker {
         try {
             const response = await fetch('/api/check-updates');
             const data = await response.json();
+
+            // Store the result for later use
+            this.lastCheckResult = data;
+            this.updateAvailable = data.update_available || false;
+
+            // If update is available, show the notification badge
+            if (this.updateAvailable) {
+                this.showUpdateNotification();
+            }
+
             return data;
         } catch (error) {
             console.error('Error checking for updates:', error);
-            return {
+            const errorData = {
                 error: `Network error: ${error.message}`
             };
+            this.lastCheckResult = errorData;
+            return errorData;
         } finally {
             this.checkInProgress = false;
+        }
+    }
+
+    /**
+     * Perform a silent update check on page load
+     */
+    async silentCheckOnPageLoad() {
+        // Only check if we're not in Electron app
+        if (window.electronAPI && window.electronAPI.isElectron) {
+            return;
+        }
+
+        // Wait a brief moment for the page to fully load
+        setTimeout(async () => {
+            const result = await this.checkForUpdates(true);
+
+            // If update is available, the checkForUpdates method will handle showing the notification
+            if (result.update_available) {
+                console.log(`Update available: ${result.latest_version}`);
+            }
+        }, 1000);
+    }
+
+    /**
+     * Show update notification badge on the button
+     */
+    showUpdateNotification() {
+        const checkBtn = document.getElementById('checkUpdatesBtn');
+        if (!checkBtn) return;
+
+        // Change button text
+        checkBtn.textContent = 'Update Available';
+
+        // Add update available class for styling
+        checkBtn.classList.add('update-available');
+
+        // Add notification badge if it doesn't exist
+        if (!checkBtn.querySelector('.update-badge')) {
+            const badge = document.createElement('span');
+            badge.className = 'update-badge';
+            badge.setAttribute('aria-label', 'Update available');
+            checkBtn.appendChild(badge);
         }
     }
 

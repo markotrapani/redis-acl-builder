@@ -712,6 +712,9 @@
 
             const versionChecker = new VersionChecker();
 
+            // Silently check for updates on page load
+            versionChecker.silentCheckOnPageLoad();
+
             checkBtn.addEventListener('click', async () => {
                 checkBtn.disabled = true;
                 const originalText = checkBtn.textContent;
@@ -722,7 +725,12 @@
                     versionChecker.showUpdateModal(updateInfo);
                 } finally {
                     checkBtn.disabled = false;
-                    checkBtn.textContent = originalText;
+                    // If update is available, keep showing "Update Available"
+                    if (versionChecker.updateAvailable) {
+                        checkBtn.textContent = 'Update Available';
+                    } else {
+                        checkBtn.textContent = originalText;
+                    }
                 }
             });
         });
