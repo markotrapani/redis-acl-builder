@@ -1,15 +1,15 @@
 /* Redis Enterprise ACL Builder - Component Styles */
 
-/* Version Indicator (bottom-left corner) */
+/* Version Indicator (top-left corner, next to Check for Updates button) */
 .version-indicator {
   position: fixed;
-  bottom: 10px;
-  left: 10px;
-  font-size: 14px;
+  top: 10px;
+  left: 155px; /* Position to the right of Check for Updates button */
+  font-size: 12px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.3px;
-  padding: 7px 12px;
+  padding: 6px 10px;
   border-radius: 5px;
   z-index: 9999;
   pointer-events: none;
