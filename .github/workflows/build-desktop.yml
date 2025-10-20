@@ -265,74 +265,56 @@ jobs:
             echo "No draft releases found for tag $VERSION"
           fi
 
-      - name: Generate release notes with collapsible sections
+      - name: Generate release notes from README
         id: release_notes
         run: |
           VERSION="${{ steps.version.outputs.version }}"
 
-          # Get commit messages since last tag
+          # Get commit messages since last tag for changelog
           PREV_TAG=$(git describe --abbrev=0 --tags HEAD^ 2>/dev/null || echo "")
           if [ -n "$PREV_TAG" ]; then
             COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --no-merges)
-            COMMIT_LIST=$(git log ${PREV_TAG}..HEAD --pretty=format:"%s" --no-merges)
+            COMMIT_COUNT=$(git log ${PREV_TAG}..HEAD --oneline --no-merges | wc -l | tr -d ' ')
           else
             COMMITS=$(git log --pretty=format:"- %s" --no-merges -10)
-            COMMIT_LIST=$(git log --pretty=format:"%s" --no-merges -10)
+            COMMIT_COUNT=$(git log --oneline --no-merges -10 | wc -l | tr -d ' ')
           fi
 
-          # Generate dynamic key changes from commits
-          KEY_CHANGES=""
+          # Extract "What's New" section for this version from README.md
+          # Look for the version header and extract content until next version or section
+          WHATS_NEW=$(awk -v ver="$VERSION" '
+            BEGIN { found=0; capture=0 }
+            /^### '"$VERSION"'/ { found=1; capture=1; next }
+            found && capture && /^### v[0-9]+\.[0-9]+\.[0-9]+/ { capture=0 }
+            found && capture && /^<details>/ { capture=0 }
+            found && capture && /^---$/ { capture=0 }
+            found && capture { print }
+          ' README.md)
 
-          # Check for major features/changes by analyzing commit messages
-          if echo "$COMMIT_LIST" | grep -qi "notari"; then
-            KEY_CHANGES="${KEY_CHANGES}🔐 **macOS Notarization** - Professional app signing with no security warnings\n"
+          # If no specific version section found, create generic message
+          if [ -z "$WHATS_NEW" ] || [ $(echo "$WHATS_NEW" | wc -l) -lt 2 ]; then
+            WHATS_NEW="## What's New
+
+🔄 **Maintenance Release** - Bug fixes, improvements, and updates
+
+See full changelog below for details."
+          else
+            # Add header to the extracted content
+            WHATS_NEW="## What's New in $VERSION
+
+$WHATS_NEW"
           fi
 
-          if echo "$COMMIT_LIST" | grep -qi "auto.update\|auto-update\|updater"; then
-            KEY_CHANGES="${KEY_CHANGES}⚡ **Auto-Update System** - Seamless update detection and installation\n"
-          fi
-
-          if echo "$COMMIT_LIST" | grep -qi "multi.platform\|build.*windows\|build.*linux\|build.*mac"; then
-            KEY_CHANGES="${KEY_CHANGES}📦 **Multi-Platform Builds** - macOS (ARM64 + Intel), Windows, Linux\n"
-          fi
-
-          if echo "$COMMIT_LIST" | grep -qi "pyinstaller\|bundle.*backend\|standalone"; then
-            KEY_CHANGES="${KEY_CHANGES}🐍 **Standalone Backend** - No Python installation required\n"
-          fi
-
-          if echo "$COMMIT_LIST" | grep -qi "docker\|container"; then
-            KEY_CHANGES="${KEY_CHANGES}🐳 **Docker Support** - Multi-architecture container images\n"
-          fi
-
-          if echo "$COMMIT_LIST" | grep -qi "fix:"; then
-            FIX_COUNT=$(echo "$COMMIT_LIST" | grep -c "^fix:" || echo "0")
-            if [ "$FIX_COUNT" -gt 0 ]; then
-              KEY_CHANGES="${KEY_CHANGES}🐛 **Bug Fixes** - ${FIX_COUNT} issues resolved\n"
-            fi
-          fi
-
-          if echo "$COMMIT_LIST" | grep -qi "perf:\|performance\|optimi"; then
-            KEY_CHANGES="${KEY_CHANGES}⚡ **Performance Improvements** - Faster builds and optimizations\n"
-          fi
-
-          if echo "$COMMIT_LIST" | grep -qi "docs:"; then
-            KEY_CHANGES="${KEY_CHANGES}📚 **Documentation Updates** - Improved guides and references\n"
-          fi
-
-          # If no specific changes detected, use generic message
-          if [ -z "$KEY_CHANGES" ]; then
-            KEY_CHANGES="🔄 **Maintenance Release** - Bug fixes and improvements\n\nSee commits below for details."
-          fi
-
-          # Create formatted release notes (use printf to interpret \n)
+          # Create formatted release notes
           {
-            printf "%b\n\n" "$KEY_CHANGES"
+            echo "$WHATS_NEW"
+            echo ""
             echo "---"
             echo ""
             echo "**Installation:** See [README](https://github.com/markotrapani/redis-acl-builder#-quick-start) for Desktop, Docker, and local installation instructions."
             echo ""
             echo "<details>"
-            echo "<summary><b>📝 Full Changelog</b></summary>"
+            echo "<summary><b>📝 Full Changelog ($COMMIT_COUNT commits)</b></summary>"
             echo ""
             echo "$COMMITS"
             echo ""
