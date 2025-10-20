@@ -252,13 +252,13 @@
         }
     </script>
 
-    <!-- Check for Updates button (Docker/web only) -->
+    <!-- Version indicator in top-left corner (web app only - Electron shows version in About menu) -->
+    <div class="version-indicator" id="versionIndicator">v{{ version }}</div>
+
+    <!-- Check for Updates button positioned to the right of version (Docker/web only) -->
     <button class="check-updates-btn" id="checkUpdatesBtn" title="Check for newer Docker image">
         Check for Updates
     </button>
-
-    <!-- Version indicator in top-left corner next to Check Updates button (web app only - Electron shows version in About menu) -->
-    <div class="version-indicator" id="versionIndicator">v{{ version }}</div>
 
     <div class="panel-container" id="panel-container">
         <div class="inner-container">
