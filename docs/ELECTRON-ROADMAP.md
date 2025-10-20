@@ -1,6 +1,6 @@
 # Redis ACL Builder - Electron Desktop App Conversion Roadmap
 
-**Version:** v2.3.1-beta
+**Version:** v2.3.3-beta
 
 **Branch:** `main`
 
@@ -805,6 +805,28 @@ autoUpdater.on('update-downloaded', () => {
   - Deleted 46 additional obsolete version tags from parent repo (v1.15.2-beta → v1.27.0-beta)
   - Parent repo now completely clean of version tags (tags only exist in submodules)
   - Total cleanup: 51 incorrect tags removed from parent repository
+
+**v2.3.2-beta Accomplishments (2025-10-20):**
+- ✅ **UI Improvements - Version Badge & Update Button Repositioning - COMPLETE!** ✅
+  - Moved version badge from bottom-left to top-left corner for better visibility
+  - Repositioned "Check for Updates" button to right of version badge with optimal spacing
+  - Fine-tuned heights and padding for visual consistency (version: 6px, button: 8px)
+  - Version badge now first element (left: 10px), button follows (left: 110px)
+- ✅ **Update Modal Cleanup - COMPLETE!** ✅
+  - Removed redundant "Alternative: Pull and restart manually" section
+  - Simplified update modal to show single, clear upgrade path
+  - Reduced minified JS size by 31.7% (5.71 KB → 3.90 KB)
+  - Added helpful browser refresh instruction after Docker upgrade command
+- ✅ **Docker Hub Integration Fix - COMPLETE!** ✅
+  - Resolved "blob upload unknown to registry" error via workflow retry
+  - Successfully published v2.3.2-beta to Docker Hub
+  - Update checker now properly detects v2.3.2-beta availability
+
+**v2.3.3-beta Accomplishments (2025-10-20):**
+- ✅ **Documentation Consolidation - COMPLETE!** ✅
+  - Updated all version references across README.md, CLAUDE.md, ELECTRON-ROADMAP.md
+  - Consolidated v2.3.2-beta improvements into comprehensive v2.3.3-beta release
+  - Ensures documentation parity between Docker and Desktop app versions
 
 ### Development Strategy - Distribution First (Phase 3)
 

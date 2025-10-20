@@ -1,6 +1,6 @@
 # Redis ACL Builder
 
-**Version v2.3.0-beta** - Multi-Platform Desktop + Web App
+**Version v2.3.3-beta** - Multi-Platform Desktop + Web App
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -306,13 +306,13 @@ curl -X POST http://localhost:7380/api/validate-rule \
    npx playwright test
    ```
 
-### Code Organization (Monorepo Structure - v2.3.0-beta)
+### Code Organization (Monorepo Structure - v2.3.3-beta)
 
 - **Backend**: `backend/` - Python Flask app, helpers, models
 - **Frontend**: `frontend/` - Static assets (CSS/JS) and templates
 - **Scripts**: `scripts/` - Helper scripts (run-web.sh, build-web.sh)
 - **Tests**: `tests/backend/` (pytest) and `tests/e2e/` (Playwright)
-- **Electron**: `electron/` - Desktop app wrapper (v2.3.0-beta - see [docs/ELECTRON-ROADMAP.md](docs/ELECTRON-ROADMAP.md))
+- **Electron**: `electron/` - Desktop app wrapper (v2.3.3-beta - see [docs/ELECTRON-ROADMAP.md](docs/ELECTRON-ROADMAP.md))
 
 </details>
 
@@ -475,7 +475,7 @@ redis-acl-builder/
 
 ## 🏗️ Architecture
 
-The application features modern, modular frontend and backend architectures with a **monorepo structure** (v2.3.0-beta):
+The application features modern, modular frontend and backend architectures with a **monorepo structure** (v2.3.3-beta):
 
 - **Monorepo**: Organized into `backend/`, `frontend/`, `electron/`, `scripts/`, and `tests/` directories - single source of truth for both web app and Electron desktop app
 - **Frontend**: Modular ES6 JavaScript (13 modules) + Optimized Modular CSS (6 modules) with professional desktop-like resize experience
@@ -487,7 +487,7 @@ The application features modern, modular frontend and backend architectures with
 
 ## ✨ What's New
 
-### v2.3.0-beta - macOS Notarization & Production-Ready Desktop App
+### v2.3.3-beta - macOS Notarization & Production-Ready Desktop App
 
 - **🔐 macOS Notarization**: Professional Apple code signing with App Store Connect API
   - Signed and notarized installers - no security warnings on macOS
