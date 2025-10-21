@@ -28,6 +28,7 @@ This project uses GitHub Actions for continuous integration and deployment:
    - Intelligent tag management
 
 **Trigger Strategy:**
+
 - Tag-based releases: `v*.*.*`, `v*.*.*-alpha`, `v*.*.*-beta`
 - Special suffixes control which workflows run:
   - No suffix or `-alpha`/`-beta`: Triggers both workflows
@@ -503,6 +504,7 @@ gh secret set SECRET_NAME -R owner/repo
 ### Triggering a Release
 
 1. **Update version numbers** in all files:
+
    ```bash
    # backend/helpers/__init__.py
    __version__ = "2.2.7-beta"
@@ -512,6 +514,7 @@ gh secret set SECRET_NAME -R owner/repo
    ```
 
 2. **Commit version updates:**
+
    ```bash
    git add backend/helpers/__init__.py electron/package.json
    git commit -m "chore: Bump version to v2.2.7-beta"
@@ -519,12 +522,14 @@ gh secret set SECRET_NAME -R owner/repo
    ```
 
 3. **Create and push tag:**
+
    ```bash
    git tag v2.2.7-beta
    git push origin v2.2.7-beta
    ```
 
 4. **Monitor builds:**
+
    ```bash
    # Watch Desktop Apps build
    gh run watch --interval 30 -R owner/repo
@@ -538,6 +543,7 @@ gh secret set SECRET_NAME -R owner/repo
 After successful build, GitHub Release will contain:
 
 **macOS:**
+
 - `YourApp-{version}-arm64.dmg` - ARM64 installer
 - `YourApp-{version}-arm64.zip` - ARM64 update package
 - `YourApp-{version}-x64.dmg` - Intel installer
@@ -545,10 +551,12 @@ After successful build, GitHub Release will contain:
 - `latest-mac.yml` - Auto-update metadata
 
 **Windows:**
+
 - `YourApp-{version}-x64.exe` - Installer + updater
 - `latest.yml` - Auto-update metadata
 
 **Linux:**
+
 - `YourApp-{version}-x86_64.AppImage` - Portable app
 - `latest-linux.yml` - Auto-update metadata
 
@@ -573,12 +581,14 @@ gh api /repos/owner/repo/releases \
 ### 1. Version Management
 
 ✅ **Do:**
+
 - Use semantic versioning (major.minor.patch)
 - Add suffixes for pre-releases (`-alpha`, `-beta`)
 - Update all version references before tagging
 - Use consistent version format across all files
 
 ❌ **Don't:**
+
 - Mix version formats (v2.2.7 vs 2.2.7)
 - Skip version updates in any file
 - Reuse version tags
@@ -587,12 +597,14 @@ gh api /repos/owner/repo/releases \
 ### 2. Build Optimization
 
 ✅ **Do:**
+
 - Use caching for dependencies (npm, pip, PyInstaller)
 - Run builds in parallel with matrix strategy
 - Set `fail-fast: false` to see all platform failures
 - Use `--publish=always` only for tag pushes
 
 ❌ **Don't:**
+
 - Rebuild dependencies every time
 - Run builds sequentially
 - Fail entire build on single platform failure
@@ -601,12 +613,14 @@ gh api /repos/owner/repo/releases \
 ### 3. Secret Security
 
 ✅ **Do:**
+
 - Rotate secrets periodically (every 6-12 months)
 - Use separate secrets for dev/prod
 - Base64-encode binary secrets (certificates, keys)
 - Document what each secret is for
 
 ❌ **Don't:**
+
 - Commit secrets to repository
 - Share secrets across multiple projects
 - Use production secrets for testing
@@ -615,12 +629,14 @@ gh api /repos/owner/repo/releases \
 ### 4. Release Notes
 
 ✅ **Do:**
+
 - Auto-generate from commit messages
 - Use collapsible sections for details
 - Include installation instructions
 - Link to detailed changelogs
 
 ❌ **Don't:**
+
 - Copy-paste from previous releases
 - Include internal/technical jargon
 - Forget to update for each release
@@ -629,12 +645,14 @@ gh api /repos/owner/repo/releases \
 ### 5. Monitoring
 
 ✅ **Do:**
+
 - Watch builds in real-time for important releases
 - Check artifact sizes for bloat
 - Verify release assets after publishing
 - Test installers from actual release
 
 ❌ **Don't:**
+
 - Assume build succeeded without checking
 - Ignore warnings in build logs
 - Skip testing release artifacts
@@ -647,12 +665,14 @@ gh api /repos/owner/repo/releases \
 ### Build Fails on One Platform
 
 **Check:**
+
 - Platform-specific dependencies
 - Path separators (Windows uses `\`)
 - Shell syntax (`bash` vs `pwsh`)
 - Architecture compatibility (arm64 vs x64)
 
 **Solution:**
+
 ```yaml
 # Use conditional steps
 - name: Step for Windows only
@@ -670,12 +690,14 @@ gh api /repos/owner/repo/releases \
 ### Artifacts Not Uploading
 
 **Check:**
+
 - File paths are correct
 - Files actually exist at build time
 - Upload paths use `*` wildcards correctly
 - Artifacts aren't too large (>2GB warning)
 
 **Solution:**
+
 ```yaml
 # List files before upload
 - name: List build artifacts
@@ -691,12 +713,14 @@ gh api /repos/owner/repo/releases \
 ### Release Creation Fails
 
 **Check:**
+
 - `contents: write` permission set
 - No duplicate releases exist
 - Tag exists and matches trigger pattern
 - Artifact downloads completed
 
 **Solution:**
+
 ```yaml
 # Add cleanup step
 - name: Clean up existing release
@@ -709,12 +733,14 @@ gh api /repos/owner/repo/releases \
 ### Docker Build Fails
 
 **Check:**
+
 - Dockerfile syntax
 - Base image availability
 - Multi-platform support (arm64)
 - Build context size
 
 **Solution:**
+
 ```yaml
 # Add debug output
 - name: Docker build debug
@@ -748,6 +774,7 @@ When setting up CI/CD for a new project:
 
 **Last Updated:** 2025-10-19
 **Tested With:**
+
 - GitHub Actions (ubuntu-latest, macos-latest, windows-latest)
 - electron-builder 24.13.3
 - Docker Buildx 0.12.0

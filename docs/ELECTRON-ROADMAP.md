@@ -187,7 +187,7 @@ redis-acl-builder/
 
 ## 🚀 Development Phases
 
-## Phase 1: Minimal Viable Electron App
+### Phase 1: Minimal Viable Electron App
 
 **Goal:** Get existing app running in Electron window
 
@@ -195,7 +195,7 @@ redis-acl-builder/
 
 **Status:** Not Started
 
-### Phase 1 Tasks
+#### Phase 1 Tasks
 
 - [ ] Create `electron/` directory structure
 - [ ] Implement basic `main.js`
@@ -215,7 +215,7 @@ redis-acl-builder/
   - [ ] All UI features work (resizing, drag-drop, themes)
   - [ ] Flask backend starts/stops correctly
 
-### Phase 1 Success Criteria
+#### Phase 1 Success Criteria
 
 ✅ App launches in Electron window
 ✅ All v1.x features work identically
@@ -225,7 +225,7 @@ redis-acl-builder/
 
 ---
 
-## Phase 2: Native Desktop Integration
+### Phase 2: Native Desktop Integration
 
 **Goal:** Add desktop-specific features
 
@@ -233,7 +233,7 @@ redis-acl-builder/
 
 **Status:** Not Started
 
-### Phase 2 Tasks
+#### Phase 2 Tasks
 
 - [ ] Custom Title Bar
   - [ ] Design title bar component (32px height)
@@ -257,7 +257,7 @@ redis-acl-builder/
   - [ ] System tray integration (minimize to tray)
   - [ ] Multi-window support (open multiple ACL rules)
 
-### Phase 2 Success Criteria
+#### Phase 2 Success Criteria
 
 ✅ Custom title bar works on all platforms
 ✅ File dialogs save/load ACL rules correctly
@@ -268,7 +268,7 @@ redis-acl-builder/
 
 ---
 
-## Phase 3: Build & Distribution
+### Phase 3: Build & Distribution
 
 **Goal:** Create distributable app packages
 
@@ -276,7 +276,7 @@ redis-acl-builder/
 
 **Status:** Not Started
 
-### Phase 3 Tasks
+#### Phase 3 Tasks
 
 - [ ] App Icons
   - [ ] Design 1024x1024 base icon
@@ -307,7 +307,7 @@ redis-acl-builder/
   - [ ] Implement update notification UI
   - [ ] Test auto-update flow
 
-### Phase 3 Success Criteria
+#### Phase 3 Success Criteria
 
 ✅ macOS .app launches on Intel and Apple Silicon
 ✅ Windows installer works on Win10/11
@@ -318,7 +318,7 @@ redis-acl-builder/
 
 ---
 
-## Phase 4: Testing & Release
+### Phase 4: Testing & Release
 
 **Goal:** Comprehensive testing and v2.0.0 release
 
@@ -326,7 +326,7 @@ redis-acl-builder/
 
 **Status:** Not Started
 
-### Phase 4 Tasks
+#### Phase 4 Tasks
 
 - [ ] Comprehensive Testing
   - [ ] Test all ACL parsing features
@@ -358,7 +358,7 @@ redis-acl-builder/
   - [ ] Publish auto-update manifests
   - [ ] Announce release
 
-### Phase 4 Success Criteria
+#### Phase 4 Success Criteria
 
 ✅ All features tested and working on all platforms
 ✅ Startup time < 3 seconds
@@ -386,7 +386,7 @@ redis-acl-builder/
   - ~100MB size increase
   - Easier debugging during development
 
-### Implementation
+#### Implementation
 
 ```bash
 # PyInstaller build command
@@ -401,7 +401,7 @@ pyinstaller --onefile \
 
 **Problem:** Port 5001 might be in use on user's machine.
 
-**Solution:** Dynamic port allocation
+#### Solution: Dynamic port allocation
 
 ```javascript
 // In electron/main.js
@@ -424,7 +424,7 @@ async function startPythonBackend() {
 
 **Problem:** Electron requires context isolation for security.
 
-**Solution:** Use preload script with contextBridge
+#### Solution: Use preload script with contextBridge
 
 ```javascript
 // electron/preload.js
@@ -446,14 +446,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 **Problem:** Different behaviors on macOS, Windows, Linux.
 
-### Platform-Specific Solutions
+#### Platform-Specific Solutions
 
 - Use `electron-is-dev` for dev vs production logic
 - Platform-specific code with `process.platform` checks
 - Test on all platforms before each release
 - Use platform-agnostic paths (`path.join()`)
 
-### Platform Detection Example
+#### Platform Detection Example
 
 ```javascript
 const isDev = require('electron-is-dev');
@@ -471,22 +471,25 @@ const pythonExecutable = isDev
 
 **Problem:** macOS and Windows require code signing for distribution.
 
-### Code Signing Solutions
+#### Code Signing Solutions
 
-- **macOS:**
-  - Apple Developer account required ($99/year)
-  - Code signing certificate
-  - Notarization via Apple servers
-  - electron-builder handles this automatically with credentials
+**macOS:**
 
-- **Windows:**
-  - Code signing certificate (from CA like DigiCert)
-  - electron-builder signs with certificate
+- Apple Developer account required ($99/year)
+- Code signing certificate
+- Notarization via Apple servers
+- electron-builder handles this automatically with credentials
 
-- **Linux:**
-  - No signing required for AppImage
+**Windows:**
 
-### Code Signing Configuration
+- Code signing certificate (from CA like DigiCert)
+- electron-builder signs with certificate
+
+**Linux:**
+
+- No signing required for AppImage
+
+#### Code Signing Configuration
 
 ```json
 {
@@ -511,7 +514,7 @@ const pythonExecutable = isDev
 
 **Problem:** Users expect desktop apps to auto-update.
 
-**Solution:** Use electron-updater with GitHub releases
+#### Solution: Use electron-updater with GitHub releases
 
 ```javascript
 // electron/main.js
@@ -549,26 +552,35 @@ autoUpdater.on('update-downloaded', () => {
 
 ---
 
-## 🎁 Bonus Features (Electron-Exclusive)
+## 🎁 Desktop App Features
 
-### Included in v2.0.0
+### ✅ Included in v2.0.0 (Implemented)
 
-✅ **Native File Dialogs** - Save/load ACL rules from file system
-✅ **System Theme Sync** - Auto-detect macOS dark mode
-✅ **Custom Title Bar** - Native window controls
-✅ **Offline Mode** - Works 100% offline (no server needed!)
-✅ **System Tray Integration** - Minimize to tray, quick access menu
-✅ **Multi-Window Support** - Open multiple ACL rules in separate windows
+- ✅ **System Theme Sync** - Auto-detects OS dark/light mode preference (works on page load + responds to system changes)
+- ✅ **Offline Mode** - Works 100% offline (no server needed, bundled Python backend)
+- ✅ **Application Menu** - Native macOS/Windows menus with keyboard shortcuts
+- ✅ **Auto-Update System** - Silent background checks with user-friendly update dialogs
+- ✅ **Templates & Presets** - Quick Examples + user-created Saved Rules with localStorage persistence
 
-### Future Enhancements (v2.1+)
+### 🎯 Planned Features (Priority Order)
 
-- **Rule Comparison Mode** - Side-by-side comparison of two ACL rules
-- **Export to PDF** - Generate PDF documentation of ACL rules
-- **Command Palette** - Quick action launcher (Cmd/Ctrl + P)
-- **Global Keyboard Shortcuts** - Cmd/Ctrl + S, O, N (if requested later)
-- **Redis Connection** - Live testing against real Redis instances
-- **ACL Rule Templates** - Pre-built templates for common use cases
-- **Rule Validation History** - Track changes and validation results over time
+#### High Priority (User Requested)
+
+- **Custom Title Bar** - Replace default Electron chrome with custom design matching app theme
+  - Estimate: 6-8 hours
+  - Benefits: Professional appearance, better theme integration
+
+#### Medium Priority (Nice to Have)
+
+- **System Tray Integration** - Optional minimize to tray, quick access menu
+  - Estimate: 4-5 hours
+  - Benefits: Persistent background access, quick launch
+
+#### Low Priority (Future Consideration)
+
+- **Rule Comparison Mode** - Side-by-side diff viewer for ACL rules
+- **Export to PDF** - Generate formatted documentation of ACL configurations
+- **Rule Validation History** - Track changes over time with localStorage persistence
 
 ### Distribution & Build Optimization (Future)
 
@@ -706,6 +718,7 @@ autoUpdater.on('update-downloaded', () => {
 ✅ **Phase 3: Build & Distribution - 100% COMPLETE** ✅
 
 **Completed (2025-10-15):**
+
 - ✅ App icons created (icon.icns, icon.ico, icon.png)
 - ✅ electron-builder configuration complete
 - ✅ **Python backend bundling - COMPLETE!** ✅
@@ -744,6 +757,7 @@ autoUpdater.on('update-downloaded', () => {
   - Alternative: Ship separate ARM64 and x64 DMGs (standard practice)
 
 **Completed (2025-10-19):**
+
 - ✅ **macOS Notarization - COMPLETE!** ✅
   - App Store Connect API key authentication
   - Custom afterSign hook with @electron/notarize
@@ -763,6 +777,7 @@ autoUpdater.on('update-downloaded', () => {
   - Parent repo README updated with multi-platform desktop installation instructions
 
 **v2.3.0-beta Accomplishments (2025-10-19):**
+
 - ✅ **"Check for Updates" Feature for Docker/Web Users - COMPLETE!** ✅
   - Added red button in top-left corner (Docker/web only, hidden in Electron)
   - Queries Docker Hub API for latest version
@@ -793,6 +808,7 @@ autoUpdater.on('update-downloaded', () => {
   - Prevents future styling issues
 
 **v2.3.1-beta Accomplishments (2025-10-20):**
+
 - ✅ **Auto-Update UX Refinement - COMPLETE!** ✅
   - Fixed annoying "You have the latest version!" dialog that appeared on EVERY app startup
   - Implemented `isManualUpdateCheck` flag to distinguish automatic vs manual update checks
@@ -807,6 +823,7 @@ autoUpdater.on('update-downloaded', () => {
   - Total cleanup: 51 incorrect tags removed from parent repository
 
 **v2.3.2-beta Accomplishments (2025-10-20):**
+
 - ✅ **UI Improvements - Version Badge & Update Button Repositioning - COMPLETE!** ✅
   - Moved version badge from bottom-left to top-left corner for better visibility
   - Repositioned "Check for Updates" button to right of version badge with optimal spacing
@@ -823,6 +840,7 @@ autoUpdater.on('update-downloaded', () => {
   - Update checker now properly detects v2.3.2-beta availability
 
 **v2.3.4-beta Accomplishments (2025-10-20):**
+
 - ✅ **Automated Release Notes Generation - COMPLETE!** ✅
   - Replaced fragile README-based release notes with smart conventional commit parser
   - Auto-categorizes commits by type: feat → ✨ New Features, fix → 🐛 Bug Fixes, docs → 📚 Documentation, chore → 🔧 Maintenance
@@ -831,7 +849,7 @@ autoUpdater.on('update-downloaded', () => {
   - Successfully tested with v2.3.4-beta release - works perfectly ✨
 - ✅ **Version Synchronization Fix - COMPLETE!** ✅
   - Documented complete 6-file version update checklist (was saying "2 files" incorrectly)
-  - Files: backend/helpers/__init__.py, electron/package.json, CLAUDE.md, README.md, electron/README.md, docs/ELECTRON-ROADMAP.md
+  - Files: backend/helpers/**init**.py, electron/package.json, CLAUDE.md, README.md, electron/README.md, docs/ELECTRON-ROADMAP.md
   - Fixed version drift across all documentation files
   - Prevents future version mismatch issues
 - ✅ **Documentation Consolidation - COMPLETE!** ✅
@@ -840,6 +858,7 @@ autoUpdater.on('update-downloaded', () => {
   - Ensures documentation parity between Docker and Desktop app versions
 
 **v2.4.0-beta Accomplishments (2025-10-20):**
+
 - ✅ **Major UI/UX Enhancements - COMPLETE!** ✅
   - Enhanced Electron app info page with comprehensive feature showcase
   - Redesigned layout with feature cards and better visual hierarchy
@@ -847,6 +866,7 @@ autoUpdater.on('update-downloaded', () => {
   - Better user experience for both web and desktop versions
 
 **v2.4.1-beta Accomplishments (2025-10-20):**
+
 - ✅ **Automatic Update Notifications for Web App - COMPLETE!** ✅
   - Silent auto-check for updates on page load (web/Docker only, skips Electron)
   - Blue pulsing notification badge appears on "Check for Updates" button
@@ -855,6 +875,7 @@ autoUpdater.on('update-downloaded', () => {
   - Perfect integration with existing manual check functionality
 
 **v2.4.3-beta Accomplishments (2025-10-20):**
+
 - ✅ **Auto-Update Notification UX Refinement - COMPLETE!** ✅
   - Fixed button color to stay red (normal) instead of blue
   - Only notification badge is blue with pulse animation
@@ -862,6 +883,7 @@ autoUpdater.on('update-downloaded', () => {
   - Maintains consistent button styling across the app
 
 **v2.4.4-beta Accomplishments (2025-10-20):**
+
 - ✅ **Release Notes Quality Improvement - COMPLETE!** ✅
   - Fixed automated release notes to filter out "Bump version" commits
   - Release notes now show actual user-facing changes in summary
@@ -874,6 +896,7 @@ autoUpdater.on('update-downloaded', () => {
 #### Status: MULTI-PLATFORM BUILDS + NOTARIZATION COMPLETE! 🎉 ✅
 
 **What Changed (2025-10-19):**
+
 - ✅ App no longer requires Python on user's machine
 - ✅ Fully standalone desktop application achieved
 - ✅ **Multi-platform builds working** - macOS, Windows, Linux!
@@ -935,6 +958,7 @@ autoUpdater.on('update-downloaded', () => {
 ### Menu Enhancement Goals
 
 **File Menu** (for desktop app):
+
 - [ ] **Export ACL Rules** - Save current rule configuration to JSON file
   - Keyboard shortcut: Cmd/Ctrl+E
   - Opens native file dialog for save location
@@ -950,6 +974,7 @@ autoUpdater.on('update-downloaded', () => {
   - Time estimate: 1-2 hours
 
 **Enhanced View Menu** (for desktop app):
+
 - [ ] **Expand All Testers** - Expand all test result sections at once
   - Keyboard shortcut: Cmd/Ctrl+Shift+E
   - Time estimate: 1 hour
@@ -958,6 +983,7 @@ autoUpdater.on('update-downloaded', () => {
   - Time estimate: 1 hour
 
 **Help Menu** (for desktop app):
+
 - [ ] **Documentation** - Open GitHub README in browser
   - Keyboard shortcut: F1
   - Time estimate: 30 minutes
@@ -1051,6 +1077,7 @@ autoUpdater.on('update-downloaded', () => {
 ### Performance Optimization Summary
 
 **Recommended Implementation Order:**
+
 1. Start with **Tier 1** (3.5 hours) - Maximum impact for minimal time investment
 2. Evaluate results and user feedback
 3. Proceed to **Tier 2** (9-10 hours) if needed for better UX
@@ -1059,6 +1086,7 @@ autoUpdater.on('update-downloaded', () => {
 **Total Estimated Time for All Tiers:** 27.5-32.5 hours
 
 **Expected Overall Performance Gains:**
+
 - Initial page load: **2-3x faster**
 - Input responsiveness: **5-10x faster**
 - API operations: **2-4x faster**

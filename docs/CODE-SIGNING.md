@@ -27,11 +27,13 @@ Complete guide for setting up code signing and notarization for macOS and Window
 ### Overview
 
 **What is notarization?**
+
 - Apple's security process that scans macOS apps for malware before distribution
 - Required for all apps distributed outside the Mac App Store (macOS 10.15+)
 - Provides users with a better first-install experience
 
 **User Experience:**
+
 - **Without notarization:** "cannot be verified" warning → right-click → Open → Open again
 - **With notarization:** "from identified developer" → single Open button
 - **With auto-update:** Seamless updates with no security warnings (code signing handles this)
@@ -44,9 +46,10 @@ Complete guide for setting up code signing and notarization for macOS and Window
 
 1. **Apple Developer Account** ($99/year)
    - Individual or Organization account
-   - https://developer.apple.com/programs/
+   - <https://developer.apple.com/programs/>
 
 2. **Xcode Command Line Tools**
+
    ```bash
    xcode-select --install
    ```
@@ -82,7 +85,7 @@ Complete guide for setting up code signing and notarization for macOS and Window
    - **Issuer ID:** UUID format (e.g., `46162619-ec79-4d58-9203-c6ce3179a9f7`)
    - **Key ID:** 10-character alphanumeric (e.g., `36NW7V7TNJ`)
    - **Team ID:** Your developer team ID (e.g., `L56TPJWPSM`)
-     - Find at: https://developer.apple.com/account → Membership → Team ID
+     - Find at: <https://developer.apple.com/account> → Membership → Team ID
 
 ---
 
@@ -91,6 +94,7 @@ Complete guide for setting up code signing and notarization for macOS and Window
 ### 2.1 Export Developer ID Certificate
 
 If you haven't already set up code signing, see the main CI/CD documentation. You need:
+
 - Developer ID Application certificate
 - Certificate exported as `.p12` file
 - Base64 encoded for GitHub secrets
@@ -124,6 +128,7 @@ npm install @electron/notarize --save-dev
 ```
 
 Update `package.json`:
+
 ```json
 {
   "devDependencies": {
@@ -191,6 +196,7 @@ exports.default = async function notarizing(context) {
 ```
 
 **Key points:**
+
 - ✅ Decode base64 API key before using
 - ✅ Write to temp file (notarize expects file path, not content)
 - ✅ Do NOT pass `teamId` parameter (causes credential conflict)
@@ -270,6 +276,7 @@ Add these three secrets:
 | `APPLE_API_KEY_ID` | Key ID from App Store Connect | `36NW7V7TNJ` |
 
 **Do NOT add:**
+
 - ❌ `APPLE_TEAM_ID` (causes credential conflict)
 - ❌ `APPLE_ID` or `APPLE_APP_SPECIFIC_PASSWORD` (old password-based auth)
 
@@ -316,6 +323,7 @@ npm run build:mac
 ```
 
 **Expected output:**
+
 ```
 • signing         file=dist/mac/YourApp.app
 • skipped macOS notarization  reason=`notarize` options were set explicitly `false`
@@ -329,12 +337,14 @@ Notarization complete!
 ### 5.2 CI/CD Testing
 
 1. **Push a version tag:**
+
    ```bash
    git tag v1.0.0-beta
    git push origin v1.0.0-beta
    ```
 
 2. **Monitor the build:**
+
    ```bash
    gh run watch --interval 30 -R owner/repo
    ```
@@ -352,6 +362,7 @@ After the build completes:
 1. **Download the DMG** from GitHub Releases
 
 2. **Remove any quarantine flags** (to simulate fresh download):
+
    ```bash
    xattr -d com.apple.quarantine ~/Downloads/YourApp-1.0.0-beta-arm64.dmg
    ```
@@ -363,6 +374,7 @@ After the build completes:
    - ❌ **Without notarization:** "YourApp cannot be verified" with only "Cancel" and "Move to Trash"
 
 5. **Verify with stapler** (optional):
+
    ```bash
    stapler validate /Applications/YourApp.app
    # Output: The validate action worked!
@@ -379,6 +391,7 @@ After the build completes:
 **Common causes:**
 
 1. **Credential conflict error:**
+
    ```
    Cannot use password credentials, API key credentials and keychain credentials at once
    ```
@@ -390,6 +403,7 @@ After the build completes:
    - ✅ Set `"notarize": false` in `package.json` mac config
 
 2. **JSON parsing error:**
+
    ```
    Unexpected token E in JSON at position 0
    ```
@@ -400,6 +414,7 @@ After the build completes:
    - ✅ Pass file path (not content) to `notarize()` function
 
 3. **electron-builder auto-notarization conflict:**
+
    ```
    • signing         file=dist/mac/YourApp.app
    ⨯ Unexpected token E in JSON...
@@ -414,22 +429,26 @@ After the build completes:
 **Symptom:** Build hangs at "Notarizing..." for 30+ minutes
 
 **Possible causes:**
+
 - Apple's notarization servers are slow (happens occasionally)
 - App bundle is very large (>500 MB)
 
 **Solutions:**
+
 - Wait it out (Apple recommends up to 1 hour)
-- Check Apple's system status: https://developer.apple.com/system-status/
+- Check Apple's system status: <https://developer.apple.com/system-status/>
 - Consider reducing app bundle size
 
 ### "401 Unauthorized" Error
 
 **Symptom:**
+
 ```
 Error: HTTP status code: 401. Invalid credentials.
 ```
 
 **Solutions:**
+
 - ✅ Verify Issuer ID is correct (UUID format)
 - ✅ Verify Key ID is correct (10 characters)
 - ✅ Verify `.p8` file is encoded correctly
@@ -446,6 +465,7 @@ process.env.DEBUG = 'electron-notarize*';
 ```
 
 Or run locally with debug flag:
+
 ```bash
 DEBUG=electron-notarize* npm run build:mac
 ```
@@ -531,12 +551,14 @@ DEBUG=electron-notarize* npm run build:mac
 ### Windows Overview
 
 **What is Windows code signing?**
+
 - Digital signature that verifies the publisher of Windows applications
 - Prevents "Unknown Publisher" warnings in Windows SmartScreen
 - Builds user trust and provides professional distribution
 - Optional for testing, recommended for production releases
 
 **User Experience:**
+
 - **Without signing:** "Windows protected your PC" warning → "More info" → "Run anyway"
 - **With signing:** "Do you want to allow this app from a verified publisher to make changes?" → cleaner experience
 
@@ -551,7 +573,8 @@ You need to purchase a code signing certificate from a trusted Certificate Autho
 #### Recommended Providers
 
 **1. DigiCert**
-- Website: https://www.digicert.com/signing/code-signing-certificates
+
+- Website: <https://www.digicert.com/signing/code-signing-certificates>
 - Cost: ~$200-500/year
 - Best for: Established businesses
 - Pros:
@@ -564,7 +587,8 @@ You need to purchase a code signing certificate from a trusted Certificate Autho
   - Requires business verification
 
 **2. Sectigo (formerly Comodo)**
-- Website: https://sectigo.com/ssl-certificates-tls/code-signing
+
+- Website: <https://sectigo.com/ssl-certificates-tls/code-signing>
 - Cost: ~$100-300/year
 - Best for: Small businesses and individuals
 - Pros:
@@ -576,7 +600,8 @@ You need to purchase a code signing certificate from a trusted Certificate Autho
   - Less premium brand
 
 **3. SSL.com**
-- Website: https://www.ssl.com/certificates/code-signing/
+
+- Website: <https://www.ssl.com/certificates/code-signing/>
 - Cost: ~$150-400/year
 - Best for: Budget-conscious developers
 - Pros:
@@ -625,12 +650,14 @@ You need to purchase a code signing certificate from a trusted Certificate Autho
 Convert the `.pfx` file to base64 for secure storage in GitHub:
 
 **On macOS/Linux:**
+
 ```bash
 base64 -i your-certificate.pfx -o certificate-base64.txt
 cat certificate-base64.txt | pbcopy  # Copies to clipboard
 ```
 
 **On Windows (PowerShell):**
+
 ```powershell
 [Convert]::ToBase64String([IO.File]::ReadAllBytes("your-certificate.pfx")) | Out-File certificate-base64.txt
 Get-Content certificate-base64.txt | Set-Clipboard
@@ -705,11 +732,13 @@ After the build completes:
 **Problem:** Even with valid signature, Windows shows SmartScreen warning.
 
 **Cause:** New certificates lack reputation. Windows SmartScreen builds reputation over time based on:
+
 - Number of downloads
 - Number of users who run the app
 - Time since first signature
 
 **Solutions:**
+
 - This is normal for new certificates
 - Reputation builds over weeks/months as more users download
 - EV Code Signing certificates get instant reputation (expensive)
@@ -720,12 +749,14 @@ After the build completes:
 **Problem:** App shows as "Unknown Publisher" even though it's signed.
 
 **Possible causes:**
+
 1. Certificate not trusted by Windows (wrong CA)
 2. Certificate expired
 3. Timestamp server unreachable during signing
 4. Wrong signing algorithm (use SHA-256, not SHA-1)
 
 **Solutions:**
+
 - Verify certificate is from trusted CA (DigiCert, Sectigo, etc.)
 - Check certificate expiration date
 - Ensure electron-builder uses SHA-256 timestamps
@@ -736,6 +767,7 @@ After the build completes:
 **Problem:** `signtool verify` fails even though signing succeeded.
 
 **Solutions:**
+
 ```powershell
 # Check if certificate chain is complete
 certutil -verify your-certificate.pfx
@@ -772,12 +804,14 @@ certutil -verify your-certificate.pfx
 ### When to Skip Windows Code Signing
 
 You can safely skip Windows code signing if:
+
 - ✅ Beta testing only (testers can bypass SmartScreen)
 - ✅ Internal company distribution
 - ✅ Budget constraints (can add later)
 - ✅ Low download volume
 
 You should get Windows code signing if:
+
 - 🔐 Public production release
 - 🔐 Professional image important
 - 🔐 Non-technical users (can't bypass SmartScreen easily)
@@ -788,6 +822,7 @@ You should get Windows code signing if:
 **Last Updated:** 2025-10-19
 
 **Tested With:**
+
 - Electron 27.3.11
 - electron-builder 24.13.3
 - @electron/notarize 2.1.0
