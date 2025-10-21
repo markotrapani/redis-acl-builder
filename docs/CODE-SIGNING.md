@@ -392,7 +392,7 @@ After the build completes:
 
 1. **Credential conflict error:**
 
-   ```
+   ```text
    Cannot use password credentials, API key credentials and keychain credentials at once
    ```
 
@@ -404,7 +404,7 @@ After the build completes:
 
 2. **JSON parsing error:**
 
-   ```
+   ```text
    Unexpected token E in JSON at position 0
    ```
 
@@ -415,7 +415,7 @@ After the build completes:
 
 3. **electron-builder auto-notarization conflict:**
 
-   ```
+   ```text
    • signing         file=dist/mac/YourApp.app
    ⨯ Unexpected token E in JSON...
    ```

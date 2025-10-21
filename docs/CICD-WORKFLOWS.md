@@ -383,7 +383,7 @@ jobs:
    └───────────────────────┘
 ```
 
-### Full Workflow File
+### Complete Workflow Configuration
 
 ```yaml
 name: Build and Publish Docker Images
