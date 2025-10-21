@@ -572,7 +572,7 @@ You need to purchase a code signing certificate from a trusted Certificate Autho
 
 #### Recommended Providers
 
-**1. DigiCert**
+##### 1. DigiCert
 
 - Website: <https://www.digicert.com/signing/code-signing-certificates>
 - Cost: ~$200-500/year
@@ -586,7 +586,7 @@ You need to purchase a code signing certificate from a trusted Certificate Autho
   - More expensive
   - Requires business verification
 
-**2. Sectigo (formerly Comodo)**
+##### 2. Sectigo (formerly Comodo)
 
 - Website: <https://sectigo.com/ssl-certificates-tls/code-signing>
 - Cost: ~$100-300/year
@@ -599,7 +599,7 @@ You need to purchase a code signing certificate from a trusted Certificate Autho
   - Slightly longer verification process
   - Less premium brand
 
-**3. SSL.com**
+##### 3. SSL.com
 
 - Website: <https://www.ssl.com/certificates/code-signing/>
 - Cost: ~$150-400/year
