@@ -44,7 +44,7 @@ This project uses GitHub Actions for continuous integration and deployment:
 
 ### Architecture
 
-```
+```text
 ┌─────────────────┐
 │   Push v*.*.    │
 │      Tag         │
@@ -355,9 +355,9 @@ jobs:
 
 **File:** `.github/workflows/build-docker.yml`
 
-### Architecture
+### Docker Build Architecture
 
-```
+```text
 ┌────────────────┐
 │ Push v*.*.*    │
 │     Tag        │

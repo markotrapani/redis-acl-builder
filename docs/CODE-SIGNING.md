@@ -324,7 +324,7 @@ npm run build:mac
 
 **Expected output:**
 
-```
+```text
 • signing         file=dist/mac/YourApp.app
 • skipped macOS notarization  reason=`notarize` options were set explicitly `false`
 Notarizing /path/to/YourApp.app...
@@ -443,7 +443,7 @@ After the build completes:
 
 **Symptom:**
 
-```
+```text
 Error: HTTP status code: 401. Invalid credentials.
 ```
 

@@ -929,9 +929,9 @@ autoUpdater.on('update-downloaded', () => {
 
 #### Next Steps (Priority Order)
 
-4. ~~**Code Signing & Notarization**~~ - ✅ **COMPLETE** (see above)
+1. ~~**Code Signing & Notarization**~~ - ✅ **COMPLETE** (see above)
 
-5. **Windows Code Signing** (2-3 hours) - **OPTIONAL (can defer to v2.3+)**
+2. **Windows Code Signing** (2-3 hours) - **OPTIONAL (can defer to v2.3+)**
    - Purchase Windows code signing certificate (~$200-500/year)
    - Add WIN_CSC_LINK and WIN_CSC_KEY_PASSWORD secrets
    - Update GitHub Actions workflow
