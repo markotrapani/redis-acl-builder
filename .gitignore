@@ -173,6 +173,9 @@ cython_debug/
 .DS_Store
 Thumbs.db
 
+# Security/Certificates
+certs/
+
 # Docker images (too large for GitHub)
 docker/*.tar
 
