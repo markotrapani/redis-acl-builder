@@ -18,6 +18,7 @@ A comprehensive application for testing and validating Redis Access Control List
 <summary><b>📱 Installation Instructions (Click to expand)</b></summary>
 
 **macOS:**
+
 ```bash
 # Download the .dmg for your architecture
 # - Redis-ACL-Builder-2.3.0-beta-arm64.dmg (Apple Silicon - M1/M2/M3)
@@ -30,6 +31,7 @@ A comprehensive application for testing and validating Redis Access Control List
 ```
 
 **Windows:**
+
 ```bash
 # Download Redis-ACL-Builder-Setup-2.3.0-beta.exe
 # Run the installer and follow the prompts
@@ -37,6 +39,7 @@ A comprehensive application for testing and validating Redis Access Control List
 ```
 
 **Linux:**
+
 ```bash
 # Download Redis-ACL-Builder-2.3.0-beta.AppImage
 chmod +x Redis-ACL-Builder-2.3.0-beta.AppImage
@@ -81,23 +84,27 @@ docker compose pull && docker compose up -d
 <summary><b>💻 Development Setup (Click to expand)</b></summary>
 
 1. **Download/Clone the project:**
+
    ```bash
    git clone https://github.com/markotrapani/redis-acl-builder.git
    cd redis-acl-builder
    ```
 
 2. **Create virtual environment:**
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 3. **Install dependencies:**
+
    ```bash
    pip install -r backend/requirements.txt
    ```
 
 4. **Run the application:**
+
    ```bash
    # Option 1: Use helper script
    ./scripts/run-web.sh
@@ -116,6 +123,7 @@ docker compose pull && docker compose up -d
 Redis ACL Builder is a powerful tool that helps developers and system administrators understand and test Redis ACL configurations before deploying them to production.
 
 **Core Capabilities:**
+
 - ✅ Parse and validate Redis ACL rule syntax with real-time feedback
 - ✅ Test commands and keyspace patterns with dual testing interface
 - ✅ Visualize granted/blocked commands organized by categories
@@ -385,6 +393,7 @@ npx playwright test --ui
 **Repository**: [github.com/markotrapani/redis-acl-builder/actions](https://github.com/markotrapani/redis-acl-builder/actions)
 
 #### 🐳 Docker Builds (Web Application)
+
 - **Workflow**: `.github/workflows/docker-publish.yml`
 - **Triggers**: Version tags (`v*.*.*`, `v*.*.*-alpha`, `v*.*.*-beta`)
 - **Platforms**: linux/amd64, linux/arm64 (multi-arch)
@@ -392,6 +401,7 @@ npx playwright test --ui
 - **Features**: Automated CVE scanning with Docker Scout
 
 #### 💻 Desktop Builds (Electron App)
+
 - **Workflow**: `.github/workflows/build-desktop.yml`
 - **Triggers**: Version tags (`v*.*.*`, `v*.*.*-desktop*`) + manual dispatch
 - **Platforms**: Windows (x64), macOS (ARM64 + Intel x64), Linux (x64)
@@ -413,12 +423,14 @@ npx playwright test --ui
 ### Version Tag Strategy
 
 **Fast macOS ARM64 build** (debugging/testing - ~2 minutes):
+
 ```bash
 git tag v2.1.8-test && git push origin v2.1.8-test
 git tag v2.1.8-debug && git push origin v2.1.8-debug
 ```
 
 **Full multi-platform build** (production - ~5 minutes):
+
 ```bash
 git tag v2.1.8-beta && git push origin v2.1.8-beta   # macOS, Windows, Linux + Docker
 git tag v2.1.8-alpha && git push origin v2.1.8-alpha
@@ -426,11 +438,13 @@ git tag v2.1.8 && git push origin v2.1.8
 ```
 
 **Docker build only** (web app):
+
 ```bash
 git tag v2.1.8-docker && git push origin v2.1.8-docker
 ```
 
 **Documentation updates only**:
+
 ```bash
 git tag v2.1.8-docs && git push origin v2.1.8-docs
 ```
@@ -506,6 +520,7 @@ The application features modern, modular frontend and backend architectures with
 <summary><strong>View Previous v2.x Releases</strong></summary>
 
 ### v2.3.2-beta
+
 - **🎨 UI/UX Improvements**: Version badge and update button repositioning
   - Moved version badge from bottom-left to top-left corner for better visibility
   - Positioned "Check for Updates" button to right of version badge with optimal spacing
@@ -516,6 +531,7 @@ The application features modern, modular frontend and backend architectures with
   - Reduced minified JS by 31.7% (5.71 KB → 3.90 KB)
 
 ### v2.3.1-beta
+
 - **✅ Auto-Update UX Refinement**: Improved update notification behavior
   - Fixed annoying "You have the latest version!" dialog that appeared on EVERY app startup
   - Silent background checks at startup (only shows dialog if update IS available)
@@ -523,6 +539,7 @@ The application features modern, modular frontend and backend architectures with
   - Matches standard desktop app auto-update UX patterns (Slack, VS Code, etc.)
 
 ### v2.3.0-beta
+
 - **🔐 macOS Notarization**: Professional Apple code signing with App Store Connect API
   - Signed and notarized installers - no security warnings on macOS
   - Full trust chain validation for macOS Gatekeeper
@@ -704,7 +721,7 @@ The application features modern, modular frontend and backend architectures with
 
 ## Acknowledgments
 
-Special thanks to **Michael Tchistopolskii** (michael.tchistopolskii@redis.com) for substantial improvement ideas and architectural guidance that helped shape the development of this application.
+Special thanks to **Michael Tchistopolskii** (<michael.tchistopolskii@redis.com>) for substantial improvement ideas and architectural guidance that helped shape the development of this application.
 
 ## License
 
@@ -721,4 +738,3 @@ For questions, feedback, or issues:
 5. **Setup Issues**: Ensure all files are in the correct locations per installation guide
 
 ---
-

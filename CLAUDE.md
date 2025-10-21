@@ -13,21 +13,24 @@ This file provides guidance to Claude Code when working with the **Redis ACL Bui
 **Current Repository:** `redis-acl-builder` (submodule)
 **Parent Repository:** `marko-projects` (container repo with multiple submodules)
 
-### How to Tell Which Repo You're In:
+### How to Tell Which Repo You're In
 
 **If you see these directories, you're in `redis-acl-builder` (THIS FILE):**
+
 - `backend/`, `frontend/`, `electron/`, `docker/`, `tests/`, `venv/`
 - `build_minified.py`, `README.md`, `CLAUDE.md`
 - Git remote: `https://github.com/markotrapani/redis-acl-builder.git`
 
 **If you see these directories, you're in `marko-projects` (PARENT):**
+
 - `redis-acl-builder/`, `ldap-bind-tester/`, `gtlogs-link-generator/`, `impact-score-calculator/`
 - ONLY has `README.md`, `CLAUDE.md`, `LICENSE`, `.gitmodules`
 - Git remote: `https://github.com/markotrapani/marko-projects.git`
 
-### Critical Path Differences:
+### Critical Path Differences
 
 **When IN redis-acl-builder submodule (pwd shows `/marko-projects/redis-acl-builder`):**
+
 ```bash
 # ✅ CORRECT
 python3 build_minified.py
@@ -39,6 +42,7 @@ cd redis-acl-builder && python3 build_minified.py
 ```
 
 **When IN marko-projects parent (pwd shows just `/marko-projects`):**
+
 ```bash
 # ✅ CORRECT - Need to specify submodule path
 cd redis-acl-builder && python3 build_minified.py
@@ -48,7 +52,8 @@ git -C redis-acl-builder status
 python3 build_minified.py
 ```
 
-### Quick Check Command:
+### Quick Check Command
+
 ```bash
 # Run this to see which repo you're in:
 pwd && git remote get-url origin
@@ -70,15 +75,18 @@ pwd && git remote get-url origin
 **Why**: The app uses minified CSS/JS files (`styles.min.css`, minified `.js` files). Changes to source files won't appear until rebuilt.
 
 **After ANY changes to CSS or JS files, ALWAYS run:**
+
 ```bash
 python3 build_minified.py
 ```
 
 **What gets minified:**
+
 - All CSS files in `frontend/static/css/` → `styles.min.css`
 - All JS files in `frontend/static/js/` → individual `.min.js` files
 
 **Symptoms of forgetting to rebuild:**
+
 - CSS changes don't appear (buttons have wrong positioning/styling)
 - JS changes don't work (new features missing)
 - Generic/unstyled elements appear
@@ -126,7 +134,8 @@ ps aux | grep "redis-acl-builder-desktop"
 
 **CRITICAL**: When bumping version (e.g., v2.2.7-beta → v2.2.10-beta), update ALL of these files:
 
-### Required Files (MUST update every release):
+### Required Files (MUST update every release)
+
 - [ ] `README.md` - Line 3: `**Version v2.2.X-beta**`
 - [ ] `README.md` - Lines 18-41: Desktop installation file names (all platforms)
 - [ ] `CLAUDE.md` - Line 58: `**Version**: v2.2.X-beta`
@@ -134,26 +143,33 @@ ps aux | grep "redis-acl-builder-desktop"
 - [ ] `backend/helpers/__init__.py` - Line with `__version__ = "2.2.X-beta"`
 - [ ] `electron/package.json` - Line with `"version": "2.2.X-beta"`
 
-### Search Command to Find All Version References:
+### Search Command to Find All Version References
+
 ```bash
 # Find all version references that might need updating
 grep -r "v2\.2\.[0-9]" . --exclude-dir=.git --exclude-dir=venv --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=build
 ```
 
-### Post-Release Cleanup (GitHub Releases):
+### Post-Release Cleanup (GitHub Releases)
+
 After creating a new release via tag push:
+
 - [ ] Delete source code archives from GitHub release (not needed, confusing for users)
+
   ```bash
   gh release delete-asset <tag> "Source code (zip)" --yes
   gh release delete-asset <tag> "Source code (tar.gz)" --yes
   ```
+
 - [ ] Verify release notes are dynamic and version-specific (not generic)
 - [ ] Keep: DMG, ZIP, EXE, AppImage, .deb, latest-*.yml files
 
-### Artifact Cleanup Strategy:
+### Artifact Cleanup Strategy
+
 **IMPORTANT**: GitHub Actions artifacts cost $0.25/GB/month over 500MB free tier.
 
 **Smart Cleanup (Preserve Auto-Update)**:
+
 - ✅ **Keep**: Artifacts for last 3 releases (needed for auto-update downloads)
 - ❌ **Delete**: All other older artifacts
 - 📊 **Current Usage**: Check with `gh api repos/markotrapani/redis-acl-builder/actions/artifacts | jq '.total_count'`
@@ -168,9 +184,10 @@ gh api repos/markotrapani/redis-acl-builder/actions/artifacts --paginate | \
 gh api --method DELETE /repos/markotrapani/redis-acl-builder/actions/artifacts/<ID>
 ```
 
-### Why This Matters:
+### Why This Matters
+
 - Users see version numbers in README/docs/release notes
-- Desktop apps need matching versions in package.json and __init__.py
+- Desktop apps need matching versions in package.json and **init**.py
 - Old artifacts cost money and aren't needed after 3 releases
 - Dynamic release notes prevent confusion between releases
 
@@ -300,9 +317,10 @@ gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
 
 ### GitHub Actions Workflows
 
-**Repository**: https://github.com/markotrapani/redis-acl-builder/actions
+**Repository**: <https://github.com/markotrapani/redis-acl-builder/actions>
 
 #### Docker Builds (Web Application)
+
 - **File**: `.github/workflows/docker-publish.yml`
 - **Triggers**: Version tags without `-desktop` or `-docs` suffixes
   - `v*.*.*` (e.g., v2.0.4, v2.1.0)
@@ -321,6 +339,7 @@ gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
 **⚠️ FOR DEBUGGING: Always use the fast macOS ARM64 workflow!**
 
 ##### Fast macOS ARM64 Build (Recommended for Testing)
+
 - **File**: `.github/workflows/build-desktop-macos-fast.yml`
 - **Purpose**: Quick iteration for debugging and testing (~2 minutes vs 5 minutes)
 - **Triggers**:
@@ -332,6 +351,7 @@ gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
 - **Tag strategy**: Use `-test` or `-debug` suffix to avoid triggering full multi-platform builds
 
 ##### Full Multi-Platform Build (Production)
+
 - **File**: `.github/workflows/build-desktop.yml`
 - **Purpose**: Production releases with all platforms
 - **Triggers**:
@@ -359,6 +379,7 @@ gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
 - No cleanup needed - private repo status prevents source code downloads automatically
 
 **Release assets (downloadable):**
+
 - ✅ DMG files (macOS installers)
 - ✅ NSIS .exe (Windows installer)
 - ✅ AppImage (Linux portable)
@@ -369,6 +390,7 @@ gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
 **IMPORTANT:** Always use collapsible sections for release notes to keep them scannable.
 
 **Format:**
+
 ```markdown
 ## vX.X.X-beta - Short Title
 
@@ -401,12 +423,14 @@ gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
 ```
 
 **Benefits:**
+
 - Compact summary visible by default (5-7 lines)
 - All details available in expandable sections
 - Better user experience - scannable at a glance
 - Professional appearance
 
 **To update a release:**
+
 ```bash
 gh release edit vX.X.X-beta --repo markotrapani/redis-acl-builder --notes "$(cat <<'EOF'
 [Your markdown here]
@@ -419,15 +443,18 @@ EOF
 **Migration Date**: 2025-10-15
 
 **Before**:
+
 - Docker workflows lived in parent `marko-projects` repository
-- Historical builds: https://github.com/markotrapani/marko-projects/actions
+- Historical builds: <https://github.com/markotrapani/marko-projects/actions>
 
 **After**:
+
 - All CI/CD consolidated in `redis-acl-builder` submodule
-- New builds: https://github.com/markotrapani/redis-acl-builder/actions
+- New builds: <https://github.com/markotrapani/redis-acl-builder/actions>
 - Better organization: each submodule owns its build pipelines
 
 **Secrets Required**:
+
 - `DOCKERHUB_USERNAME`: Docker Hub username
 - `DOCKERHUB_TOKEN`: Docker Hub Personal Access Token (with workflow scope)
 
@@ -694,6 +721,7 @@ redis-acl-builder/
 **Production Status**: ENTERPRISE-READY - AUTO-UPDATE ENABLED (v2.2.6-beta)
 
 **NEW in v2.2.6-beta: Auto-Update System Fully Working! 🎉**:
+
 - **Code Signing Enabled**: macOS builds now signed with Developer ID Application certificate
 - **Auto-Update Working**: Successfully tested v2.2.5-beta → v2.2.6-beta update flow
 - **Artifact Naming Fixed**: Consistent hyphenated naming (`Redis-ACL-Builder-*.zip`)
@@ -703,14 +731,16 @@ redis-acl-builder/
 - **Production Ready**: Users can now receive seamless automatic updates
 
 **Previous in v2.2.0-beta: Dead Code Cleanup & Optimization**:
+
 - **Dead Code Removal**: Removed unused acl-state-coordinator.js (26 lines of stub code)
 - **Build Artifact Cleanup**: Cleaned 711MB of local build artifacts (build/, dist/, electron/dist/)
-- **Cache Cleanup**: Removed Python __pycache__ and .pyc files
+- **Cache Cleanup**: Removed Python **pycache** and .pyc files
 - **Zero Dead Code**: Comprehensive analysis confirmed no unused imports, functions, or orphaned files
 - **Perfect .gitignore**: All build artifacts and cache files properly excluded from version control
 - **Codebase Health**: 100% clean source code with zero dead code or unused dependencies
 
 **Previous in v2.1.9-beta: Debug Builds & Build Optimization**:
+
 - **Debug Build Configuration**: Detached DevTools for debugging without UI disruption
   - `-debug` tags create builds with DevTools in separate window
   - Marker-based detection via `.debug-build` file
@@ -926,6 +956,7 @@ redis-acl-builder/
 **Current State**: Repository is **PRIVATE** (as of v2.1.7-beta)
 
 **Implementation Status**:
+
 1. ✅ Repository is **private** - Source code protected
 2. ✅ GitHub releases accessible via direct URLs (releases page requires auth)
 3. ⏳ Token-based authentication for auto-updates (pending code signing):
@@ -940,6 +971,7 @@ redis-acl-builder/
    - No source code in releases (Docker images + installers only)
 
 **Implementation Steps** (when ready to go private):
+
 ```bash
 # 1. Make repository private
 gh repo edit markotrapani/redis-acl-builder --visibility private
@@ -983,14 +1015,15 @@ gh repo edit markotrapani/redis-acl-builder --visibility private
 **Completed Reviews:**
 
 ✅ **Artifact Optimization Analysis** (v2.2.6-beta)
-   - **Analysis complete:** 11 assets per release (~660 MB total)
-   - All assets serve a clear purpose (auto-update metadata, installers, DMGs)
-   - Could remove DMGs to save ~214 MB (worse UX for first-time macOS users)
-   - **Decision:** Keep current setup for professional distribution
-   - macOS: DMG + ZIP (manual install + auto-update)
-   - Windows: EXE (installer + auto-update)
-   - Linux: AppImage (installer + auto-update)
-   - Metadata: 3 YAML files for cross-platform auto-update
+
+- **Analysis complete:** 11 assets per release (~660 MB total)
+- All assets serve a clear purpose (auto-update metadata, installers, DMGs)
+- Could remove DMGs to save ~214 MB (worse UX for first-time macOS users)
+- **Decision:** Keep current setup for professional distribution
+- macOS: DMG + ZIP (manual install + auto-update)
+- Windows: EXE (installer + auto-update)
+- Linux: AppImage (installer + auto-update)
+- Metadata: 3 YAML files for cross-platform auto-update
 
 Focus on stability and user feedback - macOS auto-update working, Windows/Linux need testing!
 
@@ -1204,6 +1237,7 @@ GitHub Actions workflows are exhibiting inconsistent behavior with tag-based tri
 2. **Main branch pushes incorrectly triggered desktop builds** - Workflow runs 18638532885 and 18638532477 were triggered by `push` to `main` branch, but workflow file ONLY has `push: tags:` trigger (no `branches:` section)
 
 **Evidence:**
+
 ```yaml
 # .github/workflows/build-desktop.yml (verified at commit 274c528)
 on:
@@ -1214,26 +1248,31 @@ on:
 ```
 
 **Observed Behavior:**
+
 - ✅ Docker workflow triggered by v2.3.4-beta tag (run 18638533176) - CORRECT
 - ❌ Desktop workflow NOT triggered by v2.3.4-beta tag - WRONG
 - ❌ Desktop workflow triggered by main branch push (runs 18638532885, 18638532477) - WRONG
 
 **Previous Successful Tags:**
+
 - v2.2.10-beta, v2.2.9-beta, v2.2.8-beta all triggered desktop builds correctly
 - Tag pattern is identical across all versions
 
 **Hypothesis:**
+
 - GitHub Actions workflow caching issue
 - Timing issue between tag push and workflow trigger evaluation
 - Potential GitHub Actions platform bug
 
 **Workaround:**
+
 1. Delete problematic tag: `git tag -d v2.3.4-beta && git push origin :v2.3.4-beta`
 2. Wait 2-5 minutes for GitHub Actions cache to clear
 3. Recreate tag: `git tag v2.3.4-beta && git push origin v2.3.4-beta`
 4. Monitor both Docker and Desktop workflow runs
 
 **To Debug in Future Sessions:**
+
 ```bash
 # Check which workflows were triggered by a specific tag
 gh run list -R markotrapani/redis-acl-builder --json databaseId,name,event,headBranch,displayTitle --limit 20 | \
@@ -1247,12 +1286,14 @@ git show <COMMIT_SHA>:.github/workflows/build-desktop.yml | head -30
 ```
 
 **Failed Workaround Attempts:**
+
 1. ❌ Added `if: startsWith(github.ref, 'refs/tags/')` condition to build job (commit 0baf6af)
    - Workflow STILL triggered on main push and STILL failed (run 18638853700)
    - `if` condition was either ignored or evaluated as true despite being a branch push
    - Reverted in next commit
 
 **Next Steps:**
+
 1. Investigate why workflows show different names in GitHub Actions UI (`.github/workflows/build-desktop.yml` vs "Build Desktop Apps (Multi-Platform)")
 2. Check if there are TWO separate workflow files that need to work together (build-desktop.yml + docker-publish.yml)
 3. Consider temporarily disabling build-desktop.yml workflow to stop spurious failures

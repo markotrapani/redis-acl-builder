@@ -144,13 +144,16 @@ The script includes comprehensive error handling:
 #### Common Issues
 
 1. **Authentication failure**:
+
    ```
    [ERROR] Failed to get bearer token
    ```
+
    - Check that `DOCKERHUB_TOKEN` is set correctly
    - Verify token has required permissions
 
 2. **Missing dependencies**:
+
    ```bash
    # Install jq on macOS
    brew install jq

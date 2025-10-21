@@ -446,7 +446,7 @@ All API changes are documented in:
 
 ## Contact
 
-- **Maintainer**: marko.trapani@redis.com
+- **Maintainer**: <marko.trapani@redis.com>
 - **Issues**: <https://github.com/anthropics/redis-acl-builder/issues>
 - **Documentation**: <https://github.com/anthropics/redis-acl-builder/blob/main/README.md>
 
