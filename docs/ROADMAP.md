@@ -1,6 +1,6 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.4.5-beta
+**Current Version:** v2.4.6-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker Deployment
 
@@ -15,6 +15,20 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 ---
 
 ## 🎯 Version History
+
+### v2.4.6-beta (2025-10-22)
+
+#### Documentation and Release Process Improvements
+
+- Enhanced README with professional badge row and better visual hierarchy
+- Added Redis Enterprise vs OSS compatibility warning
+- Created comprehensive CONTRIBUTING.md guide for community contributors
+- Simplified release notes format to match successful open source projects
+- Fixed outdated UI feature description in README
+
+**Technical:** Updated GitHub Actions workflows for cleaner auto-generated release notes
+
+---
 
 ### v2.4.5-beta (2025-10-22)
 
