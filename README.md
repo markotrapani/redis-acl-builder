@@ -145,7 +145,7 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
      - Press **Enter** to submit pending changes
 4. **View Results**: See granted and blocked commands organized by categories and individual commands
 5. **Test Commands**: Use the command tester at the top to check specific commands
-6. **Collapsible Sections**: Click on "Individual Commands" headers to expand/collapse sections
+6. **Search & Filter**: Use the search bars at the top of each column to filter categories and commands
 
 <details>
 <summary><b>📝 ACL Rule Syntax (Click to expand)</b></summary>
