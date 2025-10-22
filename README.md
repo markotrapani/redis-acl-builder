@@ -124,12 +124,14 @@ docker compose pull && docker compose up -d
 
 Redis ACL Builder is a powerful tool that helps developers and system administrators understand and test Redis ACL configurations before deploying them to production.
 
+> ⚠️ **Important:** This tool is designed for **Redis Enterprise** and **Redis Stack** ACL rules. It may not work correctly with open-source Redis (OSS) in all cases due to differences in command availability, module commands, and ACL implementation details. See [Redis Enterprise vs OSS](https://redis.io/docs/management/enterprise/) for details.
+
 **Core Capabilities:**
 
 - ✅ Parse and validate Redis ACL rule syntax with real-time feedback
 - ✅ Test commands and keyspace patterns with dual testing interface
 - ✅ Visualize granted/blocked commands organized by categories
-- ✅ Support for Redis 7 (311 commands) and Redis 8 (446 commands)
+- ✅ Support for Redis 7 (311 commands) and Redis 8 (446 commands including modules)
 - ✅ Light/Dark mode theme system with localStorage persistence
 - ✅ Available as web app (Docker/local) and native desktop app (macOS, Windows, Linux)
 
