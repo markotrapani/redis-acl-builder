@@ -1,10 +1,10 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.4.4-beta
+**Current Version:** v2.4.5-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker Deployment
 
-**Last Updated:** 2025-10-20
+**Last Updated:** 2025-10-22
 
 ---
 
@@ -15,6 +15,21 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 ---
 
 ## 🎯 Version History
+
+### v2.4.5-beta (2025-10-22)
+
+#### Category Styling and Ordering Bug Fix
+
+- Fixed incorrect styling for explicitly granted categories with category-level exclusions
+- Categories like `@read` in `+@read +@write -@dangerous ~*` now correctly show partial styling (hollow yellow ⚠)
+- Enhanced `detectPartialCategory()` to detect both `-command` and `-@category` exclusions
+- Fixed category ordering: Explicit full → Implicit full → Explicit partial → Implicit partial
+- Applied fix to both code paths (with and without `@all` explicitly granted)
+- Perfect visual consistency between styling and actual permissions
+
+**Technical:** Enhanced detection logic in interactive-acl-builder.js, improved category rendering priority
+
+---
 
 ### v2.4.4-beta (2025-10-20)
 
@@ -293,6 +308,46 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 - ✅ Docker multi-arch (AMD64 + ARM64)
 - ✅ Local Python/Flask deployment
 - ✅ Automatic update notifications
+
+---
+
+## 🐛 Known Issues
+
+### Category Styling Bug - Explicitly Granted Categories with Category Exclusions
+
+**Discovered:** 2025-10-22 | **Fixed:** 2025-10-22 | **Priority:** Medium | **Status:** ✅ Fixed
+
+**Description:**
+When an ACL rule explicitly grants categories that have some commands blocked by category exclusions, the granted categories showed incorrect styling and ordering.
+
+**Example:**
+Rule: `+@read +@write -@dangerous ~*`
+
+**Issues (Before Fix):**
+
+- `@read` and `@write` appeared with "fully granted" styling (solid green ✓) instead of "partially granted" (hollow yellow ⚠)
+- Explicit partial categories appeared BEFORE implicit full categories in the granted list (incorrect priority)
+- Hovering revealed blocked commands but visual styling didn't match
+
+**Root Cause:**
+
+1. **Styling Issue:** The `detectPartialCategory()` method only checked for individual `-command` exclusions, not category-level exclusions like `-@dangerous`
+2. **Ordering Issue:** Category rendering logic didn't properly separate explicit full/partial grants when ordering the display
+
+**Fix Applied:**
+
+1. **Enhanced detection** ([interactive-acl-builder.js:2453-2515](../frontend/static/js/components/interactive-acl-builder.js#L2453-L2515)):
+   - Now detects both `-command` and `-@category` exclusions
+   - Uses actual granted/blocked command lists from API to determine partial status
+   - Correctly identifies when category exclusions block some commands
+
+2. **Fixed ordering** ([interactive-acl-builder.js:1448-1469, 1506-1559](../frontend/static/js/components/interactive-acl-builder.js)):
+   - Explicit FULL grants → Implicit FULL grants → Explicit PARTIAL grants → Implicit PARTIAL grants
+   - Applied to both code paths (with and without `@all` explicitly granted)
+   - Clear visual hierarchy showing fully granted categories before partial ones
+
+**Impact:**
+Perfect visual consistency - users now see correct styling (hollow yellow ⚠ for partial grants) and logical ordering (full grants before partial grants) that matches the actual permissions.
 
 ---
 

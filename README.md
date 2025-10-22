@@ -1,6 +1,6 @@
 # Redis ACL Builder
 
-**Version v2.3.4-beta** - Multi-Platform Desktop + Web App
+**Version v2.4.5-beta** - Multi-Platform Desktop + Web App
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 

@@ -1445,17 +1445,11 @@ const InteractiveACLBuilder = {
                     }
                 }
 
-                // Add full grants first (alphabetical), then partial grants (alphabetical)
+                // Add categories in priority order:
+                // 1. Explicit full grants (fully granted categories like +@read with no blocks)
                 effectivelyGrantedCategories.push(...explicitFullGrants.sort());
-                effectivelyGrantedCategories.push(...explicitPartialGrants.sort());
 
-                // Add implicitly partial categories (they need user attention)
-                const sortedImplicitPartials = Array.from(implicitPartialCategories)
-                    .filter(cat => cat !== 'all' && !this.state.grantedCategories.has(cat))
-                    .sort();
-                effectivelyGrantedCategories.push(...sortedImplicitPartials);
-
-                // Then add implicitly fully granted categories (granted via @all only)
+                // 2. Implicit full grants (granted via @all only, not explicitly granted)
                 this.state.allCategories.forEach(category => {
                     if (category !== 'all' &&
                         effectiveCategoryStatus[category] === 'granted' &&
@@ -1464,6 +1458,15 @@ const InteractiveACLBuilder = {
                         effectivelyGrantedCategories.push(category);
                     }
                 });
+
+                // 3. Explicit partial grants (explicitly granted but some commands blocked)
+                effectivelyGrantedCategories.push(...explicitPartialGrants.sort());
+
+                // 4. Implicit partial categories (need user attention, shown last)
+                const sortedImplicitPartials = Array.from(implicitPartialCategories)
+                    .filter(cat => cat !== 'all' && !this.state.grantedCategories.has(cat))
+                    .sort();
+                effectivelyGrantedCategories.push(...sortedImplicitPartials);
 
                 // IMPORTANT: Also check for partially explicitly blocked categories in the @all case
                 // These should appear in the granted panel as "partially implicitly granted"
@@ -1521,8 +1524,8 @@ const InteractiveACLBuilder = {
                         }
                     }
 
-                    // Combine: full grants first (sorted), then partial grants (sorted)
-                    sortedExplicitCategories = [...explicitFullGrants.sort(), ...explicitPartialGrants.sort()];
+                    // Store separated arrays for later use (don't combine yet)
+                    sortedExplicitCategories = { full: explicitFullGrants.sort(), partial: explicitPartialGrants.sort() };
                 }
 
                 // Add @all as implicit partial if needed
@@ -1531,16 +1534,29 @@ const InteractiveACLBuilder = {
                 }
 
                 // NEW ORDERING: Show categories in priority order for better UX
-                // 1. Explicit categories first (user explicitly granted these)
-                // 2. Implicitly fully granted categories (solid - all commands granted, important)
-                // 3. Implicitly partial categories (hollow - some commands blocked, less common edge case)
+                // 1. Explicit FULL grants (user explicitly granted, no blocks)
+                // 2. Implicitly fully granted categories (solid - all commands granted)
+                // 3. Explicit PARTIAL grants (user explicitly granted but some commands blocked)
+                // 4. Implicitly partial categories (hollow - some commands blocked, edge case)
 
                 // Sort implicit categories alphabetically
                 const sortedImplicitPartials = implicitPartialCategoriesArray.sort();
                 const sortedImplicitFullyGranted = implicitFullyGrantedCategoriesArray.sort();
 
-                // CORRECTED: Combine in priority order: explicit → implicit fully granted → implicit partial
-                const combinedCategories = [...sortedExplicitCategories, ...sortedImplicitFullyGranted, ...sortedImplicitPartials];
+                // CORRECTED: Combine in priority order with explicit split into full/partial
+                let combinedCategories;
+                if (typeof sortedExplicitCategories === 'object' && sortedExplicitCategories.full) {
+                    // Non-@all case: explicit full → implicit full → explicit partial → implicit partial
+                    combinedCategories = [
+                        ...sortedExplicitCategories.full,
+                        ...sortedImplicitFullyGranted,
+                        ...sortedExplicitCategories.partial,
+                        ...sortedImplicitPartials
+                    ];
+                } else {
+                    // @all case: explicit (already ordered) → implicit full → implicit partial
+                    combinedCategories = [...sortedExplicitCategories, ...sortedImplicitFullyGranted, ...sortedImplicitPartials];
+                }
 
                 // SPECIAL POSITIONING: Always show @all category first (if present) for visibility
                 // Visual distinction will be added via CSS styling to indicate its special nature
@@ -2452,34 +2468,66 @@ const InteractiveACLBuilder = {
 
             // If granted as a category (in root or selectors), check for exclusions
             if (grantedInRoot || grantedInSelectors) {
-                // Check if there are any -command exclusions for this category
+                // Check if there are any -command or -@category exclusions for this category
                 let hasExclusions = false;
 
                 // Check root_permissions for exclusions
                 if (this.lastApiResponse?.parsed_rule?.root_permissions?.command_rules) {
-                    hasExclusions = this.lastApiResponse.parsed_rule.root_permissions.command_rules.some(rule =>
-                        rule.target === 'command' && rule.type === 'deny' &&
-                        categoryCommands.includes(rule.value)
-                    );
+                    hasExclusions = this.lastApiResponse.parsed_rule.root_permissions.command_rules.some(rule => {
+                        if (rule.type === 'deny') {
+                            if (rule.target === 'command') {
+                                // Individual command exclusion (e.g., -get)
+                                return categoryCommands.includes(rule.value);
+                            } else if (rule.target === 'category') {
+                                // Category exclusion (e.g., -@dangerous) - check if it blocks any commands in our category
+                                // We need to get the blocked category's commands and see if they overlap with our category
+                                return true; // Mark as needing further analysis below
+                            }
+                        }
+                        return false;
+                    });
                 }
 
                 // Check selectors for exclusions
                 if (!hasExclusions && this.lastApiResponse?.parsed_rule?.selectors) {
                     hasExclusions = this.lastApiResponse.parsed_rule.selectors.some(selector =>
-                        selector.command_rules?.some(rule =>
-                            rule.target === 'command' && rule.type === 'deny' &&
-                            categoryCommands.includes(rule.value)
-                        )
+                        selector.command_rules?.some(rule => {
+                            if (rule.type === 'deny') {
+                                if (rule.target === 'command') {
+                                    return categoryCommands.includes(rule.value);
+                                } else if (rule.target === 'category') {
+                                    return true; // Mark as needing further analysis
+                                }
+                            }
+                            return false;
+                        })
                     );
+                }
+
+                // If we detected any category exclusions, check if they actually block commands in our category
+                if (hasExclusions) {
+                    // Use the actual granted/blocked command lists from API response to determine if partial
+                    const allGrantedCommands = new Set(this.lastApiResponse?.granted_commands || []);
+                    const categoryCommandSet = new Set(categoryCommands);
+
+                    const grantedInCategory = Array.from(categoryCommandSet).filter(cmd =>
+                        allGrantedCommands.has(cmd)
+                    ).length;
+
+                    // If ALL commands in category are still granted despite exclusions, it's fully granted
+                    // If SOME commands are blocked, it's partial
+                    if (grantedInCategory === categoryCommands.length) {
+                        return { [category]: 'fully-granted' };
+                    } else if (grantedInCategory > 0) {
+                        return { [category]: 'partial' };
+                    } else {
+                        return { [category]: 'blocked' };
+                    }
                 }
 
                 // If granted via +@category with no exclusions, it's fully granted
                 // Even if scoped to specific keys via selectors
-                if (!hasExclusions) {
-                    return { [category]: 'fully-granted' };
-                } else {
-                    return { [category]: 'partial' };
-                }
+                return { [category]: 'fully-granted' };
             }
 
             // Not granted as category - check actual command grant/block status

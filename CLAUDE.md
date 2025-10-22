@@ -201,7 +201,7 @@ This is a collection of Redis-related projects, with the main project being **Re
 
 ### Key Project: Redis ACL Builder
 
-- **Version**: v2.3.4-beta (Desktop + Web App)
+- **Version**: v2.4.5-beta (Desktop + Web App)
 - **Test Coverage**: Backend 85% (Core logic: 95-100%, API: 78%) | E2E: 100% (28/28 Playwright tests passing)
 - **Status**: 195 backend tests passing, 28 E2E tests passing, 0 failing, 0 skipped
 - **Latest Release**: Dead code cleanup and codebase optimization (v2.2.0-beta)
