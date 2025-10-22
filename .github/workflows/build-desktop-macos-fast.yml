@@ -119,11 +119,46 @@ jobs:
             PRERELEASE_FLAG=""
           fi
 
+          # Determine release type badge
+          if [[ "$TAG_NAME" == *-beta* ]]; then
+            RELEASE_TYPE="🧪 **Beta Release** - macOS ARM64 Fast Build"
+          elif [[ "$TAG_NAME" == *-alpha* ]]; then
+            RELEASE_TYPE="⚠️ **Alpha Release** - macOS ARM64 Fast Build"
+          else
+            RELEASE_TYPE="✅ **macOS ARM64 Release** - Fast Build Workflow"
+          fi
+
+          # Create release notes
+          NOTES=$(cat <<EOF
+# Redis ACL Builder $TAG_NAME
+
+$RELEASE_TYPE
+
+---
+
+## 📦 Quick Install (macOS ARM64)
+
+\`\`\`bash
+# Download and install
+curl -L -o Redis-ACL-Builder.dmg "https://github.com/markotrapani/redis-acl-builder/releases/download/$TAG_NAME/Redis-ACL-Builder-arm64.dmg"
+open Redis-ACL-Builder.dmg
+\`\`\`
+
+**Note:** This is a fast-build release for macOS ARM64 only. For full multi-platform releases, see the main build workflow.
+
+---
+
+**System Requirements:** macOS 10.15 (Catalina) or later, Apple Silicon (M1/M2/M3)
+
+For detailed documentation, see the [README](https://github.com/markotrapani/redis-acl-builder#-quick-start).
+EOF
+)
+
           # Create release (or update if exists)
           gh release create "$TAG_NAME" \
             --repo ${{ github.repository }} \
             --title "$TAG_NAME" \
-            --notes "macOS ARM64 desktop app release - Fast build workflow" \
+            --notes "$NOTES" \
             $PRERELEASE_FLAG \
             --draft=false || echo "Release already exists, artifacts uploaded by electron-builder"
 
