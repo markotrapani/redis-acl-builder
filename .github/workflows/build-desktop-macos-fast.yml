@@ -129,36 +129,35 @@ jobs:
           fi
 
           # Create release notes
-          NOTES=$(cat <<EOF
-# Redis ACL Builder $TAG_NAME
+          cat > /tmp/release_notes.md <<RELEASE_NOTES
+          # Redis ACL Builder $TAG_NAME
 
-$RELEASE_TYPE
+          $RELEASE_TYPE
 
----
+          ---
 
-## 📦 Quick Install (macOS ARM64)
+          ## 📦 Quick Install (macOS ARM64)
 
-\`\`\`bash
-# Download and install
-curl -L -o Redis-ACL-Builder.dmg "https://github.com/markotrapani/redis-acl-builder/releases/download/$TAG_NAME/Redis-ACL-Builder-arm64.dmg"
-open Redis-ACL-Builder.dmg
-\`\`\`
+          \`\`\`bash
+          # Download and install
+          curl -L -o Redis-ACL-Builder.dmg "https://github.com/markotrapani/redis-acl-builder/releases/download/$TAG_NAME/Redis-ACL-Builder-arm64.dmg"
+          open Redis-ACL-Builder.dmg
+          \`\`\`
 
-**Note:** This is a fast-build release for macOS ARM64 only. For full multi-platform releases, see the main build workflow.
+          **Note:** This is a fast-build release for macOS ARM64 only. For full multi-platform releases, see the main build workflow.
 
----
+          ---
 
-**System Requirements:** macOS 10.15 (Catalina) or later, Apple Silicon (M1/M2/M3)
+          **System Requirements:** macOS 10.15 (Catalina) or later, Apple Silicon (M1/M2/M3)
 
-For detailed documentation, see the [README](https://github.com/markotrapani/redis-acl-builder#-quick-start).
-EOF
-)
+          For detailed documentation, see the [README](https://github.com/markotrapani/redis-acl-builder#-quick-start).
+          RELEASE_NOTES
 
           # Create release (or update if exists)
           gh release create "$TAG_NAME" \
             --repo ${{ github.repository }} \
             --title "$TAG_NAME" \
-            --notes "$NOTES" \
+            --notes-file /tmp/release_notes.md \
             $PRERELEASE_FLAG \
             --draft=false || echo "Release already exists, artifacts uploaded by electron-builder"
 
