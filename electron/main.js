@@ -152,6 +152,7 @@ function setupAutoUpdater() {
     }
 
     console.log('🔄 Setting up auto-updater...');
+    console.log('📦 Current app version:', app.getVersion());
 
     // Configure updater to use GitHub provider explicitly
     autoUpdater.setFeedURL({
@@ -166,6 +167,9 @@ function setupAutoUpdater() {
 
     autoUpdater.autoDownload = false; // We'll ask user first
     autoUpdater.autoInstallOnAppQuit = true;
+
+    // Allow updates to older versions (in case current version tag doesn't have artifacts)
+    autoUpdater.allowDowngrade = true;
 
     // Check for updates when app starts (silently - no dialog if up to date)
     isManualUpdateCheck = false;
@@ -215,15 +219,41 @@ function setupAutoUpdater() {
     autoUpdater.on('error', (err) => {
         console.error('❌ Auto-update error:', err);
 
-        // Only show error dialog if user manually requested update check
-        if (isManualUpdateCheck) {
-            dialog.showMessageBox(mainWindow, {
-                type: 'error',
-                title: 'Update Check Failed',
-                message: 'Failed to check for updates',
-                detail: err.message || 'An unknown error occurred',
-                buttons: ['OK']
-            });
+        // Check if error is due to missing latest.yml (incomplete release)
+        const isMissingYamlError = err.message && (
+            err.message.includes('Cannot find latest') ||
+            err.message.includes('latest-mac.yml') ||
+            err.message.includes('latest.yml') ||
+            err.message.includes('404')
+        );
+
+        if (isMissingYamlError) {
+            console.warn('⚠️  Latest release missing auto-update metadata files');
+            console.warn('   This usually means the release build is still in progress');
+            console.warn('   or the release doesn\'t include installable artifacts.');
+
+            // Silently ignore missing YAML errors on automatic checks
+            // Only show user-friendly message if manually triggered
+            if (isManualUpdateCheck) {
+                dialog.showMessageBox(mainWindow, {
+                    type: 'info',
+                    title: 'Update Check Unavailable',
+                    message: 'Unable to check for updates at this time',
+                    detail: 'The latest release may still be building. Please try again later.',
+                    buttons: ['OK']
+                });
+            }
+        } else {
+            // Only show error dialog for other errors if user manually requested update check
+            if (isManualUpdateCheck) {
+                dialog.showMessageBox(mainWindow, {
+                    type: 'error',
+                    title: 'Update Check Failed',
+                    message: 'Failed to check for updates',
+                    detail: err.message || 'An unknown error occurred',
+                    buttons: ['OK']
+                });
+            }
         }
 
         // Reset flag after check completes
