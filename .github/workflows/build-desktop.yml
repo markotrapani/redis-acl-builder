@@ -353,59 +353,70 @@ jobs:
             COMMITS=$(git log --pretty=format:"- %s" --no-merges -10)
           fi
 
-          # Determine release type badge
-          if [[ "$VERSION" == *-beta* ]]; then
-            RELEASE_TYPE="🧪 **Beta Release** - Testing and feedback welcome"
-          elif [[ "$VERSION" == *-alpha* ]]; then
-            RELEASE_TYPE="⚠️ **Alpha Release** - Experimental features, use with caution"
-          else
-            RELEASE_TYPE="✅ **Stable Release** - Production ready"
+          # Create concise, readable release notes (similar to professional projects)
+          # Group commits into simple sections: Fixed, New Features, Changes
+
+          FIXED_SECTION=""
+          FEATURES_SECTION=""
+          CHANGES_SECTION=""
+
+          # Build Fixed section from fix commits
+          if [ -n "$fix_commits" ]; then
+            FIXED_SECTION="## Fixed"$'\n\n'"$fix_commits"
           fi
 
-          # Create formatted release notes with enhanced structure
+          # Build New Features section from feat commits
+          if [ -n "$feat_commits" ]; then
+            FEATURES_SECTION="## New Features"$'\n\n'"$feat_commits"
+          fi
+
+          # Build Changes section from docs and chore commits
+          if [ -n "$docs_commits" ] || [ -n "$chore_commits" ] || [ -n "$other_commits" ]; then
+            CHANGES_SECTION="## Changes"$'\n\n'
+
+            if [ -n "$docs_commits" ]; then
+              CHANGES_SECTION="${CHANGES_SECTION}${docs_commits}"
+            fi
+
+            if [ -n "$chore_commits" ]; then
+              CHANGES_SECTION="${CHANGES_SECTION}${chore_commits}"
+            fi
+
+            if [ -n "$other_commits" ]; then
+              CHANGES_SECTION="${CHANGES_SECTION}${other_commits}"
+            fi
+          fi
+
+          # Create clean, concise release notes
           {
-            echo "# Redis ACL Builder $VERSION"
-            echo ""
-            echo "$RELEASE_TYPE"
-            echo ""
-            echo "---"
-            echo ""
-            echo "$WHATS_NEW"
-            echo "---"
-            echo ""
-            echo "## 📦 Installation"
-            echo ""
-            echo "### Desktop Applications"
-            echo ""
-            echo "| Platform | Download |"
-            echo "|----------|----------|"
-            echo "| **macOS** (Apple Silicon) | [Redis-ACL-Builder-arm64.dmg](https://github.com/markotrapani/redis-acl-builder/releases/download/$VERSION/Redis-ACL-Builder-arm64.dmg) |"
-            echo "| **macOS** (Intel) | [Redis-ACL-Builder-x64.dmg](https://github.com/markotrapani/redis-acl-builder/releases/download/$VERSION/Redis-ACL-Builder-x64.dmg) |"
-            echo "| **Windows** (x64) | [Redis-ACL-Builder-Setup.exe](https://github.com/markotrapani/redis-acl-builder/releases/download/$VERSION/Redis-ACL-Builder-Setup.exe) |"
-            echo "| **Linux** (AppImage) | [Redis-ACL-Builder.AppImage](https://github.com/markotrapani/redis-acl-builder/releases/download/$VERSION/Redis-ACL-Builder.AppImage) |"
-            echo ""
-            echo "### Docker"
-            echo ""
-            echo "\`\`\`bash"
-            echo "docker pull markotrapani608/redis-acl-builder:$VERSION"
-            echo "\`\`\`"
-            echo ""
-            echo "### System Requirements"
-            echo ""
-            echo "- **macOS:** 10.15 (Catalina) or later"
-            echo "- **Windows:** Windows 10 or later (64-bit)"
-            echo "- **Linux:** Most modern distributions with glibc 2.28+"
-            echo ""
-            echo "For detailed installation instructions, see the [README](https://github.com/markotrapani/redis-acl-builder#-quick-start)."
-            echo ""
-            echo "---"
-            echo ""
-            echo "<details>"
-            echo "<summary><b>📝 Full Changelog ($COMMIT_COUNT commits)</b></summary>"
-            echo ""
-            echo "$COMMITS"
-            echo ""
-            echo "</details>"
+            # Add Fixed section first (most important)
+            if [ -n "$FIXED_SECTION" ]; then
+              echo "$FIXED_SECTION"
+              echo ""
+            fi
+
+            # Add New Features second
+            if [ -n "$FEATURES_SECTION" ]; then
+              echo "$FEATURES_SECTION"
+              echo ""
+            fi
+
+            # Add Changes section last
+            if [ -n "$CHANGES_SECTION" ]; then
+              echo "$CHANGES_SECTION"
+              echo ""
+            fi
+
+            # Add full changelog link at bottom
+            if [ -n "$PREV_TAG" ]; then
+              echo "---"
+              echo ""
+              echo "**Full Changelog**: https://github.com/markotrapani/redis-acl-builder/compare/${PREV_TAG}...${VERSION}"
+            else
+              echo "---"
+              echo ""
+              echo "**Full Changelog**: https://github.com/markotrapani/redis-acl-builder/commits/${VERSION}"
+            fi
           } > release_notes.md
 
           cat release_notes.md
