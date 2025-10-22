@@ -1,10 +1,12 @@
 # Redis ACL Builder
 
-**Version v2.4.5-beta** - Multi-Platform Desktop + Web App
+A high-performance application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis and interactive visual feedback.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![license MIT](https://img.shields.io/badge/license-MIT-blue.svg) ![version](https://img.shields.io/badge/version-2.4.5--beta-green.svg) ![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Docker-lightgrey.svg) ![Redis](https://img.shields.io/badge/Redis-7%20%7C%208-red.svg)
 
-A comprehensive application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis. Available as both a web application and native desktop app (macOS, Windows, Linux) with an elegant resizable interface, drag-drop panel reordering, and auto-update infrastructure.
+> **Note:** Available as both a native desktop application and web/Docker deployment. Desktop apps feature auto-updates, offline support, and native performance without requiring Python installation.
+
+---
 
 ## 🚀 Quick Start
 
@@ -133,6 +135,8 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 
 ## Usage Guide
 
+> ⚠️ **Important:** This tool is designed for testing and validating ACL rules in development/staging environments. Always test thoroughly before applying ACL rules to production Redis instances.
+
 ### Basic Usage
 
 1. **Select Redis Version**: Choose between Redis 7 or Redis 8 using the radio buttons
@@ -146,6 +150,8 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
 4. **View Results**: See granted and blocked commands organized by categories and individual commands
 5. **Test Commands**: Use the command tester at the top to check specific commands
 6. **Search & Filter**: Use the search bars at the top of each column to filter categories and commands
+
+> 💡 **Tip:** Use the dual testing interface at the top to test both commands and key patterns simultaneously. Results show exactly which permissions are granted or denied.
 
 <details>
 <summary><b>📝 ACL Rule Syntax (Click to expand)</b></summary>
