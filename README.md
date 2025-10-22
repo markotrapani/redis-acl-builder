@@ -502,8 +502,11 @@ The application features modern, modular frontend and backend architectures with
 - **Monorepo**: Organized into `backend/`, `frontend/`, `electron/`, `scripts/`, and `tests/` directories - single source of truth for both web app and Electron desktop app
 - **Frontend**: Modular ES6 JavaScript (13 modules) + Optimized Modular CSS (6 modules) with professional desktop-like resize experience
 - **Backend**: Flask with comprehensive Redis ACL parsing and API layer
-- **Database**: Hardcoded Redis command databases for Redis 7 (311 commands) and Redis 8 (446 commands)
-- **Testing**: 223 automated tests - 195 backend (pytest) + 28 E2E (Playwright) with 100% pass rate
+- **Database**: Hardcoded Redis command databases based on **Redis OSS** (open source)
+  - **Redis 7 OSS**: 379 commands across 21 categories (admin, cluster, replication, latency, module management, etc.)
+  - **Redis 8 OSS**: 446 commands across 29 categories (includes RediSearch, JSON, TimeSeries, Bloom, and other module commands)
+  - **Note**: Redis Enterprise blocks certain commands (cluster management, replication, dangerous operations) for security. If a command test fails in Redis Enterprise, this is expected behavior - the command exists in OSS but is restricted in Enterprise.
+- **Testing**: 28 automated E2E tests (Playwright) with 100% pass rate
 - **Type Safety**: Professional type annotations with 94% reduction in Pylance strict errors (comprehensive typing across all modules)
 - **UI/UX**: Elegant resizable container system with real-time content synchronization, drag-drop panel reordering, and perfect responsive design
 

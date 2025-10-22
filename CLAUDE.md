@@ -202,11 +202,13 @@ This is a collection of Redis-related projects, with the main project being **Re
 ### Key Project: Redis ACL Builder
 
 - **Version**: v2.4.7-beta (Desktop + Web App)
-- **Test Coverage**: Backend 85% (Core logic: 95-100%, API: 78%) | E2E: 100% (28/28 Playwright tests passing)
-- **Status**: 195 backend tests passing, 28 E2E tests passing, 0 failing, 0 skipped
+- **Test Coverage**: E2E: 100% (28/28 Playwright tests passing)
 - **Latest Release**: Personal Access Token setup for proper release attribution (v2.4.7-beta)
 - **Purpose**: Interactive web interface for parsing, testing, and validating Redis ACL permissions
-- **Redis Support**: Full Redis 7 (311 commands) and Redis 8 (446 commands) including all module commands
+- **Redis Support**: Based on **Redis OSS** (Open Source) command sets
+  - **Redis 7 OSS**: 379 commands across 21 categories (includes cluster, replication, latency monitoring, module management)
+  - **Redis 8 OSS**: 446 commands across 29 categories (adds RediSearch, JSON, TimeSeries, Bloom, and other modules)
+  - **Note**: Redis Enterprise restricts certain OSS commands (cluster, replication, dangerous ops) for security - test failures on restricted commands are expected behavior
 - **UI Features**: Advanced search system with independent fuzzy/exact modes, comprehensive custom tooltips with multi-column layouts and smart command highlighting (color-coded bold text for relevant commands), perfect anti-flash rendering, theme-aware loading animations, enhanced redundancy detection, comprehensive 8-way resizable container system with triangular corner indicators and edge resize handles, drag-drop panel reordering for both three-column panels and testing sections, polished tester controls with proper button positioning and theme-aware styling, complete responsive design for tablet and mobile with optimized layouts and form interactions, **fixed z-index stacking for Electron app test result popups**
 - **Architecture**: Modular ES6 JavaScript (13 modules: 5 specialized modules + 8 core/UI modules) + Optimized Modular CSS (6 modules) with enterprise-grade visual polish, real-time synchronization, and professional desktop-like resize experience
 - **Code Organization**: Interactive ACL Builder massively refactored from 4,286 → 3,195 lines (-1,091 lines, -25.5%) through systematic extraction of 1,636 lines of business logic and UI rendering into 5 specialized modules (ACLOptimizer, ACLCategoryManager, ACLRuleParser, ACLStateManager, ACLUIRenderer)
