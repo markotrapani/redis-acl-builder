@@ -6,3 +6,4 @@ venv/
 # Ignore build outputs
 dist/
 build/
+wiki/
