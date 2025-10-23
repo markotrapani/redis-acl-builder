@@ -1,6 +1,6 @@
 # Redis ACL Builder - Electron Desktop App Conversion Roadmap
 
-**Version:** v2.4.7-beta
+**Version:** v2.6.0-beta
 
 **Branch:** `main`
 
