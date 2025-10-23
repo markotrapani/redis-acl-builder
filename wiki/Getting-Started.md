@@ -234,7 +234,7 @@ The **Integrated Tester** combines both:
 Toggle between **Redis 7** and **Redis 8**:
 
 - Redis 7: 379 commands across 21 categories
-- Redis 8: 496 commands across 29 categories (includes modules)
+- Redis 8: 488 commands across 29 categories (includes modules)
 
 Click the version buttons at the top to switch.
 

@@ -19,7 +19,7 @@ to use.
 
 ### Does it work with Redis 7 and Redis 8?
 
-Yes! You can switch between Redis 7 (379 commands) and Redis 8 (496 commands)
+Yes! You can switch between Redis 7 (379 commands) and Redis 8 (488 commands)
 modes.
 
 ### Does it connect to my Redis server?

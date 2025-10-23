@@ -401,7 +401,7 @@ After:  +@hyperloglog (saves 2 terms!)
 **Differences:**
 
 - **Redis 7:** 379 commands, 21 categories
-- **Redis 8:** 496 commands, 29 categories (includes modules)
+- **Redis 8:** 488 commands, 29 categories (includes modules)
 
 **Modules in Redis 8:**
 

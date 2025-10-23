@@ -190,7 +190,7 @@ redis-acl-builder/
 
 - Redis command database
 - Category-command mappings
-- Supports Redis 7 (379 commands) and Redis 8 (496 commands)
+- Supports Redis 7 (379 commands) and Redis 8 (488 commands)
 
 **ACL Parser** (`backend/helpers/acl_parser.py`)
 

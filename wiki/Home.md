@@ -79,7 +79,7 @@ performance without requiring Python installation.
 - ✅ Parse and validate Redis ACL rule syntax with real-time feedback
 - ✅ Test commands and keyspace patterns with dual testing interface
 - ✅ Visualize granted/blocked commands organized by categories
-- ✅ Support for Redis 7 (379 commands) and Redis 8 (496 commands including
+- ✅ Support for Redis 7 (379 commands) and Redis 8 (488 commands including
   modules)
 - ✅ Light/Dark mode theme system with localStorage persistence
 - ✅ Available as web app (Docker/local) and native desktop app (macOS,

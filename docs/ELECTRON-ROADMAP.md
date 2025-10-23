@@ -111,7 +111,7 @@ unchanged.
 - ✅ All Python helper modules (data_loader.py, acl_parser.py)
 - ✅ Flask API endpoints (12 total)
 - ✅ Pydantic validation
-- ✅ Redis command database (496 commands for Redis 8, 379 for Redis 7)
+- ✅ Redis command database (488 commands for Redis 8, 379 for Redis 7)
 - ✅ ACL parsing engine
 - ✅ Test suite (255 passing tests: 227 backend + 28 E2E)
   - Unit tests, integration tests, property-based tests, performance

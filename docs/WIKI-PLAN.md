@@ -250,7 +250,7 @@ Let's create a simple read-only user ACL:
 
 #### 4.3 Redis 7 vs Redis 8
 
-- **Command Differences** - 379 vs 496 commands
+- **Command Differences** - 379 vs 488 commands
 - **New Categories** - Additional categories in Redis 8
 - **Module Commands** - RediSearch, RedisJSON, TimeSeries, Bloom
 - **Compatibility** - Writing rules that work on both versions
@@ -472,7 +472,7 @@ A: Yes, Redis ACL Builder is open source (MIT License) and completely free.
 
 **Q: Does it work with Redis 7 and Redis 8?**
 
-A: Yes! You can switch between Redis 7 (379 commands) and Redis 8 (496 commands)
+A: Yes! You can switch between Redis 7 (379 commands) and Redis 8 (488 commands)
 modes.
 
 **Q: Does it connect to my Redis server?**
