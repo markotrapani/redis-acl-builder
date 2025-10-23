@@ -81,9 +81,9 @@ class TestDataLoader(unittest.TestCase):
             for cmd in cmds:
                 redis8_commands.add(cmd.lower())
 
-        # Redis 8 OSS has 496 unique commands
-        self.assertEqual(len(redis8_commands), 496,
-                        f"Expected 496 Redis 8 OSS commands, got {len(redis8_commands)}")
+        # Redis 8 OSS has 494 unique commands (496 total minus 2 internal underscore-prefixed: _ft.debug, _ft.config)
+        self.assertEqual(len(redis8_commands), 494,
+                        f"Expected 494 Redis 8 OSS commands, got {len(redis8_commands)}")
 
     def test_redis7_oss_cluster_commands(self):
         """Test Redis 7 OSS includes cluster commands (not in Enterprise)."""
