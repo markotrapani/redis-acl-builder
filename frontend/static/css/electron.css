@@ -193,18 +193,17 @@ body.electron-app .check-updates-btn {
    Custom Title Bar Styles (macOS)
    ============================================ */
 
-/* Add top padding for traffic light buttons area on macOS - index page only */
+/* Add top padding for title bar area on macOS - index page only */
 body.electron-app:has(.panel-container) header {
-    padding-top: 24px;  /* Compact space for traffic lights */
+    padding-top: 40px;  /* Space for title bar (34px) + gap (6px) */
     position: relative;
 }
 
-/* Position buttons floating in upper-right corner, overlapping separator - for both pages */
-body.electron-app:has(.panel-container) .header-content .header-nav,
-body.electron-app:has(.info-page) .header-content .header-nav {
+/* Position buttons below title bar with no gap - index page only */
+body.electron-app:has(.panel-container) .header-content .header-nav {
     position: absolute;
-    top: -16px;  /* Pull up into title bar area with negative positioning */
-    right: -4px;  /* Negative margin to push into corner */
+    top: 0;  /* No gap - flush with title bar separator */
+    right: -4px;  /* Keep right edge positioning */
     margin: 0;
     z-index: 200;  /* Above draggable title bar (z-index: 100) */
 }
@@ -267,7 +266,17 @@ body.electron-app:has(.panel-container) header::before {
 
 /* Add top padding to info page container for title bar */
 body.electron-app:has(.info-page) .info-page {
-    padding-top: 34px;  /* Space for title bar above back button */
+    padding-top: 60px;  /* Space for title bar (34px) + gap (26px) */
+}
+
+/* Hide content under title bar when scrolling */
+body.electron-app:has(.info-page) {
+    overflow: hidden;
+}
+
+body.electron-app:has(.info-page) .info-page {
+    overflow-y: auto;
+    height: 100vh;
 }
 
 /* Create a full-width draggable title bar at the very top of info page */
@@ -276,8 +285,8 @@ body.electron-app:has(.info-page) .info-page::before {
     position: fixed;
     top: 0;
     left: 0;
-    right: 60px;  /* Leave space for theme toggle button on the right */
-    height: 34px;  /* Add a couple more pixels to match index page spacing */
+    right: 0;
+    height: 34px;
     -webkit-app-region: drag;
     z-index: 1000;
     pointer-events: auto;
@@ -316,24 +325,27 @@ body.electron-app:has(.info-page) header::after {
     display: none !important;
 }
 
-/* Keep theme button aligned with info page header box */
-body.electron-app:has(.info-page) .header-content .header-nav {
-    position: absolute !important;
-    top: -40px !important;  /* Position above the header box */
-    right: -12px !important;  /* Align with right edge of header box */
-    z-index: 1001 !important;  /* Above title bar */
-    -webkit-app-region: no-drag !important;  /* Make button clickable */
-    pointer-events: auto !important;  /* Ensure button receives click events */
-}
-
-/* Ensure the button itself is also non-draggable and clickable */
-body.electron-app:has(.info-page) .header-content .header-nav button {
+/* Keep grid layout but ensure buttons are clickable */
+body.electron-app:has(.info-page) .header-nav-left,
+body.electron-app:has(.info-page) .header-nav-right {
     -webkit-app-region: no-drag !important;
     pointer-events: auto !important;
+    padding-top: 6px;  /* Push buttons down from top of header */
 }
 
-/* Ensure back button is above the separator line */
-body.electron-app:has(.info-page) .back-link {
-    position: relative;
-    z-index: 10;
+/* Position back button closer to left edge */
+body.electron-app:has(.info-page) .header-nav-left {
+    margin-left: -4px;  /* Move closer to left wall */
+}
+
+/* Position theme toggle closer to right edge */
+body.electron-app:has(.info-page) .header-nav-right {
+    margin-right: -4px;  /* Move closer to right wall */
+}
+
+/* Ensure the buttons themselves are non-draggable and clickable */
+body.electron-app:has(.info-page) .header-content .header-nav-left a,
+body.electron-app:has(.info-page) .header-content .header-nav-right button {
+    -webkit-app-region: no-drag !important;
+    pointer-events: auto !important;
 }

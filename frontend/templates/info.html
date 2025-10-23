@@ -33,6 +33,28 @@
             margin-bottom: var(--spacing-sm);  /* Consistent spacing below header */
         }
 
+        .info-page .header-content {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: start;
+            gap: var(--spacing-md);
+        }
+
+        .info-page .header-nav-left {
+            justify-self: start;
+            align-self: start;
+        }
+
+        .info-page .header-main {
+            justify-self: center;
+            text-align: center;
+        }
+
+        .info-page .header-nav-right {
+            justify-self: end;
+            align-self: start;
+        }
+
         .back-link {
             background: var(--surface);
             color: var(--text-primary);
@@ -47,7 +69,6 @@
             display: inline-flex;
             align-items: center;
             gap: var(--spacing-xs);
-            margin-bottom: var(--spacing-sm);  /* Consistent spacing below button */
         }
 
         .back-link:hover {
@@ -243,19 +264,19 @@
 
     <div class="container">
         <div class="info-page">
-            <!-- Back Navigation -->
-            <a href="/" class="back-link" title="Return to main application">
-                ← Back to ACL Builder
-            </a>
-            
             <!-- Page Header -->
             <header>
                 <div class="header-content">
+                    <div class="header-nav-left">
+                        <a href="/" class="back-link" title="Return to main application">
+                            ← Back to ACL Builder
+                        </a>
+                    </div>
                     <div class="header-main">
                         <h1>🔐 Redis ACL Builder</h1>
                         <p class="subtitle">Complete Guide & Documentation</p>
                     </div>
-                    <div class="header-nav">
+                    <div class="header-nav-right">
                         <button id="themeToggle" class="theme-toggle" data-emoji="☀️" title="Switch to light mode" aria-label="Toggle theme"></button>
                     </div>
                 </div>
@@ -586,10 +607,11 @@ docker run -d -p 7380:7380 markotrapani608/redis-acl-builder:latest
 
                     <h3>📦 Available Tags</h3>
                     <ul>
-                        <li><strong>latest:</strong> <code>markotrapani608/redis-acl-builder:latest</code> - Always the most recent release (currently v2.0.0-alpha)</li>
-                        <li><strong>v2.0.0-alpha:</strong> <code>markotrapani608/redis-acl-builder:v2.0.0-alpha</code> - Desktop + Web App: Native macOS Electron app + web app with shared codebase (monorepo: backend/, frontend/, electron/, scripts/, tests/)</li>
-                        <li><strong>v1.27.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.27.0-beta</code> - Monorepo restructure: backend/, frontend/, scripts/, tests/ directories - single source of truth for web + desktop (223 tests passing)</li>
-                        <li><strong>v1.26.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v1.26.0-beta</code> - Complete E2E test suite with Playwright (28/28 tests passing), enhanced type safety, optimized Docker builds</li>
+                        <li><strong>latest:</strong> <code>markotrapani608/redis-acl-builder:latest</code> - Always the most recent stable release (currently v2.6.0-beta)</li>
+                        <li><strong>beta:</strong> <code>markotrapani608/redis-acl-builder:beta</code> - Latest beta release with newest features</li>
+                        <li><strong>v2.6.0-beta:</strong> <code>markotrapani608/redis-acl-builder:v2.6.0-beta</code> - Comprehensive test suite enhancements (255 tests: 227 backend + 28 E2E), Redis 8 data accuracy fixes, integration tests, property-based tests, performance benchmarks</li>
+                        <li><strong>v2.4.7-beta:</strong> <code>markotrapani608/redis-acl-builder:v2.4.7-beta</code> - Documentation improvements, enhanced README, CONTRIBUTING.md guide, simplified release notes</li>
+                        <li><strong>v2.4.5-beta:</strong> <code>markotrapani608/redis-acl-builder:v2.4.5-beta</code> - Category styling bug fixes, enhanced partial category detection, improved category ordering</li>
                     </ul>
 
                     <h3>🛠️ Container Management</h3>
