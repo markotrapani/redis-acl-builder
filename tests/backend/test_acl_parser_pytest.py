@@ -68,12 +68,14 @@ class TestACLParserBasics:
         assert len(granted) == 379
 
     def test_all_category_redis8(self, parser_redis8):
-        """Test @all special category for Redis 8 OSS (494 commands)"""
+        """Test @all special category for Redis 8 OSS (488 commands)"""
         parsed = parser_redis8.parse_acl_rule("+@all")
         granted, _ = parser_redis8.evaluate_command_permissions(parsed)
 
-        # Redis 8 OSS has 494 commands (496 total minus 2 internal underscore-prefixed: _ft.debug, _ft.config)
-        assert len(granted) == 494
+        # Redis 8 OSS has 488 commands (496 total minus 8 internal commands:
+        # _ft.debug, _ft.config, ft._createifnx, ft._dropifx, ft._alterifnx,
+        # ft._dropindexifx, ft._aliasdelifx, ft._aliasaddifnx)
+        assert len(granted) == 488
 
     def test_dangerous_category_exclusion(self, parser_redis7):
         """Test excluding dangerous category"""
@@ -158,10 +160,10 @@ class TestRedisVersionDifferences:
         parsed8 = parser_redis8.parse_acl_rule("+@all")
         granted8, _ = parser_redis8.evaluate_command_permissions(parsed8)
 
-        # Redis 8 should have 115 more commands than Redis 7 (494 - 379 = 115)
-        # (496 total minus 2 internal underscore-prefixed: _ft.debug, _ft.config)
+        # Redis 8 should have 109 more commands than Redis 7 (488 - 379 = 109)
+        # (496 total minus 8 internal commands: _ft.debug, _ft.config, and 6 ft._ conditional commands)
         assert len(granted8) > len(granted7)
-        assert len(granted8) - len(granted7) == 115
+        assert len(granted8) - len(granted7) == 109
 
     def test_redis8_has_additional_categories(self, redis_data):
         """Test Redis 8 has additional module categories"""

@@ -100,8 +100,9 @@ class TestRedis8ModuleFeatures:
         for cmd in search_commands:
             assert cmd in granted, f"RediSearch command {cmd} should be in Redis 8 OSS"
 
-        # Should have 38 total RediSearch commands
-        assert len(granted) == 38
+        # Should have 32 total RediSearch commands (38 total minus 6 internal ft._ conditional commands:
+        # ft._createifnx, ft._dropifx, ft._alterifnx, ft._dropindexifx, ft._aliasdelifx, ft._aliasaddifnx)
+        assert len(granted) == 32
 
     def test_redisjson_command_coverage(self, parser_redis8):
         """Test RedisJSON module commands are complete."""
