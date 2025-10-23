@@ -520,6 +520,33 @@ class TestACLParser(unittest.TestCase):
         self.assertIn('read-only', permissions)   # %R~
         self.assertIn('write-only', permissions)  # %W~
 
+    def test_redundancy_deny_all_with_following_commands(self):
+        """Test redundancy detection: -@all followed by commands."""
+        analysis = self.parser8.analyze_rule_redundancy("-@all +get +set")
+
+        # -@all should be detected as redundant (overridden by subsequent +commands)
+        self.assertGreater(len(analysis['redundant_terms']), 0)
+        redundant = [r['term'] for r in analysis['redundant_terms']]
+        self.assertIn('-@all', redundant)
+
+    def test_redundancy_deny_all_with_only_key_patterns(self):
+        """Test redundancy detection: -@all with only key patterns."""
+        analysis = self.parser8.analyze_rule_redundancy("-@all ~cache:*")
+
+        # -@all should be detected as meaningless with only key patterns
+        self.assertGreater(len(analysis['redundant_terms']), 0)
+        redundant_types = [r.get('type') for r in analysis['redundant_terms']]
+        # Should detect as meaningless or redundant
+        self.assertTrue(any('redundant' in str(t) or 'meaningless' in str(t)
+                           for t in redundant_types if t))
+
+    def test_redundancy_complex_overrides(self):
+        """Test redundancy detection with complex override patterns."""
+        analysis = self.parser8.analyze_rule_redundancy("+@read +get -get +get")
+
+        # Should detect redundant patterns (get added/removed/added again)
+        self.assertGreater(len(analysis['redundant_terms']), 0)
+
 
 class TestFlaskApp(unittest.TestCase):
     """Test Flask application endpoints."""
@@ -750,6 +777,53 @@ class TestFlaskApp(unittest.TestCase):
         # The optimized rule should be shorter (pfadd+pfcount+pfmerge = @hyperloglog)
         if data['savings'] > 0:
             self.assertLess(data['optimized_term_count'], data['original_term_count'])
+
+    def test_optimize_rule_already_optimal(self):
+        """Test optimize-rule with already optimal rule."""
+        # Single category is already optimal
+        response = self.client.post('/api/optimize-rule',
+            json={'rule': '+@read', 'version': 'redis7'})
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        self.assertEqual(data['savings'], 0)
+        self.assertEqual(data['optimized_rule'], '+@read')
+        self.assertIn('already optimal', data['explanation'].lower())
+
+    def test_optimize_rule_with_key_patterns(self):
+        """Test that optimization preserves key patterns."""
+        # Rule with commands that can be optimized + key pattern
+        response = self.client.post('/api/optimize-rule',
+            json={'rule': '+pfadd +pfcount +pfmerge ~cache:*', 'version': 'redis7'})
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        # Key pattern should be preserved in optimized rule
+        self.assertIn('~cache:*', data['optimized_rule'])
+
+    def test_optimize_rule_with_advanced_key_permissions(self):
+        """Test that optimization preserves advanced key permissions."""
+        response = self.client.post('/api/optimize-rule',
+            json={'rule': '+pfadd +pfcount +pfmerge %R~stats:*', 'version': 'redis7'})
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        # Advanced key permission should be preserved
+        self.assertIn('%R~stats:*', data['optimized_rule'])
+
+    def test_optimize_rule_complex_scenario(self):
+        """Test optimization with mixed categories and exclusions."""
+        response = self.client.post('/api/optimize-rule',
+            json={'rule': '+@transaction -multi -exec +watch +unwatch', 'version': 'redis7'})
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        # Should find an optimization (might be category-based or command-based)
+        self.assertIn('optimized_rule', data)
 
     def test_test_command_key_api(self):
         """Test the /api/test-command-key endpoint (integrated command+key testing)."""
