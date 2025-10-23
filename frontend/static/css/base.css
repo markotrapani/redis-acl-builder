@@ -373,8 +373,8 @@ header {
 
 .header-nav {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -4px;  /* Pull up to compensate for header padding */
+  right: -4px;  /* Pull right to compensate for header padding */
   display: flex;
   gap: var(--spacing-sm);
   align-items: center;
