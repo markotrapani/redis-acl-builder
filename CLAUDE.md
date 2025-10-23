@@ -1185,40 +1185,21 @@ gh repo edit markotrapani/redis-acl-builder --visibility private
 # GitHub releases stay accessible even with private repos
 ```
 
-**Next Development Priorities (v2.x)**:
+## 📋 Product Roadmap
 
-1. **Test Windows and Linux Auto-Update** (Untested - Complex Setup Required)
-   - ⚠️ **macOS only tested** - v2.2.5-beta → v2.2.6-beta verified working
-   - ❓ Windows auto-update untested (uses .exe for updates)
-   - ❓ Linux auto-update untested (uses AppImage)
-   - **Requires:** Windows VM (Parallels/VMware) + Linux VM setup
-   - **Complexity:** Significant time investment for VM setup and testing
-   - **Alternative:** Wait for user feedback from Windows/Linux beta testers
-   - May require fixes to ensure cross-platform auto-update works
+**For the complete product roadmap, version history, and development
+priorities, see:**
+**[docs/ROADMAP.md](docs/ROADMAP.md)**
 
-2. **App Notarization** (Optional - Improves First-Install UX)
-   - **Current:** Users see "cannot be verified" warning, must right-click →
-   Open → Open Again
-   - **With Notarization:** Users see "from identified developer" and click Open
-     once
-   - **Benefit:** Better first impression, less friction for new users
-   - **Cost:** $0 (included with existing Developer account)
-   - **Effort:** ~30-60 min setup (App Store Connect API key)
-   - **Infrastructure:** Ready (entitlements.mac.plist, notarize.js, workflow
-     placeholders)
-   - **Auto-update:** Works with or without notarization (code signing handles
-     that)
+The ROADMAP.md file contains:
 
-3. **Update App Icon** (Design Improvement)
-   - **Current:** Using default/placeholder icon
-   - **Need:** Create new custom icon that better represents the application
-   - **Formats Needed:**
-     - macOS: .icns file (1024x1024 down to 16x16)
-     - Windows: .ico file (256x256 down to 16x16)
-     - Linux: .png files (512x512, 256x256, 128x128, 64x64, 32x32)
-   - **Design Considerations:** Should reflect Redis ACL Builder branding and
-     be recognizable at small sizes
-   - **Implementation:** Update electron/build/icon.* files and rebuild installers
+- Complete version history with detailed release notes
+- Next development priorities (auto-update testing, notarization, app icon
+  updates)
+- Future feature plans (multi-key validation, Redis OSS vs Enterprise toggle)
+- Completed features archive
+- GA release plan and timeline
+- Documentation strategy
 
 **Completed Reviews:**
 
@@ -1267,323 +1248,53 @@ become available:
 Current status (v2.1.0-beta): 0 Critical, 0 High, 0 Medium, 2 Low
 vulnerabilities. All HIGH/MEDIUM/CRITICAL issues resolved.
 
-**Future Roadmap (v2.x+)**:
+---
 
-1. **Electron Desktop App - Multi-Platform Distribution Ready** (v2.1.7-beta):
-   - ✅ Native desktop experience across all platforms
-   - ✅ Enhanced UI/UX without browser limitations
-   - ✅ Better performance and offline capability
-   - ✅ **PyInstaller backend bundling** - Standalone app (no Python required!)
-   - ✅ **Multi-Platform Builds - COMPLETE!** 🎉
-     - ✅ macOS ARM64 DMG (112MB) - Apple Silicon optimized
-     - ✅ macOS Intel x64 DMG (112MB) - Intel Mac optimized
-     - ✅ Windows NSIS installer + ZIP - Full Windows 10/11 support
-     - ✅ Linux AppImage + .deb - Ubuntu/Debian compatible
-   - ✅ **Automated CI/CD Pipeline** - GitHub Actions builds on version tags
-   - ✅ **Fast macOS ARM64 workflow** - Quick 2-minute builds for
-     testing/debugging
-   - ✅ **Auto-update system** (v2.2.6-beta) - FULLY WORKING! 🎉
-     - ✅ Update detection working (checks GitHub releases)
-     - ✅ Download working (successfully downloads new versions)
-     - ✅ Installation working (code signature validation passing)
-     - ✅ **macOS code signing enabled** (Developer ID Application certificate)
-     - ✅ Tested and verified: v2.2.5-beta → v2.2.6-beta auto-update successful
-     - ✅ Consistent artifact naming (hyphens: `Redis-ACL-Builder-*.zip`)
-     - ✅ ZIP files properly included in GitHub releases for auto-update
-     - ✅ Draft release cleanup automation in CI/CD
-     - 🔄 **Next: App notarization** (optional - improves first-install UX)
-   - ✅ **Size optimization analysis** - 112MB is excellent (86% Electron
-   Framework, 13% backend, 1% assets)
-   - ✅ **Ready for beta distribution** - Fully functional standalone desktop app
-     on all platforms!
-   - 🔄 **Next: Code signing & notarization for production** (requires Apple
-     Developer account)
-     - Infrastructure ready: entitlements.mac.plist, notarize.js script,
-     workflow placeholders
-     - Need: Apple Developer account ($99/year), certificates, App Store Connect
-       setup
-     - Will eliminate Gatekeeper warnings and enable professional distribution
-     - Documentation: [docs/CODE-SIGNING-SETUP.md](docs/CODE-SIGNING-SETUP.md)
-   - 🔄 Future: Native desktop features - custom title bar, file dialogs, system
-   tray (Phase 2)
+## 📝 Current Development Status
 
-2. **Multi-Key Command Validation** (Future v2.x): Advanced command+key testing
-   with Redis command signature awareness
-   - Support for commands with multiple key arguments (COPY, RENAME, MIGRATE,
-     etc.)
-   - Validate each key argument individually based on command signature
-   - Per-argument access reporting (e.g., "source key allowed, destination key
-     denied")
-   - Integration with Redis command metadata to determine key argument positions
-   - Enhanced testing interface showing multi-key validation results
-   - Examples: `COPY source_key dest_key`, `RENAME old_key new_key`
+**For detailed development status and completed features, see:**
+**[docs/ROADMAP.md](docs/ROADMAP.md)**
 
-3. **Redis OSS vs Enterprise Command Set Toggle** (Future v2.x): UI toggle to
-   switch between OSS and Enterprise command sets
-   - Toggle switch to select Redis OSS or Redis Enterprise deployment type
-   - Enterprise mode excludes commands blocked in managed environments:
-     - Clustering: CLUSTER *, CLUSTER FAILOVER, CLUSTER MEET, etc.
-     - Replication: REPLICAOF, SLAVEOF, SYNC, PSYNC, BGSAVE, BGREWRITEAOF
-     - Server control: SHUTDOWN, SAVE, DEBUG, MODULE LOAD/UNLOAD
-     - Client management: CLIENT PAUSE/UNPAUSE
-   - Visual indicators showing which commands are unavailable in Enterprise
-   - Help users plan ACL rules for their specific Redis deployment
-   - Accurate @admin, @dangerous, @slow category filtering for each mode
-   - Examples: Redis Cloud, Azure Cache for Redis, AWS ElastiCache restrictions
+**Quick Status Summary:**
 
-4. **Comprehensive Test Suite Enhancements** (Completed v2.x):
-   - ✅ Integration tests: 10 tests covering full API workflows
-   - ✅ Property-based testing: 12 tests with hypothesis generating 1000+ test cases
-   - ✅ Redis 8 data accuracy: Fixed 47 missing @admin commands, 45
-     missing @dangerous commands
-   - ✅ Accurate command counts: 379 (Redis 7 OSS), 496 (Redis 8 OSS
-     with modules)
-   - ✅ Total test suite: 255 tests (227 backend + 28 E2E), 100% pass rate
-   - ✅ Performance benchmarks: 11 tests validating sub-millisecond
-     performance
-   - ✅ Mutation testing: Infrastructure ready, 2,665 mutants identified
+- **Version**: v2.4.7-beta
+- **Status**: Production Ready - Multi-Platform Desktop + Web/Docker Deployment
+- **Test Suite**: 255 tests (227 backend + 28 E2E), 100% pass rate
+- **Platforms**: macOS (ARM64 + Intel), Windows, Linux, Docker (AMD64 + ARM64)
+- **Auto-Update**: Working on macOS (Windows/Linux untested)
+- **Code Signing**: Enabled (macOS Developer ID Application certificate)
+- **Latest**: Custom title bar implementation complete (v2.5.0)
 
-**Completed Features**:
+For complete feature history and detailed development status, see
+[docs/ROADMAP.md](docs/ROADMAP.md).
 
-- ✅ **Electron App Test Result Popup Fix** (v2.0.3-alpha): Fixed critical
-z-index stacking context issue where test result popups were getting buried
-under three-column ACL builder panels in the Electron desktop app. **Root
-cause**: `.testing-container` had z-index: 10 while `.three-column-layout` had
-z-index: 20, causing entire testing container (and all popups inside) to render
-behind panels regardless of popup's own z-index. **Solution**: Changed
-`.testing-container` to z-index: 30, fixed overflow clipping on parent
-containers (`.panel-container`, `.inner-container`, `.three-column-layout`
-changed from `overflow: hidden/auto` to `overflow: visible`), updated all test
-result popup z-index values to 9999 with !important. **Impact**: Test result
-popups now correctly appear above all three-column panels in both web and
-Electron app. Drag-drop functionality preserved with higher z-index values
-during drag operations (tester drag: 2000, panel drag: 1000). Version bumped
-from v2.0.0-alpha → v2.0.3-alpha.
-- ✅ **Monorepo Restructure** (v1.27.0-beta): Complete codebase reorganization
-into monorepo structure with `backend/`, `frontend/`, `electron/`, `scripts/`,
-and `tests/` directories. Single source of truth for both web app and future
-Electron desktop app with zero code duplication. All 195 backend tests + 28 E2E
-tests passing. Updated Flask app to reference `../frontend/` paths, updated
-Docker build to copy from `../backend/` and `../frontend/`, updated
-`build_minified.py` and `playwright.config.js` for new paths. Created helper
-scripts (`run-web.sh`, `build-web.sh`, `run-desktop.sh`). Backend and frontend
-code now exists ONCE and will be shared by both web and desktop versions in
-v2.0. Fast web development workflow preserved - iterate quickly in Flask, then
-test in Electron when ready.
-- ✅ **Documentation Update** (v1.26.1-beta): Updated /info page to reflect
-current v1.26.0-beta features. Updated version references from v1.13.0 to
-v1.26.0, test coverage stats to 223 total tests (195 backend + 28 E2E with 100%
-pass rate), removed non-existent `/api/test-keyspace` endpoint (keyspace testing
-is client-side JavaScript glob matching), added `/api/test-command-key` and
-`/api/optimize-rule` endpoints, updated Docker tag examples, enhanced
-architecture section with type safety and modular structure details.
-- ✅ **Complete E2E Test Suite & Type Safety Enhancement** (v1.26.0-beta):
-Comprehensive Playwright end-to-end test suite with 100% pass rate (28/28
-tests). Fixed all test failures by adapting to integrated tester mode with
-correct element selectors (`#integratedCommand`, `#integratedKey`,
-`#integratedTestResult`, `.integrated-test-button`) and API endpoints
-(`/api/test-command-key`). Tests cover: page load and layout (5 tests), ACL rule
-editing and validation (5 tests), interactive builder click-to-grant/revoke (4
-tests), command permission testing (3 tests), keyspace pattern testing (2
-tests), saved rules management (2 tests), Redis version switching (3 tests),
-theme switching (2 tests), and complete user workflows (2 tests). Enhanced
-`build_minified.py` with comprehensive type annotations - added function
-signatures with return types, explicit variable type hints for all locals, and
-`# type: ignore` comments for untyped imports. Achieved enterprise-grade type
-safety across entire codebase.
-- ✅ **Rule Optimization Display & Version Switching Enhancements**
-(v1.25.4-beta): Fixed optimization display to show single warning with backend
-suggestion and "Saves X terms" text (no duplicates). Frontend now preserves
-backend warnings/suggestions and only adds its own if backend hasn't provided
-them. Removed redundant "Commands match exactly" explanation when category
-completion warning exists. Fixed version switching to preserve unsaved textarea
-content - skips both redundancy analysis AND interactive builder refresh when
-Submit Changes button is visible. Comprehensive testing across Redis 7 vs 8
-version differences (e.g., @hash category: 25 commands in Redis 7 → `+@hash`,
-same 25 in Redis 8 → `+@hash -hgetdel -hgetex -hsetex`). All edge cases tested:
-empty rules, invalid syntax, already optimal rules, category exclusions,
-light/dark mode visual consistency.
-- ✅ **Command Sort Order & Rule Preservation Fixes** (v1.25.3-beta): Fixed
-command sorting to prioritize explicit commands before implicit
-(priority-based). Rules like `-get` are now preserved on page refresh instead of
-being cleared. Fixed empty ACL detection to check for blocked
-categories/commands. Implemented implicit partial category styling with proper
-hollow yellow ⚠ display. Fixed @all priority assignment (always priority 1).
-Enhanced search with fuzzy relevance scoring (exact matches first, sorted by
-match quality), order restoration when clearing search, and "Showing X of Y"
-count positioned before buttons. Eliminated visual gaps from empty
-command-buttons containers.
-- ✅ **Optimization Box Persistence & Backend Error Fix** (v1.25.1-beta): Fixed
-critical undefined `warnings` variable error in `optimize_rule()` method that
-broke all optimization (was returning savings=0). Changed to parse rule tokens
-directly to detect inefficient +@all placement patterns. "Saves X terms" now
-displays correctly. Implemented optimization suggestion persistence -
-suggestions now remain visible while typing or temporarily deleting text in
-textarea. Only hide optimization box when: submitting new rule, clicking X
-dismiss button, or explicit clear operation. Skip redundancy analysis during
-typing no longer hides existing warnings. Complete manual testing of @all
-category button states, button ordering priorities, and auto-optimization
-triggers. Updated testing documentation with all v1.25.0-v1.25.1 completed
-tests.
-- ✅ **Backend Category Analysis & Test Suite Expansion** (v1.25.0-beta):
-Implemented comprehensive backend category analysis in ACL parser - classifies
-categories as fully granted, partially granted (with percentage), or blocked
-based on actual command permissions. Added `analyze_category_grants()` method
-returning category analysis in /api/parse response. Created 68 new automated
-tests including 12 comprehensive API-level category analysis tests, 19 button
-interaction tests, 16 @all category behavior tests, and 8 ACL precedence
-validation tests. Removed 16 obsolete skipped tests (-319 lines cleanup). Test
-suite expanded from 127 → 195 passing tests (0 skipped). Fixed test signature
-mismatches and API response structure. Backend now provides complete category
-intelligence for future frontend simplification and API integrations.
-- ✅ **Smart Category Detection & Auto-Optimization** (v1.24.0-beta): Complete
-implicitly partial category detection for complex ACL patterns like `+@all
--@admin`. Categories with mixed granted/blocked commands now show with
-consistent hollow yellow ⚠ styling in BOTH granted and blocked columns.
-Implemented intelligent auto-optimization for button-built rules - clicking
-partially blocked `@admin` in `+@all -@admin +@connection` now auto-optimizes to
-`+@all`. Backend detects when all commands are granted and suggests `+@all`
-optimization. Grouped redundancy warnings - multiple redundant terms now show as
-single message with comma-separated list (e.g., "Redundant inclusions:
-+@connection, +@admin"). Eliminated duplicate optimization explanations and
-intermediate suggestions. Fixed +@all expansion detection to properly
-distinguish explicit vs implicit category grants.
-- ✅ **Interactive Hover Feedback & Animation Fixes** (v1.23.1-beta): Added
-intelligent emoji swap on hover for all interactive buttons. Link/unlink buttons
-(⛓️‍💥 → 🔗 and 🔗 → ⛓️‍💥) preview toggle actions, Clear ACL button (💣 → 💥 when
-enabled) previews destructive action. Implemented smooth opacity transitions
-with matching gradient backgrounds to eliminate size changes and layout shifts.
-Fixed drag-drop animation bug after mode switching by clearing inline styles
-after fade transitions complete (300ms delay). Works seamlessly in both light
-and dark modes with theme-appropriate colors.
-- ✅ **Testing Section UI Polish** (v1.23.0-beta): Complete visual hierarchy
-  improvements for tester controls. Link/unlink buttons repositioned to the left
-  of drag handles in split panels with proper float management and HTML
-  ordering. Added distinctive yellow/orange styling for integrated panel's
-  unlink button (matches exact-mode toggle) while maintaining purple theme for
-  split panel buttons. Enhanced visual consistency and accessibility across all
-  testing interfaces.
-- ✅ **Complete Pylance Strict Mode Type Safety** (v1.22.4-beta): Comprehensive
-type annotations across all helper modules (data_loader.py, acl_parser.py).
-Added TypedDict definitions (RedisVersionData, CommandRule, KeyRule,
-ChannelRule, PermissionSet, ParsedACLRule). Fixed 221+ Pylance warnings with
-explicit type hints for all collections (sets, lists, dicts, tuples), variables,
-lambda parameters, and return types. Achieved 0 errors/0 warnings in pyright
-strict mode. No functional changes - purely type annotation improvements for
-better IDE support, code documentation, and type safety.
-- ✅ **Docker Build Optimization** (v1.21.1): Split requirements into production
-  and test dependencies for faster multi-arch builds. Eliminated coverage
-  compilation on ARM64 (100s savings). Production image uses only
-  requirements-prod.txt. Local development uses requirements.txt (includes
-  both). Upgraded coverage to 7.6.9 with ARM64 wheels. Multi-arch build time
-  reduced from 2m 40s to ~1m 30s.
-- ✅ **Testing Section Drag-and-Drop** (v1.21.0): Complete drag-and-drop
-reordering system for testing sections (Command Tester, Keyspace Tester,
-Integrated Tester) with grabbable handles, smooth animations, localStorage
-persistence, and universal pointer-events approach to disable all hover effects
-during drag. Matches the polished UX of three-column panel drag system.
-- ✅ **Rule Selectors - Complete UI Support** (v1.20.0): Full frontend
-integration for Redis 7.0+ selectors with proper command display, frontend
-validation with "Selector #1:" error prefixes, enhanced testing interface
-showing selector context, perfect selector isolation with informative error
-messages, and OR logic (commands granted if EITHER root OR any selector permits
-them).
-- ✅ **Advanced Key Permissions - Bug Fixes** (v1.20.0): Fixed full keyspace
-access (no key patterns = access to all keys per Redis default), improved error
-messages for permission type mismatches, smart isolation hints only shown when
-selectors exist, proper handling of read-write commands like GETSET.
-- ✅ **Comprehensive Interactive ACL Builder Refactoring** (v1.22.0-v1.22.3):
-Massive refactoring effort across 4 safe checkpoints (v1.22.0, v1.22.1, v1.22.2,
-v1.22.3). Main file reduced from 4, 286 → 3, 195 lines (-1, 091 lines, -25.5%).
-Created 5 specialized modules: ACLOptimizer (470 lines, 21 methods),
-ACLCategoryManager (331 lines, 8 methods), ACLRuleParser (159 lines, 4 methods),
-ACLStateManager (86 lines, 7 methods), and ACLUIRenderer (545 lines, 5 methods
-including complex tooltip and button creation logic). Total extracted: 1, 636
-lines across 45 methods. Maintained full backward compatibility through
-delegation pattern. Dramatically improved maintainability, testability, and
-separation of concerns.
-- ✅ **Info Page & UI Enhancements** (v1.20.0): Visual separation between basics
-and advanced features, improved formatting with fixed pub/sub channel display,
-content cleanup removing version suffixes, fixed button styling conflicts,
-removed unnecessary loading states.
-- ✅ **Pub/Sub Channel Pattern Support** (v1.18.0): Parse and preserve `&`
-channel patterns in ACL rules (e.g., `&*`, `&channel:*`). Patterns are validated
-for syntax but not for access (app cannot test pub/sub permissions). Preserves
-patterns for rule display/export.
-- ✅ **Complete Pydantic API Migration** (v1.18.0): Migrated all 10 API endpoints
-  to use Pydantic models for type-safe request/response validation. Zero Pylance
-  type checking warnings across entire codebase. Enhanced error handling with
-  explicit type annotations.
-- ✅ **Advanced Key Permissions Support** (v1.18.0): Full support for Redis 7.0+
-advanced key permission syntax (`%R~` read-only, `%W~` write-only, `%RW~`
-read-write). ACL optimization preserves key patterns. Enhanced validation for
-all permission types.
-- ✅ **Enhanced Testing Interface UX** (v1.18.0): Improved animations (slide
-up/down), auto-dismiss with 15s timeout, localStorage mode persistence, pastel
-gradient buttons for light mode, better accessibility labels.
-- ✅ **Smart ACL Rule Optimization** (v1.17.0): Intelligent algorithm finds
-shortest equivalent ACL rules by exploring 4 optimization strategies (pure
-category, category+exclusions, individual commands, multi-category cover).
-Auto-applies for button-built rules, shows suggestions for manual entry.
-Examples: `+pfadd +pfcount +pfmerge` (3 terms) → `+@hyperloglog` (1 term);
-`+@transaction -discard -exec -multi` (4 terms) → `+unwatch +watch` (2 terms).
-API endpoint `/api/optimize-rule` with comprehensive testing (22 passing tests)
-- ✅ **Test Suite Improvements** (v1.17.0): Fixed all 26 failing tests to match
-current API implementation. Updated API response structure assertions, fixed
-method naming, added skip decorators with documentation. Test pass rate improved
-from 81.8% to 100% (127 passing, 16 skipped)
-- ✅ **Category Count Accuracy** (v1.17.0): Excluded @all pseudo-category from
-  category count in panel headers for accurate Redis category counts
-- ✅ **Pydantic Data Validation**: Type-safe API contracts with automatic
-validation, field validators, and clear error messages - eliminates 90% of API
-validation bugs
-- ✅ **Enhanced Pytest Testing**: Modern test suite with fixtures,
-parametrization, and 127 passing tests (105 core + 22 optimization) - improved
-maintainability and coverage
-- ✅ **Enterprise-Grade Type Safety**: Comprehensive type annotations across all
-  modules with 94% reduction in Pylance strict errors
-- ✅ **ACL Rule History**: Full localStorage-based rule history with save/load
-  functionality
-- ✅ **Keyboard Shortcuts**: Comprehensive keyboard shortcuts including Enter to
-  submit ACL changes
-- ✅ **Removed Obsolete Auto-Scroll**: Removed automatic scroll behavior when
-  saving custom ACL rules since saved rules are now presented at the top of the
-  preset list
-- ✅ **Fixed Testing Section Drag Interactions**: Prevented bottom testing
-  sections from responding to panel drag operations by scoping CSS rules to
-  three-column layout only
-- ✅ **Copy to Clipboard**: Built-in copy functionality for ACL rules and
-  configurations
-- ✅ **Automated CI/CD Pipeline**: Complete GitHub Actions workflow for automated
-Docker Hub publishing with multi-architecture builds, security scanning, and
-version management
-- ✅ **Multi-architecture Docker builds**: ARM64/AMD64 support with Python 3.13.7
-  upgrade
-- ✅ **Release Automation**: Version bump script with automated tagging and
-  documentation updates
+---
 
 ## Git Workflow Instructions
 
-**IMPORTANT**: After completing significant improvements, bug fixes, or feature
-implementations, ALWAYS ask the user:
-"Would you like me to create a commit for these changes?"
+After completing significant work (bug fixes, features, documentation updates),
+create commits automatically with clear, descriptive messages. Git's revert
+capability makes this safe - no need to ask permission first.
 
-This applies when you have:
+**Commit Guidelines:**
 
-- Fixed bugs or issues
-- Implemented new features or enhancements  
-- Made significant UI/UX improvements
-- Updated documentation or configuration files
-- Completed any substantial code changes
-
-Only create commits when the user explicitly agrees. When creating commits:
-
-- Use clear, descriptive commit messages
-- Follow conventional commit format (feat:, fix:, docs:, style:, etc.)
+- Use conventional commit format (feat:, fix:, docs:, style:, refactor:, test:,
+  chore:)
 - Group related changes into logical commits
-- Include the Claude Code attribution footer with proper co-author
-- **NEVER push to remote automatically** - always ask user permission first
-  before pushing
+- Include clear descriptions of what changed and why
+- Add Claude Code attribution footer
+
+**Commit Message Template:**
+
+```text
+[type]: [description]
+
+[detailed explanation if needed]
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: marko.trapani@redis.com
+```
 
 ### Documentation Synchronization Workflow
 

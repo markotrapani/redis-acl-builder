@@ -292,19 +292,48 @@ ELECTRON-ROADMAP.md
   (v2.0.0)
 - ✅ **Auto-Update System** - Silent checks with user-friendly update dialogs
   (v2.3.0)
+- ✅ **Custom Title Bar** - macOS draggable title bar with traffic light button
+  support (v2.5.0)
 - ✅ **Templates & Presets** - Quick Examples + Saved Rules with localStorage
   (v1.x)
 
 ### Next Up: Desktop App Polish (v2.5.x)
 
-#### High Priority (User Requested)
+#### High Priority
 
-**Custom Title Bar** - Replace default Electron chrome with themed custom design
+1. **Test Windows and Linux Auto-Update** (Untested - Complex Setup Required)
+   - ⚠️ **macOS only tested** - v2.2.5-beta → v2.2.6-beta verified working
+   - ❓ Windows auto-update untested (uses .exe for updates)
+   - ❓ Linux auto-update untested (uses AppImage)
+   - **Requires:** Windows VM (Parallels/VMware) + Linux VM setup
+   - **Complexity:** Significant time investment for VM setup and testing
+   - **Alternative:** Wait for user feedback from Windows/Linux beta testers
+   - May require fixes to ensure cross-platform auto-update works
 
-- Match app's visual style and theme
-- Professional appearance
-- Custom window controls
-- Estimate: 6-8 hours
+2. **App Notarization** (Optional - Improves First-Install UX)
+   - **Current:** Users see "cannot be verified" warning, must right-click →
+     Open → Open Again
+   - **With Notarization:** Users see "from identified developer" and click
+     Open once
+   - **Benefit:** Better first impression, less friction for new users
+   - **Cost:** $0 (included with existing Developer account)
+   - **Effort:** ~30-60 min setup (App Store Connect API key)
+   - **Infrastructure:** Ready (entitlements.mac.plist, notarize.js, workflow
+     placeholders)
+   - **Auto-update:** Works with or without notarization (code signing handles
+     that)
+
+3. **Update App Icon** (Design Improvement)
+   - **Current:** Using default/placeholder icon
+   - **Need:** Create new custom icon that better represents the application
+   - **Formats Needed:**
+     - macOS: .icns file (1024x1024 down to 16x16)
+     - Windows: .ico file (256x256 down to 16x16)
+     - Linux: .png files (512x512, 256x256, 128x128, 64x64, 32x32)
+   - **Design Considerations:** Should reflect Redis ACL Builder branding and
+     be recognizable at small sizes
+   - **Implementation:** Update electron/build/icon.* files and rebuild
+     installers
 
 #### Medium Priority (Nice to Have)
 
