@@ -337,6 +337,14 @@ ELECTRON-ROADMAP.md
 
 #### Medium Priority (Nice to Have)
 
+**Info Page UI Refinement** - Improve button placement and visual hierarchy
+
+- Move theme toggle button inside "Redis ACL Builder" header section
+- Move "Back to ACL Builder" button inside header section
+- Cleaner layout with buttons contained within header box
+- Better visual consistency with main page
+- Estimate: 1-2 hours
+
 **System Tray Integration** - Optional minimize to tray
 
 - App icon in macOS menu bar / Windows system tray
