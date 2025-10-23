@@ -301,21 +301,21 @@ jobs:
               fi
 
               if [[ $commit =~ ^feat:|^feat\( ]]; then
-                msg=$(echo "$commit" | sed 's/^feat[^:]*: *//' | sed 's/^./\U&/')
+                msg=$(echo "$commit" | sed 's/^feat[^:]*: *//' | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
                 feat_commits="${feat_commits}- ${msg}"$'\n'
               elif [[ $commit =~ ^fix:|^fix\( ]]; then
-                msg=$(echo "$commit" | sed 's/^fix[^:]*: *//' | sed 's/^./\U&/')
+                msg=$(echo "$commit" | sed 's/^fix[^:]*: *//' | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
                 fix_commits="${fix_commits}- ${msg}"$'\n'
               elif [[ $commit =~ ^docs:|^docs\( ]]; then
-                msg=$(echo "$commit" | sed 's/^docs[^:]*: *//' | sed 's/^./\U&/')
+                msg=$(echo "$commit" | sed 's/^docs[^:]*: *//' | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
                 docs_commits="${docs_commits}- ${msg}"$'\n'
               elif [[ $commit =~ ^chore:|^chore\( ]]; then
-                msg=$(echo "$commit" | sed 's/^chore[^:]*: *//' | sed 's/^./\U&/')
+                msg=$(echo "$commit" | sed 's/^chore[^:]*: *//' | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
                 chore_commits="${chore_commits}- ${msg}"$'\n'
               else
                 other_commits="${other_commits}- ${commit}"$'\n'
               fi
-            done < <(git log ${PREV_TAG}..HEAD --pretty=format:"%s" --no-merges)
+            done < <(git log ${PREV_TAG}..HEAD --pretty=tformat:"%s" --no-merges)
           fi
 
           # Build "What's New" section from categorized commits
@@ -348,9 +348,9 @@ jobs:
 
           # Get full commit list for changelog section
           if [ -n "$PREV_TAG" ]; then
-            COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --no-merges)
+            COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=tformat:"- %s" --no-merges)
           else
-            COMMITS=$(git log --pretty=format:"- %s" --no-merges -10)
+            COMMITS=$(git log --pretty=tformat:"- %s" --no-merges -10)
           fi
 
           # Create concise, readable release notes (similar to professional projects)
