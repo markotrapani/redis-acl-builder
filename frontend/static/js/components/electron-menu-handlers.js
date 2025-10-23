@@ -15,9 +15,6 @@ export function initElectronMenuHandlers() {
 
     console.log('🔧 Setting up Electron menu handlers');
 
-    // Create draggable title bar element for cursor feedback
-    createDraggableTitleBar();
-
     // View menu: Expand All Test Sections
     window.electronAPI.onExpandAllTesters(() => {
         console.log('📤 Expand All Test Sections requested from menu');
@@ -77,42 +74,4 @@ function collapseAllTestSections() {
     });
 
     console.log('✅ All test sections collapsed');
-}
-
-/**
- * Create a draggable title bar element with proper cursor feedback
- * This replaces the CSS pseudo-element approach which can't have cursor styles
- */
-function createDraggableTitleBar() {
-    const header = document.querySelector('header');
-    if (!header) return;
-
-    // Create the draggable title bar div
-    const titleBar = document.createElement('div');
-    titleBar.className = 'electron-title-bar';
-    titleBar.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 60px;
-        height: 24px;
-        -webkit-app-region: drag;
-        z-index: 100;
-        cursor: grab;
-        pointer-events: auto;
-    `;
-
-    // Change cursor to grabbing when actively dragging
-    titleBar.addEventListener('mousedown', () => {
-        titleBar.style.cursor = 'grabbing';
-    });
-
-    titleBar.addEventListener('mouseup', () => {
-        titleBar.style.cursor = 'grab';
-    });
-
-    // Insert at the beginning of header
-    header.insertBefore(titleBar, header.firstChild);
-
-    console.log('✅ Draggable title bar element created');
 }

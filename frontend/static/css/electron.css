@@ -214,15 +214,6 @@ body.electron-app:has(.panel-container) header > * {
     -webkit-app-region: no-drag;
     position: relative;
     z-index: 2;
-    pointer-events: none;  /* Allow mouse events to pass through to title bar */
-}
-
-/* Re-enable pointer events for interactive elements within header */
-body.electron-app:has(.panel-container) header button,
-body.electron-app:has(.panel-container) header input,
-body.electron-app:has(.panel-container) header select,
-body.electron-app:has(.panel-container) header a {
-    pointer-events: auto;
 }
 
 /* Ensure all interactive elements in header are clickable */
