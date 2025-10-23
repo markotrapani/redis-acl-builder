@@ -1,11 +1,11 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.4.7-beta
+**Current Version:** v2.6.0-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
 
-**Last Updated:** 2025-10-22
+**Last Updated:** 2025-10-23
 
 ---
 
@@ -18,6 +18,64 @@ applications across macOS, Windows, and Linux.
 ---
 
 ## 🎯 Version History
+
+### v2.6.0-beta (2025-10-23)
+
+#### Redis Command Database Accuracy Improvements
+
+- Removed 8 internal RediSearch commands from Redis 8 command set
+- Updated command counts: Redis 8 total 496 → 488 commands (-8)
+- Updated RediSearch module: 38 → 32 commands (-6)
+- Removed: `_ft.debug`, `_ft.config`, `ft._createifnx`, `ft._dropifx`,
+  `ft._alterifnx`, `ft._dropindexifx`, `ft._aliasdelifx`, `ft._aliasaddifnx`
+- Kept: `ft._list` (only usable `ft._` command)
+- Updated all documentation and wiki pages with correct command counts
+- All 227 backend tests passing with updated assertions
+
+#### GitHub Wiki Documentation
+
+- Created comprehensive 8-page GitHub Wiki (~60K of documentation)
+- Wiki pages: Home, Installation, Getting Started, User Guide, API Reference,
+  Development, Troubleshooting, FAQ
+- Fixed all markdown linting issues across wiki and documentation
+- Zero markdown linting errors across all files
+
+#### Electron App UI Improvements
+
+- Fixed title bar button positioning (Check for Updates button)
+- Improved Electron app info page layout and styling
+- Enhanced visual consistency between web and desktop versions
+
+#### Performance Optimizations
+
+- Implemented Tier 1 API caching for improved performance
+- Optimized backend response times
+
+#### Roadmap Documentation Consolidation
+
+- Moved all roadmap content to docs/ROADMAP.md (single source of truth)
+- Removed duplicate roadmap information from CLAUDE.md
+- CLAUDE.md now references ROADMAP.md for version/status information
+
+**Technical:** Backend command database cleanup, wiki documentation, Electron UI
+polish
+
+---
+
+### v2.4.7-beta (2025-10-22)
+
+#### Comprehensive Test Suite Enhancements
+
+- Enhanced test suite to 255 total tests (227 backend + 28 E2E)
+- Fixed critical Redis 8 data accuracy issues (47 missing @admin commands, 45
+  missing @dangerous commands)
+- Updated command counts: 379 (Redis 7 OSS), 496 (Redis 8 OSS with modules)
+- All tests passing with 100% success rate
+
+**Technical:** Property-based testing with Hypothesis, integration tests, Redis
+8 command database corrections
+
+---
 
 ### v2.4.6-beta (2025-10-22)
 
@@ -343,7 +401,7 @@ ELECTRON-ROADMAP.md
 
 ### Completed Features (v2.6.x)
 
-#### Comprehensive Test Suite Enhancements
+#### Test Suite Expansion and Improvements
 
 - ✅ **Integration Tests** (10 new tests) - Full API workflow testing
   - Tests complete user journeys across multiple endpoints
