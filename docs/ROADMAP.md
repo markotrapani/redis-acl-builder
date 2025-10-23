@@ -428,161 +428,86 @@ matches the actual permissions.
 
 **Target:** Q2 2025 (after sufficient beta testing)
 
-### Pre-GA Checklist
+**📄 Full Details:** [GA-RELEASE-PLAN.md](./GA-RELEASE-PLAN.md)
 
-**Quality Assurance:**
+### Quick Summary
+
+**Pre-GA Requirements:**
 
 - [ ] 6+ months of beta testing with user feedback
-- [ ] All critical bugs resolved
 - [ ] Test suite at 90%+ coverage
-- [ ] Performance benchmarks meet SLA (all operations <10ms)
 - [ ] Security audit complete (no HIGH/CRITICAL vulnerabilities)
+- [ ] Complete user documentation (guide, API reference, FAQ)
+- [ ] All platforms tested and stable (macOS, Windows, Linux, Docker)
+- [ ] Community infrastructure ready (Discussions, issue templates)
 
-**Documentation:**
+**Release Day Tasks:**
 
-- [ ] Complete user guide (Getting Started, Features, Troubleshooting)
-- [ ] API documentation for all endpoints
-- [ ] Comprehensive FAQ
-- [ ] Video tutorials (installation, basic usage, advanced features)
-- [ ] Migration guide from beta to GA
+1. Create v3.0.0 tag and trigger builds
+2. Publish GitHub release with all binaries
+3. Update Docker Hub (:latest, :stable tags)
+4. Public announcements (GitHub, social media, Reddit, HN)
+5. Monitor for critical issues (48-hour watch period)
 
-**Platform Stability:**
+**Post-GA Support:**
 
-- [ ] Windows code signing implemented (remove SmartScreen warnings)
-- [ ] All platforms tested on latest OS versions
-- [ ] Auto-update tested on all platforms (macOS, Windows, Linux)
-- [ ] Docker image optimized and stable
+- Critical bugs: 24-hour fix target
+- Security updates: 24-hour patch target
+- Minor releases: Every 4-6 weeks
+- Major releases: Annually
 
-**Community:**
-
-- [ ] GitHub Discussions enabled
-- [ ] Issue templates created (bug report, feature request)
-- [ ] Contributing guide finalized
-- [ ] Code of Conduct published
-- [ ] Contributor License Agreement (if needed)
-
-**Release Infrastructure:**
-
-- [ ] Semantic versioning strategy documented
-- [ ] Release notes automation working
-- [ ] Automated changelog generation
-- [ ] Deprecation policy documented
-- [ ] Support policy documented (bug fixes, security updates)
-
-### GA Release Day Tasks
-
-1. Update version to v3.0.0 across all files
-2. Create comprehensive release notes
-3. Publish GitHub release with all platform binaries
-4. Update Docker Hub with :latest and :stable tags
-5. Announce on social media / community channels
-6. Monitor for critical issues (48-hour watch period)
-
-### Post-GA Support
-
-- **Bug Fixes:** Critical bugs within 24 hours, high priority within 7 days
-- **Security Updates:** Critical patches within 24 hours
-- **Minor Releases:** Every 4-6 weeks (v3.1.0, v3.2.0, etc.)
-- **Major Releases:** Annually (v4.0.0 in 2026)
+**📖 See [GA-RELEASE-PLAN.md](./GA-RELEASE-PLAN.md) for complete checklist and
+timeline**
 
 ---
 
 ## 📚 Documentation Strategy
 
-### Current Documentation Status
+### Current Documentation
 
 - ✅ **README.md** - User-facing documentation and quick start
 - ✅ **CLAUDE.md** - Project instructions for AI assistance
 - ✅ **ROADMAP.md** - Product roadmap and version history (this file)
-- ✅ **ELECTRON-ROADMAP.md** - Electron technical implementation details
+- ✅ **ELECTRON-ROADMAP.md** - Electron technical implementation
 - ✅ **CODE-SIGNING.md** - Code signing and notarization setup
 - ✅ **CICD-WORKFLOWS.md** - CI/CD pipeline documentation
 - ✅ **CONTRIBUTING.md** - Contribution guidelines
+- ✅ **PERFORMANCE-PLAN.md** - Performance optimization roadmap
+- ✅ **GA-RELEASE-PLAN.md** - GA release checklist
+- ✅ **WIKI-PLAN.md** - GitHub Wiki structure plan
 
 ### Planned Documentation (Pre-GA)
 
-**User Documentation:**
+**📄 Full Details:** [WIKI-PLAN.md](./WIKI-PLAN.md)
 
-- [ ] **User Guide** - Comprehensive feature documentation
-  - Installation and setup
-  - Basic ACL rule creation
-  - Advanced features (selectors, key patterns, optimization)
-  - Testing commands and keyspace patterns
-  - Troubleshooting common issues
-  - Estimate: 8-10 hours
-- [ ] **Video Tutorials** - Visual learning resources
-  - Installation walkthrough (5 min)
-  - Creating your first ACL rule (10 min)
-  - Advanced features deep dive (15 min)
-  - Estimate: 12-15 hours (scripting, recording, editing)
-- [ ] **FAQ** - Common questions and answers
-  - Installation issues
-  - ACL syntax questions
-  - Feature requests
-  - Estimate: 3-4 hours
+**Quick Summary:**
 
-**Developer Documentation:**
-
-- [ ] **API Documentation** - Backend API reference
-  - All 12 endpoints documented
-  - Request/response schemas (Pydantic models)
-  - Error codes and handling
-  - Examples for each endpoint
-  - Estimate: 6-8 hours
-- [ ] **Architecture Guide** - System design documentation
-  - Frontend module structure
-  - Backend architecture
-  - Data flow diagrams
-  - Database schema (if applicable)
-  - Estimate: 5-6 hours
-- [ ] **Testing Guide** - How to run and write tests
-  - Unit test examples
-  - Integration test patterns
-  - E2E test setup
-  - Property-based testing guide
-  - Estimate: 4-5 hours
+- [ ] **User Guide** - Installation, features, troubleshooting (8-10 hours)
+- [ ] **Video Tutorials** - Installation, basic usage, advanced features
+  (12-15 hours)
+- [ ] **FAQ** - Common questions and answers (3-4 hours)
+- [ ] **API Documentation** - All 12 endpoints with examples (6-8 hours)
+- [ ] **Architecture Guide** - System design and data flow (5-6 hours)
+- [ ] **Testing Guide** - How to run and write tests (4-5 hours)
 
 ### GitHub Wiki Plan
 
-**Proposed Wiki Structure:**
+**📄 Full Details:** [WIKI-PLAN.md](./WIKI-PLAN.md)
 
-1. **Home** - Welcome and navigation
-2. **Installation**
-   - Desktop App (macOS, Windows, Linux)
-   - Docker Deployment
-   - Local Python Setup
-3. **User Guide**
-   - Getting Started
-   - ACL Rule Syntax
-   - Interactive Builder
-   - Command Testing
-   - Keyspace Testing
-   - Optimization Engine
-4. **Advanced Topics**
-   - Rule Selectors
-   - Key Permission Patterns
-   - Redis 7 vs Redis 8
-   - Performance Optimization
-5. **API Reference**
-   - Endpoint Documentation
-   - Request/Response Schemas
-   - Error Handling
-6. **Development**
-   - Contributing Guide
-   - Local Development Setup
-   - Testing Guide
-   - Build Process
-7. **Troubleshooting**
-   - Common Issues
-   - Platform-Specific Problems
-   - Known Limitations
-8. **FAQ**
-   - General Questions
-   - Technical Questions
-   - Feature Requests
+**Timeline:** Create after GA release (v3.0.0) to avoid duplicate maintenance
 
-**Wiki Timeline:** Create after GA release (v3.0.0) to avoid duplicate
-maintenance
+**8-Section Structure:**
+
+1. Home - Welcome and navigation
+2. Installation - All platforms (Desktop, Docker, Local Python)
+3. User Guide - Complete feature documentation
+4. Advanced Topics - Selectors, patterns, versioning
+5. API Reference - Complete endpoint documentation
+6. Development - Contributing, testing, architecture
+7. Troubleshooting - Common issues and solutions
+8. FAQ - Quick answers to common questions
+
+**Implementation:** 48-64 hours total (3 phases over 8 weeks post-GA)
 
 ---
 

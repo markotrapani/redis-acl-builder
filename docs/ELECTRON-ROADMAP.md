@@ -1034,103 +1034,37 @@ proceed with Windows code signing for full production release
 
 ### Performance Optimization Goals
 
-**Tier 1: High Impact, Low Effort** (Quick wins - implement first)
+**📄 Full Details:** [PERFORMANCE-PLAN.md](./PERFORMANCE-PLAN.md)
 
-- [ ] **Debounce Input Updates** ⚡ HIGH IMPACT
-  - **Problem:** Every keystroke triggers full ACL generation + syntax
-    highlighting
-  - **Solution:** Add 300ms debounce delay on text inputs
-  - **Impact:** 70-80% reduction in unnecessary processing
-  - **Time estimate:** 30 minutes
-  - **Implementation:** Update event listeners in JavaScript to use debounce
-    wrapper
+**Quick Summary:**
 
-- [ ] **Cache API Responses** ⚡ HIGH IMPACT
-  - **Problem:** Same API calls made repeatedly (especially during testing)
-  - **Solution:** Implement client-side cache with TTL (Time To Live)
-  - **Impact:** 50-60% reduction in API round-trips
-  - **Time estimate:** 1 hour
-  - **Implementation:** Add simple in-memory cache object with expiration logic
+**Tier 1: High Impact, Low Effort** (~3.5 hours)
 
-- [ ] **Lazy Load Categories** ⚡ HIGH IMPACT
-  - **Problem:** All command categories loaded immediately on page load
-  - **Solution:** Load categories only when first expanded
-  - **Impact:** 40-50% faster initial page load
-  - **Time estimate:** 2 hours
-  - **Implementation:** Add click handlers that fetch category data on demand
+- [ ] Debounce input updates (300ms delay) - 70-80% reduction in processing
+- [ ] Cache API responses (60s TTL) - 50-60% reduction in API calls
+- [ ] Lazy load categories (on-demand) - 40-50% faster page load
 
-**Tier 1 Total Time:** ~3.5 hours | **Combined Impact:** 2-3x faster for common operations
+**Tier 2: Medium Impact, Medium Effort** (~9-10 hours)
 
----
+- [ ] Optimize DOM manipulation (batch updates) - 30-40% faster rendering
+- [ ] Request deduplication - 30-40% reduction in redundant calls
+- [ ] Virtual scrolling for long lists - 50-60% faster for 200+ items
 
-**Tier 2: Medium Impact, Medium Effort** (Implement after Tier 1)
+**Tier 3: High Impact, High Effort** (~15-19 hours)
 
-- [ ] **Optimize DOM Manipulation** 🔧 MEDIUM IMPACT
-  - **Problem:** Individual DOM updates for each change (causes reflows)
-  - **Solution:** Batch DOM updates using DocumentFragment
-  - **Impact:** 30-40% reduction in render time
-  - **Time estimate:** 3 hours
-
-- [ ] **Request Deduplication** 🔧 MEDIUM IMPACT
-  - **Problem:** Multiple identical requests sent simultaneously
-  - **Solution:** Queue identical requests and share results
-  - **Impact:** 30-40% reduction in redundant API calls
-  - **Time estimate:** 2 hours
-
-- [ ] **Virtual Scrolling for Long Lists** 🔧 MEDIUM IMPACT
-  - **Problem:** Rendering hundreds of commands causes lag
-  - **Solution:** Only render visible items in viewport
-  - **Impact:** 50-60% faster rendering for large category lists
-  - **Time estimate:** 4-5 hours
-
-**Tier 2 Total Time:** ~9-10 hours | **Combined Impact:** 1.5-2x faster rendering
-
----
-
-**Tier 3: High Impact, High Effort** (Long-term improvements)
-
-- [ ] **Backend Caching** 💎 HIGH IMPACT (long-term)
-  - **Problem:** Redis command metadata regenerated on every request
-  - **Solution:** Add server-side Redis cache or in-memory cache
-  - **Impact:** 80-90% reduction in backend processing time
-  - **Time estimate:** 6-8 hours
-  - **Implementation:** Add Flask-Caching with Redis backend
-
-- [ ] **Web Workers for ACL Generation** 💎 HIGH IMPACT (long-term)
-  - **Problem:** ACL generation blocks main UI thread
-  - **Solution:** Move heavy computation to background Web Worker
-  - **Impact:** 90-95% reduction in UI freezing
-  - **Time estimate:** 5-6 hours
-
-- [ ] **IndexedDB for Client-Side Storage** 💎 MEDIUM IMPACT (long-term)
-  - **Problem:** All state lost on page refresh
-  - **Solution:** Persist ACL rules and settings to IndexedDB
-  - **Impact:** Better user experience with state persistence
-  - **Time estimate:** 4-5 hours
-
-- **Real-time Sync**: Update menu when rule changes in
-  main window
-
----
-
-### Performance Optimization Summary
-
-**Recommended Implementation Order:**
-
-1. Start with **Tier 1** (3.5 hours) - Maximum impact for minimal time
-   investment
-2. Evaluate results and user feedback
-3. Proceed to **Tier 2** (9-10 hours) if needed for better UX
-4. Consider **Tier 3** (15-19 hours) for production-ready polish
-
-**Total Estimated Time for All Tiers:** 27.5-32.5 hours
+- [ ] Backend caching (Flask-Caching) - 80-90% faster API responses
+- [ ] Web Workers for ACL generation - 90-95% reduction in UI freezing
+- [ ] IndexedDB for client storage - Better state persistence
 
 **Expected Overall Performance Gains:**
 
-- Initial page load: **2-3x faster**
-- Input responsiveness: **5-10x faster**
-- API operations: **2-4x faster**
-- Large dataset handling: **10-20x faster**
+- Initial page load: 2-3x faster
+- Input responsiveness: 5-10x faster
+- API operations: 2-4x faster
+- Large dataset handling: 10-20x faster
+
+**📖 See [PERFORMANCE-PLAN.md](./PERFORMANCE-PLAN.md) for detailed
+implementation guides**
 
 ### Decision Points
 
