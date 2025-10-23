@@ -23,10 +23,8 @@ test.describe('Interactive ACL Builder Tests', () => {
     // Click to grant
     await categoryBtn.click();
 
-    // Wait for API call and UI update
-    await page.waitForResponse(response =>
-      response.url().includes('/api/parse') && response.status() === 200
-    );
+    // Wait for UI update (API call may be cached)
+    await page.waitForTimeout(500);
 
     // Check it moved to granted column
     const grantedColumn = page.locator('#grantedCategories');
@@ -48,18 +46,14 @@ test.describe('Interactive ACL Builder Tests', () => {
     // First grant a category
     const categoryBtn = blockedColumn.locator('button').filter({ hasText: '@read' }).first();
     await categoryBtn.click();
-    await page.waitForResponse(response =>
-      response.url().includes('/api/parse') && response.status() === 200
-    );
+    await page.waitForTimeout(500); // Wait for UI update (API call may be cached)
 
     // Now revoke it
     const grantedColumn = page.locator('#grantedCategories');
     const grantedBtn = grantedColumn.locator('button').filter({ hasText: '@read' }).first();
     await grantedBtn.click();
 
-    await page.waitForResponse(response =>
-      response.url().includes('/api/parse') && response.status() === 200
-    );
+    await page.waitForTimeout(500); // Wait for UI update (API call may be cached)
 
     // Should be back in blocked column
     await expect(blockedColumn).toContainText('@read');

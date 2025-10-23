@@ -26,9 +26,7 @@ test.describe('Complete User Flow Tests', () => {
     const readBtn = blockedColumn.locator('button').filter({ hasText: '@read' }).first();
     await readBtn.click();
 
-    await page.waitForResponse(response =>
-      response.url().includes('/api/parse') && response.status() === 200
-    );
+    await page.waitForTimeout(500); // Wait for UI update (API call may be cached)
 
     // Step 3: Verify it's in granted column
     const grantedColumn = page.locator('#grantedCategories');
@@ -76,10 +74,8 @@ test.describe('Complete User Flow Tests', () => {
     await expect(testBtn).toBeEnabled();
     await testBtn.click();
 
-    // Wait for API response (integrated mode)
-    await page.waitForResponse(response =>
-      response.url().includes('/api/test-command-key') && response.status() === 200
-    );
+    // Wait for UI update (API call may be cached)
+    await page.waitForTimeout(500);
 
     // Should match the pattern
     await expect(result).toContainText(/granted|allowed|matched|✅/i, { timeout: 5000 });
