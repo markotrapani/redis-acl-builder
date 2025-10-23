@@ -1209,6 +1209,17 @@ gh repo edit markotrapani/redis-acl-builder --visibility private
    - **Auto-update:** Works with or without notarization (code signing handles
      that)
 
+3. **Update App Icon** (Design Improvement)
+   - **Current:** Using default/placeholder icon
+   - **Need:** Create new custom icon that better represents the application
+   - **Formats Needed:**
+     - macOS: .icns file (1024x1024 down to 16x16)
+     - Windows: .ico file (256x256 down to 16x16)
+     - Linux: .png files (512x512, 256x256, 128x128, 64x64, 32x32)
+   - **Design Considerations:** Should reflect Redis ACL Builder branding and
+     be recognizable at small sizes
+   - **Implementation:** Update electron/build/icon.* files and rebuild installers
+
 **Completed Reviews:**
 
 ✅ **Artifact Optimization Analysis** (v2.2.6-beta)
