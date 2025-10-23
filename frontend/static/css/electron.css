@@ -225,6 +225,19 @@ body.electron-app header label {
     -webkit-app-region: no-drag;
 }
 
+/* Create draggable title bar area for index page - index page only */
+body.electron-app:has(.panel-container) header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 60px;  /* Leave space for theme toggle button on right */
+    height: 24px;
+    -webkit-app-region: drag;
+    z-index: 1;  /* Below buttons (z-index: 200) but above separator (z-index: 0) */
+    pointer-events: auto;
+}
+
 /* Add subtle visual separator below title bar with small gap - index page only */
 [data-theme="dark"] body.electron-app:has(.panel-container) header::after {
     content: '';
