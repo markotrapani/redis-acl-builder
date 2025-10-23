@@ -16,7 +16,7 @@ Complete REST API documentation for programmatic access to Redis ACL Builder.
 
 All requests and responses use:
 
-```
+```http
 Content-Type: application/json
 ```
 
@@ -168,7 +168,7 @@ Get all available categories for a Redis version.
 
 **Request:**
 
-```
+```http
 GET /api/categories?version=redis7
 ```
 

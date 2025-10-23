@@ -21,7 +21,8 @@ performance without requiring Python installation.
 
 - **[Download Desktop App][installation]** - Recommended for end users
   (Windows, macOS, Linux)
-- **[Docker Deployment][installation#docker]** - Fastest for servers/web
+- **[Docker Deployment](./Installation#docker-deployment)** - Fastest for
+  servers/web
 - **[Local Development][development]** - For developers contributing to the
   project
 
@@ -55,7 +56,7 @@ performance without requiring Python installation.
 
 - **[Development Guide][development]** - Local setup, testing, building
 - **[Contributing][contributing]** - How to contribute to the project
-- **[Architecture][development#architecture]** - System architecture and code
+- **[Architecture](./Development#architecture)** - System architecture and code
   organization
 
 ### Support & Community

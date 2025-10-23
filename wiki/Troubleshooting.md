@@ -195,7 +195,7 @@ python backend/app.py
 
 **Common errors:**
 
-**"ModuleNotFoundError: No module named 'flask'"**
+#### "ModuleNotFoundError: No module named 'flask'"
 
 Solution:
 
@@ -207,7 +207,7 @@ source venv/bin/activate
 pip install -r backend/requirements.txt
 ```
 
-**"Address already in use"**
+#### "Address already in use"
 
 Solution:
 
@@ -222,7 +222,7 @@ kill -9 <PID>
 FLASK_PORT=8080 python backend/app.py
 ```
 
-**"Python version too old"**
+#### "Python version too old"
 
 Solution:
 
@@ -270,7 +270,7 @@ netsh advfirewall firewall show rule name=all
 
 ### ACL Parsing Errors
 
-**"Invalid category"**
+#### "Invalid category"
 
 **Cause:** Typo or unsupported category
 
@@ -280,7 +280,7 @@ netsh advfirewall firewall show rule name=all
 - Verify category exists in your Redis version
 - Use `/api/categories` to list valid categories
 
-**"Invalid command"**
+#### "Invalid command"
 
 **Cause:** Command doesn't exist or typo
 

@@ -137,14 +137,14 @@ Selectors use **OR logic** - command is granted if ANY selector permits it.
 
 ### Using the Interactive Builder
 
-**Method 1: Click to Build**
+#### Method 1: Click to Build
 
 1. Find a category/command in Blocked Commands
 2. Click it to grant access
 3. Rule updates automatically
 4. No Submit button needed
 
-**Method 2: Manual Editing**
+#### Method 2: Manual Editing
 
 1. Type your ACL rule in the text area
 2. Submit Changes button appears

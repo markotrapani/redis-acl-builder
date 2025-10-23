@@ -149,7 +149,7 @@ npm run build:linux
 
 ## Project Structure
 
-```
+```text
 redis-acl-builder/
 ├── backend/              # Python Flask backend
 │   ├── app.py           # Main application
@@ -260,7 +260,7 @@ redis-acl-builder/
 
 Follow **Conventional Commits**:
 
-```
+```text
 feat: Add support for Redis 9 commands
 fix: Correct category detection logic
 docs: Update API documentation

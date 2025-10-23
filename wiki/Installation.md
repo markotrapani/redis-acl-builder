@@ -102,14 +102,14 @@ Expand-Archive -Path Redis-ACL-Builder-2.6.0-beta-win.zip -DestinationPath "C:\T
 
 #### Troubleshooting Windows
 
-**"Windows protected your PC" (SmartScreen warning)**
+##### "Windows protected your PC" (SmartScreen warning)
 
 This may occur for new releases before Windows builds reputation:
 
 1. Click "More info"
 2. Click "Run anyway"
 
-**Antivirus blocking the app**
+##### Antivirus blocking the app
 
 Some antivirus software may flag the packaged Python executable. This is a
 false positive. You can:
@@ -155,7 +155,7 @@ redis-acl-builder
 
 #### Troubleshooting Linux
 
-**"No such file or directory" when running AppImage**
+##### "No such file or directory" when running AppImage
 
 You may need FUSE to run AppImages:
 
@@ -170,7 +170,7 @@ sudo dnf install fuse fuse-libs
 sudo pacman -S fuse2
 ```
 
-**AppImage won't run on headless server**
+##### AppImage won't run on headless server
 
 AppImages require a display server. For headless servers, use the [Docker
 deployment](#docker-deployment) instead.
@@ -294,7 +294,7 @@ docker compose pull && docker compose up -d
 
 ### Troubleshooting Docker
 
-**Port already in use**
+#### Port already in use
 
 ```bash
 # Find what's using port 7380
@@ -305,7 +305,7 @@ netstat -ano | findstr :7380  # Windows
 docker run -d -p 8080:7380 markotrapani608/redis-acl-builder:latest
 ```
 
-**Container exits immediately**
+#### Container exits immediately
 
 ```bash
 # Check logs
@@ -334,7 +334,7 @@ git clone https://github.com/markotrapani/redis-acl-builder.git
 cd redis-acl-builder
 ```
 
-2. **Create a virtual environment:**
+1. **Create a virtual environment:**
 
 ```bash
 # Create virtual environment
@@ -345,13 +345,13 @@ source venv/bin/activate  # macOS/Linux
 venv\Scripts\activate     # Windows
 ```
 
-3. **Install Python dependencies:**
+1. **Install Python dependencies:**
 
 ```bash
 pip install -r backend/requirements.txt
 ```
 
-4. **Run the application:**
+1. **Run the application:**
 
 ```bash
 # Option 1: Use helper script
@@ -361,9 +361,9 @@ pip install -r backend/requirements.txt
 python backend/app.py
 ```
 
-5. **Access the application:**
+1. **Access the application:**
 
-Open your browser and navigate to `http://localhost:7380`
+   Open your browser and navigate to `http://localhost:7380`
 
 ### Development Tools
 
