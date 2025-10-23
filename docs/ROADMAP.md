@@ -292,6 +292,8 @@ ELECTRON-ROADMAP.md
   (v2.0.0)
 - ✅ **Auto-Update System** - Silent checks with user-friendly update dialogs
   (v2.3.0)
+- ✅ **App Notarization** - Signed and notarized with Apple Developer ID for
+  trusted first install (v2.3.0)
 - ✅ **Custom Title Bar** - macOS draggable title bar with traffic light button
   support (v2.5.0)
 - ✅ **Templates & Presets** - Quick Examples + Saved Rules with localStorage
@@ -310,20 +312,7 @@ ELECTRON-ROADMAP.md
    - **Alternative:** Wait for user feedback from Windows/Linux beta testers
    - May require fixes to ensure cross-platform auto-update works
 
-2. **App Notarization** (Optional - Improves First-Install UX)
-   - **Current:** Users see "cannot be verified" warning, must right-click →
-     Open → Open Again
-   - **With Notarization:** Users see "from identified developer" and click
-     Open once
-   - **Benefit:** Better first impression, less friction for new users
-   - **Cost:** $0 (included with existing Developer account)
-   - **Effort:** ~30-60 min setup (App Store Connect API key)
-   - **Infrastructure:** Ready (entitlements.mac.plist, notarize.js, workflow
-     placeholders)
-   - **Auto-update:** Works with or without notarization (code signing handles
-     that)
-
-3. **Update App Icon** (Design Improvement)
+2. **Update App Icon** (Design Improvement)
    - **Current:** Using default/placeholder icon
    - **Need:** Create new custom icon that better represents the application
    - **Formats Needed:**
