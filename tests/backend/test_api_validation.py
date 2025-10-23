@@ -18,6 +18,10 @@ class TestPydanticValidation:
         ('/api/test-command', {'rule': '+@read', 'command': '', 'version': 'redis7'}, 'String should have at least 1 character'),
         ('/api/test-command', {'rule': '+@read', 'command': '   ', 'version': 'redis7'}, 'Command cannot be empty'),
 
+        # Empty key tests (for test-command-key endpoint)
+        ('/api/test-command-key', {'rule': '+@read ~*', 'command': 'GET', 'key': '', 'version': 'redis7'}, 'String should have at least 1 character'),
+        ('/api/test-command-key', {'rule': '+@read ~*', 'command': 'GET', 'key': '   ', 'version': 'redis7'}, 'Key cannot be empty'),
+
         # Empty pattern tests
         ('/api/search-commands', {'pattern': '', 'version': 'redis7'}, 'String should have at least 1 character'),
         ('/api/search-commands', {'pattern': '   ', 'version': 'redis7'}, 'Search pattern cannot be empty'),

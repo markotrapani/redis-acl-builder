@@ -465,6 +465,37 @@ class TestACLParser(unittest.TestCase):
         self.assertEqual(selector['key_rules'][0]['permission'], 'read-only')
         self.assertEqual(selector['key_rules'][0]['pattern'], 'analytics:*')
 
+    def test_selector_with_deny_category(self):
+        """Test selector with category deny rules."""
+        # Selector with category grant and deny
+        parsed = self.parser8.parse_acl_rule("+@all (+@write -@dangerous)")
+
+        # Selector should have both allow and deny rules
+        selector = parsed['selectors'][0]
+        self.assertGreater(len(selector['command_rules']), 0)
+
+        # Should have both allow (@write) and deny (-@dangerous) rules
+        rule_types = [rule['type'] for rule in selector['command_rules']]
+        self.assertIn('allow', rule_types)
+        self.assertIn('deny', rule_types)
+
+    def test_selector_with_deny_command(self):
+        """Test selector with individual command deny rules."""
+        # Selector granting @write but denying specific dangerous command
+        parsed = self.parser8.parse_acl_rule("+@read (+@write -del -flushdb)")
+
+        selector = parsed['selectors'][0]
+
+        # Should have deny rules for specific commands
+        deny_commands = [rule for rule in selector['command_rules']
+                        if rule['type'] == 'deny' and rule['target'] == 'command']
+        self.assertGreater(len(deny_commands), 0)
+
+        # Should have deny for del and flushdb
+        denied_values = [rule['value'] for rule in deny_commands]
+        self.assertIn('del', denied_values)
+        self.assertIn('flushdb', denied_values)
+
     def test_pubsub_channel_patterns(self):
         """Test parsing of pub/sub channel patterns (&channel:*)."""
         parsed = self.parser8.parse_acl_rule("+@pubsub &channel:* &logs:*")
@@ -546,6 +577,15 @@ class TestACLParser(unittest.TestCase):
 
         # Should detect redundant patterns (get added/removed/added again)
         self.assertGreater(len(analysis['redundant_terms']), 0)
+
+    def test_invalid_key_permission_syntax(self):
+        """Test handling of invalid key permission syntax."""
+        # Invalid key permission syntax should be silently skipped (defensive code)
+        parsed = self.parser8.parse_acl_rule("+@read %INVALID~pattern")
+
+        # Should still have @read permissions
+        self.assertGreater(len(parsed['command_rules']), 0)
+        # Invalid key permission should not crash, just be ignored
 
 
 class TestFlaskApp(unittest.TestCase):
