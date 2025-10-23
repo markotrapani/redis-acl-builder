@@ -1,6 +1,7 @@
 # Multi-Architecture Docker Builds
 
-Redis ACL Builder supports multi-architecture Docker builds for **linux/amd64** (Intel/AMD) and **linux/arm64** (Apple Silicon/ARM) platforms.
+Redis ACL Builder supports multi-architecture Docker builds for **linux/amd64**
+(Intel/AMD) and **linux/arm64** (Apple Silicon/ARM) platforms.
 
 ## Quick Start
 
@@ -29,7 +30,8 @@ cd docker
 ./test-multi-arch.sh
 ```
 
-This comprehensively tests both architectures independently to verify compatibility.
+This comprehensively tests both architectures independently to verify
+compatibility.
 
 ## Multi-Architecture Build Details
 
@@ -54,7 +56,8 @@ The multi-arch build script (`build-multi-arch.sh`) performs:
 
 ### Image Details
 
-- **Base Image**: `python:3.13-alpine` (latest stable Python with Alpine optimizations)
+- **Base Image**: `python:3.13-alpine` (latest stable Python with Alpine
+  optimizations)
 - **Final Size**: ~110MB (optimized multi-stage Alpine build)
 - **Architectures**: Automatically detects and builds for both platforms
 - **Port**: 7380
@@ -94,7 +97,8 @@ docker buildx imagetools inspect redis-acl-builder:1.21.0-beta-multiarch
 
 ### Python Dependencies
 
-All Python packages in `requirements-prod.txt` are compatible with both architectures:
+All Python packages in `requirements-prod.txt` are compatible with both
+architectures:
 
 - Pure Python packages work on all platforms
 - Compiled extensions (if any) have wheels available for both amd64 and arm64
@@ -145,8 +149,10 @@ docker buildx version
 
 ```bash
 # Force build for specific platform
-docker buildx build --platform=linux/amd64 -t redis-acl-builder:amd64 -f Dockerfile ..
-docker buildx build --platform=linux/arm64 -t redis-acl-builder:arm64 -f Dockerfile ..
+docker buildx build --platform=linux/amd64 \
+  -t redis-acl-builder:amd64 -f Dockerfile ..
+docker buildx build --platform=linux/arm64 \
+  -t redis-acl-builder:arm64 -f Dockerfile ..
 ```
 
 ### Builder Issues
@@ -161,8 +167,10 @@ docker buildx rm redis-acl-multiarch
 
 - **ARM64 (Apple Silicon)**: Excellent performance with native builds
 - **AMD64**: Standard performance on Intel/AMD systems
-- **Cross-compilation**: ARM64 builds on AMD64 systems use emulation (slower but functional)
-- **Build Time**: Multi-arch builds take ~2x time due to building both architectures
+- **Cross-compilation**: ARM64 builds on AMD64 systems use emulation (slower but
+  functional)
+- **Build Time**: Multi-arch builds take ~2x time due to building both
+  architectures
 
 ## Distribution
 

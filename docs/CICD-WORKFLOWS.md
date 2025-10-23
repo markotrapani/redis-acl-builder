@@ -1,6 +1,7 @@
 # CI/CD Workflows Guide
 
-Complete reference for GitHub Actions workflows used in this project. Use this as a template for future projects.
+Complete reference for GitHub Actions workflows used in this project. Use this
+as a template for future projects.
 
 ## Table of Contents
 
@@ -155,7 +156,9 @@ jobs:
           path: |
             backend/build
             backend/dist
-          key: ${{ runner.os }}-pyinstaller-${{ hashFiles('backend/**/*.py', 'backend/requirements-prod.txt') }}
+          key: \
+            ${{ runner.os }}-pyinstaller-${{ hashFiles('backend/**/*.py', \
+            'backend/requirements-prod.txt') }}
           restore-keys: |
             ${{ runner.os }}-pyinstaller-
 
@@ -328,7 +331,9 @@ jobs:
             artifacts/**/*.yml
           body_path: release_notes.md
           draft: false
-          prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') }}
+          prerelease: \
+            ${{ contains(github.ref, '-alpha') || \
+            contains(github.ref, '-beta') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -428,16 +433,28 @@ jobs:
             SUFFIX="-alpha"
             MAJOR=$(echo $VERSION | cut -d. -f1)
             MINOR=$(echo $VERSION | cut -d. -f1-2)
-            echo "tags=markotrapani608/redis-acl-builder:${VERSION},markotrapani608/redis-acl-builder:${MINOR}${SUFFIX},markotrapani608/redis-acl-builder:${MAJOR}${SUFFIX},markotrapani608/redis-acl-builder:alpha" >> $GITHUB_OUTPUT
+            echo \
+              "tags=markotrapani608/redis-acl-builder:${VERSION},\
+markotrapani608/redis-acl-builder:${MINOR}${SUFFIX},\
+markotrapani608/redis-acl-builder:${MAJOR}${SUFFIX},\
+markotrapani608/redis-acl-builder:alpha" >> $GITHUB_OUTPUT
           elif [[ $VERSION =~ -beta$ ]]; then
             SUFFIX="-beta"
             MAJOR=$(echo $VERSION | cut -d. -f1)
             MINOR=$(echo $VERSION | cut -d. -f1-2)
-            echo "tags=markotrapani608/redis-acl-builder:${VERSION},markotrapani608/redis-acl-builder:${MINOR}${SUFFIX},markotrapani608/redis-acl-builder:${MAJOR}${SUFFIX},markotrapani608/redis-acl-builder:beta" >> $GITHUB_OUTPUT
+            echo \
+              "tags=markotrapani608/redis-acl-builder:${VERSION},\
+markotrapani608/redis-acl-builder:${MINOR}${SUFFIX},\
+markotrapani608/redis-acl-builder:${MAJOR}${SUFFIX},\
+markotrapani608/redis-acl-builder:beta" >> $GITHUB_OUTPUT
           else
             MAJOR=$(echo $VERSION | cut -d. -f1)
             MINOR=$(echo $VERSION | cut -d. -f1-2)
-            echo "tags=markotrapani608/redis-acl-builder:${VERSION},markotrapani608/redis-acl-builder:${MINOR},markotrapani608/redis-acl-builder:${MAJOR},markotrapani608/redis-acl-builder:latest" >> $GITHUB_OUTPUT
+            echo \
+              "tags=markotrapani608/redis-acl-builder:${VERSION},\
+markotrapani608/redis-acl-builder:${MINOR},\
+markotrapani608/redis-acl-builder:${MAJOR},\
+markotrapani608/redis-acl-builder:latest" >> $GITHUB_OUTPUT
           fi
 
       - name: Build and push
@@ -469,23 +486,23 @@ jobs:
 
 | Secret | Description | How to Get |
 |--------|-------------|------------|
-| `CSC_LINK` | Base64-encoded `.p12` certificate | See [Code Signing Guide](./CODE-SIGNING.md) |
-| `CSC_KEY_PASSWORD` | Certificate password | Password used when exporting `.p12` |
+| `CSC_LINK` | Base64 `.p12` certificate | [Code Signing](./CODE-SIGNING.md) |
+| `CSC_KEY_PASSWORD` | Certificate password | Password for `.p12` |
 
 #### Notarization (macOS)
 
 | Secret | Description | How to Get |
 |--------|-------------|------------|
-| `APPLE_API_KEY` | Base64-encoded `.p8` API key | See [Notarization Guide](./MACOS-NOTARIZATION.md) |
-| `APPLE_API_ISSUER` | App Store Connect Issuer ID | UUID from App Store Connect API page |
-| `APPLE_API_KEY_ID` | API Key ID | 10-char ID from App Store Connect |
+| `APPLE_API_KEY` | Base64 `.p8` API key | [Notarization](MACOS-NOTARIZATION.md) |
+| `APPLE_API_ISSUER` | App Store Issuer ID | UUID from App Store Connect |
+| `APPLE_API_KEY_ID` | API Key ID | 10-char ID from App Store |
 
 #### Docker Hub
 
 | Secret | Description | How to Get |
 |--------|-------------|------------|
-| `DOCKERHUB_USERNAME` | Docker Hub username | Your Docker Hub account name |
-| `DOCKERHUB_TOKEN` | Docker Hub access token | Account Settings → Security → Access Tokens |
+| `DOCKERHUB_USERNAME` | Docker Hub username | Your Docker Hub account |
+| `DOCKERHUB_TOKEN` | Access token | Settings → Security → Tokens |
 
 ### Adding Secrets
 

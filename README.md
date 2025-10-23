@@ -1,10 +1,17 @@
 # Redis ACL Builder
 
-A high-performance application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis and interactive visual feedback.
+A high-performance application for testing and validating Redis Access Control
+List (ACL) rules with real-time command analysis and interactive visual
+feedback.
 
-![license MIT](https://img.shields.io/badge/license-MIT-blue.svg) ![version](https://img.shields.io/badge/version-2.4.7--beta-green.svg) ![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Docker-lightgrey.svg) ![Redis](https://img.shields.io/badge/Redis-7%20%7C%208-red.svg)
+![license MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+![version](https://img.shields.io/badge/version-2.4.7--beta-green.svg)
+![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Docker-lightgrey.svg)
+![Redis](https://img.shields.io/badge/Redis-7%20%7C%208-red.svg)
 
-> **Note:** Available as both a native desktop application and web/Docker deployment. Desktop apps feature auto-updates, offline support, and native performance without requiring Python installation.
+> **Note:** Available as both a native desktop application and web/Docker
+deployment. Desktop apps feature auto-updates, offline support, and native
+performance without requiring Python installation.
 
 ---
 
@@ -12,10 +19,14 @@ A high-performance application for testing and validating Redis Access Control L
 
 ### Option 1: Desktop App (Recommended for End Users)
 
-📦 **[Download Latest Release](https://github.com/markotrapani/redis-acl-builder/releases/latest)** - Signed and notarized installers
+📦 **[Download Latest
+Release](https://github.com/markotrapani/redis-acl-builder/releases/latest)** -
+Signed and notarized installers
 
-**Features:** No Python required • Auto-updates • Offline support • Native performance
+**Features:** No Python required • Auto-updates • Offline support • Native
+performance
 
+<!-- markdownlint-disable MD033 -->
 <details>
 <summary><b>📱 Installation Instructions (Click to expand)</b></summary>
 
@@ -52,10 +63,13 @@ sudo dpkg -i Redis-ACL-Builder_2.3.0-beta_amd64.deb
 ```
 
 </details>
+<!-- markdownlint-enable MD033 -->
 
 ### Option 2: Docker (Fastest for Servers/Web)
 
-🐳 **[Docker Hub Repository](https://hub.docker.com/r/markotrapani608/redis-acl-builder)** - Latest builds with automated CI/CD
+🐳 **[Docker Hub
+Repository](https://hub.docker.com/r/markotrapani608/redis-acl-builder)** -
+Latest builds with automated CI/CD
 
 ```bash
 # Run the latest version directly from Docker Hub
@@ -65,23 +79,27 @@ docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped mar
 open http://localhost:7380
 ```
 
+<!-- markdownlint-disable MD033 -->
 <details>
 <summary><b>🔄 Upgrade Instructions (Click to expand)</b></summary>
 
 ```bash
 # Simple one-liner (stops, removes, and recreates with latest image)
-docker rm -f redis-acl-builder; docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
+Ready to test your Redis ACL rules? Download the desktop app or
+try it in your browser!
 
 # Or use docker-compose (recommended)
 docker compose pull && docker compose up -d
 ```
 
 </details>
+<!-- markdownlint-enable MD033 -->
 
 ### Option 3: Local Development Installation
 
 **For developers:** Python 3.7+ required
 
+<!-- markdownlint-disable MD033 -->
 <details>
 <summary><b>💻 Development Setup (Click to expand)</b></summary>
 
@@ -122,26 +140,39 @@ docker compose pull && docker compose up -d
 
 ## Overview
 
-Redis ACL Builder is a powerful tool that helps developers and system administrators understand and test Redis ACL configurations before deploying them to production.
+Redis ACL Builder is a powerful tool that helps developers and system
+administrators understand and test Redis ACL configurations before deploying
+them to production.
 
-> ⚠️ **Important:** This tool is designed for **Redis Enterprise** and **Redis Stack** ACL rules. It may not work correctly with open-source Redis (OSS) in all cases due to differences in command availability, module commands, and ACL implementation details. See [Redis Enterprise vs OSS](https://redis.io/docs/management/enterprise/) for details.
+> ⚠️ **Important:** This tool is designed based on **Redis OSS** (Open Source)
+command sets, which are also compatible with **Redis Stack**. Redis Enterprise
+may restrict certain OSS commands (cluster management, replication, dangerous
+operations) for security reasons. If a command test fails in Redis Enterprise,
+this is expected behavior - the command exists in OSS but is restricted in
+Enterprise. See [Redis Enterprise vs
+OSS](https://redis.io/docs/management/enterprise/) for details.
 
 **Core Capabilities:**
 
 - ✅ Parse and validate Redis ACL rule syntax with real-time feedback
 - ✅ Test commands and keyspace patterns with dual testing interface
 - ✅ Visualize granted/blocked commands organized by categories
-- ✅ Support for Redis 7 (311 commands) and Redis 8 (446 commands including modules)
+- ✅ Support for Redis 7 (311 commands) and Redis 8 (446 commands including
+  modules)
 - ✅ Light/Dark mode theme system with localStorage persistence
-- ✅ Available as web app (Docker/local) and native desktop app (macOS, Windows, Linux)
+- ✅ Available as web app (Docker/local) and native desktop app (macOS, Windows,
+Linux)
 
 ## Usage Guide
 
-> ⚠️ **Important:** This tool is designed for testing and validating ACL rules in development/staging environments. Always test thoroughly before applying ACL rules to production Redis instances.
+> ⚠️ **Important:** This tool is designed for testing and validating ACL rules
+in development/staging environments. Always test thoroughly before applying ACL
+rules to production Redis instances.
 
 ### Basic Usage
 
-1. **Select Redis Version**: Choose between Redis 7 or Redis 8 using the radio buttons
+1. **Select Redis Version**: Choose between Redis 7 or Redis 8 using the radio
+   buttons
 2. **Enter ACL Rule**: Type your ACL rule in the text area (left column)
 3. **Interactive Management**:
    - Click granted commands (center column) to revoke them
@@ -149,11 +180,16 @@ Redis ACL Builder is a powerful tool that helps developers and system administra
    - Use Submit Changes button when manually editing rules
    - **Keyboard Shortcuts**:
      - Press **Enter** to submit pending changes
-4. **View Results**: See granted and blocked commands organized by categories and individual commands
-5. **Test Commands**: Use the command tester at the top to check specific commands
-6. **Search & Filter**: Use the search bars at the top of each column to filter categories and commands
+4. **View Results**: See granted and blocked commands organized by categories
+   and individual commands
+5. **Test Commands**: Use the command tester at the top to check specific
+   commands
+6. **Search & Filter**: Use the search bars at the top of each column to filter
+   categories and commands
 
-> 💡 **Tip:** Use the dual testing interface at the top to test both commands and key patterns simultaneously. Results show exactly which permissions are granted or denied.
+> 💡 **Tip:** Use the dual testing interface at the top to test both commands and
+key patterns simultaneously. Results show exactly which permissions are granted
+or denied.
 
 <details>
 <summary><b>📝 ACL Rule Syntax (Click to expand)</b></summary>
@@ -328,7 +364,8 @@ curl -X POST http://localhost:7380/api/validate-rule \
 - **Frontend**: `frontend/` - Static assets (CSS/JS) and templates
 - **Scripts**: `scripts/` - Helper scripts (run-web.sh, build-web.sh)
 - **Tests**: `tests/backend/` (pytest) and `tests/e2e/` (Playwright)
-- **Electron**: `electron/` - Desktop app wrapper (v2.3.4-beta - see [docs/ELECTRON-ROADMAP.md](docs/ELECTRON-ROADMAP.md))
+- **Electron**: `electron/` - Desktop app wrapper (v2.3.4-beta - see
+  [docs/ELECTRON-ROADMAP.md](docs/ELECTRON-ROADMAP.md))
 
 </details>
 
@@ -337,7 +374,8 @@ curl -X POST http://localhost:7380/api/validate-rule \
 
 ## Testing
 
-The project includes a comprehensive test suite with 223 tests covering all functionality.
+The project includes a comprehensive test suite with 223 tests covering all
+functionality.
 
 ### Test Coverage Summary
 
@@ -398,14 +436,16 @@ npx playwright test --ui
 
 ### GitHub Actions Workflows
 
-**Repository**: [github.com/markotrapani/redis-acl-builder/actions](https://github.com/markotrapani/redis-acl-builder/actions)
+**Repository**:
+[github.com/markotrapani/redis-acl-builder/actions](https://github.com/markotrapani/redis-acl-builder/actions)
 
 #### 🐳 Docker Builds (Web Application)
 
 - **Workflow**: `.github/workflows/docker-publish.yml`
 - **Triggers**: Version tags (`v*.*.*`, `v*.*.*-alpha`, `v*.*.*-beta`)
 - **Platforms**: linux/amd64, linux/arm64 (multi-arch)
-- **Outputs**: Docker images published to [Docker Hub](https://hub.docker.com/r/markotrapani608/redis-acl-builder)
+- **Outputs**: Docker images published to [Docker
+  Hub](https://hub.docker.com/r/markotrapani608/redis-acl-builder)
 - **Features**: Automated CVE scanning with Docker Scout
 
 #### 💻 Desktop Builds (Electron App)
@@ -421,12 +461,17 @@ npx playwright test --ui
 
 ### Migration Notice (October 2025)
 
-> **Important**: CI/CD workflows were migrated from the parent `marko-projects` repository to `redis-acl-builder` on 2025-10-15.
+> **Important**: CI/CD workflows were migrated from the parent `marko-projects`
+repository to `redis-acl-builder` on 2025-10-15.
 >
-> - **Old builds** (pre-October 2025): Available at [github.com/markotrapani/marko-projects/actions](https://github.com/markotrapani/marko-projects/actions) (historical reference only)
-> - **New builds** (October 2025+): All builds now run in [github.com/markotrapani/redis-acl-builder/actions](https://github.com/markotrapani/redis-acl-builder/actions)
+> - **Old builds** (pre-October 2025): Available at
+[github.com/markotrapani/marko-projects/actions](https://github.com/markotrapani/marko-projects/actions)
+(historical reference only)
+> - **New builds** (October 2025+): All builds now run in
+[github.com/markotrapani/redis-acl-builder/actions](https://github.com/markotrapani/redis-acl-builder/actions)
 >
-> This consolidation provides better organization, with each submodule owning its own build pipelines.
+> This consolidation provides better organization, with each submodule owning
+its own build pipelines.
 
 ### Version Tag Strategy
 
@@ -497,33 +542,50 @@ redis-acl-builder/
 
 ## 🏗️ Architecture
 
-The application features modern, modular frontend and backend architectures with a **monorepo structure** (v2.3.4-beta):
+The application features modern, modular frontend and backend architectures with
+a **monorepo structure** (v2.3.4-beta):
 
-- **Monorepo**: Organized into `backend/`, `frontend/`, `electron/`, `scripts/`, and `tests/` directories - single source of truth for both web app and Electron desktop app
-- **Frontend**: Modular ES6 JavaScript (13 modules) + Optimized Modular CSS (6 modules) with professional desktop-like resize experience
+- **Monorepo**: Organized into `backend/`, `frontend/`, `electron/`, `scripts/`,
+and `tests/` directories - single source of truth for both web app and Electron
+desktop app
+- **Frontend**: Modular ES6 JavaScript (13 modules) + Optimized Modular CSS (6
+  modules) with professional desktop-like resize experience
 - **Backend**: Flask with comprehensive Redis ACL parsing and API layer
-- **Database**: Hardcoded Redis command databases based on **Redis OSS** (open source)
-  - **Redis 7 OSS**: 379 commands across 21 categories (admin, cluster, replication, latency, module management, etc.)
-  - **Redis 8 OSS**: 446 commands across 29 categories (includes RediSearch, JSON, TimeSeries, Bloom, and other module commands)
-  - **Note**: Redis Enterprise blocks certain commands (cluster management, replication, dangerous operations) for security. If a command test fails in Redis Enterprise, this is expected behavior - the command exists in OSS but is restricted in Enterprise.
+- **Database**: Hardcoded Redis command databases based on **Redis OSS** (open
+  source)
+  - **Redis 7 OSS**: 379 commands across 21 categories (admin, cluster,
+  replication, latency, module management, etc.)
+  - **Redis 8 OSS**: 446 commands across 29 categories (includes RediSearch,
+  JSON, TimeSeries, Bloom, and other module commands)
+  - **Note**: Redis Enterprise blocks certain commands (cluster management,
+  replication, dangerous operations) for security. If a command test fails in
+  Redis Enterprise, this is expected behavior - the command exists in OSS but is
+  restricted in Enterprise.
 - **Testing**: 28 automated E2E tests (Playwright) with 100% pass rate
-- **Type Safety**: Professional type annotations with 94% reduction in Pylance strict errors (comprehensive typing across all modules)
-- **UI/UX**: Elegant resizable container system with real-time content synchronization, drag-drop panel reordering, and perfect responsive design
+- **Type Safety**: Professional type annotations with 94% reduction in Pylance
+  strict errors (comprehensive typing across all modules)
+- **UI/UX**: Elegant resizable container system with real-time content
+synchronization, drag-drop panel reordering, and perfect responsive design
 
 ## ✨ What's New
 
 ### v2.3.4-beta
 
-- **🎨 UI/UX Improvements** (from v2.3.2-beta): Version badge and update button repositioning
-  - Moved version badge from bottom-left to top-left corner for better visibility
-  - Positioned "Check for Updates" button to right of version badge with optimal spacing
+- **🎨 UI/UX Improvements** (from v2.3.2-beta): Version badge and update button
+  repositioning
+  - Moved version badge from bottom-left to top-left corner for better
+    visibility
+  - Positioned "Check for Updates" button to right of version badge with optimal
+    spacing
   - Fine-tuned heights and padding for visual consistency
-- **📦 Update Modal Cleanup** (from v2.3.2-beta): Simplified Docker upgrade experience
+- **📦 Update Modal Cleanup** (from v2.3.2-beta): Simplified Docker upgrade
+  experience
   - Removed redundant "Alternative: Pull and restart manually" section
   - Added browser refresh instruction for Docker users after upgrade
   - Reduced minified JS by 31.7% (5.71 KB → 3.90 KB)
 - **📚 Documentation Consolidation**: Complete version synchronization
-  - Updated all version references across README.md, CLAUDE.md, ELECTRON-ROADMAP.md
+  - Updated all version references across README.md, CLAUDE.md,
+    ELECTRON-ROADMAP.md
   - Added comprehensive v2.3.2-beta and v2.3.4-beta accomplishment tracking
   - Ensures complete documentation parity between Docker and Desktop platforms
 
@@ -533,8 +595,10 @@ The application features modern, modular frontend and backend architectures with
 ### v2.3.2-beta
 
 - **🎨 UI/UX Improvements**: Version badge and update button repositioning
-  - Moved version badge from bottom-left to top-left corner for better visibility
-  - Positioned "Check for Updates" button to right of version badge with optimal spacing
+  - Moved version badge from bottom-left to top-left corner for better
+    visibility
+  - Positioned "Check for Updates" button to right of version badge with optimal
+    spacing
   - Fine-tuned heights and padding for visual consistency
 - **📦 Update Modal Cleanup**: Simplified Docker upgrade experience
   - Removed redundant "Alternative: Pull and restart manually" section
@@ -544,21 +608,26 @@ The application features modern, modular frontend and backend architectures with
 ### v2.3.1-beta
 
 - **✅ Auto-Update UX Refinement**: Improved update notification behavior
-  - Fixed annoying "You have the latest version!" dialog that appeared on EVERY app startup
-  - Silent background checks at startup (only shows dialog if update IS available)
+  - Fixed annoying "You have the latest version!" dialog that appeared on EVERY
+    app startup
+  - Silent background checks at startup (only shows dialog if update IS
+    available)
   - Manual "Check for Updates..." always shows dialog for all outcomes
   - Matches standard desktop app auto-update UX patterns (Slack, VS Code, etc.)
 
 ### v2.3.0-beta
 
-- **🔐 macOS Notarization**: Professional Apple code signing with App Store Connect API
+- **🔐 macOS Notarization**: Professional Apple code signing with App Store
+  Connect API
   - Signed and notarized installers - no security warnings on macOS
   - Full trust chain validation for macOS Gatekeeper
-- **✅ Auto-Update System**: Complete implementation with update detection and download
+- **✅ Auto-Update System**: Complete implementation with update detection and
+  download
   - Automatic update checks on app launch
   - Manual update checks via application menu
   - User-friendly download and install dialogs with progress tracking
-- **🚀 Production-Ready**: All platform builds working with auto-update infrastructure
+- **🚀 Production-Ready**: All platform builds working with auto-update
+  infrastructure
   - macOS (ARM64 + Intel): Signed, notarized DMG installers
   - Windows: NSIS installers
   - Linux: AppImage + .deb packages
@@ -569,7 +638,8 @@ The application features modern, modular frontend and backend architectures with
 
 ### v2.1.9-beta - Debug Builds, Build Optimization & Release Cleanup
 
-- **🐛 Debug Build Configuration**: Detached DevTools for debugging without UI disruption
+- **🐛 Debug Build Configuration**: Detached DevTools for debugging without UI
+  disruption
   - `-debug` tags open DevTools in separate window (doesn't crush main app)
   - Marker-based detection (`.debug-build` file created during builds)
   - Perfect for debugging and testing without obstructing the interface
@@ -598,7 +668,8 @@ The application features modern, modular frontend and backend architectures with
 
 ### v2.1.7-beta - Auto-Update Infrastructure & Fast Build Workflow
 
-- **🔄 Auto-Update System**: Complete auto-update infrastructure with electron-updater
+- **🔄 Auto-Update System**: Complete auto-update infrastructure with
+  electron-updater
   - ✅ Automatic update detection on app launch
   - ✅ Manual update check via application menu
   - ✅ User-friendly download/install dialogs with progress tracking
@@ -613,21 +684,26 @@ The application features modern, modular frontend and backend architectures with
   - `-beta`, `-alpha`: Full multi-platform + Docker
   - `-docker`: Docker only
   - `-docs`: No builds
-- **📦 Multi-Platform Ready**: macOS (ARM64 + Intel), Windows (NSIS + ZIP), Linux (AppImage + .deb)
+- **📦 Multi-Platform Ready**: macOS (ARM64 + Intel), Windows (NSIS + ZIP), Linux
+(AppImage + .deb)
 - **🔐 Code Signing Infrastructure**: Ready for Apple Developer setup
   - Entitlements and notarization scripts prepared
   - Auto-updates will work automatically once code signing enabled
 
 ### v2.0.3-alpha - Enhanced Category Tooltips
 
-- **🎨 Intelligent Command Highlighting**: Category tooltips display relevant commands with color-coded bold text
-- **🔧 Parameter Passing Fix**: Resolved function wrapper issues preventing bold/color styling
+- **🎨 Intelligent Command Highlighting**: Category tooltips display relevant
+  commands with color-coded bold text
+- **🔧 Parameter Passing Fix**: Resolved function wrapper issues preventing
+  bold/color styling
 - **✅ Bug Fix**: Tooltip expansion correctly displays full command list
 
 ### v2.0.0-alpha - Electron Desktop App & UI Polish
 
-- **🖥️ Native Desktop App**: macOS desktop app with Electron + PyInstaller backend bundling
-- **🔧 Command Sort Order**: Fixed sorting to prioritize explicit commands before implicit
+- **🖥️ Native Desktop App**: macOS desktop app with Electron + PyInstaller
+  backend bundling
+- **🔧 Command Sort Order**: Fixed sorting to prioritize explicit commands before
+  implicit
 - **💾 Rule Preservation**: Rules preserved on page refresh
 - **📊 Search Enhancements**: Fuzzy relevance scoring and improved UI feedback
 
@@ -640,58 +716,87 @@ The application features modern, modular frontend and backend architectures with
 
 ### v1.25.1-beta - Optimization Box Persistence & Backend Error Fix
 
-- **🐛 Critical Backend Fix**: Fixed undefined `warnings` variable error in `optimize_rule(michael.tchistopolskii@redis.com)` method
-- **📌 Optimization Persistence**: Optimization suggestions now remain visible while typing
+- **🐛 Critical Backend Fix**: Fixed undefined `warnings` variable error in
+  `optimize_rule(michael.tchistopolskii@redis.com)` method
+- **📌 Optimization Persistence**: Optimization suggestions now remain visible
+  while typing
 
 ### v1.25.0-beta - Backend Category Analysis
 
-- **🧠 Backend Category Intelligence**: Complete category analysis engine classifies categories as fully granted, partially granted (with percentages), or blocked based on actual command permissions
-- **📊 API Enhancement**: `/api/parse` endpoint now returns comprehensive category analysis including `granted_categories`, `partial_categories` (with grant counts and percentages), and `blocked_categories`
-- **✅ Test Suite Explosion**: Expanded from 127 → 195 passing tests (+68 new tests, 0 skipped)
+- **🧠 Backend Category Intelligence**: Complete category analysis engine
+classifies categories as fully granted, partially granted (with percentages), or
+blocked based on actual command permissions
+- **📊 API Enhancement**: `/api/parse` endpoint now returns comprehensive
+category analysis including `granted_categories`, `partial_categories` (with
+grant counts and percentages), and `blocked_categories`
+- **✅ Test Suite Explosion**: Expanded from 127 → 195 passing tests (+68 new
+tests, 0 skipped)
   - 12 comprehensive API-level category analysis tests
   - 19 button interaction tests validating UI logic
   - 16 @all category behavior tests
   - 8 ACL precedence validation tests
-- **🧹 Code Cleanup**: Removed 16 obsolete skipped tests (-319 lines) with proper documentation
-- **🔧 Test Fixes**: Fixed all test signature mismatches and API response structure assertions
-- **📈 Coverage Improvement**: Test coverage increased from 82% → 85% (API coverage: 71% → 78%)
+- **🧹 Code Cleanup**: Removed 16 obsolete skipped tests (-319 lines) with proper
+  documentation
+- **🔧 Test Fixes**: Fixed all test signature mismatches and API response
+  structure assertions
+- **📈 Coverage Improvement**: Test coverage increased from 82% → 85% (API
+  coverage: 71% → 78%)
 
 ### v1.21.3-beta - Version Prefix Standardization
 
-- **📐 Consistent Versioning**: Standardized version prefix usage across all documentation
+- **📐 Consistent Versioning**: Standardized version prefix usage across all
+  documentation
 - **🏷️ Git Tags**: All git tags use `v` prefix (v1.21.3-beta)
 - **🐳 Docker Tags**: All Docker image tags use no prefix (1.21.3-beta)
-- **📚 Documentation**: Clear separation between git and Docker version references
-- **🧹 Cleanup**: Removed inconsistent `1.16.0-beta` tag, replaced with `v1.16.0-beta`
+- **📚 Documentation**: Clear separation between git and Docker version
+  references
+- **🧹 Cleanup**: Removed inconsistent `1.16.0-beta` tag, replaced with
+`v1.16.0-beta`
 
 ### v1.21.2-beta - Testing Section Flash Fix
 
-- **✨ Zero Flash Rendering**: Eliminated visual flash when testing panels are in custom order
-- **🎯 CSS Order Properties**: Uses flexbox `order` property set by inline script for instant correct rendering
-- **🚀 Performance**: Testing sections now render in correct order from the first frame
-- **🔧 Smart Detection**: Only applies ordering when panels differ from default position
+- **✨ Zero Flash Rendering**: Eliminated visual flash when testing panels are in
+  custom order
+- **🎯 CSS Order Properties**: Uses flexbox `order` property set by inline script
+  for instant correct rendering
+- **🚀 Performance**: Testing sections now render in correct order from the first
+  frame
+- **🔧 Smart Detection**: Only applies ordering when panels differ from default
+  position
 
 ### v1.21.1-beta - Docker Build Performance Optimization
 
-- **⚡ 42% Faster Builds**: Multi-arch Docker builds reduced from 2m 40s to ~1m 30s
-- **📦 Split Dependencies**: Separated production (`requirements-prod.txt`) and test (`requirements-test.txt`) dependencies
-- **🚀 ARM64 Optimization**: Eliminated coverage compilation (100 seconds saved on ARM64 builds)
+- **⚡ 42% Faster Builds**: Multi-arch Docker builds reduced from 2m 40s to ~1m
+  30s
+- **📦 Split Dependencies**: Separated production (`requirements-prod.txt`) and
+  test (`requirements-test.txt`) dependencies
+- **🚀 ARM64 Optimization**: Eliminated coverage compilation (100 seconds saved
+  on ARM64 builds)
 - **🔄 Coverage Upgrade**: Updated to 7.6.9 with pre-built ARM64 wheels
-- **🐳 Smaller Production Image**: Docker image excludes test dependencies for faster deployments
-- **🛠️ Dev Workflow Unchanged**: Local development still uses `pip install -r requirements.txt`
+- **🐳 Smaller Production Image**: Docker image excludes test dependencies for
+  faster deployments
+- **🛠️ Dev Workflow Unchanged**: Local development still uses `pip install -r
+  requirements.txt`
 
 ### v1.21.0-beta - Testing Section Drag-and-Drop Feature
 
-- **🎨 Complete Drag-and-Drop System**: Full drag-and-drop reordering for testing sections
-- **⋮⋮ Grabbable Handles**: Visual drag handles matching three-column panel design
-- **✨ Smooth Animations**: Professional animations with flash prevention and localStorage persistence
-- **🎯 Perfect UX**: Universal pointer-events approach disables all hover effects during drag
+- **🎨 Complete Drag-and-Drop System**: Full drag-and-drop reordering for testing
+  sections
+- **⋮⋮ Grabbable Handles**: Visual drag handles matching three-column panel
+  design
+- **✨ Smooth Animations**: Professional animations with flash prevention and
+  localStorage persistence
+- **🎯 Perfect UX**: Universal pointer-events approach disables all hover effects
+  during drag
 
 ### v1.20.5-beta - Critical Docker Bugfix
 
-- **🐛 CRITICAL FIX**: Added missing `models/` directory to Docker image (ModuleNotFoundError resolved)
-- **✅ Production Ready**: Docker image now fully functional with all required Python modules
-- **⚠️ Note**: Docker images v1.20.0 through v1.20.3 were non-functional and removed from Docker Hub
+- **🐛 CRITICAL FIX**: Added missing `models/` directory to Docker image
+  (ModuleNotFoundError resolved)
+- **✅ Production Ready**: Docker image now fully functional with all required
+  Python modules
+- **⚠️ Note**: Docker images v1.20.0 through v1.20.3 were non-functional and
+  removed from Docker Hub
 
 ### v1.20.0-beta - Rule Selectors & Advanced Key Permissions
 
@@ -710,29 +815,42 @@ The application features modern, modular frontend and backend architectures with
 
 ### v1.15.10-beta - Documentation Synchronization & Docker Hub Integration
 
-- **📋 Documentation Workflow**: Comprehensive synchronization process preventing version drift across releases
-- **🐳 Docker Hub Prominence**: Direct repository link and quick-start deployment prominently featured
-- **⚙️ Mandatory Process**: Systematic version update workflow ensuring documentation accuracy
+- **📋 Documentation Workflow**: Comprehensive synchronization process preventing
+  version drift across releases
+- **🐳 Docker Hub Prominence**: Direct repository link and quick-start deployment
+  prominently featured
+- **⚙️ Mandatory Process**: Systematic version update workflow ensuring
+  documentation accuracy
 
 ### v1.15.8-beta - Professional Type Safety
 
-- **🔍 Pylance Compliance**: 94% reduction in strict type checking errors across all modules
-- **📝 Comprehensive Annotations**: Full type annotations for Flask routes, helper functions, and data structures
-- **🎯 Python 3.13 Support**: Updated to latest Python version with enhanced type safety features
-- **✅ Zero Breaking Changes**: Maintained 100% test coverage throughout type safety implementation
+- **🔍 Pylance Compliance**: 94% reduction in strict type checking errors across
+  all modules
+- **📝 Comprehensive Annotations**: Full type annotations for Flask routes,
+helper functions, and data structures
+- **🎯 Python 3.13 Support**: Updated to latest Python version with enhanced type
+  safety features
+- **✅ Zero Breaking Changes**: Maintained 100% test coverage throughout type
+  safety implementation
 
 ### v1.15.7-beta - Production CI/CD Pipeline
 
-- **🚀 Automated Docker Hub**: Multi-architecture builds (AMD64/ARM64) with automated publishing
-- **🔒 Security Scanning**: Docker Scout CVE analysis with vulnerability management
-- **🏷️ Smart Tagging**: Automatic version tagging with :latest, :beta, and semver tags
-- **⚡ Optimized Builds**: Docker layer caching reducing build times from 15+ to 5-10 minutes
+- **🚀 Automated Docker Hub**: Multi-architecture builds (AMD64/ARM64) with
+  automated publishing
+- **🔒 Security Scanning**: Docker Scout CVE analysis with vulnerability
+  management
+- **🏷️ Smart Tagging**: Automatic version tagging with :latest, :beta, and
+semver tags
+- **⚡ Optimized Builds**: Docker layer caching reducing build times from 15+ to
+  5-10 minutes
 
 </details>
 
 ## Acknowledgments
 
-Special thanks to **Michael Tchistopolskii** (<michael.tchistopolskii@redis.com>) for substantial improvement ideas and architectural guidance that helped shape the development of this application.
+Special thanks to **Michael Tchistopolskii**
+(<michael.tchistopolskii@redis.com>) for substantial improvement ideas and
+architectural guidance that helped shape the development of this application.
 
 ## License
 
@@ -742,10 +860,13 @@ This project is provided as-is for educational and development purposes.
 
 For questions, feedback, or issues:
 
-1. **Contact**: [Marko Trapani](https://github.com/markotrapani) - Project Developer
+1. **Contact**: [Marko Trapani](https://github.com/markotrapani) - Project
+   Developer
 2. **Technical Issues**: Run `python test_imports.py` for diagnostics
 3. **Test Verification**: Check results with `./tests/run_tests.sh`
-4. **Docker Deployment**: See [Docker Hub Repository](https://hub.docker.com/r/markotrapani608/redis-acl-builder)
-5. **Setup Issues**: Ensure all files are in the correct locations per installation guide
+4. **Docker Deployment**: See [Docker Hub
+   Repository](https://hub.docker.com/r/markotrapani608/redis-acl-builder)
+5. **Setup Issues**: Ensure all files are in the correct locations per
+   installation guide
 
 ---

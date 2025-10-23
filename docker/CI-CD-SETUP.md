@@ -2,7 +2,8 @@
 
 ## Overview
 
-This guide explains how to set up automated Docker image building and publishing using GitHub Actions for the Redis ACL Builder project.
+This guide explains how to set up automated Docker image building and publishing
+using GitHub Actions for the Redis ACL Builder project.
 
 ## Prerequisites
 
@@ -30,7 +31,8 @@ Ensure your Docker Hub repository exists:
 
 ## 2. GitHub Secrets Configuration
 
-Go to your GitHub repository → **Settings** → **Secrets and variables** → **Actions**
+Go to your GitHub repository → **Settings** → **Secrets and variables** →
+**Actions**
 
 ### Required Secrets
 
@@ -39,7 +41,7 @@ Add these repository secrets:
 | Secret Name | Value | Description |
 |-------------|-------|-------------|
 | `DOCKERHUB_USERNAME` | `markotrapani608` | Your Docker Hub username |
-| `DOCKERHUB_TOKEN` | `your_access_token` | Personal access token from Docker Hub |
+| `DOCKERHUB_TOKEN` | `your_token` | Token from Docker Hub |
 
 ### Setting Up Secrets
 
@@ -123,7 +125,8 @@ git push origin main
 
 ### Docker Hub
 
-- View image tags: <https://hub.docker.com/r/markotrapani608/redis-acl-builder/tags>
+- View image tags:
+  <https://hub.docker.com/r/markotrapani608/redis-acl-builder/tags>
 - Monitor download statistics
 - Check security scan results
 

@@ -7,13 +7,20 @@
 
 **Version v2.0.3-alpha** - Desktop + Web App
 
-A comprehensive application for testing and validating Redis Access Control List (ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced Key Permissions, comprehensive E2E testing with 100% test coverage, and an elegant drag-drop interface. Also available as a native macOS desktop application.
+A comprehensive application for testing and validating Redis Access Control List
+(ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced
+Key Permissions, comprehensive E2E testing with 100% test coverage, and an
+elegant drag-drop interface. Also available as a native macOS desktop
+application.
 
 **What's New in v2.0.3-alpha**:
 
-- **🎨 Enhanced Tooltips**: Category tooltips now show relevant commands first with color-coded bold text (green for granted, red for blocked)
-- **✅ Bug Fixes**: Tooltip expansion now correctly displays all commands, fixed parameter passing through function wrappers
-- **🧹 Code Cleanup**: Removed debug code, optimized CSS/JS with clean architecture
+- **🎨 Enhanced Tooltips**: Category tooltips now show relevant commands first
+with color-coded bold text (green for granted, red for blocked)
+- **✅ Bug Fixes**: Tooltip expansion now correctly displays all commands, fixed
+parameter passing through function wrappers
+- **🧹 Code Cleanup**: Removed debug code, optimized CSS/JS with clean
+architecture
 
 ## 🚀 Quick Start
 
@@ -124,22 +131,27 @@ docker restart redis-acl-builder
 For questions about usage, feedback, or to report bugs, please reach out to:
 
 - **Email**: <marko.trapani@redis.com>
-- **GitHub Issues**: [Report bugs and feature requests](https://github.com/markotrapani/marko-projects/issues)
+- **GitHub Issues**: [Report bugs and feature
+  requests](https://github.com/markotrapani/marko-projects/issues)
 
 ## 📚 Additional Resources
 
-- **GitHub Repository**: [markotrapani/marko-projects](https://github.com/markotrapani/marko-projects)
+- **GitHub Repository**:
+  [markotrapani/marko-projects](https://github.com/markotrapani/marko-projects)
 - **Issue Tracker**: Report bugs and feature requests on GitHub
-- **Documentation**: Full docs available in the running application (click "Info" in header)
+- **Documentation**: Full docs available in the running application (click
+  "Info" in header)
 
 ## 🏷️ Available Tags
 
 - `latest` - Latest release (currently v2.0.3-alpha)
 - `beta` - Latest beta/alpha release
 - `v2.0.3-alpha` - Enhanced tooltips with smart command highlighting
-- `v2.0.0-alpha` - Desktop + Web App: Native macOS Electron app + web app with shared codebase
+- `v2.0.0-alpha` - Desktop + Web App: Native macOS Electron app + web app with
+  shared codebase
 - `v1.27.0-beta` - Monorepo restructure for web + desktop support
-- `v1.26.1-beta` - Documentation update with accurate API endpoints and test coverage
+- `v1.26.1-beta` - Documentation update with accurate API endpoints and test
+  coverage
 - `v1.26.0-beta` - Complete E2E test suite with Playwright (28/28 tests passing)
 - Multi-architecture support (AMD64/ARM64)
 
@@ -149,23 +161,29 @@ For questions about usage, feedback, or to report bugs, please reach out to:
 
 - ✅ **0 Critical vulnerabilities**
 - ✅ **0 High vulnerabilities**
-- ⚠️ **1 Medium vulnerability** - CVE-2025-8869 (pip 25.2) - waiting for pip 25.3 release
-  - **Low runtime risk**: Only affects pip install operations; production container doesn't install packages
+- ⚠️ **1 Medium vulnerability** - CVE-2025-8869 (pip 25.2) - waiting for pip
+  25.3 release
+  - **Low runtime risk**: Only affects pip install operations; production
+    container doesn't install packages
   - All dependencies installed during build phase; runtime doesn't use pip
-- ⚠️ **2 Low vulnerabilities** in BusyBox (waiting for Alpine upstream to package BusyBox 1.38.0+)
+- ⚠️ **2 Low vulnerabilities** in BusyBox (waiting for Alpine upstream to
+  package BusyBox 1.38.0+)
 
 **Security Features:**
 
 - **Python 3.13.7** with latest security patches
-- **Gunicorn 23.0.0** with HTTP Request Smuggling fixes (CVE-2024-1135, CVE-2024-6827 resolved)
+- **Gunicorn 23.0.0** with HTTP Request Smuggling fixes (CVE-2024-1135,
+CVE-2024-6827 resolved)
 - **OpenSSL 3.5.4-r0** with CVE-2025-9230 patch
 - **Automated package upgrades** via `apk upgrade` on every build
 - **Non-root user** execution (UID 1000)
 - **Alpine Linux 3.22** base with minimal attack surface
 - **Build-time dependency installation** - pip not used at runtime
 
-We continuously monitor security advisories and update dependencies as fixes become available.
+We continuously monitor security advisories and update dependencies as fixes
+become available.
 
 ---
 
-**Redis ACL Builder** - Built with ❤️ for Redis Enterprise ACL testing and validation
+**Redis ACL Builder** - Built with ❤️ for Redis Enterprise ACL testing and
+validation

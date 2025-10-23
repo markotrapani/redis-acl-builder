@@ -1,0 +1,8 @@
+# Ignore third-party dependencies
+node_modules/
+electron/node_modules/
+venv/
+
+# Ignore build outputs
+dist/
+build/

@@ -1,6 +1,7 @@
 # Docker Maintenance Scripts
 
-This directory contains utility scripts for managing the Redis ACL Builder Docker repository.
+This directory contains utility scripts for managing the Redis ACL Builder
+Docker repository.
 
 ## docker-tag-maintenance.sh
 
@@ -110,7 +111,8 @@ jobs:
 1. **Token Storage**: Never commit tokens to the repository
 2. **GitHub Secrets**: Use `DOCKERHUB_TOKEN` secret in GitHub Actions
 3. **Local Development**: Store token in secure file with 600 permissions
-4. **Token Scope**: Use tokens with minimal required permissions (delete tags only)
+4. **Token Scope**: Use tokens with minimal required permissions (delete tags
+   only)
 
 ### Regex Patterns Reference
 
@@ -118,7 +120,8 @@ jobs:
 |---------|-------------|-----------------|
 | `^v` | Starts with 'v' | `v1.0.0`, `v2.1.0-beta` |
 | `.*-beta$` | Ends with '-beta' | `1.15.0-beta`, `latest-beta` |
-| `^v1\.(0|1|2|3|4|5)\.` | Old v1.0-v1.5 versions | `v1.0.0`, `v1.5.2-beta` |
+| `^v1\.(0\|1\|2\|3\|4\|5)\.` | Old v1.0-v1.5 | `v1.0.0` etc |
+
 | `.*-experimental$` | Experimental tags | `feature-experimental` |
 | `^temp-` | Temporary tags | `temp-fix`, `temp-test` |
 | `^pr-[0-9]+$` | PR-based tags | `pr-123`, `pr-456` |
@@ -145,7 +148,7 @@ The script includes comprehensive error handling:
 
 1. **Authentication failure**:
 
-   ```
+   ```text
    [ERROR] Failed to get bearer token
    ```
 

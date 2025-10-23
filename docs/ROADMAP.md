@@ -2,7 +2,8 @@
 
 **Current Version:** v2.4.6-beta
 
-**Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker Deployment
+**Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
+Deployment
 
 **Last Updated:** 2025-10-22
 
@@ -10,7 +11,9 @@
 
 ## 📋 Overview
 
-The Redis ACL Builder is a tool for creating, testing, and managing Redis Access Control Lists (ACLs). It supports both web/Docker deployment and native desktop applications across macOS, Windows, and Linux.
+The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
+Control Lists (ACLs). It supports both web/Docker deployment and native desktop
+applications across macOS, Windows, and Linux.
 
 ---
 
@@ -26,7 +29,8 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 - Simplified release notes format to match successful open source projects
 - Fixed outdated UI feature description in README
 
-**Technical:** Updated GitHub Actions workflows for cleaner auto-generated release notes
+**Technical:** Updated GitHub Actions workflows for cleaner auto-generated
+release notes
 
 ---
 
@@ -34,14 +38,19 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 
 #### Category Styling and Ordering Bug Fix
 
-- Fixed incorrect styling for explicitly granted categories with category-level exclusions
-- Categories like `@read` in `+@read +@write -@dangerous ~*` now correctly show partial styling (hollow yellow ⚠)
-- Enhanced `detectPartialCategory()` to detect both `-command` and `-@category` exclusions
-- Fixed category ordering: Explicit full → Implicit full → Explicit partial → Implicit partial
+- Fixed incorrect styling for explicitly granted categories with category-level
+  exclusions
+- Categories like `@read` in `+@read +@write -@dangerous ~*` now correctly show
+  partial styling (hollow yellow ⚠)
+- Enhanced `detectPartialCategory()` to detect both `-command` and `-@category`
+  exclusions
+- Fixed category ordering: Explicit full → Implicit full → Explicit partial →
+  Implicit partial
 - Applied fix to both code paths (with and without `@all` explicitly granted)
 - Perfect visual consistency between styling and actual permissions
 
-**Technical:** Enhanced detection logic in interactive-acl-builder.js, improved category rendering priority
+**Technical:** Enhanced detection logic in interactive-acl-builder.js, improved
+category rendering priority
 
 ---
 
@@ -55,7 +64,8 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 - Prevents misleading release summaries
 - Better user experience when reading release notes on GitHub
 
-**Technical:** [See ELECTRON-ROADMAP.md for build system details](./ELECTRON-ROADMAP.md)
+**Technical:** [See ELECTRON-ROADMAP.md for build system
+details](./ELECTRON-ROADMAP.md)
 
 ---
 
@@ -82,7 +92,8 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 - Non-intrusive 1-second delay after page load
 - Perfect integration with existing manual check functionality
 
-**Technical:** New `VersionChecker.silentCheckOnPageLoad()` method, CSS badge animations
+**Technical:** New `VersionChecker.silentCheckOnPageLoad()` method, CSS badge
+animations
 
 ---
 
@@ -104,7 +115,8 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 #### Automated Release Notes Generation
 
 - Replaced manual README-based release notes with conventional commit parser
-- Auto-categorizes commits by type: feat → ✨ New Features, fix → 🐛 Bug Fixes, etc.
+- Auto-categorizes commits by type: feat → ✨ New Features, fix → 🐛 Bug Fixes,
+etc.
 - Generates formatted "What's New" sections automatically
 - Successfully integrated into CI/CD workflow
 
@@ -115,7 +127,8 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 
 #### Documentation Consolidation
 
-- Updated all version references across README.md, CLAUDE.md, ELECTRON-ROADMAP.md
+- Updated all version references across README.md, CLAUDE.md,
+ELECTRON-ROADMAP.md
 - Ensures documentation parity between Docker and Desktop platforms
 
 ---
@@ -145,7 +158,8 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 
 #### Auto-Update UX Refinement
 
-- Fixed annoying "You have the latest version!" dialog appearing on every app startup
+- Fixed annoying "You have the latest version!" dialog appearing on every app
+  startup
 - Silent background checks at startup (only shows dialog if update IS available)
 - Manual "Check for Updates..." always shows dialog for all outcomes
 - Matches standard desktop app patterns (Slack, VS Code, etc.)
@@ -272,10 +286,14 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 
 ### Completed Desktop Features (v2.x)
 
-- ✅ **System Theme Sync** - Auto-detects OS dark/light mode (v1.x - works in web + desktop)
-- ✅ **Application Menu** - Native macOS/Windows menus with keyboard shortcuts (v2.0.0)
-- ✅ **Auto-Update System** - Silent checks with user-friendly update dialogs (v2.3.0)
-- ✅ **Templates & Presets** - Quick Examples + Saved Rules with localStorage (v1.x)
+- ✅ **System Theme Sync** - Auto-detects OS dark/light mode (v1.x - works in web
+  and desktop)
+- ✅ **Application Menu** - Native macOS/Windows menus with keyboard shortcuts
+  (v2.0.0)
+- ✅ **Auto-Update System** - Silent checks with user-friendly update dialogs
+  (v2.3.0)
+- ✅ **Templates & Presets** - Quick Examples + Saved Rules with localStorage
+  (v1.x)
 
 ### Next Up: Desktop App Polish (v2.5.x)
 
@@ -329,45 +347,61 @@ The Redis ACL Builder is a tool for creating, testing, and managing Redis Access
 
 ### Category Styling Bug - Explicitly Granted Categories with Category Exclusions
 
-**Discovered:** 2025-10-22 | **Fixed:** 2025-10-22 | **Priority:** Medium | **Status:** ✅ Fixed
+- **Node Export**: Save rules to files for
+  Redis configuration
+    configuration
 
 **Description:**
-When an ACL rule explicitly grants categories that have some commands blocked by category exclusions, the granted categories showed incorrect styling and ordering.
+When an ACL rule explicitly grants categories that have some commands blocked by
+category exclusions, the granted categories showed incorrect styling and
+ordering.
 
 **Example:**
 Rule: `+@read +@write -@dangerous ~*`
 
 **Issues (Before Fix):**
 
-- `@read` and `@write` appeared with "fully granted" styling (solid green ✓) instead of "partially granted" (hollow yellow ⚠)
-- Explicit partial categories appeared BEFORE implicit full categories in the granted list (incorrect priority)
+- `@read` and `@write` appeared with "fully granted" styling (solid green ✓)
+  instead of "partially granted" (hollow yellow ⚠)
+- Explicit partial categories appeared BEFORE implicit full categories in the
+  granted list (incorrect priority)
 - Hovering revealed blocked commands but visual styling didn't match
 
 **Root Cause:**
 
-1. **Styling Issue:** The `detectPartialCategory()` method only checked for individual `-command` exclusions, not category-level exclusions like `-@dangerous`
-2. **Ordering Issue:** Category rendering logic didn't properly separate explicit full/partial grants when ordering the display
+1. **Styling Issue:** The `detectPartialCategory()` method only checked for
+   individual `-command` exclusions, not category-level exclusions like
+   `-@dangerous`
+2. **Ordering Issue:** Category rendering logic didn't properly separate
+   explicit full/partial grants when ordering the display
 
 **Fix Applied:**
 
-1. **Enhanced detection** ([interactive-acl-builder.js:2453-2515](../frontend/static/js/components/interactive-acl-builder.js#L2453-L2515)):
+1. **Enhanced detection**
+       ([interactive-acl-builder.js:2453-2515](../frontend/static/js/components/interactive-acl-builder.js#L2453-L2515)):
    - Now detects both `-command` and `-@category` exclusions
-   - Uses actual granted/blocked command lists from API to determine partial status
+   - Uses actual granted/blocked command lists from API to determine partial
+     status
    - Correctly identifies when category exclusions block some commands
 
-2. **Fixed ordering** ([interactive-acl-builder.js:1448-1469, 1506-1559](../frontend/static/js/components/interactive-acl-builder.js)):
-   - Explicit FULL grants → Implicit FULL grants → Explicit PARTIAL grants → Implicit PARTIAL grants
+2. **Fixed ordering** ([interactive-acl-builder.js:1448-1469,
+   1506-1559](../frontend/static/js/components/interactive-acl-builder.js)):
+   - Explicit FULL grants → Implicit FULL grants → Explicit PARTIAL grants →
+     Implicit PARTIAL grants
    - Applied to both code paths (with and without `@all` explicitly granted)
    - Clear visual hierarchy showing fully granted categories before partial ones
 
 **Impact:**
-Perfect visual consistency - users now see correct styling (hollow yellow ⚠ for partial grants) and logical ordering (full grants before partial grants) that matches the actual permissions.
+Perfect visual consistency - users now see correct styling (hollow yellow ⚠ for
+partial grants) and logical ordering (full grants before partial grants) that
+matches the actual permissions.
 
 ---
 
 ## 🔗 Related Documentation
 
-- **[ELECTRON-ROADMAP.md](./ELECTRON-ROADMAP.md)** - Electron technical implementation details
+- **[ELECTRON-ROADMAP.md](./ELECTRON-ROADMAP.md)** - Electron technical
+  implementation details
 - **[CODE-SIGNING.md](./CODE-SIGNING.md)** - Code signing and notarization setup
 - **[CICD-WORKFLOWS.md](./CICD-WORKFLOWS.md)** - CI/CD pipeline documentation
 - **[README.md](../README.md)** - User-facing documentation and quick start
@@ -376,4 +410,6 @@ Perfect visual consistency - users now see correct styling (hollow yellow ⚠ fo
 
 ## 📝 Notes
 
-This roadmap tracks high-level product features and version history. For technical implementation details specific to the Electron desktop app, see [ELECTRON-ROADMAP.md](./ELECTRON-ROADMAP.md).
+This roadmap tracks high-level product features and version history.
+For technical implementation details specific to the Electron desktop app, see
+[ELECTRON-ROADMAP.md](./ELECTRON-ROADMAP.md).

@@ -1,6 +1,7 @@
 # Redis ACL Builder - Desktop App (Electron)
 
-> **Status**: v2.4.7-beta - Production Ready with Auto-Update & Debug Infrastructure
+> **Status**: v2.4.7-beta - Production Ready with Auto-Update & Debug
+Infrastructure
 
 Desktop application wrapper for Redis ACL Builder using Electron.
 
@@ -20,7 +21,8 @@ The Electron app wraps the existing Flask + JavaScript web application:
 
 - **Backend**: Python Flask server (shared from `../backend/`)
 - **Frontend**: HTML/CSS/JS interface (shared from `../frontend/`)
-- **Port**: Flask runs on port **7381** for Electron (vs 5001 for web dev, 7380 for Docker)
+- **Port**: Flask runs on port **7381** for Electron (vs 5001 for web dev, 7380
+for Docker)
 
 ## Project Structure
 
@@ -74,7 +76,8 @@ The app will:
 
 **NEVER use `killall Electron` or `pkill Electron`!**
 
-VS Code, Claude Code, and many other apps run on Electron. Killing all Electron processes will close your IDE!
+VS Code, Claude Code, and many other apps run on Electron. Killing all Electron
+processes will close your IDE!
 
 **Safe ways to restart the app:**
 
@@ -105,7 +108,8 @@ npm run start:devtools
 
 The app uses different icon sizes for different platforms:
 
-- **macOS**: `icon.icns` (for app), `icon-cropped-larger.png` (for dock, 1.10x scaled)
+- **macOS**: `icon.icns` (for app), `icon-cropped-larger.png` (for dock, 1.10x
+scaled)
 - **Windows**: `icon.ico`
 - **Linux**: `icon.png`
 
@@ -125,7 +129,8 @@ Scale factors:
 - `1.10` = 10% larger (current, matches VS Code icon size)
 - `1.15` = 15% larger (too big)
 
-The script scales the entire icon (red background + lock together) and centers it on a transparent canvas.
+The script scales the entire icon (red background + lock together) and centers
+it on a transparent canvas.
 
 ## Building for Distribution
 

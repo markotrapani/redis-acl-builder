@@ -4,6 +4,7 @@ Redis ACL Parser - Parse and evaluate Redis ACL rules
 """
 
 from typing import Dict, List, Set, Tuple, Any, Optional, TypedDict, Literal
+from functools import lru_cache
 import fnmatch
 
 # Type definitions for ACL parsing structures

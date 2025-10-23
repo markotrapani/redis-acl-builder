@@ -14,6 +14,7 @@ import sys
 import os
 from typing import Dict, Any, Tuple, Union, List, cast
 from pydantic import BaseModel, ValidationError
+from functools import lru_cache
 
 # Add the project directory to Python path for helper imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

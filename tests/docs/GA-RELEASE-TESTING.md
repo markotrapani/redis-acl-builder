@@ -9,20 +9,24 @@
 
 ## 📋 Testing Overview
 
-This document outlines comprehensive testing requirements for promoting Redis ACL Builder from beta to General Availability (GA). All tests must pass before GA release.
+This document outlines comprehensive testing requirements for promoting Redis
+ACL Builder from beta to General Availability (GA). All tests must pass before
+GA release.
 
 ### Testing Categories
 
 1. [Backend & API Testing](#1-backend--api-testing) - 15 tests
 2. [Browser Compatibility](#2-browser-compatibility) - 12 tests
-3. [Responsive Design & Mobile/Tablet](#3-responsive-design--mobiletablet) - 20 tests
+3. [Responsive Design & Mobile/Tablet](#3-responsive-design--mobiletablet) - 20
+   tests
 4. [Accessibility (A11y)](#4-accessibility-a11y-testing) - 18 tests
 5. [Security Testing](#5-security-testing) - 12 tests
 6. [Performance & Optimization](#6-performance--optimization) - 15 tests
 7. [Data Persistence & State](#7-data-persistence--state-management) - 15 tests
 8. [Edge Cases & Errors](#8-edge-cases--error-scenarios) - 18 tests
 9. [Docker & Deployment](#9-docker--deployment) - 16 tests
-10. [Electron Desktop App](#10-electron-desktop-app-testing) - 20 tests **[NEW]**
+10. [Electron Desktop App](#10-electron-desktop-app-testing) - 20 tests
+    **[NEW]**
 11. [Documentation & UX](#11-documentation--user-experience) - 12 tests
 12. [Automated Testing](#12-automated-testing-coverage) - 10 tests
 13. [Production Readiness](#13-production-readiness) - 12 tests
@@ -34,7 +38,8 @@ This document outlines comprehensive testing requirements for promoting Redis AC
 ## 1. Backend & API Testing
 
 **Priority**: P0 (Critical)
-**Objective**: Ensure backend stability, performance, and correctness under production loads.
+**Objective**: Ensure backend stability, performance, and correctness under
+production loads.
 
 ### API Endpoint Testing (P0)
 
@@ -43,7 +48,8 @@ This document outlines comprehensive testing requirements for promoting Redis AC
   - Expected: Correct granted/blocked/partial category analysis
   - Acceptance: Response time <100ms, correct category classification
 
-- [ ] **Test 1.2**: `/api/test-command` - Test command permissions with selectors
+- [ ] **Test 1.2**: `/api/test-command` - Test command permissions with
+  selectors
   - Input: `+@read (~user:*) +@write (~admin:*)` with command `GET user:123`
   - Expected: Allowed due to selector #1
   - Acceptance: Correct selector context in response
@@ -104,7 +110,9 @@ This document outlines comprehensive testing requirements for promoting Redis AC
 ### Performance Benchmarks (P1)
 
 - [ ] **Test 1.13**: Parse complex rule with all 21 categories (Redis 7)
-  - Input: `+@slow +@fast +@dangerous +@admin +@write +@read +@keyspace +@string +@hash +@list +@set +@sortedset +@stream +@hyperloglog +@geo +@bitmap +@pubsub +@transaction +@scripting +@connection +@blocking`
+  - Input: `+@slow +@fast +@dangerous +@admin +@write +@read +@keyspace +@string
+    +@hash +@list +@set +@sortedset +@stream +@hyperloglog +@geo +@bitmap
+    +@pubsub +@transaction +@scripting +@connection +@blocking`
   - Expected: Response time <150ms
   - Acceptance: Correct analysis, no performance degradation
 
@@ -128,7 +136,8 @@ This document outlines comprehensive testing requirements for promoting Redis AC
 ### Desktop Browsers (P0)
 
 - [ ] **Test 2.1**: Chrome/Chromium (Latest, v130+)
-  - Test: Full application flow (load → edit rule → test commands → save → version switch)
+  - Test: Full application flow (load → edit rule → test commands → save →
+    version switch)
   - Expected: All features work perfectly
   - Acceptance: No console errors, visual consistency
 
@@ -853,7 +862,8 @@ This document outlines comprehensive testing requirements for promoting Redis AC
 ## 10. Electron Desktop App Testing
 
 **Priority**: P0 (Critical)
-**Objective**: Ensure Electron desktop app stability, performance, and platform compatibility.
+**Objective**: Ensure Electron desktop app stability, performance, and platform
+compatibility.
 
 ### macOS Desktop App (P0)
 
@@ -1218,7 +1228,8 @@ This document outlines comprehensive testing requirements for promoting Redis AC
 - [ ] **Performance targets met** (Lighthouse ≥90, page load <3s)
 - [ ] **Docker deployment working** (multi-arch builds, health checks)
 - [ ] **Electron desktop app working** (macOS DMG installer, code signed)
-- [ ] **Documentation complete** (README, Docker Hub, API docs, Electron build docs)
+- [ ] **Documentation complete** (README, Docker Hub, API docs, Electron build
+docs)
 
 ### Nice-to-Have (Can defer)
 
@@ -1231,7 +1242,8 @@ This document outlines comprehensive testing requirements for promoting Redis AC
 
 ## Version History
 
-- **v2.0.x** (Planned GA Release) - Web + Electron desktop app, comprehensive testing
+- **v2.0.x** (Planned GA Release) - Web + Electron desktop app, comprehensive
+testing
 - **v2.0.1-alpha** - Smart version tag strategy, Electron DMG installer
 - **v2.0.0-alpha** - Complete Electron desktop app implementation
 - **v1.27.0-beta** - Monorepo restructure for web + desktop support

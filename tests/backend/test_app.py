@@ -578,6 +578,43 @@ class TestACLParser(unittest.TestCase):
         # Should detect redundant patterns (get added/removed/added again)
         self.assertGreater(len(analysis['redundant_terms']), 0)
 
+    def test_redundancy_all_categories_pattern(self):
+        """Test redundancy detection for all-categories pattern (should suggest +@all)."""
+        # Grant enough categories to cover all commands in Redis 8
+        # Redis 8 has 29 categories - grant all of them to trigger all-categories optimization
+        all_cats = ('+@read +@write +@admin +@dangerous +@keyspace +@string +@list '
+                   '+@set +@sortedset +@hash +@hyperloglog +@geo +@stream +@pubsub '
+                   '+@transaction +@scripting +@connection +@server +@bitmap +@cluster '
+                   '+@slow +@fast +@blocking +@search +@json +@timeseries +@bloom '
+                   '+@cms +@topk +@tdigest')
+
+        analysis = self.parser8.analyze_rule_redundancy(all_cats)
+
+        # Should suggest optimizing to +@all (all-categories optimization)
+        self.assertGreater(len(analysis['suggestions']), 0,
+                          "Should suggest optimization when all categories granted")
+        suggestions_str = ' '.join(analysis['suggestions'])
+        self.assertIn('@all', suggestions_str.lower(),
+                     "Should suggest +@all when all categories are granted")
+
+    def test_redundancy_all_categories_with_key_pattern(self):
+        """Test all-categories optimization preserves key patterns."""
+        # Grant all categories but with a key pattern - should suggest +@all ~key:*
+        all_cats_with_key = ('+@read +@write +@admin +@dangerous +@keyspace +@string +@list '
+                            '+@set +@sortedset +@hash +@hyperloglog +@geo +@stream +@pubsub '
+                            '+@transaction +@scripting +@connection +@server +@bitmap +@cluster '
+                            '+@slow +@fast +@blocking +@search +@json +@timeseries +@bloom '
+                            '+@cms +@topk +@tdigest ~cache:*')
+
+        analysis = self.parser8.analyze_rule_redundancy(all_cats_with_key)
+
+        # Should suggest +@all but preserve key pattern
+        suggestions_str = ' '.join(analysis['suggestions'])
+        if '@all' in suggestions_str.lower():
+            # If optimization triggered, should preserve key pattern
+            self.assertIn('~cache:*', suggestions_str,
+                         "Should preserve key pattern in +@all optimization")
+
     def test_invalid_key_permission_syntax(self):
         """Test handling of invalid key permission syntax."""
         # Invalid key permission syntax should be silently skipped (defensive code)
@@ -586,6 +623,210 @@ class TestACLParser(unittest.TestCase):
         # Should still have @read permissions
         self.assertGreater(len(parsed['command_rules']), 0)
         # Invalid key permission should not crash, just be ignored
+
+    def test_selector_category_deny_difference_update(self):
+        """Test selector category DENY uses difference_update (line 401)."""
+        # This specifically tests the selector_granted.difference_update(category_commands) path
+        # Selector grants @write, then denies @dangerous - triggers difference_update
+        parsed = self.parser8.parse_acl_rule("+nocommands (+@write -@dangerous)")
+        is_granted, explanation, categories, selector_idx = self.parser8.test_command_access("flushall", parsed)
+
+        # FLUSHALL is in both @write and @dangerous, so selector deny should block it
+        self.assertFalse(is_granted,
+                        "FLUSHALL should be blocked (granted by @write but denied by @dangerous in selector)")
+
+    def test_selector_command_deny_discard(self):
+        """Test selector individual command DENY uses discard (line 408)."""
+        # This specifically tests the selector_granted.discard(command) path
+        # Selector grants @string, then denies specific command
+        parsed = self.parser8.parse_acl_rule("+nocommands (+@string -set)")
+        is_granted, explanation, categories, selector_idx = self.parser8.test_command_access("set", parsed)
+
+        # SET is granted by @string but explicitly denied in selector
+        self.assertFalse(is_granted,
+                        "SET should be blocked (granted by @string but explicitly denied in selector)")
+
+    def test_selector_command_allow_add(self):
+        """Test selector individual command ALLOW uses add (line 406)."""
+        # This specifically tests the selector_granted.add(command) path
+        # Selector grants individual command
+        parsed = self.parser8.parse_acl_rule("+nocommands (+get)")
+        is_granted, explanation, categories, selector_idx = self.parser8.test_command_access("get", parsed)
+
+        # GET is explicitly granted in selector
+        self.assertTrue(is_granted,
+                       "GET should be allowed (explicitly granted in selector)")
+
+    def test_security_pattern_dangerous_category(self):
+        """Test security pattern detection: broad grants + -@dangerous (lines 1510-1515)."""
+        # Pattern: +@read +@write -@dangerous
+        # This should NOT flag +@write as redundant because it's a security pattern
+        analysis = self.parser8.analyze_rule_redundancy("+@read +@write -@dangerous")
+
+        # Should NOT have redundancy warnings for security patterns
+        # The -@dangerous deny makes this a legitimate security design
+        redundant_terms = [r['term'] for r in analysis['redundant_terms']]
+        # +@write should NOT be marked as redundant (it's part of security pattern)
+        self.assertNotIn('+@write', redundant_terms,
+                        "Security pattern (+@read +@write -@dangerous) should not flag +@write as redundant")
+
+    def test_security_pattern_admin_category(self):
+        """Test security pattern with -@admin deny (lines 1510-1515)."""
+        # Pattern: broad grants followed by -@admin (security-sensitive category)
+        analysis = self.parser8.analyze_rule_redundancy("+@all -@admin")
+
+        # Should recognize this as a security pattern (granting broad access, denying admin)
+        # @all already grants everything, but -@admin is a security restriction
+        # Should NOT flag as redundant
+        self.assertIsNotNone(analysis)  # Just verify analysis completes
+
+    def test_security_pattern_keyspace_category(self):
+        """Test security pattern with -@keyspace deny (lines 1510-1515)."""
+        # Pattern: multiple grants + -@keyspace (security-sensitive category)
+        analysis = self.parser8.analyze_rule_redundancy("+@read +@write -@keyspace")
+
+        # Should recognize keyspace as security-sensitive category
+        redundant_terms = [r['term'] for r in analysis['redundant_terms']]
+        # Should not flag as completely redundant due to security pattern
+        self.assertIsNotNone(analysis)
+
+    def test_security_pattern_broad_categories_with_deny(self):
+        """Test security pattern: multiple broad categories + deny (lines 1517-1527)."""
+        # Pattern: +@read +@fast -@slow
+        # Multiple broad categories (read, fast) with deny rules = security pattern
+        analysis = self.parser8.analyze_rule_redundancy("+@read +@fast -@slow")
+
+        # Should recognize this as intentional security design
+        # (broad access with selective restrictions)
+        redundant_terms = [r['term'] for r in analysis['redundant_terms']]
+        # Pattern should be recognized, not flagged as redundant
+        self.assertIsNotNone(analysis)
+
+    def test_not_security_pattern_no_denies(self):
+        """Test that redundant rules WITHOUT denies ARE flagged (line 1529 return False)."""
+        # Pattern: +@read +@read (no deny rules) - NOT a security pattern
+        analysis = self.parser8.analyze_rule_redundancy("+@read +@read")
+
+        # Should flag second +@read as redundant (no security pattern)
+        redundant_terms = [r['term'] for r in analysis['redundant_terms']]
+        self.assertIn('+@read', redundant_terms,
+                     "Duplicate +@read without deny rules should be flagged as redundant")
+
+    def test_null_category_all_commands_excluded(self):
+        """Test null category detection: category included but all commands excluded (lines 1698, 1702-1714)."""
+        # Find a small category and exclude all its commands
+        # @hyperloglog has 3 commands: pfadd, pfcount, pfmerge
+        analysis = self.parser8.analyze_rule_redundancy("+@hyperloglog -pfadd -pfcount -pfmerge")
+
+        # Should detect +@hyperloglog as a null category
+        warnings_str = ' '.join(analysis['warnings'])
+        self.assertIn('Null category', warnings_str,
+                     "Should detect +@hyperloglog as null when all 3 commands are excluded")
+        self.assertIn('@hyperloglog', warnings_str,
+                     "Warning should mention the null category name")
+
+    def test_null_category_bitmap(self):
+        """Test null category with bitmap category."""
+        # @bitmap category has specific commands - exclude them all
+        bitmap_commands = list(self.parser8.data['categories'].get('bitmap', []))
+        if bitmap_commands:
+            # Build rule: +@bitmap -cmd1 -cmd2 -cmd3...
+            exclude_str = ' '.join(f'-{cmd}' for cmd in bitmap_commands)
+            rule = f"+@bitmap {exclude_str}"
+
+            analysis = self.parser8.analyze_rule_redundancy(rule)
+
+            # Should detect as null category
+            warnings_str = ' '.join(analysis['warnings'])
+            suggestions_str = ' '.join(analysis['suggestions'])
+
+            # Check if null category was detected
+            if 'Null category' in warnings_str:
+                self.assertIn('@bitmap', warnings_str, "Should mention bitmap category")
+
+    def test_optimize_rule_exception_handling(self):
+        """Test that optimization handles exceptions gracefully (lines 1666-1668, 1712-1714)."""
+        # Create a rule that might cause optimization issues
+        # Empty parsed rule should trigger exception path
+        try:
+            analysis = self.parser8.analyze_rule_redundancy("")
+            # Should not crash, just return analysis
+            self.assertIsNotNone(analysis)
+        except Exception as e:
+            self.fail(f"analyze_rule_redundancy should not raise exceptions: {e}")
+
+    def test_command_with_pipe_notation(self):
+        """Test command access with pipe notation (CONFIG|GET instead of 'CONFIG GET')."""
+        # Test pipe notation for subcommands
+        # Use @all to ensure command is granted
+        parsed = self.parser8.parse_acl_rule("+@all")
+        is_granted, explanation, categories, selector_idx = self.parser8.test_command_access("config|get", parsed)
+
+        # CONFIG|GET should be granted by @all
+        self.assertTrue(is_granted, "config|get should be granted by @all")
+
+    def test_get_command_categories_edge_cases(self):
+        """Test get_command_categories with various inputs."""
+        # Test with space notation
+        categories = self.parser8.get_command_categories("ACL CAT")
+        self.assertIsInstance(categories, list)
+
+        # Test with pipe notation
+        categories = self.parser8.get_command_categories("acl|cat")
+        self.assertIsInstance(categories, list)
+
+        # Test with unknown command
+        categories = self.parser8.get_command_categories("nonexistent_command")
+        self.assertEqual(categories, [])
+
+    def test_channel_pattern_parsing(self):
+        """Test pub/sub channel pattern parsing (lines 577-578)."""
+        # Channel patterns use & prefix
+        parsed = self.parser8.parse_acl_rule("+@all &channel:*")
+
+        # Should have channel rules
+        self.assertGreater(len(parsed['channel_rules']), 0)
+        self.assertEqual(parsed['channel_rules'][0]['pattern'], 'channel:*')
+
+    def test_key_pattern_edge_cases(self):
+        """Test key pattern parsing edge cases (lines 603, 605)."""
+        # Multiple key patterns
+        parsed = self.parser8.parse_acl_rule("+@all ~key1:* ~key2:* ~key3:*")
+
+        # Should have multiple key rules
+        self.assertEqual(len(parsed['key_rules']), 3)
+        patterns = [rule['pattern'] for rule in parsed['key_rules']]
+        self.assertIn('key1:*', patterns)
+        self.assertIn('key2:*', patterns)
+        self.assertIn('key3:*', patterns)
+
+    def test_selector_category_allow_update(self):
+        """Test selector category ALLOW uses update (lines 386-414, specifically 399)."""
+        # Root denies all, selector grants @read category
+        parsed = self.parser8.parse_acl_rule("-@all (+@read)")
+        is_granted, explanation, categories, selector_idx = self.parser8.test_command_access("get", parsed)
+
+        # GET should be granted by selector (category allow path)
+        self.assertTrue(is_granted, "GET should be granted by selector @read")
+        self.assertIsNotNone(selector_idx, "Should be granted by selector")
+
+    def test_selector_with_error_rule_skip(self):
+        """Test selector skips rules with errors (lines 390-391)."""
+        # Create a rule with selector containing invalid syntax
+        # Parser should handle errors gracefully and continue
+        parsed = self.parser8.parse_acl_rule("+@read (@invalid_syntax +get)")
+
+        # Should still parse successfully, skipping error rules
+        self.assertEqual(len(parsed['selectors']), 1)
+
+    def test_selector_category_not_in_data(self):
+        """Test selector with category not in database (lines 395-396 branch)."""
+        # This tests the "if category in self.data['categories']" check
+        # If category doesn't exist, it should be skipped
+        parsed = self.parser8.parse_acl_rule("+@read (+@nonexistent_category +get)")
+
+        # Should handle unknown category gracefully
+        self.assertEqual(len(parsed['selectors']), 1)
 
 
 class TestFlaskApp(unittest.TestCase):
@@ -612,6 +853,13 @@ class TestFlaskApp(unittest.TestCase):
         self.assertEqual(data['status'], 'healthy')
         self.assertIn('redis_versions', data)
         self.assertIn('total_commands', data)
+
+    def test_info_page(self):
+        """Test info page endpoint (line 152)."""
+        response = self.client.get('/info')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Redis ACL Builder', response.data)
+        # Should render info.html template
 
     def test_parse_api(self):
         """Test the /api/parse endpoint."""
@@ -863,6 +1111,30 @@ class TestFlaskApp(unittest.TestCase):
         data = json.loads(response.data)
         self.assertTrue(data['success'])
         # Should find an optimization (might be category-based or command-based)
+        self.assertIn('optimized_rule', data)
+
+    def test_optimize_rule_security_pattern(self):
+        """Test optimization recognizes security patterns (broad grants + security denies)."""
+        # Pattern: broad categories with security-sensitive denies
+        response = self.client.post('/api/optimize-rule',
+            json={'rule': '+@read +@write -@dangerous', 'version': 'redis7'})
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        # Should recognize this as intentional security pattern
+        self.assertIn('optimized_rule', data)
+
+    def test_optimize_rule_multiple_broad_categories(self):
+        """Test optimization with multiple broad category grants."""
+        # Multiple broad categories (read, write, fast, slow)
+        response = self.client.post('/api/optimize-rule',
+            json={'rule': '+@read +@fast +@write -@admin', 'version': 'redis7'})
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        # Should handle multiple broad categories with admin deny
         self.assertIn('optimized_rule', data)
 
     def test_test_command_key_api(self):

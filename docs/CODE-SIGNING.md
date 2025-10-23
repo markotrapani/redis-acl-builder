@@ -1,6 +1,7 @@
 # Desktop App Code Signing & Notarization Guide
 
-Complete guide for setting up code signing and notarization for macOS and Windows Electron apps.
+Complete guide for code signing and notarization of the Electron desktop
+application.
 
 ## Table of Contents
 
@@ -34,11 +35,16 @@ Complete guide for setting up code signing and notarization for macOS and Window
 
 **User Experience:**
 
-- **Without notarization:** "cannot be verified" warning → right-click → Open → Open again
+- **Without notarization:** "cannot be verified" warning → right-click → Open →
+  Open Again
 - **With notarization:** "from identified developer" → single Open button
-- **With auto-update:** Seamless updates with no security warnings (code signing handles this)
 
-**Important:** Notarization improves first-install UX but is NOT required for auto-updates. Code signing alone is sufficient for auto-updates to work.
+**What you need:**
+
+1. **Apple Developer Program membership** ($99/year - REQUIRED for
+   distribution)
+2. **App-Specific Password** (for notarization - can create after enrollment)
+3. **macOS Machine** (code signing certificates only work on macOS)
 
 ---
 
@@ -77,9 +83,10 @@ Complete guide for setting up code signing and notarization for macOS and Window
 
 4. Click **Generate**
 
-5. **Important:** Download the `.p8` file immediately - you can only download it once!
+5. **Important:** Download the `.p8` file immediately - you can only download
+   it once!
    - File format: `AuthKey_<KeyID>.p8`
-   - Save to a secure location (e.g., `~/Downloads/certs/AuthKey_XXXXXXXXXX.p8`)
+   - Save to secure location (e.g., `~/Downloads/certs/AuthKey_XXXXXXXXXX.p8`)
 
 6. **Note down these values:**
    - **Issuer ID:** UUID format (e.g., `46162619-ec79-4d58-9203-c6ce3179a9f7`)
@@ -93,7 +100,8 @@ Complete guide for setting up code signing and notarization for macOS and Window
 
 ### 2.1 Export Developer ID Certificate
 
-If you haven't already set up code signing, see the main CI/CD documentation. You need:
+If you haven't already set up code signing, see the main CI/CD documentation.
+You need:
 
 - Developer ID Application certificate
 - Certificate exported as `.p12` file
@@ -156,7 +164,8 @@ exports.default = async function notarizing(context) {
   }
 
   // Only notarize if we have API key credentials
-  if (!process.env.APPLE_API_KEY || !process.env.APPLE_API_ISSUER || !process.env.APPLE_API_KEY_ID) {
+  if (!process.env.APPLE_API_KEY || !process.env.APPLE_API_ISSUER ||
+      !process.env.APPLE_API_KEY_ID) {
     console.log('Skipping notarization - API key credentials not found');
     return;
   }
@@ -167,7 +176,8 @@ exports.default = async function notarizing(context) {
   console.log(`Notarizing ${appPath}...`);
 
   // Decode base64-encoded API key and write to temp file
-  const apiKeyContent = Buffer.from(process.env.APPLE_API_KEY, 'base64').toString('utf8');
+  const apiKeyContent = Buffer.from(process.env.APPLE_API_KEY,
+    'base64').toString('utf8');
   console.log(`Decoded API key length: ${apiKeyContent.length} bytes`);
   console.log(`First 50 chars: ${apiKeyContent.substring(0, 50)}`);
 
@@ -229,7 +239,9 @@ Add `afterSign` hook and disable auto-notarization:
 }
 ```
 
-**Critical:** Set `"notarize": false` to prevent electron-builder from auto-notarizing. This ensures only your custom `afterSign` hook runs notarization.
+**Critical:** Set `"notarize": false` to prevent electron-builder from
+auto-notarizing. This ensures only your custom `afterSign` hook runs
+notarization.
 
 ### 3.4 Create/Verify Entitlements File
 
@@ -248,7 +260,9 @@ Create `electron/build/entitlements.mac.plist`:
 </plist>
 ```
 
-**Note:** For Electron 12+, only use `com.apple.security.cs.allow-jit`. The `allow-unsigned-executable-memory` entitlement is needed for older Electron versions or apps with Python backends.
+**Note:** For Electron 12+, only use `com.apple.security.cs.allow-jit`. The
+`allow-unsigned-executable-memory` entitlement is needed for older Electron
+versions or apps with Python backends.
 
 ---
 
@@ -265,15 +279,16 @@ base64 -i ~/Downloads/certs/AuthKey_XXXXXXXXXX.p8 | pbcopy
 
 ### 4.2 Add GitHub Secrets
 
-Go to your GitHub repo → Settings → Secrets and variables → Actions → New repository secret
+Go to your GitHub repo → Settings → Secrets and variables → Actions →
+New repository secret
 
 Add these three secrets:
 
 | Secret Name | Value | Example |
 |-------------|-------|---------|
-| `APPLE_API_KEY` | Base64-encoded `.p8` file content | `LS0tLS1CRUdJTi...` |
-| `APPLE_API_ISSUER` | Issuer ID from App Store Connect | `46162619-ec79-4d58-9203-c6ce3179a9f7` |
-| `APPLE_API_KEY_ID` | Key ID from App Store Connect | `36NW7V7TNJ` |
+| `APPLE_API_KEY` | Base64 `.p8` file content | `LS0tLS1CRUdJTi...` |
+| `APPLE_API_ISSUER` | Issuer ID from App Store | `46162619-ec79-...` |
+| `APPLE_API_KEY_ID` | Key ID from App Store | `36NW7V7TNJ` |
 
 **Do NOT add:**
 
@@ -370,8 +385,10 @@ After the build completes:
 3. **Open the DMG** (double-click, not right-click)
 
 4. **Expected behavior:**
-   - ✅ **With notarization:** "YourApp is from an identified developer. Are you sure you want to open it?" with "Open" button
-   - ❌ **Without notarization:** "YourApp cannot be verified" with only "Cancel" and "Move to Trash"
+   - ✅ **With notarization:** "YourApp is from an identified developer.
+     Are you sure you want to open it?" with "Open" button
+   - ❌ **Without notarization:** "YourApp cannot be verified" with only
+     "Cancel" and "Move to Trash"
 
 5. **Verify with stapler** (optional):
 
@@ -386,14 +403,16 @@ After the build completes:
 
 ### Build Fails in ~1 minute
 
-**Symptom:** Build fails quickly (1-2 minutes) instead of taking 10-15+ minutes
+**Symptom:** Build fails quickly (1-2 minutes) instead of taking 10-15+
+minutes
 
 **Common causes:**
 
 1. **Credential conflict error:**
 
    ```text
-   Cannot use password credentials, API key credentials and keychain credentials at once
+   Cannot use password credentials, API key credentials
+   and keychain credentials at once
    ```
 
    **Solutions:**
@@ -559,16 +578,20 @@ DEBUG=electron-notarize* npm run build:mac
 
 **User Experience:**
 
-- **Without signing:** "Windows protected your PC" warning → "More info" → "Run anyway"
-- **With signing:** "Do you want to allow this app from a verified publisher to make changes?" → cleaner experience
+- **Without signing:** "Windows protected your PC" warning → "More info" →
+  "Run anyway"
+- **With signing:** "Do you want to allow this app from a verified publisher
+  to make changes?" → cleaner experience
 
-**Note:** Unlike macOS notarization, Windows code signing is optional. The app will still work unsigned, but users will see security warnings.
+**Note:** Unlike macOS notarization, Windows code signing is optional. The app
+will still work unsigned, but users will see security warnings.
 
 ---
 
 ### Certificate Providers
 
-You need to purchase a code signing certificate from a trusted Certificate Authority (CA).
+You need to purchase a code signing certificate from a trusted Certificate
+Authority (CA).
 
 #### Recommended Providers
 
@@ -612,14 +635,15 @@ You need to purchase a code signing certificate from a trusted Certificate Autho
 
 #### Certificate Types
 
-- **Standard Code Signing:** File-based certificate (.pfx or .p12)
-- **EV Code Signing:** Hardware token-based (USB stick)
+- **Standard Code Signing:** File-based certificate (.pfx or .p12) format
+- **EV Code Signing:** Hardware token-based (USB stick) format
   - More expensive (~$300-600/year)
   - Provides "immediate" SmartScreen reputation
   - Required for kernel-mode drivers
   - Overkill for most Electron apps
 
-**Recommendation:** Standard code signing certificate is sufficient for most desktop applications.
+**Recommendation:** Standard code signing certificate is sufficient for most
+desktop applications.
 
 ---
 
@@ -659,7 +683,8 @@ cat certificate-base64.txt | pbcopy  # Copies to clipboard
 **On Windows (PowerShell):**
 
 ```powershell
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("your-certificate.pfx")) | Out-File certificate-base64.txt
+[Convert]::ToBase64String([IO.File]::ReadAllBytes( \
+  "your-certificate.pfx")) | Out-File certificate-base64.txt
 Get-Content certificate-base64.txt | Set-Clipboard
 ```
 
@@ -668,11 +693,11 @@ Get-Content certificate-base64.txt | Set-Clipboard
 Test on Windows machine before adding to CI/CD:
 
 ```powershell
-# Install certificate to test
-# (Right-click .pfx → Install PFX → Enter password)
+# Install certificate to test (Right-click .pfx → Install PFX → password)
 
 # Test signing manually
-signtool sign /f your-certificate.pfx /p YOUR_PASSWORD /tr http://timestamp.digicert.com /td sha256 /fd sha256 "YourApp.exe"
+signtool sign /f your-certificate.pfx /p YOUR_PASSWORD \
+  /tr http://timestamp.digicert.com /td sha256 /fd sha256 "YourApp.exe"
 
 # Verify signature
 signtool verify /pa "YourApp.exe"
@@ -684,14 +709,15 @@ signtool verify /pa "YourApp.exe"
 
 #### Step 1: Add GitHub Secrets
 
-Go to your GitHub repo → Settings → Secrets and variables → Actions → New repository secret
+Go to your GitHub repo → Settings → Secrets and variables → Actions →
+New repository secret
 
 Add these two secrets:
 
 | Secret Name | Value | Description |
 |-------------|-------|-------------|
-| `WIN_CSC_LINK` | Base64-encoded `.pfx` file content | Certificate file |
-| `WIN_CSC_KEY_PASSWORD` | Certificate password | Password for `.pfx` file |
+| `WIN_CSC_LINK` | Base64 `.pfx` content | Certificate file |
+| `WIN_CSC_KEY_PASSWORD` | Certificate password | `.pfx` password |
 
 #### Step 2: Update GitHub Actions Workflow
 
@@ -713,7 +739,8 @@ In `.github/workflows/build-desktop.yml`:
     fi
 ```
 
-**Note:** electron-builder automatically detects `CSC_LINK` and `CSC_KEY_PASSWORD` environment variables and signs Windows builds.
+**Note:** electron-builder automatically detects `CSC_LINK` and
+`CSC_KEY_PASSWORD` environment variables and signs Windows builds.
 
 #### Step 3: Verify Signing in CI/CD
 
@@ -729,9 +756,11 @@ After the build completes:
 
 #### "SmartScreen can't be reached" Warning
 
-**Problem:** Even with valid signature, Windows shows SmartScreen warning.
+**Problem:** Even with valid signature, Windows shows SmartScreen warning
+message.
 
-**Cause:** New certificates lack reputation. Windows SmartScreen builds reputation over time based on:
+**Cause:** New certificates lack reputation. Windows SmartScreen builds
+reputation over time based on:
 
 - Number of downloads
 - Number of users who run the app
@@ -760,7 +789,8 @@ After the build completes:
 - Verify certificate is from trusted CA (DigiCert, Sectigo, etc.)
 - Check certificate expiration date
 - Ensure electron-builder uses SHA-256 timestamps
-- Use timestamp server: `http://timestamp.digicert.com` or `http://timestamp.sectigo.com`
+- Use timestamp server: `http://timestamp.digicert.com` or
+  `http://timestamp.sectigo.com`
 
 #### Signature Verification Fails
 
@@ -781,11 +811,12 @@ certutil -verify your-certificate.pfx
 ### Best Practices for Windows Signing
 
 1. **Always use SHA-256** (not SHA-1, deprecated)
-2. **Include timestamp** - allows signature to remain valid after certificate expires
-3. **Use dual signatures** - SHA-1 for older Windows + SHA-256 for newer Windows (electron-builder does this automatically)
+2. **Include timestamp** - signature remains valid after certificate expires
+3. **Use dual signatures** - SHA-1 for older Windows + SHA-256 for newer
+   (electron-builder does this automatically)
 4. **Test on clean Windows VM** before releasing
 5. **Renew certificates before expiration** - allow 30-day buffer
-6. **Keep certificate password secure** - use GitHub secrets, never commit to code
+6. **Keep certificate password secure** - use GitHub secrets, never commit
 
 ---
 
@@ -797,7 +828,8 @@ certutil -verify your-certificate.pfx
 | Sectigo | ~$199/year | ~$349/year | Often discounted |
 | SSL.com | ~$179/year | ~$299/year | Often discounted |
 
-**Note:** Prices vary. Check provider websites for current pricing. Multi-year purchases often get discounts.
+**Note:** Prices vary. Check provider websites for current pricing.
+Multi-year purchases often get discounts.
 
 ---
 

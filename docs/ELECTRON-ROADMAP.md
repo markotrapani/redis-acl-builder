@@ -4,7 +4,8 @@
 
 **Branch:** `main`
 
-**Status:** ✅ Production Ready - Multi-Platform Builds, Auto-Update, macOS Notarization, Automated Maintenance, UX Refinements & Auto-Update Notifications
+**Status:** ✅ Production Ready - Multi-Platform Builds, Auto-Update, macOS
+Notarization, Automated Maintenance, UX Refinements & Auto-Update Notifications
 
 **Last Updated:** 2025-10-20
 
@@ -12,9 +13,12 @@
 
 ## 📋 Executive Summary
 
-Converting the Redis ACL Builder Flask web application to an Electron desktop application using a hybrid architecture that preserves 95%+ of existing code while adding native desktop capabilities.
+Converting the Redis ACL Builder Flask web application to an Electron desktop
+application using a hybrid architecture that preserves 95%+ of existing code
+while adding native desktop capabilities.
 
-**Key Strategy:** Wrap existing Python backend in Electron, keep frontend unchanged.
+**Key Strategy:** Wrap existing Python backend in Electron, keep frontend
+unchanged.
 
 **Estimated Timeline:** 8-13 days of focused development
 
@@ -556,17 +560,22 @@ autoUpdater.on('update-downloaded', () => {
 
 ### ✅ Included in v2.0.0 (Implemented)
 
-- ✅ **System Theme Sync** - Auto-detects OS dark/light mode preference (works on page load + responds to system changes)
-- ✅ **Offline Mode** - Works 100% offline (no server needed, bundled Python backend)
+- ✅ **System Theme Sync** - Auto-detects OS dark/light mode preference (works on
+  page load + responds to system changes)
+- ✅ **Offline Mode** - Works 100% offline (no server needed, bundled Python
+backend)
 - ✅ **Application Menu** - Native macOS/Windows menus with keyboard shortcuts
-- ✅ **Auto-Update System** - Silent background checks with user-friendly update dialogs
-- ✅ **Templates & Presets** - Quick Examples + user-created Saved Rules with localStorage persistence
+- ✅ **Auto-Update System** - Silent background checks with user-friendly update
+  dialogs
+- ✅ **Templates & Presets** - Quick Examples + user-created Saved Rules with
+  localStorage persistence
 
 ### 🎯 Planned Features (Priority Order)
 
 #### High Priority (User Requested)
 
-- **Custom Title Bar** - Replace default Electron chrome with custom design matching app theme
+- **Custom Title Bar** - Replace default Electron chrome with custom design
+  matching app theme
   - Estimate: 6-8 hours
   - Benefits: Professional appearance, better theme integration
 
@@ -580,7 +589,8 @@ autoUpdater.on('update-downloaded', () => {
 
 - **Rule Comparison Mode** - Side-by-side diff viewer for ACL rules
 - **Export to PDF** - Generate formatted documentation of ACL configurations
-- **Rule Validation History** - Track changes over time with localStorage persistence
+- **Rule Validation History** - Track changes over time with localStorage
+  persistence
 
 ### Distribution & Build Optimization (Future)
 
@@ -741,7 +751,8 @@ autoUpdater.on('update-downloaded', () => {
 - ✅ **Professional DMG Layout** (660×420, centered icons, arrow indicator)
 - ✅ **Size optimization analysis - COMPLETE!**
   - Analyzed: 86% Electron Framework, 13% Python backend, 1% assets
-  - Decision: 108-134MB is excellent for this app type - no aggressive optimization needed
+  - Decision: 108-134MB is excellent for this app type - no aggressive
+    optimization needed
 - ✅ **Auto-Update System - COMPLETE!** ✅
   - electron-updater integrated with GitHub releases
   - Update detection and download working
@@ -774,7 +785,8 @@ autoUpdater.on('update-downloaded', () => {
   - README scannability improvements with collapsible sections
   - All version references updated to v2.2.10-beta
   - "What's New" section highlighting current release features
-  - Parent repo README updated with multi-platform desktop installation instructions
+  - Parent repo README updated with multi-platform desktop installation
+    instructions
 
 **v2.3.0-beta Accomplishments (2025-10-19):**
 
@@ -785,8 +797,10 @@ autoUpdater.on('update-downloaded', () => {
   - Styled with CSS/JS minification system
   - Helps Docker users discover new releases
 - ✅ **Critical GitHub Actions YAML Syntax Bug Fix - COMPLETE!** ✅
-  - **ROOT CAUSE**: Emoji (🔄) on line 298 of build-desktop.yml causing YAML parse error
-  - **Impact**: Invalid YAML made workflow trigger on ALL pushes instead of only tags
+  - **ROOT CAUSE**: Emoji (🔄) on line 298 of build-desktop.yml causing YAML
+    parse error
+  - **Impact**: Invalid YAML made workflow trigger on ALL pushes instead of only
+    tags
   - **Fix**: Removed emoji from workflow file
   - **Result**: Desktop builds now ONLY trigger on version tags as intended
   - **Prevention**: Added "ABSOLUTELY NO EMOJIS IN CODE" rule to documentation
@@ -801,7 +815,8 @@ autoUpdater.on('update-downloaded', () => {
   - Documented proper `git -C redis-acl-builder tag` usage
 - ✅ **Outdated Documentation Cleanup - COMPLETE!** ✅
   - Removed AUTO-UPDATE-TEST-PLAN.md (400 lines of premature, outdated docs)
-  - Reduced confusion by removing references to old versions (v2.1.0-beta, v2.1.1-beta)
+  - Reduced confusion by removing references to old versions (v2.1.0-beta,
+    v2.1.1-beta)
 - ✅ **CSS/JS Build System Documentation - COMPLETE!** ✅
   - Added critical reminder to ALWAYS rebuild minified CSS/JS after changes
   - Documented symptoms of forgetting to rebuild (styling doesn't appear)
@@ -810,24 +825,33 @@ autoUpdater.on('update-downloaded', () => {
 **v2.3.1-beta Accomplishments (2025-10-20):**
 
 - ✅ **Auto-Update UX Refinement - COMPLETE!** ✅
-  - Fixed annoying "You have the latest version!" dialog that appeared on EVERY app startup
-  - Implemented `isManualUpdateCheck` flag to distinguish automatic vs manual update checks
+  - Fixed annoying "You have the latest version!" dialog that appeared on EVERY
+    app startup
+  - Implemented `isManualUpdateCheck` flag to distinguish automatic vs manual
+    update checks
   - **New Behavior:**
     - Startup: Silent background check, only shows dialog if update IS available
-    - Manual "Check for Updates...": Shows dialog for all outcomes (available/not available/error)
+    - Manual "Check for Updates...": Shows dialog for all outcomes
+      (available/not available/error)
     - Logs still show all check results in console for debugging
   - Matches standard desktop app auto-update UX patterns (Slack, VS Code, etc.)
 - ✅ **Parent Repository Tag Cleanup (Additional) - COMPLETE!** ✅
-  - Deleted 46 additional obsolete version tags from parent repo (v1.15.2-beta → v1.27.0-beta)
-  - Parent repo now completely clean of version tags (tags only exist in submodules)
+  - Deleted 46 additional obsolete version tags from parent repo (v1.15.2-beta →
+    v1.27.0-beta)
+  - Parent repo now completely clean of version tags (tags only exist in
+    submodules)
   - Total cleanup: 51 incorrect tags removed from parent repository
 
 **v2.3.2-beta Accomplishments (2025-10-20):**
 
-- ✅ **UI Improvements - Version Badge & Update Button Repositioning - COMPLETE!** ✅
-  - Moved version badge from bottom-left to top-left corner for better visibility
-  - Repositioned "Check for Updates" button to right of version badge with optimal spacing
-  - Fine-tuned heights and padding for visual consistency (version: 6px, button: 8px)
+- ✅ **UI Improvements - Version Badge & Update Button Repositioning -
+  COMPLETE!** ✅
+  - Moved version badge from bottom-left to top-left corner for better
+    visibility
+  - Repositioned "Check for Updates" button to right of version badge with
+    optimal spacing
+  - Fine-tuned heights and padding for visual consistency (version: 6px, button:
+    8px)
   - Version badge now first element (left: 10px), button follows (left: 110px)
 - ✅ **Update Modal Cleanup - COMPLETE!** ✅
   - Removed redundant "Alternative: Pull and restart manually" section
@@ -842,18 +866,23 @@ autoUpdater.on('update-downloaded', () => {
 **v2.3.4-beta Accomplishments (2025-10-20):**
 
 - ✅ **Automated Release Notes Generation - COMPLETE!** ✅
-  - Replaced fragile README-based release notes with smart conventional commit parser
-  - Auto-categorizes commits by type: feat → ✨ New Features, fix → 🐛 Bug Fixes, docs → 📚 Documentation, chore → 🔧 Maintenance
+  - Replaced fragile README-based release notes with smart conventional commit
+    parser
+  - Auto-categorizes commits by type: feat → ✨ New Features, fix → 🐛 Bug Fixes,
+  docs → 📚 Documentation, chore → 🔧 Maintenance
   - Generates formatted "What's New" sections automatically from commit messages
   - No manual README maintenance required for future releases!
   - Successfully tested with v2.3.4-beta release - works perfectly ✨
 - ✅ **Version Synchronization Fix - COMPLETE!** ✅
-  - Documented complete 6-file version update checklist (was saying "2 files" incorrectly)
-  - Files: backend/helpers/**init**.py, electron/package.json, CLAUDE.md, README.md, electron/README.md, docs/ELECTRON-ROADMAP.md
+  - Documented complete 6-file version update checklist (was saying "2 files"
+    incorrectly)
+  - Files: backend/helpers/**init**.py, electron/package.json, CLAUDE.md,
+  README.md, electron/README.md, docs/ELECTRON-ROADMAP.md
   - Fixed version drift across all documentation files
   - Prevents future version mismatch issues
 - ✅ **Documentation Consolidation - COMPLETE!** ✅
-  - Updated all version references across README.md, CLAUDE.md, ELECTRON-ROADMAP.md
+  - Updated all version references across README.md, CLAUDE.md,
+    ELECTRON-ROADMAP.md
   - Added v2.3.2-beta and v2.3.1-beta sections to README "What's New"
   - Ensures documentation parity between Docker and Desktop app versions
 
@@ -888,7 +917,8 @@ autoUpdater.on('update-downloaded', () => {
   - Fixed automated release notes to filter out "Bump version" commits
   - Release notes now show actual user-facing changes in summary
   - Version bump commits still appear in Full Changelog but not in "What's New"
-  - Prevents misleading release summaries (e.g., v2.4.1-beta now shows "Auto-update notifications" instead of just "Bump version")
+  - Prevents misleading release summaries (e.g., v2.4.1-beta now shows
+  "Auto-update notifications" instead of just "Bump version")
   - Better user experience when reading release notes on GitHub
 
 ### Development Strategy - Distribution First (Phase 3)
@@ -937,9 +967,12 @@ autoUpdater.on('update-downloaded', () => {
    - Update GitHub Actions workflow
    - **Deliverable:** No Windows SmartScreen warnings
    - **Note:** Can skip for beta testing, add later for production
-   - See [docs/CODE-SIGNING.md](CODE-SIGNING.md#windows-code-signing) for details
+   - See [docs/CODE-SIGNING.md](CODE-SIGNING.md#windows-code-signing) for
+     details
 
-**After Phase 3 Complete (95%+ with macOS notarization):** Return to Phase 2 for native desktop features (custom title bar, file dialogs, system tray, etc.) OR proceed with Windows code signing for full production release
+**After Phase 3 Complete (95%+ with macOS notarization):** Return to Phase 2 for
+native desktop features (custom title bar, file dialogs, system tray, etc.) OR
+proceed with Windows code signing for full production release
 
 ### Deferred to Later (Phase 2)
 
@@ -1001,11 +1034,13 @@ autoUpdater.on('update-downloaded', () => {
 **Tier 1: High Impact, Low Effort** (Quick wins - implement first)
 
 - [ ] **Debounce Input Updates** ⚡ HIGH IMPACT
-  - **Problem:** Every keystroke triggers full ACL generation + syntax highlighting
+  - **Problem:** Every keystroke triggers full ACL generation + syntax
+    highlighting
   - **Solution:** Add 300ms debounce delay on text inputs
   - **Impact:** 70-80% reduction in unnecessary processing
   - **Time estimate:** 30 minutes
-  - **Implementation:** Update event listeners in JavaScript to use debounce wrapper
+  - **Implementation:** Update event listeners in JavaScript to use debounce
+    wrapper
 
 - [ ] **Cache API Responses** ⚡ HIGH IMPACT
   - **Problem:** Same API calls made repeatedly (especially during testing)
@@ -1070,7 +1105,8 @@ autoUpdater.on('update-downloaded', () => {
   - **Impact:** Better user experience with state persistence
   - **Time estimate:** 4-5 hours
 
-**Tier 3 Total Time:** ~15-19 hours | **Combined Impact:** 3-5x overall performance improvement
+- **Real-time Sync**: Update menu when rule changes in
+  main window
 
 ---
 
@@ -1078,7 +1114,8 @@ autoUpdater.on('update-downloaded', () => {
 
 **Recommended Implementation Order:**
 
-1. Start with **Tier 1** (3.5 hours) - Maximum impact for minimal time investment
+1. Start with **Tier 1** (3.5 hours) - Maximum impact for minimal time
+   investment
 2. Evaluate results and user feedback
 3. Proceed to **Tier 2** (9-10 hours) if needed for better UX
 4. Consider **Tier 3** (15-19 hours) for production-ready polish
@@ -1094,13 +1131,18 @@ autoUpdater.on('update-downloaded', () => {
 
 ### Decision Points
 
-- [x] **Python Bundling Method:** PyInstaller vs ship venv? → **APPROVED: PyInstaller**
-- [x] **Custom Title Bar:** Implement immediately or wait? → **APPROVED: Phase 2**
-- [x] **Auto-Update:** Implement in initial release or later? → **APPROVED: Phase 3**
-- [x] **Code Signing:** Required for beta testing? → **APPROVED: Phase 4 (production only)**
+- [x] **Python Bundling Method:** PyInstaller vs ship venv? → **APPROVED:
+  PyInstaller**
+- [x] **Custom Title Bar:** Implement immediately or wait? → **APPROVED: Phase
+  2**
+- [x] **Auto-Update:** Implement in initial release or later? → **APPROVED:
+  Phase 3**
+- [x] **Code Signing:** Required for beta testing? → **APPROVED: Phase 4
+  (production only)**
 - [x] **System Tray Integration:** Include in v2.0.0? → **APPROVED: Phase 2**
 - [x] **Multi-Window Support:** Include in v2.0.0? → **APPROVED: Phase 2**
-- [x] **Global Keyboard Shortcuts:** Include in v2.0.0? → **REJECTED: Future enhancement**
+- [x] **Global Keyboard Shortcuts:** Include in v2.0.0? → **REJECTED: Future
+  enhancement**
 
 ---
 
@@ -1108,10 +1150,13 @@ autoUpdater.on('update-downloaded', () => {
 
 ### Electron Documentation
 
-- [Electron Quick Start](https://www.electronjs.org/docs/latest/tutorial/quick-start)
-- [Security Best Practices](https://www.electronjs.org/docs/latest/tutorial/security)
+- [Electron Quick
+  Start](https://www.electronjs.org/docs/latest/tutorial/quick-start)
+- [Security Best
+  Practices](https://www.electronjs.org/docs/latest/tutorial/security)
 - [IPC Communication](https://www.electronjs.org/docs/latest/tutorial/ipc)
-- [Application Distribution](https://www.electronjs.org/docs/latest/tutorial/application-distribution)
+- [Application
+      Distribution](https://www.electronjs.org/docs/latest/tutorial/application-distribution)
 
 ### electron-builder
 
@@ -1124,12 +1169,16 @@ autoUpdater.on('update-downloaded', () => {
 
 - [Documentation](https://pyinstaller.org/en/stable/)
 - [Spec Files](https://pyinstaller.org/en/stable/spec-files.html)
-- [Hidden Imports](https://pyinstaller.org/en/stable/when-things-go-wrong.html#listing-hidden-imports)
+- [Hidden
+      Imports](https://pyinstaller.org/en/stable/when-things-go-wrong.html#listing-hidden-imports)
 
 ### Hybrid Electron+Python Examples
 
 - [electron-python-example](https://github.com/fyears/electron-python-example)
-- [python-electron-tutorial](https://github.com/Abdur-rahmaanJ/python-electron-tutorial)
+
+-
+
+[python-electron-tutorial](https://github.com/Abdur-rahmaanJ/python-electron-tutorial)
 
 ---
 
@@ -1137,9 +1186,11 @@ autoUpdater.on('update-downloaded', () => {
 
 ### v2.0.0 Release
 
-- **No Redis Connection:** Cannot connect to live Redis instances (planned for v2.1.0)
+- **No Redis Connection:** Cannot connect to live Redis instances (planned for
+  v2.1.0)
 - **No Rule Templates:** Pre-built templates planned for v2.2.0
-- **No Keyboard Shortcuts:** Global shortcuts not implemented (available in v2.1+ if requested)
+- **No Keyboard Shortcuts:** Global shortcuts not implemented (available in
+  v2.1+ if requested)
 
 ### Platform Limitations
 

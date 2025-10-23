@@ -10,7 +10,9 @@
 
 ## Overview
 
-Redis ACL Builder provides a stable, production-ready REST API for parsing, validating, and testing Redis ACL rules. This document outlines our versioning strategy, stability guarantees, and deprecation policy.
+Redis ACL Builder provides a stable, production-ready REST API for parsing,
+validating, and testing Redis ACL rules. This document outlines our versioning
+strategy, stability guarantees, and deprecation policy.
 
 ---
 
@@ -156,31 +158,31 @@ All endpoints under `/api/*` are **stable and production-ready**:
 
 | Endpoint | Method | Status | Description |
 |----------|--------|--------|-------------|
-| `/api/parse` | POST | ✅ Stable | Parse ACL rules and return command permissions |
-| `/api/validate-rule` | POST | ✅ Stable | Validate ACL syntax without full parsing |
-| `/api/optimize-rule` | POST | ✅ Stable | Suggest optimized ACL rule equivalents |
-| `/api/analyze-redundancy` | POST | ✅ Stable | Detect redundant patterns in ACL rules |
+| `/api/parse` | POST | ✅ Stable | Parse ACL & return permissions |
+| `/api/validate-rule` | POST | ✅ Stable | Validate ACL syntax only |
+| `/api/optimize-rule` | POST | ✅ Stable | Suggest optimized ACL rules |
+| `/api/analyze-redundancy` | POST | ✅ Stable | Detect redundant ACL patterns |
 
 ### Command Testing
 
 | Endpoint | Method | Status | Description |
 |----------|--------|--------|-------------|
-| `/api/test-command` | POST | ✅ Stable | Test if command is allowed by ACL rule |
-| `/api/test-command-key` | POST | ✅ Stable | Test command + key pattern access |
+| `/api/test-command` | POST | ✅ Stable | Test if command allowed |
+| `/api/test-command-key` | POST | ✅ Stable | Test command + key access |
 
 ### Command Information
 
 | Endpoint | Method | Status | Description |
 |----------|--------|--------|-------------|
-| `/api/command-info` | POST | ✅ Stable | Get categories for specific command |
-| `/api/categories` | GET | ✅ Stable | List all available categories for Redis version |
-| `/api/search-commands` | POST | ✅ Stable | Fuzzy search for commands by pattern |
+| `/api/command-info` | POST | ✅ Stable | Get command categories |
+| `/api/categories` | GET | ✅ Stable | List Redis categories |
+| `/api/search-commands` | POST | ✅ Stable | Search commands by pattern |
 
 ### Health & Monitoring
 
 | Endpoint | Method | Status | Description |
 |----------|--------|--------|-------------|
-| `/health` | GET | ✅ Stable | Health check endpoint (version-agnostic) |
+| `/health` | GET | ✅ Stable | Health check (version-agnostic) |
 
 ---
 
@@ -288,7 +290,8 @@ curl -H "X-API-Version: 2" POST /api/parse
 }
 ```
 
-✅ **Impact**: Existing integrations continue to work. New integrations can use the hint.
+✅ **Impact**: Existing integrations continue to work. New integrations can
+use the hint.
 
 ---
 
@@ -387,7 +390,8 @@ These are **examples only** of what might warrant v2:
 - **Multi-ACL support**: Parse multiple ACL rules simultaneously
 - **Redis 9 support**: If Redis 9 has breaking ACL changes
 
-**Note**: v2 is not currently planned. v1 is stable and sufficient for all current use cases.
+**Note**: v2 is not currently planned. v1 is stable and sufficient for all
+current use cases.
 
 ---
 
@@ -395,7 +399,8 @@ These are **examples only** of what might warrant v2:
 
 ### How do I know which version I'm using?
 
-All responses include `"version": "redis8"` field. For API version, check the URL prefix:
+All responses include `"version": "redis8"` field. For API version, check the
+URL prefix:
 
 - `/api/*` → v1 (current stable)
 - `/api/v2/*` → v2 (when released)
@@ -408,11 +413,13 @@ All responses include `"version": "redis8"` field. For API version, check the UR
 
 ### Can I request a new endpoint?
 
-Yes! Feature requests are welcome. New endpoints are **non-breaking** and can be added to v1.
+Yes! Feature requests are welcome. New endpoints are **non-breaking** and can
+be added to v1.
 
 ### How long will v1 be supported?
 
-**Minimum 12 months** after v2 is released (if v2 ever happens). Currently, v1 is the only version and indefinitely supported.
+**Minimum 12 months** after v2 is released (if v2 ever happens). Currently,
+v1 is the only version and indefinitely supported.
 
 ---
 
@@ -420,8 +427,8 @@ Yes! Feature requests are welcome. New endpoints are **non-breaking** and can be
 
 | Version | Release Date | Status | Notes |
 |---------|--------------|--------|-------|
-| v1.0 | 2025-10-08 | ✅ **Current Stable** | Initial GA release, all 10 endpoints stable |
-| v0.x | 2024-2025 | 🏁 Beta | Pre-release beta versions (unstable) |
+| v1.0 | 2025-10-08 | ✅ **Current** | Initial GA, 10 endpoints |
+| v0.x | 2024-2025 | 🏁 Beta | Pre-release versions |
 
 ---
 

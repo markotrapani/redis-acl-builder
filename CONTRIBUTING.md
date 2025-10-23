@@ -1,6 +1,7 @@
 # Contributing to Redis ACL Builder
 
-Thank you for your interest in contributing to Redis ACL Builder! We welcome contributions from the community.
+Thank you for your interest in contributing to Redis ACL Builder! We welcome
+contributions from the community.
 
 ## How to Contribute
 
@@ -117,7 +118,7 @@ npx playwright install
 
 ## Project Structure
 
-```
+```text
 redis-acl-builder/
 ├── backend/          # Python Flask backend
 │   ├── app.py       # Main application
@@ -148,6 +149,7 @@ Releases are automated via GitHub Actions:
 2. Commit changes with conventional commit format
 
 3. Create and push a version tag:
+
    ```bash
    git tag v2.x.x-beta
    git push origin v2.x.x-beta
@@ -164,4 +166,5 @@ Feel free to open an issue for any questions about contributing!
 
 ## License
 
-By contributing to Redis ACL Builder, you agree that your contributions will be licensed under the MIT License.
+By contributing to Redis ACL Builder, you agree that your contributions will be
+licensed under the MIT License.

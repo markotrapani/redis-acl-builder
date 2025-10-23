@@ -10,12 +10,15 @@
 ## Executive Summary
 
 Our test suite has **critical gaps** that affect all three deployment modes:
+
 - **Local Web App** (Flask dev server on port 5001)
 - **Docker Web App** (Production deployment on port 7380)
 - **Electron Desktop App** (Native desktop with bundled backend on port 7381)
 
 **Key Finding:** We're missing **28 critical tests** including:
-- **10 selector tests** (Redis 7.0+ feature - claimed support but 0% test coverage!)
+
+- **10 selector tests** (Redis 7.0+ feature - claimed support but 0% test
+  coverage!)
 - **7 API endpoint tests** (affects all deployment modes)
 - **8 advanced parser tests** (impact summary, workflows, validation)
 - **3 core ACL tests** (basic functionality)
@@ -27,7 +30,8 @@ Our test suite has **critical gaps** that affect all three deployment modes:
 ### Code Sharing Architecture
 
 All three deployment modes share the **SAME backend code**:
-```
+
+```text
 backend/
 ├── app.py                    # Flask API (used by ALL modes)
 ├── helpers/
@@ -38,7 +42,8 @@ backend/
     └── api_models.py        # Pydantic request/response (used by ALL modes)
 ```
 
-**This means:** Backend test coverage directly affects **all deployment modes equally**.
+**This means:** Backend test coverage directly affects **all deployment modes
+equally**.
 
 ### Frontend Differences
 
@@ -53,7 +58,8 @@ Each mode uses the **SAME frontend code** but with different contexts:
 | Auto-Update | ❌ No | ❌ No | ✅ Yes (v2.2.6+) |
 | Update Check API | ❌ Hidden | ✅ Visible | ❌ N/A |
 
-**This means:** Frontend test coverage (E2E tests) affects **all deployment modes**.
+**This means:** Frontend test coverage (E2E tests) affects **all deployment
+modes**.
 
 ### Current Test Coverage by Layer
 
@@ -78,12 +84,14 @@ Each mode uses the **SAME frontend code** but with different contexts:
 
 **What are selectors?**
 Redis 7.0+ allows multiple ACL rule sets in a single user definition:
-```
+
+```text
 user alice on +@all ~* (+@read ~cache:*) (+@write ~logs:*)
               ↑ root rule  ↑ selector 1    ↑ selector 2
 ```
 
-This enables **fine-grained key access control** - different permissions for different key patterns.
+This enables **fine-grained key access control** - different permissions for
+different key patterns.
 
 **Missing Tests (10 total):**
 
@@ -107,17 +115,20 @@ This enables **fine-grained key access control** - different permissions for dif
    - Expected fix time: 20 min
    - Coverage impact: +1.5%
 
-5. **test_selector_key_isolation_selector** - Selector command accesses selector key (✅)
+5. **test_selector_key_isolation_selector** - Selector command accesses selector
+   key (✅)
    - Difficulty: Medium
    - Expected fix time: 20 min
    - Coverage impact: +1.5%
 
-6. **test_selector_key_isolation_mismatch_root_cmd_selector_key** - Root command CANNOT access selector key (❌)
+6. **test_selector_key_isolation_mismatch_root_cmd_selector_key** - Root command
+   CANNOT access selector key (❌)
    - Difficulty: Medium
    - Expected fix time: 20 min
    - Coverage impact: +1.5%
 
-7. **test_selector_key_isolation_mismatch_selector_cmd_root_key** - Selector command CANNOT access root key (❌)
+7. **test_selector_key_isolation_mismatch_selector_cmd_root_key** - Selector
+   command CANNOT access root key (❌)
    - Difficulty: Medium
    - Expected fix time: 20 min
    - Coverage impact: +1.5%
@@ -127,7 +138,8 @@ This enables **fine-grained key access control** - different permissions for dif
    - Expected fix time: 15 min
    - Coverage impact: +1%
 
-9. **test_selector_validation_balanced_parens** - Syntax validation (unmatched parens)
+9. **test_selector_validation_balanced_parens** - Syntax validation (unmatched
+   parens)
    - Difficulty: Easy
    - Expected fix time: 10 min
    - Coverage impact: +0.5%
@@ -147,12 +159,14 @@ This enables **fine-grained key access control** - different permissions for dif
     - Expected fix time: 10 min
     - Coverage impact: +0.5%
 
-13. **test_selector_with_advanced_key_permissions** - %R~, %W~, %RW~ in selectors
+13. **test_selector_with_advanced_key_permissions** - %R~, %W~, %RW~ in
+selectors
     - Difficulty: Medium
     - Expected fix time: 20 min
     - Coverage impact: +1%
 
 **Total Estimated Impact:**
+
 - **Time:** ~3.5 hours
 - **Coverage Gain:** ~13-15%
 - **New Tests:** 10
@@ -211,6 +225,7 @@ This enables **fine-grained key access control** - different permissions for dif
    - Coverage impact: +2%
 
 **Total Estimated Impact:**
+
 - **Time:** ~2 hours
 - **Coverage Gain:** ~8-9%
 - **New Tests:** 7
@@ -239,7 +254,7 @@ This enables **fine-grained key access control** - different permissions for dif
    - Coverage impact: +1%
 
 3. **test_search_commands** - Command search with wildcards
-   - Tests: Pattern matching (h*, *get, etc.)
+   - Tests: Pattern matching (h*,*get, etc.)
    - Difficulty: Easy
    - Expected fix time: 15 min
    - Coverage impact: +1%
@@ -275,6 +290,7 @@ This enables **fine-grained key access control** - different permissions for dif
    - Coverage impact: +1%
 
 **Total Estimated Impact:**
+
 - **Time:** ~2.5 hours
 - **Coverage Gain:** ~10%
 - **New Tests:** 8
@@ -289,6 +305,7 @@ This enables **fine-grained key access control** - different permissions for dif
 **Risk Level:** 🟢 LOW (feature is hidden by default)
 
 **Context:**
+
 - Used by `/api/check-updates` endpoint
 - Checks Docker Hub for newer image versions
 - Button is `style="display: none;"` by default
@@ -307,12 +324,14 @@ This enables **fine-grained key access control** - different permissions for dif
 8. **test_check_updates_version_comparison** - Proper semver logic
 
 **Challenges:**
+
 - Requires **mocking** `requests` library
 - Requires **mocking** Docker Hub API responses
 - Needs mock for `packaging.version.parse()`
 - Low ROI since feature is hidden and Docker-specific
 
 **Total Estimated Impact:**
+
 - **Time:** ~3 hours (mocking complexity)
 - **Coverage Gain:** ~4%
 - **New Tests:** 8-10
@@ -327,6 +346,7 @@ This enables **fine-grained key access control** - different permissions for dif
 **Risk Level:** ✅ EXCELLENT
 
 **What's tested:**
+
 - Page load and layout (5 tests)
 - ACL rule editing and validation (5 tests)
 - Interactive builder click-to-grant/revoke (4 tests)
@@ -348,13 +368,16 @@ This enables **fine-grained key access control** - different permissions for dif
 3. **test_version_toggle_design_consistency** - Toggle styling
    - Priority: 🟢 LOW (visual regression)
 
-**Recommendation:** Keep current E2E tests as-is. These missing tests are low-value HTML assertions that are better validated through visual testing or user acceptance testing.
+**Recommendation:** Keep current E2E tests as-is. These missing tests are
+low-value HTML assertions that are better validated through visual testing or
+user acceptance testing.
 
 ---
 
 ## Recommended Test Restoration Priority
 
 ### Phase 1: Critical Backend Coverage (Priority 1)
+
 **Goal:** Fix claimed features with 0% coverage
 **Target Coverage:** 54% → 70%
 **Estimated Time:** 3.5 hours
@@ -367,6 +390,7 @@ This enables **fine-grained key access control** - different permissions for dif
 ---
 
 ### Phase 2: API Endpoint Coverage (Priority 2)
+
 **Goal:** Ensure all user-facing APIs are tested
 **Target Coverage:** 70% → 78%
 **Estimated Time:** 2 hours
@@ -380,6 +404,7 @@ This enables **fine-grained key access control** - different permissions for dif
 ---
 
 ### Phase 3: Advanced Parser Coverage (Priority 3)
+
 **Goal:** Comprehensive parser functionality coverage
 **Target Coverage:** 78% → 88%
 **Estimated Time:** 2.5 hours
@@ -393,11 +418,13 @@ This enables **fine-grained key access control** - different permissions for dif
 ---
 
 ### Phase 4: Version Checker (Optional - Priority 4)
+
 **Goal:** Docker-specific feature coverage
 **Target Coverage:** 88% → 92%
 **Estimated Time:** 3 hours
 
 **Recommendation:** DEFER to future release
+
 - Low user impact (hidden feature, Docker-only)
 - High implementation cost (extensive mocking required)
 - Better ROI focusing on user-facing features
@@ -422,11 +449,13 @@ This enables **fine-grained key access control** - different permissions for dif
 ## Test Count Summary
 
 ### Original (v1.25.0-beta)
+
 - **Total:** 90 test methods
 - test_app.py: 48 tests
 - Others: 42 tests
 
 ### Current (v2.5.0-beta)
+
 - **Total:** 86 test methods
 - test_app.py: 20 tests (❌ missing 28)
 - test_acl_parser_pytest.py: 27 tests (✅ +10 OSS-specific)
@@ -434,6 +463,7 @@ This enables **fine-grained key access control** - different permissions for dif
 - Others: 11 tests
 
 ### Recommended (v2.5.0 Complete)
+
 - **Total:** 111 test methods (+25 from current)
 - test_app.py: 45 tests (restored selectors + APIs + advanced)
 - Others: 66 tests (current)
@@ -453,6 +483,7 @@ This enables **fine-grained key access control** - different permissions for dif
 | **Frontend E2E** | ✅ | ✅ | ✅ | 100% ✅ |
 
 **Legend:**
+
 - ✅ Tested and working
 - ❌ Not tested (critical gap)
 - N/A Not applicable to deployment mode
@@ -462,24 +493,27 @@ This enables **fine-grained key access control** - different permissions for dif
 ## Recommendations for v2.5.0-beta
 
 ### MUST DO (Blocks Release)
+
 1. ✅ **Restore selector tests** (Priority 1)
    - This is a **claimed feature** with 0% test coverage
    - Affects ALL deployment modes
    - High risk if not tested
 
 ### SHOULD DO (Quality Assurance)
-2. ✅ **Restore API endpoint tests** (Priority 2)
+
+1. ✅ **Restore API endpoint tests** (Priority 2)
    - User-facing functionality
    - Affects ALL deployment modes
    - Professional quality standard
 
-3. ✅ **Restore advanced parser tests** (Priority 3)
+1. ✅ **Restore advanced parser tests** (Priority 3)
    - Core functionality coverage
    - Affects ALL deployment modes
    - Reaches 88% coverage target
 
 ### COULD DEFER (Future Release)
-4. ⏭️ **Version checker tests** (Priority 4)
+
+1. ⏭️ **Version checker tests** (Priority 4)
    - Docker-only, hidden feature
    - Significant mocking overhead
    - Can ship without (current 0% coverage)
@@ -506,7 +540,11 @@ This enables **fine-grained key access control** - different permissions for dif
 
 1. **Scope:** Do we proceed with Phases 1-3 for v2.5.0-beta? (Recommended: YES)
 2. **Version Checker:** Defer to v2.6.0? (Recommended: YES - low ROI)
-3. **Timeline:** Acceptable to spend ~8 hours on test restoration? (One full work day)
-4. **Quality Bar:** Is 88% coverage acceptable for v2.5.0 release? (Industry standard: 80-90%)
+3. **Timeline:** Acceptable to spend ~8 hours on test restoration? (One full
+   work day)
+4. **Quality Bar:** Is 88% coverage acceptable for v2.5.0 release? (Industry
+   standard: 80-90%)
 
-**My Recommendation:** Proceed with Phases 1-3, skip Phase 4 for now. This gives us production-quality coverage (88%) with comprehensive testing of all user-facing features across all deployment modes.
+**My Recommendation:** Proceed with Phases 1-3, skip Phase 4 for now. This gives
+us production-quality coverage (88%) with comprehensive testing of all
+user-facing features across all deployment modes.
