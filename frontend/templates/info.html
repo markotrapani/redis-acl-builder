@@ -259,6 +259,34 @@
                         <button id="themeToggle" class="theme-toggle" data-emoji="☀️" title="Switch to light mode" aria-label="Toggle theme"></button>
                     </div>
                 </div>
+                <script>
+                    // Update theme toggle button immediately to prevent emoji flash
+                    (function() {
+                        const themeToggle = document.getElementById('themeToggle');
+                        // Get theme from localStorage or system preference
+                        let theme = 'light';
+                        try {
+                            const savedTheme = localStorage.getItem('theme');
+                            const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                            theme = savedTheme || (systemDark ? 'dark' : 'light');
+                            document.documentElement.setAttribute('data-theme', theme);
+                        } catch (e) {
+                            console.warn('Theme initialization failed:', e);
+                        }
+
+                        if (themeToggle) {
+                            if (theme === 'dark') {
+                                // In dark mode, show sun (what we'll switch TO)
+                                themeToggle.setAttribute('data-emoji', '☀️');
+                                themeToggle.title = 'Switch to light mode';
+                            } else {
+                                // In light mode, show moon (what we'll switch TO)
+                                themeToggle.setAttribute('data-emoji', '🌙');
+                                themeToggle.title = 'Switch to dark mode';
+                            }
+                        }
+                    })();
+                </script>
             </header>
             
             <!-- What is Redis ACL Builder? -->

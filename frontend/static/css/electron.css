@@ -188,3 +188,148 @@ body.electron-app .version-indicator {
 body.electron-app .check-updates-btn {
     display: none !important;
 }
+
+/* ============================================
+   Custom Title Bar Styles (macOS)
+   ============================================ */
+
+/* Add top padding for traffic light buttons area on macOS - index page only */
+body.electron-app:has(.panel-container) header {
+    padding-top: 24px;  /* Compact space for traffic lights */
+    position: relative;
+}
+
+/* Position buttons floating in upper-right corner, overlapping separator - for both pages */
+body.electron-app:has(.panel-container) .header-content .header-nav,
+body.electron-app:has(.info-page) .header-content .header-nav {
+    position: absolute;
+    top: -16px;  /* Pull up into title bar area with negative positioning */
+    right: -4px;  /* Negative margin to push into corner */
+    margin: 0;
+    z-index: 200;  /* Above draggable title bar (z-index: 100) */
+}
+
+/* Make header content non-draggable (buttons, inputs, etc.) - index page only */
+body.electron-app:has(.panel-container) header > * {
+    -webkit-app-region: no-drag;
+    position: relative;
+    z-index: 2;
+    pointer-events: none;  /* Allow mouse events to pass through to title bar */
+}
+
+/* Re-enable pointer events for interactive elements within header */
+body.electron-app:has(.panel-container) header button,
+body.electron-app:has(.panel-container) header input,
+body.electron-app:has(.panel-container) header select,
+body.electron-app:has(.panel-container) header a {
+    pointer-events: auto;
+}
+
+/* Ensure all interactive elements in header are clickable */
+body.electron-app header button,
+body.electron-app header input,
+body.electron-app header select,
+body.electron-app header a,
+body.electron-app header label {
+    -webkit-app-region: no-drag;
+}
+
+/* Add subtle visual separator below title bar with small gap - index page only */
+[data-theme="dark"] body.electron-app:has(.panel-container) header::after {
+    content: '';
+    position: absolute;
+    top: 30px;  /* 24px title bar + 6px gap */
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);  /* More visible in dark mode */
+    z-index: 0;
+}
+
+[data-theme="light"] body.electron-app:has(.panel-container) header::after {
+    content: '';
+    position: absolute;
+    top: 30px;  /* 24px title bar + 6px gap */
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.15);  /* Darker for better visibility in light mode */
+    z-index: 0;
+}
+
+/* ============================================
+   Info Page Specific Title Bar
+   ============================================ */
+
+/* Add top padding to info page container for title bar */
+body.electron-app:has(.info-page) .info-page {
+    padding-top: 34px;  /* Space for title bar above back button */
+}
+
+/* Create a full-width draggable title bar at the very top of info page */
+body.electron-app:has(.info-page) .info-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 60px;  /* Leave space for theme toggle button on the right */
+    height: 34px;  /* Add a couple more pixels to match index page spacing */
+    -webkit-app-region: drag;
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+/* The grab cursor can't be applied to pseudo-elements directly.
+   The cursor will need to be handled by Electron's title bar interaction.
+   Users will be able to drag from the top 24px area even without a cursor change. */
+
+/* Add separator line below info page title bar */
+body.electron-app:has(.info-page) .info-page::after {
+    content: '';
+    position: fixed;
+    top: 40px;  /* 34px title bar + 6px gap */
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    z-index: 1;  /* Below content so it doesn't overlay the back button */
+}
+
+[data-theme="dark"] body.electron-app:has(.info-page) .info-page::after {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] body.electron-app:has(.info-page) .info-page::after {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+/* Override header styling for info page - remove previous title bar styles from header */
+body.electron-app:has(.info-page) header {
+    padding-top: 0 !important;
+}
+
+body.electron-app:has(.info-page) header::before,
+body.electron-app:has(.info-page) header::after {
+    display: none !important;
+}
+
+/* Keep theme button aligned with info page header box */
+body.electron-app:has(.info-page) .header-content .header-nav {
+    position: absolute !important;
+    top: -40px !important;  /* Position above the header box */
+    right: -12px !important;  /* Align with right edge of header box */
+    z-index: 1001 !important;  /* Above title bar */
+    -webkit-app-region: no-drag !important;  /* Make button clickable */
+    pointer-events: auto !important;  /* Ensure button receives click events */
+}
+
+/* Ensure the button itself is also non-draggable and clickable */
+body.electron-app:has(.info-page) .header-content .header-nav button {
+    -webkit-app-region: no-drag !important;
+    pointer-events: auto !important;
+}
+
+/* Ensure back button is above the separator line */
+body.electron-app:has(.info-page) .back-link {
+    position: relative;
+    z-index: 10;
+}

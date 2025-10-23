@@ -44,6 +44,9 @@
                 // Set theme immediately to prevent flash
                 document.documentElement.setAttribute('data-theme', theme);
 
+                // Store theme globally for immediate button emoji update
+                window.__INITIAL_THEME__ = theme;
+
                 // Set saved dimensions to prevent resize flash
                 if (savedDimensions) {
                     try {
@@ -277,6 +280,24 @@
                     </button>
                 </nav>
             </div>
+            <script>
+                // Update theme toggle button immediately to prevent emoji flash
+                (function() {
+                    const themeToggle = document.getElementById('themeToggle');
+                    const theme = window.__INITIAL_THEME__ || 'light';
+                    if (themeToggle) {
+                        if (theme === 'dark') {
+                            // In dark mode, show sun (what we'll switch TO)
+                            themeToggle.setAttribute('data-emoji', '☀️');
+                            themeToggle.title = 'Switch to light mode';
+                        } else {
+                            // In light mode, show moon (what we'll switch TO)
+                            themeToggle.setAttribute('data-emoji', '🌙');
+                            themeToggle.title = 'Switch to dark mode';
+                        }
+                    }
+                })();
+            </script>
         </header>
         
         <!-- Three Column Layout -->

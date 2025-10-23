@@ -423,6 +423,9 @@ function createWindow() {
             allowRunningInsecureContent: false
         },
         title: 'Redis ACL Builder',
+        // Custom title bar for native macOS look
+        titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+        trafficLightPosition: process.platform === 'darwin' ? { x: 15, y: 15 } : undefined,
         // Set app icon (platform-specific formats)
         icon: path.join(__dirname, 'build',
             process.platform === 'darwin' ? 'icon.icns' :   // macOS
