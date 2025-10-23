@@ -465,6 +465,61 @@ class TestACLParser(unittest.TestCase):
         self.assertEqual(selector['key_rules'][0]['permission'], 'read-only')
         self.assertEqual(selector['key_rules'][0]['pattern'], 'analytics:*')
 
+    def test_pubsub_channel_patterns(self):
+        """Test parsing of pub/sub channel patterns (&channel:*)."""
+        parsed = self.parser8.parse_acl_rule("+@pubsub &channel:* &logs:*")
+
+        # Should have 2 channel patterns
+        self.assertEqual(len(parsed['channel_rules']), 2)
+        self.assertEqual(parsed['channel_rules'][0]['pattern'], 'channel:*')
+        self.assertEqual(parsed['channel_rules'][1]['pattern'], 'logs:*')
+        self.assertEqual(parsed['channel_rules'][0]['type'], 'allow')
+
+    def test_pubsub_channel_with_commands(self):
+        """Test mixing pub/sub patterns with command permissions."""
+        parsed = self.parser8.parse_acl_rule("+@pubsub &notifications:* +publish")
+
+        # Should have channel pattern and specific command
+        self.assertEqual(len(parsed['channel_rules']), 1)
+        self.assertEqual(parsed['channel_rules'][0]['pattern'], 'notifications:*')
+        self.assertGreater(len(parsed['command_rules']), 0)
+
+    def test_advanced_key_permissions_read_only(self):
+        """Test %R~ (read-only) key permission parsing."""
+        parsed = self.parser8.parse_acl_rule("+@read %R~user:*")
+
+        self.assertEqual(len(parsed['key_rules']), 1)
+        self.assertEqual(parsed['key_rules'][0]['permission'], 'read-only')
+        self.assertEqual(parsed['key_rules'][0]['pattern'], 'user:*')
+        self.assertEqual(parsed['key_rules'][0]['type'], 'allow')
+
+    def test_advanced_key_permissions_write_only(self):
+        """Test %W~ (write-only) key permission parsing."""
+        parsed = self.parser8.parse_acl_rule("+@write %W~logs:*")
+
+        self.assertEqual(len(parsed['key_rules']), 1)
+        self.assertEqual(parsed['key_rules'][0]['permission'], 'write-only')
+        self.assertEqual(parsed['key_rules'][0]['pattern'], 'logs:*')
+
+    def test_advanced_key_permissions_read_write(self):
+        """Test %RW~ (read-write) key permission parsing."""
+        parsed = self.parser8.parse_acl_rule("+@all %RW~data:*")
+
+        self.assertEqual(len(parsed['key_rules']), 1)
+        self.assertEqual(parsed['key_rules'][0]['permission'], 'read-write')
+        self.assertEqual(parsed['key_rules'][0]['pattern'], 'data:*')
+
+    def test_mixed_key_permission_types(self):
+        """Test mixing different key permission types in one rule."""
+        parsed = self.parser8.parse_acl_rule("+@all ~cache:* %R~stats:* %W~logs:*")
+
+        # Should have 3 key patterns with different permissions
+        self.assertEqual(len(parsed['key_rules']), 3)
+        permissions = [rule['permission'] for rule in parsed['key_rules']]
+        self.assertIn('read-write', permissions)  # Default ~
+        self.assertIn('read-only', permissions)   # %R~
+        self.assertIn('write-only', permissions)  # %W~
+
 
 class TestFlaskApp(unittest.TestCase):
     """Test Flask application endpoints."""
@@ -730,6 +785,108 @@ class TestFlaskApp(unittest.TestCase):
         self.assertFalse(data['is_allowed'])  # Overall denied
         self.assertTrue(data['command_granted'])  # Command is OK
         self.assertFalse(data['key_access_granted'])  # But key is not
+
+
+class TestErrorHandling(unittest.TestCase):
+    """Test error handling across API endpoints."""
+
+    def setUp(self):
+        """Set up test client."""
+        app.config['TESTING'] = True
+        self.client = app.test_client()
+
+    def test_parse_api_invalid_category_error(self):
+        """Test parse API with invalid category (ValueError path)."""
+        response = self.client.post('/api/parse',
+            json={'rule': '+@invalid_category_xyz', 'version': 'redis7'})
+
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertTrue(data['error'])
+        self.assertIn('message', data)
+        self.assertIn('invalid_category_xyz', data['message'].lower())
+
+    def test_optimize_rule_invalid_syntax_graceful_handling(self):
+        """Test optimize-rule API gracefully handles invalid syntax."""
+        response = self.client.post('/api/optimize-rule',
+            json={'rule': '+@read ((nested', 'version': 'redis7'})
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        # Should have explanation about the error
+        self.assertIn('explanation', data)
+        self.assertIn('Unbalanced parentheses', data['explanation'])
+        # Should have 0 savings since optimization failed
+        self.assertEqual(data['savings'], 0)
+
+    def test_test_command_key_invalid_command_graceful_handling(self):
+        """Test test-command-key API gracefully handles invalid command."""
+        response = self.client.post('/api/test-command-key',
+            json={
+                'rule': '+@read ~*',
+                'command': 'INVALID_COMMAND_XYZ',
+                'key': 'test:key',
+                'version': 'redis7'
+            })
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        # Should indicate command is not allowed
+        self.assertFalse(data['is_allowed'])
+        self.assertFalse(data['command_granted'])
+        # Should have helpful error message
+        self.assertIn('reason', data)
+        self.assertIn('not found', data['reason'])
+
+    def test_validate_rule_malformed_selector_validation_errors(self):
+        """Test validate-rule API returns validation errors for malformed selectors."""
+        response = self.client.post('/api/validate-rule',
+            json={'rule': '+@read ((unbalanced', 'version': 'redis7'})
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        # Should indicate rule is invalid
+        self.assertFalse(data['is_valid'])
+        # Should have specific error messages
+        self.assertIn('errors', data)
+        self.assertGreater(len(data['errors']), 0)
+        # Check for specific validation errors
+        errors_str = ' '.join(data['errors'])
+        self.assertIn('parenthes', errors_str.lower())
+
+    def test_command_info_unknown_command(self):
+        """Test command-info API with unknown command (returns exists=False)."""
+        response = self.client.post('/api/command-info',
+            json={'command': 'TOTALLY_FAKE_COMMAND', 'version': 'redis7'})
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        self.assertFalse(data['exists'])  # Command doesn't exist
+        self.assertEqual(data['categories'], [])
+
+    def test_search_commands_with_zero_limit(self):
+        """Test search-commands with invalid limit=0 (validation error)."""
+        response = self.client.post('/api/search-commands',
+            json={'pattern': 'get', 'version': 'redis7', 'limit': 0})
+
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertTrue(data['error'])
+        self.assertIn('message', data)
+
+    def test_search_commands_with_negative_limit(self):
+        """Test search-commands with invalid limit=-1 (validation error)."""
+        response = self.client.post('/api/search-commands',
+            json={'pattern': 'get', 'version': 'redis7', 'limit': -1})
+
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertTrue(data['error'])
+        self.assertIn('message', data)
 
 
 class TestUserInterface(unittest.TestCase):
