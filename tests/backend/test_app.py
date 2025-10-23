@@ -3,7 +3,7 @@
 Redis ACL Builder - Comprehensive Test Suite
 ALL tests from v1.25.0-beta restored and updated for:
 - Monorepo structure (backend/ imports)
-- Redis OSS command sets (379 for Redis 7, 446 for Redis 8)
+- Redis OSS command sets (379 for Redis 7, 496 for Redis 8)
 - Current ACL parser API (parse + evaluate pattern)
 - Current Flask API (Pydantic models)
 """
@@ -75,15 +75,15 @@ class TestDataLoader(unittest.TestCase):
         self.assertTrue(new_categories.issubset(redis8_categories))
 
     def test_redis8_command_count(self):
-        """Test Redis 8 OSS has correct number of commands (446 total)."""
+        """Test Redis 8 OSS has correct number of commands (496 total)."""
         redis8_commands = set()
         for category, cmds in self.redis_data['redis8']['categories'].items():
             for cmd in cmds:
                 redis8_commands.add(cmd.lower())
 
-        # Redis 8 OSS has 446 unique commands
-        self.assertEqual(len(redis8_commands), 446,
-                        f"Expected 446 Redis 8 OSS commands, got {len(redis8_commands)}")
+        # Redis 8 OSS has 496 unique commands
+        self.assertEqual(len(redis8_commands), 496,
+                        f"Expected 496 Redis 8 OSS commands, got {len(redis8_commands)}")
 
     def test_redis7_oss_cluster_commands(self):
         """Test Redis 7 OSS includes cluster commands (not in Enterprise)."""

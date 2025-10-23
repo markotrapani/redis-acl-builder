@@ -210,7 +210,7 @@ class TestIntegrationWorkflows(unittest.TestCase):
         self.assertTrue(redis7_data['success'])
         self.assertTrue(redis8_data['success'])
 
-        # Redis 8 should have more commands (446 vs 311)
+        # Redis 8 should have more commands (496 vs 311)
         self.assertGreater(
             len(redis8_data['granted_commands']),
             len(redis7_data['granted_commands'])

@@ -1307,6 +1307,31 @@ vulnerabilities. All HIGH/MEDIUM/CRITICAL issues resolved.
    - Enhanced testing interface showing multi-key validation results
    - Examples: `COPY source_key dest_key`, `RENAME old_key new_key`
 
+3. **Redis OSS vs Enterprise Command Set Toggle** (Future v2.x): UI toggle to
+   switch between OSS and Enterprise command sets
+   - Toggle switch to select Redis OSS or Redis Enterprise deployment type
+   - Enterprise mode excludes commands blocked in managed environments:
+     - Clustering: CLUSTER *, CLUSTER FAILOVER, CLUSTER MEET, etc.
+     - Replication: REPLICAOF, SLAVEOF, SYNC, PSYNC, BGSAVE, BGREWRITEAOF
+     - Server control: SHUTDOWN, SAVE, DEBUG, MODULE LOAD/UNLOAD
+     - Client management: CLIENT PAUSE/UNPAUSE
+   - Visual indicators showing which commands are unavailable in Enterprise
+   - Help users plan ACL rules for their specific Redis deployment
+   - Accurate @admin, @dangerous, @slow category filtering for each mode
+   - Examples: Redis Cloud, Azure Cache for Redis, AWS ElastiCache restrictions
+
+4. **Comprehensive Test Suite Enhancements** (Completed v2.x):
+   - ✅ Integration tests: 10 tests covering full API workflows
+   - ✅ Property-based testing: 12 tests with hypothesis generating 1000+ test cases
+   - ✅ Redis 8 data accuracy: Fixed 47 missing @admin commands, 45
+     missing @dangerous commands
+   - ✅ Accurate command counts: 379 (Redis 7 OSS), 496 (Redis 8 OSS
+     with modules)
+   - ✅ Total test suite: 255 tests (227 backend + 28 E2E), 100% pass rate
+   - ✅ Performance benchmarks: 11 tests validating sub-millisecond
+     performance
+   - ✅ Mutation testing: Infrastructure ready, 2,665 mutants identified
+
 **Completed Features**:
 
 - ✅ **Electron App Test Result Popup Fix** (v2.0.3-alpha): Fixed critical

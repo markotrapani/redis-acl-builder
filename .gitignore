@@ -197,3 +197,8 @@ playwright-test-results.txt
 ../ldap-bind-tester/
 ../gtlogs-link-generator/
 .debug-build
+
+# Mutation testing
+mutants/
+.mutmut-cache
+mutation_test_output.txt

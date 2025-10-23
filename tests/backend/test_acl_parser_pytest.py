@@ -1,6 +1,6 @@
 """
 Enhanced pytest tests for ACL Parser with fixtures and parametrization
-Updated for Redis OSS command sets (Redis 7: 379 commands, Redis 8: 446 commands)
+Updated for Redis OSS command sets (Redis 7: 379 commands, Redis 8: 496 commands)
 """
 
 import pytest
@@ -68,12 +68,12 @@ class TestACLParserBasics:
         assert len(granted) == 379
 
     def test_all_category_redis8(self, parser_redis8):
-        """Test @all special category for Redis 8 OSS (446 commands)"""
+        """Test @all special category for Redis 8 OSS (496 commands)"""
         parsed = parser_redis8.parse_acl_rule("+@all")
         granted, _ = parser_redis8.evaluate_command_permissions(parsed)
 
-        # Redis 8 OSS has 446 commands
-        assert len(granted) == 446
+        # Redis 8 OSS has 496 commands
+        assert len(granted) == 496
 
     def test_dangerous_category_exclusion(self, parser_redis7):
         """Test excluding dangerous category"""
@@ -158,9 +158,9 @@ class TestRedisVersionDifferences:
         parsed8 = parser_redis8.parse_acl_rule("+@all")
         granted8, _ = parser_redis8.evaluate_command_permissions(parsed8)
 
-        # Redis 8 should have 67 more commands than Redis 7 (446 - 379 = 67)
+        # Redis 8 should have 117 more commands than Redis 7 (496 - 379 = 117)
         assert len(granted8) > len(granted7)
-        assert len(granted8) - len(granted7) == 67
+        assert len(granted8) - len(granted7) == 117
 
     def test_redis8_has_additional_categories(self, redis_data):
         """Test Redis 8 has additional module categories"""
