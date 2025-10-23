@@ -1,13 +1,13 @@
 # Redis ACL Builder - Electron Desktop App Conversion Roadmap
 
-**Version:** v2.4.4-beta
+**Version:** v2.4.7-beta
 
 **Branch:** `main`
 
 **Status:** ✅ Production Ready - Multi-Platform Builds, Auto-Update, macOS
 Notarization, Automated Maintenance, UX Refinements & Auto-Update Notifications
 
-**Last Updated:** 2025-10-20
+**Last Updated:** 2025-10-22
 
 ---
 
@@ -111,9 +111,12 @@ unchanged.
 - ✅ All Python helper modules (data_loader.py, acl_parser.py)
 - ✅ Flask API endpoints (12 total)
 - ✅ Pydantic validation
-- ✅ Redis command database
+- ✅ Redis command database (496 commands for Redis 8, 379 for Redis 7)
 - ✅ ACL parsing engine
-- ✅ Test suite (127 passing tests)
+- ✅ Test suite (255 passing tests: 227 backend + 28 E2E)
+  - Unit tests, integration tests, property-based tests, performance
+    benchmarks
+  - 100% pass rate, sub-millisecond performance validated
 
 ---
 

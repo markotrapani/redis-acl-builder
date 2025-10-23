@@ -1,6 +1,6 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.4.6-beta
+**Current Version:** v2.4.7-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
@@ -315,7 +315,33 @@ ELECTRON-ROADMAP.md
 - "Hide to tray" functionality
 - Estimate: 4-5 hours
 
-### Future Features (v2.6.x+)
+### Completed Features (v2.6.x)
+
+#### Comprehensive Test Suite Enhancements
+
+- ✅ **Integration Tests** (10 new tests) - Full API workflow testing
+  - Tests complete user journeys across multiple endpoints
+  - Validates API contracts and error handling
+  - Catches integration bugs that unit tests miss
+- ✅ **Property-Based Tests** (12 new tests) - Hypothesis library testing
+  - Generates 1000+ randomized test cases
+  - Validates critical invariants across edge cases
+  - Tests API stability, optimization correctness, fuzz resistance
+- ✅ **Performance Benchmarks** (11 new tests) - Sub-millisecond validation
+  - All critical operations complete in sub-millisecond time
+  - Proves production-ready performance
+  - Sample results: Simple parsing 0.002ms, optimization 0.069ms
+- ✅ **Redis 8 Data Accuracy** - Fixed 92 missing commands
+  - @admin category: 22 → 69 commands (+47)
+  - @dangerous category: 34 → 79 commands (+45)
+  - Data sourced from actual Redis 8 Docker ACL CAT output
+- ✅ **Mutation Testing Infrastructure** - Quality validation ready
+  - 2,665 mutants identified across backend
+  - Infrastructure ready for future CI/CD integration
+- ✅ **Total Test Suite** - 255 tests (227 backend + 28 E2E), 100% pass
+  rate
+
+### Future Features (v2.7.x+)
 
 #### Advanced ACL Tools
 
@@ -395,6 +421,168 @@ Rule: `+@read +@write -@dangerous ~*`
 Perfect visual consistency - users now see correct styling (hollow yellow ⚠ for
 partial grants) and logical ordering (full grants before partial grants) that
 matches the actual permissions.
+
+---
+
+## 🚀 GA Release Plan (v3.0.0)
+
+**Target:** Q2 2025 (after sufficient beta testing)
+
+### Pre-GA Checklist
+
+**Quality Assurance:**
+
+- [ ] 6+ months of beta testing with user feedback
+- [ ] All critical bugs resolved
+- [ ] Test suite at 90%+ coverage
+- [ ] Performance benchmarks meet SLA (all operations <10ms)
+- [ ] Security audit complete (no HIGH/CRITICAL vulnerabilities)
+
+**Documentation:**
+
+- [ ] Complete user guide (Getting Started, Features, Troubleshooting)
+- [ ] API documentation for all endpoints
+- [ ] Comprehensive FAQ
+- [ ] Video tutorials (installation, basic usage, advanced features)
+- [ ] Migration guide from beta to GA
+
+**Platform Stability:**
+
+- [ ] Windows code signing implemented (remove SmartScreen warnings)
+- [ ] All platforms tested on latest OS versions
+- [ ] Auto-update tested on all platforms (macOS, Windows, Linux)
+- [ ] Docker image optimized and stable
+
+**Community:**
+
+- [ ] GitHub Discussions enabled
+- [ ] Issue templates created (bug report, feature request)
+- [ ] Contributing guide finalized
+- [ ] Code of Conduct published
+- [ ] Contributor License Agreement (if needed)
+
+**Release Infrastructure:**
+
+- [ ] Semantic versioning strategy documented
+- [ ] Release notes automation working
+- [ ] Automated changelog generation
+- [ ] Deprecation policy documented
+- [ ] Support policy documented (bug fixes, security updates)
+
+### GA Release Day Tasks
+
+1. Update version to v3.0.0 across all files
+2. Create comprehensive release notes
+3. Publish GitHub release with all platform binaries
+4. Update Docker Hub with :latest and :stable tags
+5. Announce on social media / community channels
+6. Monitor for critical issues (48-hour watch period)
+
+### Post-GA Support
+
+- **Bug Fixes:** Critical bugs within 24 hours, high priority within 7 days
+- **Security Updates:** Critical patches within 24 hours
+- **Minor Releases:** Every 4-6 weeks (v3.1.0, v3.2.0, etc.)
+- **Major Releases:** Annually (v4.0.0 in 2026)
+
+---
+
+## 📚 Documentation Strategy
+
+### Current Documentation Status
+
+- ✅ **README.md** - User-facing documentation and quick start
+- ✅ **CLAUDE.md** - Project instructions for AI assistance
+- ✅ **ROADMAP.md** - Product roadmap and version history (this file)
+- ✅ **ELECTRON-ROADMAP.md** - Electron technical implementation details
+- ✅ **CODE-SIGNING.md** - Code signing and notarization setup
+- ✅ **CICD-WORKFLOWS.md** - CI/CD pipeline documentation
+- ✅ **CONTRIBUTING.md** - Contribution guidelines
+
+### Planned Documentation (Pre-GA)
+
+**User Documentation:**
+
+- [ ] **User Guide** - Comprehensive feature documentation
+  - Installation and setup
+  - Basic ACL rule creation
+  - Advanced features (selectors, key patterns, optimization)
+  - Testing commands and keyspace patterns
+  - Troubleshooting common issues
+  - Estimate: 8-10 hours
+- [ ] **Video Tutorials** - Visual learning resources
+  - Installation walkthrough (5 min)
+  - Creating your first ACL rule (10 min)
+  - Advanced features deep dive (15 min)
+  - Estimate: 12-15 hours (scripting, recording, editing)
+- [ ] **FAQ** - Common questions and answers
+  - Installation issues
+  - ACL syntax questions
+  - Feature requests
+  - Estimate: 3-4 hours
+
+**Developer Documentation:**
+
+- [ ] **API Documentation** - Backend API reference
+  - All 12 endpoints documented
+  - Request/response schemas (Pydantic models)
+  - Error codes and handling
+  - Examples for each endpoint
+  - Estimate: 6-8 hours
+- [ ] **Architecture Guide** - System design documentation
+  - Frontend module structure
+  - Backend architecture
+  - Data flow diagrams
+  - Database schema (if applicable)
+  - Estimate: 5-6 hours
+- [ ] **Testing Guide** - How to run and write tests
+  - Unit test examples
+  - Integration test patterns
+  - E2E test setup
+  - Property-based testing guide
+  - Estimate: 4-5 hours
+
+### GitHub Wiki Plan
+
+**Proposed Wiki Structure:**
+
+1. **Home** - Welcome and navigation
+2. **Installation**
+   - Desktop App (macOS, Windows, Linux)
+   - Docker Deployment
+   - Local Python Setup
+3. **User Guide**
+   - Getting Started
+   - ACL Rule Syntax
+   - Interactive Builder
+   - Command Testing
+   - Keyspace Testing
+   - Optimization Engine
+4. **Advanced Topics**
+   - Rule Selectors
+   - Key Permission Patterns
+   - Redis 7 vs Redis 8
+   - Performance Optimization
+5. **API Reference**
+   - Endpoint Documentation
+   - Request/Response Schemas
+   - Error Handling
+6. **Development**
+   - Contributing Guide
+   - Local Development Setup
+   - Testing Guide
+   - Build Process
+7. **Troubleshooting**
+   - Common Issues
+   - Platform-Specific Problems
+   - Known Limitations
+8. **FAQ**
+   - General Questions
+   - Technical Questions
+   - Feature Requests
+
+**Wiki Timeline:** Create after GA release (v3.0.0) to avoid duplicate
+maintenance
 
 ---
 
