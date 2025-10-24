@@ -379,19 +379,13 @@ ELECTRON-ROADMAP.md
 
 #### High Priority
 
-1. **Info Page Scroll Behavior** - Fix content scrolling under title bar
-   - Content should scroll under (hidden by) the fixed title bar
-   - Currently content scrolls behind title bar without proper clipping
-   - Need to add proper z-index layering and overflow handling
-   - Estimate: 30 minutes - 1 hour
-
-2. **System Tray Integration** - Optional minimize to tray
+1. **System Tray Integration** - Optional minimize to tray
    - App icon in macOS menu bar / Windows system tray
    - Quick access menu
    - "Hide to tray" functionality
    - Estimate: 4-5 hours
 
-3. **Update App Icon** (Design Improvement)
+2. **Update App Icon** (Design Improvement)
    - **Current:** Using default/placeholder icon
    - **Need:** Create new custom icon that better represents the application
    - **Formats Needed:**
@@ -403,7 +397,7 @@ ELECTRON-ROADMAP.md
    - **Implementation:** Update electron/build/icon.* files and rebuild
      installers
 
-4. **Category Tooltip Text Wrapping** - Improve command name readability in
+3. **Category Tooltip Text Wrapping** - Improve command name readability in
    tooltips
    - **Current:** Command names wrap when tooltip is compressed against window
      edge
@@ -467,6 +461,23 @@ ELECTRON-ROADMAP.md
 - Clearer separation between data structure permissions and operational
   permissions
 - Estimate: 2-3 hours
+
+#### Smart Keyspace Pattern Optimization
+
+**Keyspace Pattern Redundancy Detection** - Detect and simplify redundant key
+patterns
+
+- Analyze keyspace access patterns (`~pattern`) for redundancy
+- Detect when one pattern makes another redundant (e.g., `~*` makes `~abc:*`
+  redundant)
+- Show optimization suggestions similar to command/category optimization
+- Examples:
+  - `~* ~abc:*` → `~*` (saves 1 term)
+  - `~user:* ~user:123:*` → `~user:*` (saves 1 term)
+  - `~* ~cache:*` → `~*` (universal pattern covers all)
+- Backend pattern analysis with glob matching logic
+- Frontend integration with existing optimization UI
+- Estimate: 4-6 hours
 
 #### Advanced ACL Tools
 
