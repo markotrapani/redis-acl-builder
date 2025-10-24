@@ -427,6 +427,18 @@ ELECTRON-ROADMAP.md
 
 ### Future Features (v2.7.x+)
 
+#### Category Display Improvements
+
+**Category Organization by Type** - Split categories into logical sections
+
+- Separate categories into two vertical sections in both Blocked/Granted panels:
+  1. **Data Type Categories**: set, hash, string, sortedset, list, stream, etc.
+  2. **ACL Categories**: fast, slow, admin, dangerous, read, write, etc.
+- Better visual organization and easier category discovery
+- Clearer separation between data structure permissions and operational
+  permissions
+- Estimate: 2-3 hours
+
 #### Advanced ACL Tools
 
 - Rule comparison mode (side-by-side diff viewer)
