@@ -479,6 +479,17 @@ patterns
 - Frontend integration with existing optimization UI
 - Estimate: 4-6 hours
 
+#### Docker Update Modal UX Improvements
+
+**Copy Button Positioning** - Improve upgrade command copy experience
+
+- Move copy button out of code block and position it above the Docker CLI
+  command
+- Better UX for copying upgrade commands
+- Prevents button from being part of the command text
+- Consistent with modern CLI documentation patterns
+- Estimate: 15-30 minutes
+
 #### Advanced ACL Tools
 
 - Rule comparison mode (side-by-side diff viewer)
