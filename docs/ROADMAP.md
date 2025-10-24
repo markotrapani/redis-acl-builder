@@ -359,20 +359,23 @@ ELECTRON-ROADMAP.md
 - ✅ **Templates & Presets** - Quick Examples + Saved Rules with localStorage
   (v1.x)
 
-### Next Up: Desktop App Polish (v2.5.x)
+### Next Up: Desktop App Polish (v2.7.x)
 
 #### High Priority
 
-1. **Test Windows and Linux Auto-Update** (Untested - Complex Setup Required)
-   - ⚠️ **macOS only tested** - v2.2.5-beta → v2.2.6-beta verified working
-   - ❓ Windows auto-update untested (uses .exe for updates)
-   - ❓ Linux auto-update untested (uses AppImage)
-   - **Requires:** Windows VM (Parallels/VMware) + Linux VM setup
-   - **Complexity:** Significant time investment for VM setup and testing
-   - **Alternative:** Wait for user feedback from Windows/Linux beta testers
-   - May require fixes to ensure cross-platform auto-update works
+1. **Info Page Scroll Behavior** - Fix content scrolling under title bar
+   - Content should scroll under (hidden by) the fixed title bar
+   - Currently content scrolls behind title bar without proper clipping
+   - Need to add proper z-index layering and overflow handling
+   - Estimate: 30 minutes - 1 hour
 
-2. **Update App Icon** (Design Improvement)
+2. **System Tray Integration** - Optional minimize to tray
+   - App icon in macOS menu bar / Windows system tray
+   - Quick access menu
+   - "Hide to tray" functionality
+   - Estimate: 4-5 hours
+
+3. **Update App Icon** (Design Improvement)
    - **Current:** Using default/placeholder icon
    - **Need:** Create new custom icon that better represents the application
    - **Formats Needed:**
@@ -386,19 +389,15 @@ ELECTRON-ROADMAP.md
 
 #### Medium Priority (Nice to Have)
 
-**Info Page Scroll Behavior** - Fix content scrolling under title bar
+**Test Windows and Linux Auto-Update** (Untested - Complex Setup Required)
 
-- Content should scroll under (hidden by) the fixed title bar
-- Currently content scrolls behind title bar without proper clipping
-- Need to add proper z-index layering and overflow handling
-- Estimate: 30 minutes - 1 hour
-
-**System Tray Integration** - Optional minimize to tray
-
-- App icon in macOS menu bar / Windows system tray
-- Quick access menu
-- "Hide to tray" functionality
-- Estimate: 4-5 hours
+- ⚠️ **macOS only tested** - v2.2.5-beta → v2.2.6-beta verified working
+- ❓ Windows auto-update untested (uses .exe for updates)
+- ❓ Linux auto-update untested (uses AppImage)
+- **Requires:** Windows VM (Parallels/VMware) + Linux VM setup
+- **Complexity:** Significant time investment for VM setup and testing
+- **Alternative:** Wait for user feedback from Windows/Linux beta testers
+- May require fixes to ensure cross-platform auto-update works
 
 ### Completed Features (v2.6.x)
 
