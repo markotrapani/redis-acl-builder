@@ -277,6 +277,11 @@ body.electron-app:has(.info-page) {
 body.electron-app:has(.info-page) .info-page {
     overflow-y: auto;
     height: 100vh;
+    /* Add padding at top to push content below title bar */
+    padding-top: 46px;  /* 34px title bar + 6px gap + 6px extra spacing */
+    /* Use clip-path to hide any content that scrolls into the title bar area */
+    clip-path: inset(46px 0 0 0);
+    box-sizing: border-box;
 }
 
 /* Create a full-width draggable title bar at the very top of info page */
@@ -296,28 +301,31 @@ body.electron-app:has(.info-page) .info-page::before {
    The cursor will need to be handled by Electron's title bar interaction.
    Users will be able to drag from the top 24px area even without a cursor change. */
 
-/* Add separator line below info page title bar */
-body.electron-app:has(.info-page) .info-page::after {
+/* Add separator line below info page title bar - use body::after so it's not clipped */
+body.electron-app:has(.info-page)::after {
     content: '';
     position: fixed;
     top: 40px;  /* 34px title bar + 6px gap */
     left: 20px;
     right: 20px;
     height: 1px;
-    z-index: 1;  /* Below content so it doesn't overlay the back button */
+    z-index: 1001;  /* Above content so it's always visible */
+    pointer-events: none;  /* Don't block clicks */
 }
 
-[data-theme="dark"] body.electron-app:has(.info-page) .info-page::after {
+[data-theme="dark"] body.electron-app:has(.info-page)::after {
     background: rgba(255, 255, 255, 0.08);
 }
 
-[data-theme="light"] body.electron-app:has(.info-page) .info-page::after {
+[data-theme="light"] body.electron-app:has(.info-page)::after {
     background: rgba(0, 0, 0, 0.15);
 }
 
-/* Override header styling for info page - remove previous title bar styles from header */
+/* Override header styling for info page - header should scroll with content, not fixed */
 body.electron-app:has(.info-page) header {
     padding-top: 0 !important;
+    position: relative;
+    /* Header is part of scrolling content - no special z-index needed */
 }
 
 body.electron-app:has(.info-page) header::before,
@@ -325,25 +333,25 @@ body.electron-app:has(.info-page) header::after {
     display: none !important;
 }
 
-/* Keep grid layout but ensure buttons are clickable */
+/* Buttons should be non-draggable so they don't interfere with window dragging */
 body.electron-app:has(.info-page) .header-nav-left,
 body.electron-app:has(.info-page) .header-nav-right {
     -webkit-app-region: no-drag !important;
     pointer-events: auto !important;
-    padding-top: 6px;  /* Push buttons down from top of header */
+    padding-top: 6px;  /* Move buttons down slightly */
 }
 
 /* Position back button closer to left edge */
 body.electron-app:has(.info-page) .header-nav-left {
-    margin-left: -4px;  /* Move closer to left wall */
+    margin-left: -6px;  /* Move outward to left */
 }
 
 /* Position theme toggle closer to right edge */
 body.electron-app:has(.info-page) .header-nav-right {
-    margin-right: -4px;  /* Move closer to right wall */
+    margin-right: -6px;  /* Move outward to right */
 }
 
-/* Ensure the buttons themselves are non-draggable and clickable */
+/* Ensure the buttons themselves are clickable */
 body.electron-app:has(.info-page) .header-content .header-nav-left a,
 body.electron-app:has(.info-page) .header-content .header-nav-right button {
     -webkit-app-region: no-drag !important;

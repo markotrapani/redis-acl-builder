@@ -1,6 +1,6 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.6.0-beta
+**Current Version:** v2.6.1-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
@@ -18,6 +18,22 @@ applications across macOS, Windows, and Linux.
 ---
 
 ## 🎯 Version History
+
+### v2.6.1-beta (2025-10-23)
+
+#### Electron App Info Page Scroll Behavior Fix
+
+- Fixed info page scroll behavior to properly hide content under title bar
+- Content now scrolls smoothly under the fixed title bar area
+- Background SVG pattern blends seamlessly between title bar and content
+- Added visible separator line below title bar (z-index fix)
+- Refined button positioning (back button and theme toggle)
+- Improved visual consistency and polish
+
+**Technical:** CSS clip-path for scroll clipping, separator line z-index
+optimization, button positioning refinements
+
+---
 
 ### v2.6.0-beta (2025-10-23)
 
@@ -386,6 +402,19 @@ ELECTRON-ROADMAP.md
      be recognizable at small sizes
    - **Implementation:** Update electron/build/icon.* files and rebuild
      installers
+
+4. **Category Tooltip Text Wrapping** - Improve command name readability in
+   tooltips
+   - **Current:** Command names wrap when tooltip is compressed against window
+     edge
+   - **Need:** Prevent text wrapping for cleaner visual appearance
+   - **Enhancement:** Add fine outline around each command name to visually
+     distinguish them
+   - **Implementation:** Update CSS for category button hover tooltips
+   - **CSS Changes:**
+     - `white-space: nowrap` on command name elements
+     - Add subtle border/outline to command name spans
+   - Estimate: 30 minutes - 1 hour
 
 #### Medium Priority (Nice to Have)
 
