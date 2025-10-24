@@ -45,6 +45,8 @@ applications across macOS, Windows, and Linux.
 - Fixed title bar button positioning (Check for Updates button)
 - Improved Electron app info page layout and styling
 - Enhanced visual consistency between web and desktop versions
+- Refined info page button placement (theme toggle and back button in header)
+- Better visual hierarchy on info page
 
 #### Performance Optimizations
 
@@ -384,13 +386,12 @@ ELECTRON-ROADMAP.md
 
 #### Medium Priority (Nice to Have)
 
-**Info Page UI Refinement** - Improve button placement and visual hierarchy
+**Info Page Scroll Behavior** - Fix content scrolling under title bar
 
-- Move theme toggle button inside "Redis ACL Builder" header section
-- Move "Back to ACL Builder" button inside header section
-- Cleaner layout with buttons contained within header box
-- Better visual consistency with main page
-- Estimate: 1-2 hours
+- Content should scroll under (hidden by) the fixed title bar
+- Currently content scrolls behind title bar without proper clipping
+- Need to add proper z-index layering and overflow handling
+- Estimate: 30 minutes - 1 hour
 
 **System Tray Integration** - Optional minimize to tray
 
