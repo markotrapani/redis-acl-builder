@@ -189,19 +189,43 @@ function createSystemTray() {
     }
 
     // Create tray icon
-    const trayIcon = nativeImage.createFromPath(iconPath);
+    let trayIcon;
     
-    // Resize for tray (tray icons are smaller)
     if (process.platform === 'darwin') {
-        // macOS tray icons work best as 16x16 or 22x22
-        // Use template image for better visibility in menu bar
-        const resizedIcon = trayIcon.resize({ width: 16, height: 16 });
-        resizedIcon.setTemplateImage(true);  // Make it a template for better visibility
-        tray = new Tray(resizedIcon);
+        // For macOS, create a simple monochrome icon using nativeImage
+        // Create a 16x16 black square with transparent background
+        const iconSize = 16;
+        const buffer = Buffer.alloc(iconSize * iconSize * 4); // RGBA
+        
+        // Fill with black pixels
+        for (let i = 0; i < buffer.length; i += 4) {
+            buffer[i] = 0;     // R
+            buffer[i + 1] = 0; // G  
+            buffer[i + 2] = 0; // B
+            buffer[i + 3] = 255; // A (opaque)
+        }
+        
+        // Create a simple pattern - make some pixels transparent
+        for (let y = 0; y < iconSize; y++) {
+            for (let x = 0; x < iconSize; x++) {
+                const index = (y * iconSize + x) * 4;
+                // Create a simple border pattern
+                if (x < 2 || x >= iconSize - 2 || y < 2 || y >= iconSize - 2) {
+                    buffer[index + 3] = 255; // Keep border opaque
+                } else if (x >= 4 && x < 12 && y >= 4 && y < 12) {
+                    buffer[index + 3] = 0; // Make center transparent
+                }
+            }
+        }
+        
+        trayIcon = nativeImage.createFromBuffer(buffer, { width: iconSize, height: iconSize });
+        trayIcon.setTemplateImage(true);  // Make it a template for better visibility
     } else {
-        // Windows/Linux use default size
-        tray = new Tray(trayIcon);
+        // For other platforms, use the regular icon
+        trayIcon = nativeImage.createFromPath(iconPath);
     }
+    
+    tray = new Tray(trayIcon);
 
     // Create context menu
     const contextMenu = Menu.buildFromTemplate([
