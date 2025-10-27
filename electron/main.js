@@ -189,8 +189,11 @@ function createSystemTray() {
     
     // Resize for tray (tray icons are smaller)
     if (process.platform === 'darwin') {
-        // macOS tray icons are typically 22x22 or 16x16
-        tray = new Tray(trayIcon.resize({ width: 22, height: 22 }));
+        // macOS tray icons work best as 16x16 or 22x22
+        // Use template image for better visibility in menu bar
+        const resizedIcon = trayIcon.resize({ width: 16, height: 16 });
+        resizedIcon.setTemplateImage(true);  // Make it a template for better visibility
+        tray = new Tray(resizedIcon);
     } else {
         // Windows/Linux use default size
         tray = new Tray(trayIcon);
