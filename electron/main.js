@@ -192,21 +192,15 @@ function createSystemTray() {
     let trayIcon;
     
     if (process.platform === 'darwin') {
-        // For macOS, create a simple solid monochrome icon using nativeImage
-        // Create a 16x16 solid black square
-        const iconSize = 16;
-        const buffer = Buffer.alloc(iconSize * iconSize * 4); // RGBA
+        // For macOS, use the app icon but resize it for the menu bar
+        // Load the icon from the same path we found earlier
+        trayIcon = nativeImage.createFromPath(iconPath);
         
-        // Fill with solid black pixels
-        for (let i = 0; i < buffer.length; i += 4) {
-            buffer[i] = 0;     // R
-            buffer[i + 1] = 0; // G  
-            buffer[i + 2] = 0; // B
-            buffer[i + 3] = 255; // A (opaque)
-        }
+        // Resize to appropriate menu bar size (22x22 works well on macOS)
+        trayIcon = trayIcon.resize({ width: 22, height: 22 });
         
-        trayIcon = nativeImage.createFromBuffer(buffer, { width: iconSize, height: iconSize });
-        trayIcon.setTemplateImage(true);  // Make it a template for better visibility
+        // Make it a template image so macOS handles light/dark mode correctly
+        trayIcon.setTemplateImage(true);
     } else {
         // For other platforms, use the regular icon
         trayIcon = nativeImage.createFromPath(iconPath);
