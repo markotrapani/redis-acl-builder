@@ -219,10 +219,9 @@ analysis.
 
 ### Key Project: Redis ACL Builder
 
-- **Version**: v2.6.0-beta (Desktop + Web App + Performance Optimizations)
+- **Version**: v2.6.1-beta (Desktop + Web App + Performance Optimizations)
 - **Test Coverage**: E2E: 100% (28/28 Playwright tests passing)
-- **Latest Release**: Personal Access Token setup for proper release attribution
-  (v2.6.0-beta)
+- **Latest Release**: Tooltip improvements and build process fixes (v2.6.1-beta)
 - **Purpose**: Interactive web interface for parsing, testing, and validating
 Redis ACL permissions
 - **Redis Support**: Based on **Redis OSS** (Open Source) command sets
@@ -304,6 +303,30 @@ python3 scripts/build_minified.py
 # The HTML loads styles.min.css, so CSS changes won't appear until rebuilt!
 ```
 
+### Building Electron Desktop App
+
+**⚠️ CRITICAL: PyInstaller spec outputs to correct location for electron-builder:**
+
+```bash
+# 1. Rebuild minified assets (if CSS/JS changed)
+python3 scripts/build_minified.py
+
+# 2. Build backend bundle (outputs to dist/redis-acl-builder-backend/)
+cd backend
+pyinstaller redis-acl-builder.spec --clean --noconfirm
+
+# 3. Build Electron app (reads from dist/)
+cd ../electron
+npm run build:mac
+```
+
+**Key Points:**
+
+- PyInstaller spec outputs to project root `dist/` (not `backend/dist/`)
+- Electron-builder expects bundle at `../dist/redis-acl-builder-backend`
+- Always rebuild minified assets before building backend bundle
+- Backend bundle includes all frontend assets (templates, CSS, JS)
+
 **Why this is needed:**
 
 - The app loads `styles.min.css` (minified/combined CSS) in production
@@ -311,6 +334,23 @@ python3 scripts/build_minified.py
 - You MUST run `python3 scripts/build_minified.py` after ANY CSS edit for changes
   to appear
 - Same applies to JavaScript - minified versions are loaded in production
+
+### Troubleshooting Build Issues
+
+**Problem**: Electron app missing recent changes despite rebuilding
+
+**Solution**: Check the build pipeline:
+
+1. Verify minified assets are updated: `grep "your-change" frontend/static/css/styles.min.css`
+2. Verify backend bundle includes changes: `grep "your-change" dist/redis-acl-builder-backend/_internal/static/css/styles.min.css`
+3. Verify Electron app includes changes:
+   `grep "your-change" electron/dist/mac-arm64/"Redis ACL Builder.app"/Contents/Resources/dist/redis-acl-builder-backend/_internal/static/css/styles.min.css`
+
+**Common Issues**:
+
+- PyInstaller outputting to wrong location (should be `dist/`, not `backend/dist/`)
+- Forgetting to rebuild minified assets before backend bundle
+- Electron-builder using stale bundle from previous build
 
 ### Testing Commands
 
@@ -417,8 +457,8 @@ gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
   - **Windows-latest**: NSIS .exe installer + ZIP
   - **Ubuntu-latest**: AppImage + .deb package
 - **Build Process**:
-  1. PyInstaller bundles Python backend (Flask + dependencies)
-  2. Electron-builder packages desktop app with bundled backend
+  1. PyInstaller bundles Python backend (Flask + dependencies) to `dist/redis-acl-builder-backend/`
+  2. Electron-builder packages desktop app with bundled backend from `dist/`
   3. Creates platform-specific installers
   4. Uploads artifacts (30-day retention)
   5. Creates GitHub release (on version tags)

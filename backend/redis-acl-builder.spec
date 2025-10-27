@@ -23,6 +23,9 @@ backend_dir = os.path.abspath(SPECPATH)
 project_root = os.path.dirname(backend_dir)
 frontend_dir = os.path.join(project_root, 'frontend')
 
+# Set output directory to project root dist/ (for electron-builder)
+distpath = os.path.join(project_root, 'dist')
+
 # Collect all frontend assets (templates and static files)
 frontend_datas = []
 
@@ -125,4 +128,5 @@ coll = COLLECT(
     upx=True,
     upx_exclude=[],
     name='redis-acl-builder-backend',
+    distpath=distpath,
 )
