@@ -372,6 +372,8 @@ etc.
   support (v2.5.0)
 - ✅ **Help Menu Enhancements** - Documentation (F1), Report Issue, View on GitHub
   (v2.6.1)
+- ✅ **System Tray Integration** - Optional minimize to tray with menu bar
+  icon and context menu (v2.6.1)
 - ✅ **Templates & Presets** - Quick Examples + Saved Rules with localStorage
   (v1.x)
 
@@ -379,13 +381,7 @@ etc.
 
 #### High Priority (User Requested)
 
-1. **System Tray Integration** - Optional minimize to tray
-   - App icon in macOS menu bar / Windows system tray
-   - Quick access menu
-   - "Hide to tray" functionality
-   - Estimate: 4-5 hours
-
-2. **Update App Icon** (Design Improvement)
+1. **Update App Icon** (Design Improvement)
    - **Current:** Using default/placeholder icon
    - **Need:** Create new custom icon that better represents the application
    - **Formats Needed:**
@@ -397,7 +393,7 @@ etc.
    - **Implementation:** Update electron/build/icon.* files and rebuild
      installers
 
-3. **Category Tooltip Text Wrapping** - Improve command name readability in
+2. **Category Tooltip Text Wrapping** - Improve command name readability in
    tooltips
    - **Current:** Command names wrap when tooltip is compressed against window
      edge

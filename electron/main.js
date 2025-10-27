@@ -3,7 +3,7 @@
  * Licensed under the MIT License - see LICENSE file for details
  */
 
-const { app, BrowserWindow, nativeImage, dialog, Menu, shell } = require('electron');
+const { app, BrowserWindow, nativeImage, dialog, Menu, shell, Tray } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -11,6 +11,7 @@ const { autoUpdater } = require('electron-updater');
 
 let mainWindow = null;
 let pythonProcess = null;
+let tray = null;  // System tray
 const FLASK_PORT = 7381;  // Use 7381 for Electron desktop, 7380 for Docker, 5001 for web dev
 
 // Simple development mode detection
@@ -140,6 +141,87 @@ function createAppMenu() {
 
 // Track whether update check was manually triggered by user
 let isManualUpdateCheck = false;
+
+// Create system tray icon and menu
+function createSystemTray() {
+    const iconPath = path.join(__dirname, 'build',
+        process.platform === 'darwin' ? 'icon.icns' :   // macOS uses .icns
+        process.platform === 'win32' ? 'icon.ico' :      // Windows uses .ico
+        'icon.png'                                        // Linux uses .png
+    );
+
+    if (!fs.existsSync(iconPath)) {
+        console.error('❌ System tray icon not found:', iconPath);
+        return;
+    }
+
+    // Create tray icon
+    const trayIcon = nativeImage.createFromPath(iconPath);
+    
+    // Resize for tray (tray icons are smaller)
+    if (process.platform === 'darwin') {
+        // macOS tray icons are typically 22x22 or 16x16
+        tray = new Tray(trayIcon.resize({ width: 22, height: 22 }));
+    } else {
+        // Windows/Linux use default size
+        tray = new Tray(trayIcon);
+    }
+
+    // Create context menu
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: 'Show Window',
+            click: () => {
+                if (mainWindow) {
+                    mainWindow.show();
+                    mainWindow.focus();
+                }
+            }
+        },
+        {
+            label: 'Minimize to Tray',
+            click: () => {
+                if (mainWindow) {
+                    mainWindow.hide();
+                }
+            }
+        },
+        { type: 'separator' },
+        {
+            label: 'Quit',
+            click: () => {
+                app.quit();
+            }
+        }
+    ]);
+
+    // Set tooltip
+    tray.setToolTip('Redis ACL Builder');
+
+    // Show context menu on click
+    tray.setContextMenu(contextMenu);
+
+    // Toggle window visibility on tray icon click (macOS behavior)
+    if (process.platform === 'darwin') {
+        tray.on('click', () => {
+            if (mainWindow) {
+                if (mainWindow.isVisible()) {
+                    mainWindow.hide();
+                } else {
+                    mainWindow.show();
+                    mainWindow.focus();
+                }
+            }
+        });
+    } else {
+        // On Windows/Linux, show context menu on click
+        tray.on('click', () => {
+            tray.popUpContextMenu();
+        });
+    }
+
+    console.log('✅ System tray created');
+}
 
 // Configure auto-updater
 function setupAutoUpdater() {
@@ -452,6 +534,36 @@ function createWindow() {
     mainWindow.on('closed', () => {
         mainWindow = null;
     });
+
+    // Prevent window from closing completely - minimize to tray instead
+    mainWindow.on('close', (event) => {
+        if (!app.isQuitting) {
+            event.preventDefault();
+            mainWindow.hide();
+            // Show notification that app is minimized to tray
+            if (process.platform !== 'darwin') {
+                // On Windows/Linux, use toast notification if available
+                tray.setContextMenu(Menu.buildFromTemplate([
+                    {
+                        label: 'Show Window',
+                        click: () => {
+                            if (mainWindow) {
+                                mainWindow.show();
+                                mainWindow.focus();
+                            }
+                        }
+                    },
+                    {
+                        label: 'Quit',
+                        click: () => {
+                            app.isQuitting = true;
+                            app.quit();
+                        }
+                    }
+                ]));
+            }
+        }
+    });
 }
 
 // App lifecycle
@@ -463,6 +575,9 @@ app.whenReady().then(async () => {
 
     // Create application menu
     createAppMenu();
+
+    // Create system tray
+    createSystemTray();
 
     // Set dock icon on macOS using larger cropped icon
     if (process.platform === 'darwin') {
@@ -504,9 +619,11 @@ app.whenReady().then(async () => {
 
 // Quit when all windows are closed (including macOS for this single-window app)
 app.on('window-all-closed', () => {
-    // Unlike typical macOS apps, we want to quit completely when window closes
-    // since this is a single-window application with a backend server
-    app.quit();
+    // On macOS, don't quit when all windows are closed - let it run in tray
+    // On other platforms, quit when window is closed (but we handle this in window close event)
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
 });
 
 // Recreate window on macOS when dock icon is clicked
@@ -519,8 +636,15 @@ app.on('activate', () => {
 // Cleanup on quit
 app.on('will-quit', () => {
     stopPythonBackend();
+    if (tray) {
+        tray.destroy();
+    }
 });
 
 app.on('before-quit', () => {
+    app.isQuitting = true;
     stopPythonBackend();
+    if (tray) {
+        tray.destroy();
+    }
 });
