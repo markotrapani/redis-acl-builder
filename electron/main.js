@@ -208,11 +208,11 @@ function createSystemTray() {
         // Load the icon from the same path we found earlier
         trayIcon = nativeImage.createFromPath(iconPath);
         
-        // Resize to appropriate menu bar size (16x16 works better for visibility)
-        trayIcon = trayIcon.resize({ width: 16, height: 16 });
+        // Resize to appropriate menu bar size (22x22 works well on macOS)
+        trayIcon = trayIcon.resize({ width: 22, height: 22 });
         
-        // Don't set as template image for better visibility
-        // trayIcon.setTemplateImage(true);
+        // Make it a template image so macOS handles light/dark mode correctly
+        trayIcon.setTemplateImage(true);
     } else {
         // For other platforms, use the regular icon
         trayIcon = nativeImage.createFromPath(iconPath);
