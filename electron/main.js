@@ -177,7 +177,11 @@ function createSystemTray() {
             console.log('✅ Using fallback icon:', fallbackPath);
             iconPath = fallbackPath;
         } else {
-            console.error('❌ Fallback icon also not found');
+            console.error('❌ Fallback icon also not found - creating tray without icon');
+            // Create a simple 16x16 black square as fallback
+            const fallbackIcon = nativeImage.createEmpty();
+            tray = new Tray(fallbackIcon);
+            console.log('✅ System tray created with fallback icon');
             return;
         }
     } else {
@@ -573,7 +577,7 @@ function createWindow() {
             event.preventDefault();
             mainWindow.hide();
             // Show notification that app is minimized to tray
-            if (process.platform !== 'darwin') {
+            if (process.platform !== 'darwin' && tray) {
                 // On Windows/Linux, use toast notification if available
                 tray.setContextMenu(Menu.buildFromTemplate([
                     {
