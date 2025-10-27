@@ -144,15 +144,44 @@ let isManualUpdateCheck = false;
 
 // Create system tray icon and menu
 function createSystemTray() {
-    const iconPath = path.join(__dirname, 'build',
-        process.platform === 'darwin' ? 'icon.icns' :   // macOS uses .icns
-        process.platform === 'win32' ? 'icon.ico' :      // Windows uses .ico
-        'icon.png'                                        // Linux uses .png
-    );
+    // In production, icons are in app.asar.unpacked or Resources root
+    // In development, icons are in electron/build/
+    let iconPath;
+    
+    if (isDevelopment()) {
+        // Development mode: use build directory
+        iconPath = path.join(__dirname, 'build',
+            process.platform === 'darwin' ? 'icon.icns' :
+            process.platform === 'win32' ? 'icon.ico' :
+            'icon.png'
+        );
+    } else {
+        // Production mode: use Resources directory
+        iconPath = process.resourcesPath
+            ? path.join(process.resourcesPath,
+                process.platform === 'darwin' ? 'icon.icns' :
+                process.platform === 'win32' ? 'icon.ico' :
+                'icon.png')
+            : path.join(__dirname, '..', '..', 'icon.icns');
+    }
 
+    console.log('🔍 Looking for system tray icon at:', iconPath);
+    console.log('🔍 __dirname:', __dirname);
+    console.log('🔍 process.resourcesPath:', process.resourcesPath);
+    
     if (!fs.existsSync(iconPath)) {
         console.error('❌ System tray icon not found:', iconPath);
-        return;
+        // Try fallback location
+        const fallbackPath = path.join(__dirname, '..', 'icon.icns');
+        if (fs.existsSync(fallbackPath)) {
+            console.log('✅ Using fallback icon:', fallbackPath);
+            iconPath = fallbackPath;
+        } else {
+            console.error('❌ Fallback icon also not found');
+            return;
+        }
+    } else {
+        console.log('✅ Found system tray icon:', iconPath);
     }
 
     // Create tray icon
