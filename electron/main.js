@@ -113,7 +113,7 @@ function createAppMenu() {
                     label: 'Documentation',
                     accelerator: 'F1',
                     click: () => {
-                        shell.openExternal('https://github.com/markotrapani/redis-acl-builder#readme');
+                        shell.openExternal('https://github.com/markotrapani/redis-acl-builder/blob/main/README.md');
                     }
                 },
                 {

@@ -370,6 +370,8 @@ etc.
   trusted first install (v2.3.0)
 - ✅ **Custom Title Bar** - macOS draggable title bar with traffic light button
   support (v2.5.0)
+- ✅ **Help Menu Enhancements** - Documentation (F1), Report Issue, View on GitHub
+  (v2.6.1)
 - ✅ **Templates & Presets** - Quick Examples + Saved Rules with localStorage
   (v1.x)
 
@@ -407,14 +409,6 @@ etc.
      - `white-space: nowrap` on command name elements
      - Add subtle border/outline to command name spans
    - Estimate: 30 minutes - 1 hour
-
-#### Quick Wins (Low Effort, High Impact)
-
-1. **Help Menu Enhancements** - Desktop app menu improvements
-   - **Documentation** - Open GitHub README in browser (F1 shortcut)
-   - **Report Issue** - Open GitHub Issues page in browser
-   - **View on GitHub** - Open repository homepage in browser
-   - Total estimate: 1-2 hours
 
 #### Medium Priority (Nice to Have)
 
