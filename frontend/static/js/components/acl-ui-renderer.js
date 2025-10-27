@@ -38,16 +38,13 @@ const ACLUIRenderer = {
                     commandSpan.className = 'tooltip-command-name';
                     commandSpan.textContent = `${prefix}${item}`;
                     
-                    boldSpan.appendChild(document.createTextNode('• '));
                     boldSpan.appendChild(commandSpan);
                     fragment.appendChild(boldSpan);
                 } else {
-                    const textNode = document.createTextNode('• ');
                     const commandSpan = document.createElement('span');
                     commandSpan.className = 'tooltip-command-name';
                     commandSpan.textContent = `${prefix}${item}`;
                     
-                    fragment.appendChild(textNode);
                     fragment.appendChild(commandSpan);
                 }
 
@@ -443,16 +440,13 @@ const ACLUIRenderer = {
                                     commandSpan.className = 'tooltip-command-name';
                                     commandSpan.textContent = cmd;
                                     
-                                    boldSpan.appendChild(document.createTextNode('• '));
                                     boldSpan.appendChild(commandSpan);
                                     contentDiv.appendChild(boldSpan);
                                 } else {
-                                    const textNode = document.createTextNode('• ');
                                     const commandSpan = document.createElement('span');
                                     commandSpan.className = 'tooltip-command-name';
                                     commandSpan.textContent = cmd;
                                     
-                                    contentDiv.appendChild(textNode);
                                     contentDiv.appendChild(commandSpan);
                                 }
 
