@@ -140,8 +140,7 @@ category rendering priority
 - Prevents misleading release summaries
 - Better user experience when reading release notes on GitHub
 
-**Technical:** [See ELECTRON-ROADMAP.md for build system
-details](./ELECTRON-ROADMAP.md)
+**Technical:** Build system improvements and automated release notes
 
 ---
 
@@ -203,8 +202,7 @@ etc.
 
 #### Documentation Consolidation
 
-- Updated all version references across README.md, CLAUDE.md,
-ELECTRON-ROADMAP.md
+- Updated all version references across README.md, CLAUDE.md, ROADMAP.md
 - Ensures documentation parity between Docker and Desktop platforms
 
 ---
@@ -377,15 +375,20 @@ ELECTRON-ROADMAP.md
 
 ### Next Up: Desktop App Polish (v2.7.x)
 
-#### High Priority
+#### High Priority (User Requested)
 
-1. **System Tray Integration** - Optional minimize to tray
+1. **Custom Title Bar** - Replace default Electron chrome with custom design
+   - Professional appearance matching app theme
+   - Better theme integration
+   - Estimate: 6-8 hours
+
+2. **System Tray Integration** - Optional minimize to tray
    - App icon in macOS menu bar / Windows system tray
    - Quick access menu
    - "Hide to tray" functionality
    - Estimate: 4-5 hours
 
-2. **Update App Icon** (Design Improvement)
+3. **Update App Icon** (Design Improvement)
    - **Current:** Using default/placeholder icon
    - **Need:** Create new custom icon that better represents the application
    - **Formats Needed:**
@@ -397,7 +400,7 @@ ELECTRON-ROADMAP.md
    - **Implementation:** Update electron/build/icon.* files and rebuild
      installers
 
-3. **Category Tooltip Text Wrapping** - Improve command name readability in
+4. **Category Tooltip Text Wrapping** - Improve command name readability in
    tooltips
    - **Current:** Command names wrap when tooltip is compressed against window
      edge
@@ -409,6 +412,14 @@ ELECTRON-ROADMAP.md
      - `white-space: nowrap` on command name elements
      - Add subtle border/outline to command name spans
    - Estimate: 30 minutes - 1 hour
+
+#### Quick Wins (Low Effort, High Impact)
+
+1. **Help Menu Enhancements** - Desktop app menu improvements
+   - **Documentation** - Open GitHub README in browser (F1 shortcut)
+   - **Report Issue** - Open GitHub Issues page in browser
+   - **View on GitHub** - Open repository homepage in browser
+   - Total estimate: 1-2 hours
 
 #### Medium Priority (Nice to Have)
 
@@ -499,6 +510,58 @@ patterns
 - Rule validation history with localStorage
 
 ---
+
+## 🏗️ Desktop App Architecture
+
+### Hybrid Electron + Python Architecture
+
+The desktop app uses a hybrid architecture that preserves 95%+ of existing code:
+
+```text
+┌─────────────────────────────────────────┐
+│         Electron Main Process           │
+│  (Node.js - main.js)                    │
+│                                         │
+│  1. Create BrowserWindow                │
+│  2. Spawn Python child process          │
+│  3. IPC communication with renderer     │
+│  4. Handle window lifecycle             │
+│  5. File system dialogs                 │
+│  6. Auto-updates                        │
+└─────────────────────────────────────────┘
+              │
+              │ spawns
+              ▼
+┌─────────────────────────────────────────┐
+│      Python Child Process               │
+│  (Flask Backend on localhost:PORT)      │
+│                                         │
+│  - helpers/data_loader.py               │
+│  - helpers/acl_parser.py                │
+│  - All 12 API endpoints                 │
+│  - Pydantic validation                  │
+│  - UNCHANGED from v1.x!                 │
+└─────────────────────────────────────────┘
+              ▲
+              │ fetch() API calls
+              │
+┌─────────────────────────────────────────┐
+│      Electron Renderer Process          │
+│  (Chromium - index.html)                │
+│                                         │
+│  - All existing JS modules (23 files)   │
+│  - All existing CSS modules (6 files)   │
+│  - localStorage → works identically!    │
+│  - fetch() → calls localhost Flask      │
+│  - UNCHANGED from v1.x!                 │
+└─────────────────────────────────────────┘
+```
+
+### Code Reuse Analysis
+
+- **Unchanged:** 95% (10,000+ lines) - All Python backend, JavaScript modules, CSS
+- **New:** 4% (~550 lines) - Electron wrapper, build configuration, title bar
+- **Modified:** 1% (~70 lines) - HTML template, CSS additions
 
 ## 📊 Platform Support
 
@@ -615,7 +678,6 @@ timeline**
 - ✅ **README.md** - User-facing documentation and quick start
 - ✅ **CLAUDE.md** - Project instructions for AI assistance
 - ✅ **ROADMAP.md** - Product roadmap and version history (this file)
-- ✅ **ELECTRON-ROADMAP.md** - Electron technical implementation
 - ✅ **CODE-SIGNING.md** - Code signing and notarization setup
 - ✅ **CICD-WORKFLOWS.md** - CI/CD pipeline documentation
 - ✅ **CONTRIBUTING.md** - Contribution guidelines
@@ -660,8 +722,6 @@ timeline**
 
 ## 🔗 Related Documentation
 
-- **[ELECTRON-ROADMAP.md](./ELECTRON-ROADMAP.md)** - Electron technical
-  implementation details
 - **[CODE-SIGNING.md](./CODE-SIGNING.md)** - Code signing and notarization setup
 - **[CICD-WORKFLOWS.md](./CICD-WORKFLOWS.md)** - CI/CD pipeline documentation
 - **[README.md](../README.md)** - User-facing documentation and quick start
@@ -670,6 +730,7 @@ timeline**
 
 ## 📝 Notes
 
-This roadmap tracks high-level product features and version history.
-For technical implementation details specific to the Electron desktop app, see
-[ELECTRON-ROADMAP.md](./ELECTRON-ROADMAP.md).
+This roadmap tracks high-level product features, version history, and desktop
+app architecture.
+All Electron-specific technical details have been consolidated into this single
+roadmap file.

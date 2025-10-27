@@ -365,7 +365,7 @@ curl -X POST http://localhost:7380/api/validate-rule \
 - **Scripts**: `scripts/` - Helper scripts (run-web.sh, build-web.sh)
 - **Tests**: `tests/backend/` (pytest) and `tests/e2e/` (Playwright)
 - **Electron**: `electron/` - Desktop app wrapper (v2.3.4-beta - see
-  [docs/ELECTRON-ROADMAP.md](docs/ELECTRON-ROADMAP.md))
+  [docs/ROADMAP.md](docs/ROADMAP.md))
 
 </details>
 
@@ -535,7 +535,7 @@ redis-acl-builder/
 │   ├── backend/              # Backend tests (pytest)
 │   └── e2e/                  # E2E tests (Playwright)
 └── docs/                       # Documentation
-    └── ELECTRON-ROADMAP.md   # Desktop app roadmap
+    └── ROADMAP.md           # Product roadmap (includes desktop app details)
 ```
 
 </details>
@@ -584,8 +584,7 @@ synchronization, drag-drop panel reordering, and perfect responsive design
   - Added browser refresh instruction for Docker users after upgrade
   - Reduced minified JS by 31.7% (5.71 KB → 3.90 KB)
 - **📚 Documentation Consolidation**: Complete version synchronization
-  - Updated all version references across README.md, CLAUDE.md,
-    ELECTRON-ROADMAP.md
+  - Updated all version references across README.md, CLAUDE.md, ROADMAP.md
   - Added comprehensive v2.3.2-beta and v2.3.4-beta accomplishment tracking
   - Ensures complete documentation parity between Docker and Desktop platforms
 

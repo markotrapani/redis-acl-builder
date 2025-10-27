@@ -219,7 +219,7 @@ Ensure paths are correct in `main.js` lines 122-136.
 
 - **Main Project**: `../README.md`
 - **Backend API**: `../backend/README.md` (if exists)
-- **Electron Roadmap**: `../docs/ELECTRON-ROADMAP.md`
+- **Electron Roadmap**: `../docs/ROADMAP.md` (consolidated roadmap)
 - **Web Version**: See parent directory's web deployment docs
 
 ## License

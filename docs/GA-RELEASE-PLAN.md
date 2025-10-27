@@ -283,7 +283,6 @@ enterprise support commitments.
   - [ ] `CLAUDE.md` → v3.0.0
   - [ ] `electron/README.md` → v3.0.0
   - [ ] `docs/ROADMAP.md` → v3.0.0
-  - [ ] `docs/ELECTRON-ROADMAP.md` → v3.0.0
 
 ### Release Day (D-Day)
 
@@ -479,8 +478,7 @@ enterprise support commitments.
 ## 🔗 Related Documentation
 
 - **[ROADMAP.md](./ROADMAP.md)** - Product roadmap and version history
-- **[ELECTRON-ROADMAP.md](./ELECTRON-ROADMAP.md)** - Electron technical
-  implementation
+  (includes desktop app details)
 - **[PERFORMANCE-PLAN.md](./PERFORMANCE-PLAN.md)** - Performance optimization
   roadmap
 - **[CONTRIBUTING.md](../CONTRIBUTING.md)** - Contribution guidelines

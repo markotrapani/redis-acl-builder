@@ -768,7 +768,7 @@ redis-acl-builder/
 ├── build_minified.py           # Asset minification (updated paths)
 ├── playwright.config.js        # E2E test config (updated paths)
 ├── docs/
-│   └── ELECTRON-ROADMAP.md     # v2.0 implementation plan
+│   └── ROADMAP.md           # Product roadmap (includes desktop app details)
 └── .gitignore                 # Git ignore patterns
 ```
 
