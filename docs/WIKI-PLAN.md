@@ -369,7 +369,7 @@ Response:
 #### 6.3 Testing Guide
 
 - Running unit tests (`pytest`)
-- Running E2E tests (`npx playwright test`)
+- Running E2E tests (`npx playwright test --config=tests/playwright.config.js`)
 - Running performance benchmarks
 - Property-based tests with Hypothesis
 - Mutation testing with mutmut
@@ -377,7 +377,7 @@ Response:
 
 #### 6.4 Build Process
 
-- **Web App:** Minifying CSS/JS with `build_minified.py`
+- **Web App:** Minifying CSS/JS with `scripts/build_minified.py`
 - **Docker:** Multi-arch builds with Docker Buildx
 - **Desktop:** Electron builds with electron-builder
 - **CI/CD:** GitHub Actions workflows

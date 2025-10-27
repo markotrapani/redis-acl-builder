@@ -27,7 +27,7 @@ If you encounter a bug or have a feature request:
    - Update documentation as needed
 3. **Test your changes**:
    - Run backend tests: `pytest tests/backend/ -v`
-   - Run E2E tests: `npx playwright test`
+   - Run E2E tests: `npx playwright test --config=tests/playwright.config.js --config=tests/playwright.config.js`
    - Test manually in both web and desktop modes
 4. **Commit your changes** with clear, descriptive messages:
    - Use conventional commit format: `feat:`, `fix:`, `docs:`, `chore:`, etc.
@@ -88,7 +88,7 @@ npm start
 pytest tests/backend/ -v --cov=backend
 
 # E2E tests
-npx playwright test
+npx playwright test --config=tests/playwright.config.js
 
 # Install Playwright browsers (first time only)
 npx playwright install

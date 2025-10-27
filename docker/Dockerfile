@@ -34,7 +34,7 @@ COPY ../backend/ backend/
 COPY ../frontend/ frontend/
 
 # Copy build script to root
-COPY ../build_minified.py ./
+COPY ../scripts/build_minified.py ./
 
 # Build minified assets for production
 RUN python build_minified.py

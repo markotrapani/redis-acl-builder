@@ -7,9 +7,9 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
-    "test:headed": "playwright test --headed",
+    "test": "playwright test --config=tests/playwright.config.js",
+    "test:ui": "playwright test --ui --config=tests/playwright.config.js",
+    "test:headed": "playwright test --headed --config=tests/playwright.config.js",
     "test:report": "playwright show-report"
   },
   "keywords": [],

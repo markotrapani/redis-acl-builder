@@ -39,23 +39,23 @@ submodules)
 
 ```bash
 # ✅ CORRECT
-python3 build_minified.py
+python3 scripts/build_minified.py
 git status
 git commit -m "message"
 
 # ❌ WRONG - Will fail because you're already IN the submodule
-cd redis-acl-builder && python3 build_minified.py
+cd redis-acl-builder && python3 scripts/build_minified.py
 ```
 
 **When IN marko-projects parent (pwd shows just `/marko-projects`):**
 
 ```bash
 # ✅ CORRECT - Need to specify submodule path
-cd redis-acl-builder && python3 build_minified.py
+cd redis-acl-builder && python3 scripts/build_minified.py
 git -C redis-acl-builder status
 
 # ❌ WRONG - Will fail because build_minified.py is in submodule
-python3 build_minified.py
+python3 scripts/build_minified.py
 ```
 
 ### Quick Check Command
@@ -84,7 +84,7 @@ files). Changes to source files won't appear until rebuilt.
 **After ANY changes to CSS or JS files, ALWAYS run:**
 
 ```bash
-python3 build_minified.py
+python3 scripts/build_minified.py
 ```
 
 **What gets minified:**
@@ -295,7 +295,7 @@ assets:**
 
 ```bash
 # Rebuild minified CSS and JavaScript
-python3 build_minified.py
+python3 scripts/build_minified.py
 
 # This regenerates:
 # - frontend/static/css/styles.min.css (from all .css files)
@@ -308,8 +308,8 @@ python3 build_minified.py
 
 - The app loads `styles.min.css` (minified/combined CSS) in production
 - Individual CSS files (base.css, components.css, etc.) are source files only
-- You MUST run `python3 build_minified.py` after ANY CSS edit for changes to
-  appear
+- You MUST run `python3 scripts/build_minified.py` after ANY CSS edit for changes
+  to appear
 - Same applies to JavaScript - minified versions are loaded in production
 
 ### Testing Commands
@@ -765,8 +765,13 @@ redis-acl-builder/
 │   ├── deploy-beta.sh
 │   └── README.md
 │
-├── build_minified.py           # Asset minification (updated paths)
-├── playwright.config.js        # E2E test config (updated paths)
+├── scripts/
+│   └── build_minified.py       # Asset minification (updated paths)
+├── tests/
+│   ├── backend/
+│   │   └── setup.cfg           # Mutation testing config
+│   ├── e2e/
+│   └── playwright.config.js    # E2E test config (updated paths)
 ├── docs/
 │   └── ROADMAP.md           # Product roadmap (includes desktop app details)
 └── .gitignore                 # Git ignore patterns

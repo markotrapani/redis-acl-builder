@@ -355,7 +355,7 @@ curl -X POST http://localhost:7380/api/validate-rule \
    pytest tests/backend/ -v
 
    # E2E tests
-   npx playwright test
+   npx playwright test --config=tests/playwright.config.js
    ```
 
 ### Code Organization (Monorepo Structure - v2.3.4-beta)
@@ -400,10 +400,10 @@ pytest tests/backend/ --cov=backend --cov-report=html
 
 ```bash
 # Run Playwright E2E tests
-npx playwright test
+npx playwright test --config=tests/playwright.config.js
 
 # Run in UI mode
-npx playwright test --ui
+npx playwright test --ui --config=tests/playwright.config.js
 ```
 
 ### Test Categories
