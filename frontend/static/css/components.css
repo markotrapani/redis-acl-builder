@@ -2317,6 +2317,40 @@ button.test-button[disabled] {
   color: #f44336 !important;
 }
 
+/* Command name styling - mini-button appearance */
+.enhanced-tooltip .tooltip-command-name {
+  display: inline-block;
+  background: var(--surface-secondary);
+  color: var(--text-color);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  margin: 0 1px;
+  border: 1px solid var(--border-light);
+  transition: all 0.2s ease;
+}
+
+/* Hover effect for command names */
+.enhanced-tooltip .tooltip-command-name:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .enhanced-tooltip .tooltip-command-name {
+  background: var(--surface-secondary);
+  border-color: var(--border-light);
+}
+
+[data-theme="dark"] .enhanced-tooltip .tooltip-command-name:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
 /* Expanded tooltip sizing */
 .enhanced-tooltip.expanded {
   max-width: min(80vw, 600px);

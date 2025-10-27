@@ -31,11 +31,24 @@ const ACLUIRenderer = {
 
                 if (isBold) {
                     const boldSpan = document.createElement('strong');
-                    boldSpan.textContent = `• ${prefix}${item}`;
                     boldSpan.className = 'tooltip-highlight';
+                    
+                    // Create command name span with button-like styling
+                    const commandSpan = document.createElement('span');
+                    commandSpan.className = 'tooltip-command-name';
+                    commandSpan.textContent = `${prefix}${item}`;
+                    
+                    boldSpan.appendChild(document.createTextNode('• '));
+                    boldSpan.appendChild(commandSpan);
                     fragment.appendChild(boldSpan);
                 } else {
-                    fragment.appendChild(document.createTextNode(`• ${prefix}${item}`));
+                    const textNode = document.createTextNode('• ');
+                    const commandSpan = document.createElement('span');
+                    commandSpan.className = 'tooltip-command-name';
+                    commandSpan.textContent = `${prefix}${item}`;
+                    
+                    fragment.appendChild(textNode);
+                    fragment.appendChild(commandSpan);
                 }
 
                 if (index < items.length - 1) {
@@ -81,11 +94,20 @@ const ACLUIRenderer = {
 
                 if (isBold) {
                     const boldSpan = document.createElement('strong');
-                    boldSpan.textContent = `${prefix}${item}`;
                     boldSpan.className = 'tooltip-highlight';
+                    
+                    // Create command name span with button-like styling
+                    const commandSpan = document.createElement('span');
+                    commandSpan.className = 'tooltip-command-name';
+                    commandSpan.textContent = `${prefix}${item}`;
+                    
+                    boldSpan.appendChild(commandSpan);
                     li.appendChild(boldSpan);
                 } else {
-                    li.textContent = `${prefix}${item}`;
+                    const commandSpan = document.createElement('span');
+                    commandSpan.className = 'tooltip-command-name';
+                    commandSpan.textContent = `${prefix}${item}`;
+                    li.appendChild(commandSpan);
                 }
 
                 ul.appendChild(li);
@@ -414,12 +436,24 @@ const ACLUIRenderer = {
                                 if (isBold) {
                                     // Create bold and colored text for relevant commands
                                     const boldSpan = document.createElement('strong');
-                                    boldSpan.textContent = `• ${cmd}`;
-                                    // Green for granted column, red for blocked column
                                     boldSpan.style.color = isInGrantedColumn ? '#22c55e' : '#f44336';
+                                    
+                                    // Create command name span with button-like styling
+                                    const commandSpan = document.createElement('span');
+                                    commandSpan.className = 'tooltip-command-name';
+                                    commandSpan.textContent = cmd;
+                                    
+                                    boldSpan.appendChild(document.createTextNode('• '));
+                                    boldSpan.appendChild(commandSpan);
                                     contentDiv.appendChild(boldSpan);
                                 } else {
-                                    contentDiv.appendChild(document.createTextNode(`• ${cmd}`));
+                                    const textNode = document.createTextNode('• ');
+                                    const commandSpan = document.createElement('span');
+                                    commandSpan.className = 'tooltip-command-name';
+                                    commandSpan.textContent = cmd;
+                                    
+                                    contentDiv.appendChild(textNode);
+                                    contentDiv.appendChild(commandSpan);
                                 }
 
                                 if (index < displayCommands.length - 1 || remaining > 0) {
