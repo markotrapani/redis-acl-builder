@@ -177,11 +177,23 @@ function createSystemTray() {
             console.log('✅ Using fallback icon:', fallbackPath);
             iconPath = fallbackPath;
         } else {
-            console.error('❌ Fallback icon also not found - creating tray without icon');
+            console.error('❌ Fallback icon also not found - creating tray with programmatic icon');
             // Create a simple 16x16 black square as fallback
-            const fallbackIcon = nativeImage.createEmpty();
+            const iconSize = 16;
+            const buffer = Buffer.alloc(iconSize * iconSize * 4); // RGBA
+            
+            // Fill with solid black pixels
+            for (let i = 0; i < buffer.length; i += 4) {
+                buffer[i] = 0;     // R
+                buffer[i + 1] = 0; // G  
+                buffer[i + 2] = 0; // B
+                buffer[i + 3] = 255; // A (opaque)
+            }
+            
+            const fallbackIcon = nativeImage.createFromBuffer(buffer, { width: iconSize, height: iconSize });
+            fallbackIcon.setTemplateImage(true);
             tray = new Tray(fallbackIcon);
-            console.log('✅ System tray created with fallback icon');
+            console.log('✅ System tray created with programmatic fallback icon');
             return;
         }
     } else {
