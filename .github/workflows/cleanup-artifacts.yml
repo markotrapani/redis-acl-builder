@@ -84,6 +84,56 @@ jobs:
           echo "✅ Artifact cleanup complete!"
           echo "💰 Saved approximately \$$(echo "$TOTAL_SIZE * 0.25" | bc) per month"
 
+      - name: Clean up old releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Finding old releases to delete (keeping last 3)..."
+
+          # Get all releases sorted by creation date (newest first)
+          ALL_RELEASES=$(gh api repos/${{ github.repository }}/releases --paginate | \
+            jq -r '.[] | "\(.id)\t\(.tag_name)\t\(.created_at)\t\(.name)"' | \
+            sort -t$'\t' -k3 -r)
+
+          # Count total releases
+          TOTAL_RELEASES=$(echo "$ALL_RELEASES" | wc -l)
+
+          if [ "$TOTAL_RELEASES" -le 3 ]; then
+            echo "✅ Only $TOTAL_RELEASES releases exist (≤3), nothing to delete"
+            exit 0
+          fi
+
+          # Get releases to delete (skip first 3)
+          OLD_RELEASES=$(echo "$ALL_RELEASES" | tail -n +4)
+          RELEASES_TO_DELETE=$(echo "$OLD_RELEASES" | wc -l)
+
+          echo "📌 Keeping most recent 3 releases:"
+          echo "$ALL_RELEASES" | head -3 | awk -F'\t' '{print "  - " $2 " (" $4 ")"}'
+
+          echo ""
+          echo "🗑️  Deleting $RELEASES_TO_DELETE old releases:"
+          echo "$OLD_RELEASES" | awk -F'\t' '{print "  - " $2 " (" $4 ")"}'
+
+          # Delete old releases
+          FAILED_DELETIONS=0
+          echo "$OLD_RELEASES" | while IFS=$'\t' read -r id tag created_at name; do
+            echo "Deleting release: $tag (ID: $id)"
+            if ! gh api --method DELETE "/repos/${{ github.repository }}/releases/$id"; then
+              echo "❌ Failed to delete release $tag"
+              FAILED_DELETIONS=$((FAILED_DELETIONS + 1))
+            else
+              echo "✅ Successfully deleted release $tag"
+            fi
+            sleep 0.5  # Rate limiting
+          done
+
+          if [ $FAILED_DELETIONS -gt 0 ]; then
+            echo "❌ $FAILED_DELETIONS releases failed to delete"
+            exit 1
+          fi
+
+          echo "✅ Release cleanup complete! Deleted $RELEASES_TO_DELETE old releases"
+
       - name: Summary
         if: always()
         env:
