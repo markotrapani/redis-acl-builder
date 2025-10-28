@@ -24,7 +24,7 @@ jobs:
 
       - name: Clean up old artifacts
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           echo "🔍 Finding artifacts to delete (keeping last 3 releases)..."
 
