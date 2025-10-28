@@ -5,7 +5,7 @@ List (ACL) rules with real-time command analysis and interactive visual
 feedback.
 
 ![license MIT](https://img.shields.io/badge/license-MIT-blue.svg)
-![version](https://img.shields.io/badge/version-2.6.1--beta-green.svg)
+![version](https://img.shields.io/badge/version-2.6.2--beta-green.svg)
 ![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Docker-lightgrey.svg)
 ![Redis](https://img.shields.io/badge/Redis-7%20%7C%208-red.svg)
 
