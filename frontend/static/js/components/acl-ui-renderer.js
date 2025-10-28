@@ -70,7 +70,7 @@ const ACLUIRenderer = {
         // Calculate available width and adjust columns if needed
         const availableWidth = window.innerWidth - 100; // Account for margins
         const baseMinColumnWidth = 150; // Minimum width per column
-        const maxColumnsForWidth = Math.floor(availableWidth / minColumnWidth);
+        const maxColumnsForWidth = Math.floor(availableWidth / baseMinColumnWidth);
         
         // Use the smaller of calculated columns and width-constrained columns
         columns = Math.min(columns, maxColumnsForWidth);
@@ -716,11 +716,13 @@ const ACLUIRenderer = {
 
                                 // Mark tooltip as expanded for larger sizing
                                 tooltipElement.classList.add('expanded');
-                                
-                                // Re-constrain the expanded tooltip to window boundaries
-                                const expandedRect = tooltipElement.getBoundingClientRect();
-                                const maxWidth = Math.min(window.innerWidth - 40, 600); // Increased max width
-                                const maxHeight = Math.min(window.innerHeight - 100, 500); // Increased max height
+
+                                // Wait for layout to complete before measuring and repositioning
+                                requestAnimationFrame(() => {
+                                    // Re-constrain the expanded tooltip to window boundaries
+                                    const expandedRect = tooltipElement.getBoundingClientRect();
+                                    const maxWidth = Math.min(window.innerWidth - 40, 600); // Increased max width
+                                    const maxHeight = Math.min(window.innerHeight - 100, 500); // Increased max height
                                 
                                 if (expandedRect.width > maxWidth || expandedRect.height > maxHeight) {
                                     // Try to reduce columns first to prevent overlap
@@ -834,6 +836,7 @@ const ACLUIRenderer = {
                                     tooltipElement.style.left = `${left}px`;
                                     tooltipElement.style.top = `${top}px`;
                                 }
+                                }); // End requestAnimationFrame
                             }
                         });
                     });
