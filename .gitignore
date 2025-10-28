@@ -15,6 +15,7 @@ dist/
 downloads/
 # PyInstaller build directory (exclude, but keep electron/build/)
 /build/
+backend/build/
 eggs/
 .eggs/
 lib/
