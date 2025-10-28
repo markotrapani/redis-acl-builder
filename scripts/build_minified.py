@@ -155,7 +155,10 @@ def main() -> None:
     print("=" * 60)
     print(f"  Total Original:  {format_size(total_original)}")
     print(f"  Total Minified:  {format_size(total_minified)}")
-    print(f"  Total Savings:   {format_size(total_original - total_minified)} ({100 * (1 - total_minified/total_original):.1f}%)")
+    if total_original > 0:
+        print(f"  Total Savings:   {format_size(total_original - total_minified)} ({100 * (1 - total_minified/total_original):.1f}%)")
+    else:
+        print(f"  Total Savings:   {format_size(total_original - total_minified)} (No files processed)")
     print("=" * 60)
     print("\n✅ Build complete!")
 
