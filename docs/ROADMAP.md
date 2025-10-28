@@ -1,6 +1,6 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.6.2-beta
+**Current Version:** v2.6.3-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
@@ -18,6 +18,21 @@ applications across macOS, Windows, and Linux.
 ---
 
 ## 🎯 Version History
+
+### v2.6.3-beta (2025-10-28)
+
+#### Tooltip UX Improvements
+
+- ✅ **Category Tooltip Text Wrapping Fix** - Improved command name readability
+  - Command names no longer wrap when tooltip is compressed against window edge
+  - Added `white-space: nowrap` for cleaner visual appearance
+  - Added fine outline around each command name to visually distinguish them
+  - Better professional appearance and readability
+
+**Technical:** CSS `white-space: nowrap` on command name elements, subtle
+border styling for visual distinction
+
+---
 
 ### v2.6.2-beta (2025-10-28)
 
@@ -465,18 +480,8 @@ etc.
    - **Benefits:** User has explicit control, clearer intent, standard behavior
    - **Status:** ✅ Completed (v2.6.1)
 
-4. **Category Tooltip Text Wrapping** - Improve command name readability in
-   tooltips
-   - **Current:** Command names wrap when tooltip is compressed against window
-     edge
-   - **Need:** Prevent text wrapping for cleaner visual appearance
-   - **Enhancement:** Add fine outline around each command name to visually
-     distinguish them
-   - **Implementation:** Update CSS for category button hover tooltips
-   - **CSS Changes:**
-     - `white-space: nowrap` on command name elements
-     - Add subtle border/outline to command name spans
-   - Estimate: 30 minutes - 1 hour
+4. **Category Tooltip Text Wrapping** - Improve command name readability
+   - **Status:** ✅ Completed (v2.6.3-beta)
 
 #### Medium Priority (Nice to Have)
 
