@@ -13,7 +13,6 @@ jobs:
     permissions:
       contents: read
       actions: write
-      metadata: read
       id-token: write
 
     steps:
@@ -24,7 +23,7 @@ jobs:
 
       - name: Clean up old artifacts
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "🔍 Finding artifacts to delete (keeping last 3 releases)..."
 
@@ -64,17 +63,31 @@ jobs:
           echo "🗑️  Found $ARTIFACT_COUNT artifacts to delete (${TOTAL_SIZE} GB)"
 
           # Delete each artifact
+          FAILED_DELETIONS=0
           echo "$OLD_ARTIFACTS" | while IFS=$'\t' read -r id name created_at size; do
             echo "Deleting: $name (ID: $id, Created: $created_at)"
-            gh api --method DELETE "/repos/${{ github.repository }}/actions/artifacts/$id" || echo "Failed to delete $id"
+            if ! gh api --method DELETE "/repos/${{ github.repository }}/actions/artifacts/$id"; then
+              echo "❌ Failed to delete $id"
+              FAILED_DELETIONS=$((FAILED_DELETIONS + 1))
+            else
+              echo "✅ Successfully deleted $id"
+            fi
             sleep 0.5  # Rate limiting
           done
+          
+          # Check if any deletions failed
+          if [ $FAILED_DELETIONS -gt 0 ]; then
+            echo "❌ $FAILED_DELETIONS artifacts failed to delete"
+            exit 1
+          fi
 
           echo "✅ Artifact cleanup complete!"
           echo "💰 Saved approximately \$$(echo "$TOTAL_SIZE * 0.25" | bc) per month"
 
       - name: Summary
         if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "### Artifact Cleanup Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
