@@ -1,11 +1,11 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.6.1-beta
+**Current Version:** v2.6.2-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
 
-**Last Updated:** 2025-10-23
+**Last Updated:** 2025-10-28
 
 ---
 
@@ -18,6 +18,22 @@ applications across macOS, Windows, and Linux.
 ---
 
 ## 🎯 Version History
+
+### v2.6.2-beta (2025-10-28)
+
+#### Tooltip Rendering Improvements
+
+- ✅ **Fixed Multi-Column Tooltip Clipping** - Command names now display fully
+  - Fixed visual clipping where command names were cut off mid-button
+  - Changed `.tooltip-column` CSS from `overflow: hidden` to `overflow: visible`
+  - Optimized `.tooltip-columns` max-height to maximize available space
+  - Eliminated wasted empty space at bottom of expanded tooltips
+
+**Technical:** CSS overflow property fix in
+[components.css:2301](frontend/static/css/components.css#L2301), max-height
+optimization to `calc(100vh - 180px)`
+
+---
 
 ### v2.6.1-beta (2025-10-27)
 
