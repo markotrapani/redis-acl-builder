@@ -1,6 +1,6 @@
 # Redis ACL Builder - Desktop App (Electron)
 
-> **Status**: v2.6.2-beta - Production Ready with Electron App UI Improvements
+> **Status**: v2.6.3-beta - Production Ready with Tooltip Rendering Fixes
 
 Desktop application wrapper for Redis ACL Builder using Electron.
 
