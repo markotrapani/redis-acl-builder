@@ -169,6 +169,22 @@ const InteractiveACLBuilder = {
 
             // Also load all commands
             this.state.allCommands = await API.getAllCommands(AppState.currentVersion);
+            
+            // Pre-populate category commands cache to avoid individual API calls during rendering
+            // This significantly reduces the number of API calls during initialization
+            // Note: getAllCommands returns a flat array, so we need to make one more call to get grouped data
+            try {
+                const groupedResponse = await API.parseRule('+@all', AppState.currentVersion);
+                if (groupedResponse && groupedResponse.grouped_commands) {
+                    for (const [category, commands] of Object.entries(groupedResponse.grouped_commands)) {
+                        const cacheKey = `${AppState.currentVersion}:${category}`;
+                        this._categoryCommandsCache.set(cacheKey, commands);
+                    }
+                    console.log(`✅ Pre-populated cache for ${Object.keys(groupedResponse.grouped_commands).length} categories`);
+                }
+            } catch (error) {
+                console.warn('⚠️ Failed to pre-populate category cache:', error);
+            }
         } catch (error) {
             console.error('❌ Failed to load categories data:', error);
             // Fallback: use some default categories

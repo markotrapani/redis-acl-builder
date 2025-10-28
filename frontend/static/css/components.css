@@ -2127,7 +2127,8 @@ button.test-button[disabled] {
   border-radius: var(--radius-lg);
   font-size: 0.875rem;
   line-height: 1.4;
-  max-width: 300px;
+  max-width: min(50vw, 300px); /* Smaller for single column */
+  min-width: 150px; /* Smaller minimum */
   box-shadow: var(--shadow-lg);
   pointer-events: auto;
   opacity: 0;
@@ -2271,26 +2272,31 @@ button.test-button[disabled] {
 /* Multi-column layout for large tooltips */
 .enhanced-tooltip .tooltip-columns {
   display: grid;
-  gap: 20px;
+  gap: 16px;
   max-height: 60vh;
   overflow-y: auto;
   margin-top: 8px;
+  width: 100%;
 }
 
 .enhanced-tooltip .tooltip-columns.cols-2 {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr);
 }
 
 .enhanced-tooltip .tooltip-columns.cols-3 {
-  grid-template-columns: 1fr 1fr 1fr;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
 }
 
 .enhanced-tooltip .tooltip-columns.cols-4 {
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr);
 }
 
 .enhanced-tooltip .tooltip-column {
-  min-width: 0; /* Allow columns to shrink */
+  min-width: 160px; /* Ensure columns don't shrink too much */
+  overflow: hidden;
+  flex: 1;
 }
 
 .enhanced-tooltip .tooltip-column ul {
@@ -2303,8 +2309,13 @@ button.test-button[disabled] {
 
 .enhanced-tooltip .tooltip-column li {
   margin-bottom: 2px;
-  word-break: break-word;
+  word-break: keep-all;
   font-size: 0.8rem;
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping for multiple commands per line */
+  gap: 2px;
+  overflow: hidden;
+  width: 100%;
 }
 
 /* Granted column highlights - green */
@@ -2317,19 +2328,26 @@ button.test-button[disabled] {
   color: #f44336 !important;
 }
 
-/* Command name styling - mini-button appearance */
+/* Command name styling - compact mini-button appearance */
 .enhanced-tooltip .tooltip-command-name {
   display: inline-block;
   background: var(--surface-secondary);
   color: var(--text-color);
   padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.75rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
   font-family: var(--font-mono);
+  font-weight: 500;
   white-space: nowrap;
-  margin: 0 1px 4px 0;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  margin: 0 1px 3px 0;
   border: 1px solid var(--border-light);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
+  flex-shrink: 0;
+  position: relative;
+  width: auto; /* Auto width to fit content */
 }
 
 /* Hover effect for command names */
@@ -2337,6 +2355,8 @@ button.test-button[disabled] {
   background: var(--primary-color);
   color: white;
   border-color: var(--primary-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
 }
 
 /* Dark theme adjustments */
@@ -2349,18 +2369,46 @@ button.test-button[disabled] {
   background: var(--primary-color);
   color: white;
   border-color: var(--primary-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
-/* Expanded tooltip sizing */
+/* Expanded tooltip sizing - STRICT window constraint */
 .enhanced-tooltip.expanded {
-  max-width: min(80vw, 600px);
-  max-height: 70vh;
-  overflow: hidden;
+  max-width: min(80vw, 500px) !important;
+  min-width: 200px !important;
+  max-height: calc(100vh - 120px) !important; /* More conservative margin */
+  overflow: hidden !important;
+  position: fixed !important;
+  z-index: 10000 !important;
 }
 
+/* Expanded tooltip content with STRICT scrolling */
 .enhanced-tooltip.expanded .tooltip-content {
-  max-height: 60vh;
-  overflow-y: auto;
+  max-height: calc(100vh - 180px) !important; /* More conservative margin */
+  overflow-y: auto !important;
+  overflow-x: hidden !important; /* Prevent horizontal scroll */
+}
+
+/* Expanded tooltip columns - STRICT width control */
+.enhanced-tooltip.expanded .tooltip-columns {
+  gap: 12px !important; /* Smaller gap to prevent overflow */
+  max-height: calc(100vh - 200px) !important;
+  overflow-y: auto !important;
+}
+
+.enhanced-tooltip.expanded .tooltip-columns.cols-2 {
+  grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) !important;
+}
+
+.enhanced-tooltip.expanded .tooltip-columns.cols-3 {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+}
+
+.enhanced-tooltip.expanded .tooltip-columns.cols-4 {
+  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) !important;
 }
 
 @keyframes tooltip-fade-in {

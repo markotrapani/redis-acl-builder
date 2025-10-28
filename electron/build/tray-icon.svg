@@ -1,0 +1,9 @@
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simple Redis-inspired icon for tray -->
+  <rect x="2" y="2" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <circle cx="5" cy="6" r="1" fill="currentColor"/>
+  <circle cx="8" cy="6" r="1" fill="currentColor"/>
+  <circle cx="11" cy="6" r="1" fill="currentColor"/>
+  <rect x="4" y="9" width="8" height="1" fill="currentColor"/>
+  <rect x="5" y="11" width="6" height="1" fill="currentColor"/>
+</svg>

@@ -204,15 +204,43 @@ function createSystemTray() {
     let trayIcon;
     
     if (process.platform === 'darwin') {
-        // For macOS, use the app icon but resize it for the menu bar
-        // Load the icon from the same path we found earlier
-        trayIcon = nativeImage.createFromPath(iconPath);
+        // For macOS, use our actual app icon properly resized
+        console.log('🔒 Using app icon for tray...');
+        const appIconPath = path.join(__dirname, 'build', 'icon.png');
+        console.log('🔒 App icon path:', appIconPath);
         
-        // Resize to appropriate menu bar size (22x22 works well on macOS)
-        trayIcon = trayIcon.resize({ width: 22, height: 22 });
+        trayIcon = nativeImage.createFromPath(appIconPath);
+        console.log('🔒 App icon loaded, isEmpty:', trayIcon.isEmpty());
+        console.log('🔒 App icon size:', trayIcon.getSize());
         
-        // Make it a template image so macOS handles light/dark mode correctly
-        trayIcon.setTemplateImage(true);
+        // Use 22x22 for better visibility in macOS menu bar
+        if (!trayIcon.isEmpty()) {
+            // Extremely aggressive cropping - assume the actual icon is only in the center 60% of the image
+            const originalSize = trayIcon.getSize();
+            console.log('🔒 Original icon size:', originalSize);
+            
+            // Very aggressive crop - use only 60% of the original image
+            const cropFactor = 0.6; // Use only 60% of the image (removes 20% padding on each side)
+            const cropWidth = Math.floor(originalSize.width * cropFactor);
+            const cropHeight = Math.floor(originalSize.height * cropFactor);
+            const cropX = Math.floor((originalSize.width - cropWidth) / 2);
+            const cropY = Math.floor((originalSize.height - cropHeight) / 2);
+            
+            console.log('🔒 Aggressive cropping to:', { x: cropX, y: cropY, width: cropWidth, height: cropHeight });
+            
+            // Crop first, then resize
+            const croppedIcon = trayIcon.crop({ x: cropX, y: cropY, width: cropWidth, height: cropHeight });
+            trayIcon = croppedIcon.resize({ width: 22, height: 22 });
+            console.log('🔒 Aggressively cropped and resized to 22x22 for menu bar');
+        } else {
+            console.log('🔒 Custom icon failed, falling back to PNG...');
+            const pngIconPath = path.join(__dirname, 'build', 'icon.png');
+            trayIcon = nativeImage.createFromPath(pngIconPath);
+            if (!trayIcon.isEmpty()) {
+                trayIcon = trayIcon.resize({ width: 22, height: 22 });
+                console.log('🔒 Using PNG fallback, resized to 22x22');
+            }
+        }
     } else {
         // For other platforms, use the regular icon
         trayIcon = nativeImage.createFromPath(iconPath);
@@ -223,19 +251,12 @@ function createSystemTray() {
     // Create context menu
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: 'Show Window',
+            label: 'Open ACL Builder',
             click: () => {
                 if (mainWindow) {
                     mainWindow.show();
                     mainWindow.focus();
-                }
-            }
-        },
-        {
-            label: 'Minimize to Tray',
-            click: () => {
-                if (mainWindow) {
-                    mainWindow.hide();
+                    console.log('🔄 Window opened from tray menu');
                 }
             }
         },
@@ -254,24 +275,10 @@ function createSystemTray() {
     // Show context menu on click
     tray.setContextMenu(contextMenu);
 
-    // Toggle window visibility on tray icon click (macOS behavior)
-    if (process.platform === 'darwin') {
-        tray.on('click', () => {
-            if (mainWindow) {
-                if (mainWindow.isVisible()) {
-                    mainWindow.hide();
-                } else {
-                    mainWindow.show();
-                    mainWindow.focus();
-                }
-            }
-        });
-    } else {
-        // On Windows/Linux, show context menu on click
-        tray.on('click', () => {
-            tray.popUpContextMenu();
-        });
-    }
+    // Show context menu on tray icon click (all platforms)
+    tray.on('click', () => {
+        tray.popUpContextMenu();
+    });
 
     console.log('✅ System tray created');
 }
@@ -427,6 +434,32 @@ function startPythonBackend() {
     console.log('Starting Python backend...');
     console.log('Development mode:', isDevMode);
     console.log('Project root:', projectRoot);
+
+    // Check if port 7381 is already in use and kill any existing processes
+    const { exec } = require('child_process');
+    const killCommand = process.platform === 'win32' 
+        ? `netstat -ano | findstr :${FLASK_PORT} | for /f "tokens=5" %a in ('more') do taskkill /pid %a /f`
+        : `lsof -ti:${FLASK_PORT} | xargs kill -9 2>/dev/null || true`;
+    
+    console.log(`🔍 Checking port ${FLASK_PORT} and cleaning up any existing processes...`);
+    
+    exec(killCommand, (error, stdout, stderr) => {
+        if (error && !error.message.includes('No matching processes')) {
+            console.log('⚠️ Could not clean up existing processes:', error.message);
+        } else {
+            console.log('✅ Port cleanup completed');
+        }
+        
+        // Wait a moment for processes to fully terminate, then start backend
+        setTimeout(() => {
+            startBackendProcess();
+        }, 500);
+    });
+}
+
+function startBackendProcess() {
+    const projectRoot = path.join(__dirname, '..');
+    const isDevMode = isDevelopment();
 
     let command;
     let args = [];
@@ -593,6 +626,9 @@ function createWindow() {
         if (!app.isQuitting) {
             event.preventDefault();
             mainWindow.hide();
+            // Keep Python backend running to preserve user state
+            console.log('🔄 Window minimized to tray - keeping Python backend running');
+            
             // Show notification that app is minimized to tray
             if (process.platform !== 'darwin' && tray) {
                 // On Windows/Linux, use toast notification if available
@@ -618,6 +654,55 @@ function createWindow() {
         }
     });
 }
+
+// Comprehensive cleanup function
+function cleanupAndExit() {
+    console.log('🧹 Cleaning up before exit...');
+    
+    // Stop Python backend
+    stopPythonBackend();
+    
+    // Destroy tray
+    if (tray) {
+        tray.destroy();
+        tray = null;
+    }
+    
+    // Close all windows
+    const windows = BrowserWindow.getAllWindows();
+    windows.forEach(window => {
+        if (!window.isDestroyed()) {
+            window.destroy();
+        }
+    });
+    
+    console.log('✅ Cleanup complete');
+}
+
+// Handle all possible termination events
+process.on('SIGTERM', () => {
+    console.log('📡 Received SIGTERM - cleaning up...');
+    cleanupAndExit();
+    process.exit(0);
+});
+
+process.on('SIGINT', () => {
+    console.log('📡 Received SIGINT - cleaning up...');
+    cleanupAndExit();
+    process.exit(0);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('💥 Uncaught exception:', error);
+    cleanupAndExit();
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('💥 Unhandled rejection at:', promise, 'reason:', reason);
+    cleanupAndExit();
+    process.exit(1);
+});
 
 // App lifecycle
 app.whenReady().then(async () => {
@@ -683,21 +768,22 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
         createWindow();
+    } else if (mainWindow && mainWindow.isVisible() === false) {
+        // Window exists but is hidden (minimized to tray), restore it
+        console.log('🔄 Restoring window from dock click');
+        mainWindow.show();
+        mainWindow.focus();
     }
 });
 
 // Cleanup on quit
 app.on('will-quit', () => {
-    stopPythonBackend();
-    if (tray) {
-        tray.destroy();
-    }
+    console.log('📡 App will-quit event - cleaning up...');
+    cleanupAndExit();
 });
 
 app.on('before-quit', () => {
+    console.log('📡 App before-quit event - cleaning up...');
     app.isQuitting = true;
-    stopPythonBackend();
-    if (tray) {
-        tray.destroy();
-    }
+    cleanupAndExit();
 });

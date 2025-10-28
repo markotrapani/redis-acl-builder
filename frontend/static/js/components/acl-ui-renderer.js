@@ -55,34 +55,84 @@ const ACLUIRenderer = {
             return fragment;
         }
 
-        // Determine number of columns based on item count
+        // Determine number of columns based on item count and available space
         let columns;
-        if (itemCount <= 30) {
+        if (itemCount <= 20) {
+            columns = 1;
+        } else if (itemCount <= 40) {
             columns = 2;
         } else if (itemCount <= 60) {
             columns = 3;
         } else {
-            columns = 4;
+            columns = 3; // Max 3 columns to prevent wrapping
         }
 
-        // Calculate items per column
-        const itemsPerColumn = Math.ceil(itemCount / columns);
+        // Calculate available width and adjust columns if needed
+        const availableWidth = window.innerWidth - 100; // Account for margins
+        const baseMinColumnWidth = 150; // Minimum width per column
+        const maxColumnsForWidth = Math.floor(availableWidth / minColumnWidth);
+        
+        // Use the smaller of calculated columns and width-constrained columns
+        columns = Math.min(columns, maxColumnsForWidth);
 
-        // Split items into columns
-        const columnData = [];
-        for (let i = 0; i < columns; i++) {
-            const start = i * itemsPerColumn;
-            const end = Math.min(start + itemsPerColumn, itemCount);
-            columnData.push(items.slice(start, end));
-        }
+        // Calculate balanced distribution with priority-aware spreading
+        const columnData = Array.from({ length: columns }, () => []);
+        
+        // Distribute items in round-robin fashion to ensure even distribution
+        // This spreads important commands across all columns while maintaining order
+        items.forEach((item, index) => {
+            const columnIndex = index % columns;
+            columnData[columnIndex].push(item);
+        });
 
-        // Build DOM with grid layout
+        // Build DOM with flexbox layout to prevent wrapping
         const columnsContainer = document.createElement('div');
         columnsContainer.className = `tooltip-columns cols-${columns}`;
+        
+        // Calculate required width based on actual command name lengths
+        let maxColumnWidth = 0;
+        
+        try {
+            const tempSpan = document.createElement('span');
+            tempSpan.style.position = 'absolute';
+            tempSpan.style.visibility = 'hidden';
+            tempSpan.style.fontSize = '0.75rem'; // Match tooltip-command-name font size
+            tempSpan.style.fontFamily = 'inherit';
+            tempSpan.style.padding = '3px 8px'; // Match tooltip-command-name padding
+            tempSpan.style.whiteSpace = 'nowrap';
+            document.body.appendChild(tempSpan);
+            
+            // Find the longest command name in each column
+            columnData.forEach(columnItems => {
+                let columnMaxWidth = 0;
+                columnItems.forEach(item => {
+                    tempSpan.textContent = `${prefix}${item}`;
+                    const textWidth = tempSpan.getBoundingClientRect().width;
+                    columnMaxWidth = Math.max(columnMaxWidth, textWidth);
+                });
+                maxColumnWidth = Math.max(maxColumnWidth, columnMaxWidth);
+            });
+            
+            document.body.removeChild(tempSpan);
+        } catch (error) {
+            console.warn('Error measuring text width, using fallback:', error);
+            maxColumnWidth = 150; // Fallback to fixed width
+        }
+        
+        // Add padding and ensure minimum width
+        const minColumnWidth = Math.max(maxColumnWidth + 20, 120); // Add padding, minimum 120px
+        const gap = 16; // Gap between columns
+        const requiredWidth = (columns * minColumnWidth) + ((columns - 1) * gap);
+        
+        // Set explicit width to prevent wrapping
+        columnsContainer.style.width = `${requiredWidth}px`;
+        columnsContainer.style.minWidth = `${requiredWidth}px`;
 
         columnData.forEach(columnItems => {
             const columnDiv = document.createElement('div');
             columnDiv.className = 'tooltip-column';
+            columnDiv.style.minWidth = `${minColumnWidth}px`;
+            columnDiv.style.flex = '1';
 
             const ul = document.createElement('ul');
             columnItems.forEach(item => {
@@ -499,31 +549,103 @@ const ACLUIRenderer = {
                     // Get tooltip dimensions
                     const tooltipRect = tooltipElement.getBoundingClientRect();
 
-                    // Calculate desired position
-                    let left = rect.left + scrollLeft + rect.width / 2 - tooltipRect.width / 2;
-                    let top = rect.bottom + scrollTop + 8;
+                    // Calculate maximum allowed dimensions based on window size
+                    // Allow tooltip to expand to accommodate columns without wrapping
+                    const maxWidth = Math.min(window.innerWidth - 40, 800); // Increased max width for columns
+                    const maxHeight = Math.min(window.innerHeight - 100, 500); // Increased max height
 
-                    // Adjust horizontal position if tooltip goes off screen
-                    if (left < 10) {
-                        left = 10 + scrollLeft;
-                    } else if (left + tooltipRect.width > window.innerWidth - 10) {
-                        left = window.innerWidth - tooltipRect.width - 10 + scrollLeft;
+                    // Check if tooltip needs constraint
+                    if (tooltipRect.width > maxWidth || tooltipRect.height > maxHeight) {
+                        // Try to reduce columns first to prevent overlap
+                        const tooltipColumns = tooltipElement.querySelector('.tooltip-columns');
+                        if (tooltipColumns) {
+                            const currentColumns = tooltipColumns.className.match(/cols-(\d+)/);
+                            if (currentColumns) {
+                                const numColumns = parseInt(currentColumns[1]);
+                                if (numColumns > 1) {
+                                    // Try reducing columns first
+                                    const newColumns = Math.max(1, numColumns - 1);
+                                    tooltipColumns.className = tooltipColumns.className.replace(/cols-\d+/, `cols-${newColumns}`);
+                                    
+                                    // Re-measure after column reduction
+                                    const reducedRect = tooltipElement.getBoundingClientRect();
+                                    if (reducedRect.width <= maxWidth && reducedRect.height <= maxHeight) {
+                                        tooltipRect.width = reducedRect.width;
+                                        tooltipRect.height = reducedRect.height;
+                                    } else {
+                                        // Still too big, apply size constraints
+                                        tooltipElement.style.maxWidth = `${maxWidth}px`;
+                                        tooltipElement.style.maxHeight = `${maxHeight}px`;
+                                        tooltipElement.style.overflow = 'auto';
+                                        
+                                        const constrainedRect = tooltipElement.getBoundingClientRect();
+                                        tooltipRect.width = constrainedRect.width;
+                                        tooltipRect.height = constrainedRect.height;
+                                    }
+                                } else {
+                                    // Single column, apply size constraints
+                                    tooltipElement.style.maxWidth = `${maxWidth}px`;
+                                    tooltipElement.style.maxHeight = `${maxHeight}px`;
+                                    tooltipElement.style.overflow = 'auto';
+                                    
+                                    const constrainedRect = tooltipElement.getBoundingClientRect();
+                                    tooltipRect.width = constrainedRect.width;
+                                    tooltipRect.height = constrainedRect.height;
+                                }
+                            }
+                        } else {
+                            // No columns, apply size constraints
+                            tooltipElement.style.maxWidth = `${maxWidth}px`;
+                            tooltipElement.style.maxHeight = `${maxHeight}px`;
+                            tooltipElement.style.overflow = 'auto';
+                            
+                            const constrainedRect = tooltipElement.getBoundingClientRect();
+                            tooltipRect.width = constrainedRect.width;
+                            tooltipRect.height = constrainedRect.height;
+                        }
                     }
 
-                    // Adjust vertical position if tooltip goes below viewport
-                    if (top + tooltipRect.height > window.innerHeight + scrollTop - 10) {
-                        top = rect.top + scrollTop - tooltipRect.height - 8;
-                    }
+        // Smart positioning logic - shift tooltip to stay within window bounds
+        let left, top;
+        const margin = 15;
 
-                    // Ensure tooltip doesn't go above viewport
-                    if (top < scrollTop + 10) {
-                        top = rect.bottom + scrollTop + 8; // Default to below
-                    }
+        // Calculate preferred horizontal position (centered on button)
+        const preferredLeft = rect.left + scrollLeft + rect.width / 2 - tooltipRect.width / 2;
 
-                    // Apply final positioning
-                    tooltipElement.style.left = `${left}px`;
-                    tooltipElement.style.top = `${top}px`;
-                    tooltipElement.style.visibility = 'visible';
+        // Calculate preferred vertical position (below button)
+        const preferredTop = rect.bottom + scrollTop + 8;
+
+        // Horizontal positioning - shift left/right to stay in bounds
+        if (preferredLeft < margin) {
+            // Too far left, shift right
+            left = margin + scrollLeft;
+        } else if (preferredLeft + tooltipRect.width > window.innerWidth - margin) {
+            // Too far right, shift left
+            left = window.innerWidth - tooltipRect.width - margin + scrollLeft;
+        } else {
+            // Fits perfectly, use preferred position
+            left = preferredLeft;
+        }
+
+        // Vertical positioning - shift up/down to stay in bounds
+        if (preferredTop + tooltipRect.height > window.innerHeight + scrollTop - margin) {
+            // Too far down, try above button
+            const aboveTop = rect.top + scrollTop - tooltipRect.height - 8;
+            if (aboveTop >= scrollTop + margin) {
+                top = aboveTop;
+            } else {
+                // Neither above nor below fits, position at bottom of window
+                top = window.innerHeight + scrollTop - tooltipRect.height - margin;
+            }
+        } else {
+            // Fits below button, use preferred position
+            top = preferredTop;
+        }
+
+        // Apply final positioning
+        tooltipElement.style.left = `${left}px`;
+        tooltipElement.style.top = `${top}px`;
+        tooltipElement.style.visibility = 'visible';
                     tooltipElement.style.transform = 'none';
 
                     // Add event listeners to keep tooltip visible when hovering over it
@@ -594,6 +716,124 @@ const ACLUIRenderer = {
 
                                 // Mark tooltip as expanded for larger sizing
                                 tooltipElement.classList.add('expanded');
+                                
+                                // Re-constrain the expanded tooltip to window boundaries
+                                const expandedRect = tooltipElement.getBoundingClientRect();
+                                const maxWidth = Math.min(window.innerWidth - 40, 600); // Increased max width
+                                const maxHeight = Math.min(window.innerHeight - 100, 500); // Increased max height
+                                
+                                if (expandedRect.width > maxWidth || expandedRect.height > maxHeight) {
+                                    // Try to reduce columns first to prevent overlap
+                                    const tooltipColumns = tooltipElement.querySelector('.tooltip-columns');
+                                    if (tooltipColumns) {
+                                        const currentColumns = tooltipColumns.className.match(/cols-(\d+)/);
+                                        if (currentColumns) {
+                                            const numColumns = parseInt(currentColumns[1]);
+                                            if (numColumns > 1) {
+                                                // Try reducing columns first
+                                                const newColumns = Math.max(1, numColumns - 1);
+                                                tooltipColumns.className = tooltipColumns.className.replace(/cols-\d+/, `cols-${newColumns}`);
+                                                
+                                                // Re-measure after column reduction
+                                                const reducedRect = tooltipElement.getBoundingClientRect();
+                                                if (reducedRect.width <= maxWidth && reducedRect.height <= maxHeight) {
+                                                    // Column reduction worked, re-position with smart logic
+                                                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                                                    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                                                    const margin = 15;
+                                                    
+                                                    // Calculate preferred horizontal position (centered on button)
+                                                    const preferredLeft = rect.left + scrollLeft + rect.width / 2 - reducedRect.width / 2;
+                                                    
+                                                    // Calculate preferred vertical position (below button)
+                                                    const preferredTop = rect.bottom + scrollTop + 8;
+                                                    
+                                                    // Horizontal positioning - shift left/right to stay in bounds
+                                                    let left;
+                                                    if (preferredLeft < margin) {
+                                                        // Too far left, shift right
+                                                        left = margin + scrollLeft;
+                                                    } else if (preferredLeft + reducedRect.width > window.innerWidth - margin) {
+                                                        // Too far right, shift left
+                                                        left = window.innerWidth - reducedRect.width - margin + scrollLeft;
+                                                    } else {
+                                                        // Fits perfectly, use preferred position
+                                                        left = preferredLeft;
+                                                    }
+                                                    
+                                                    // Vertical positioning - shift up/down to stay in bounds
+                                                    let top;
+                                                    if (preferredTop + reducedRect.height > window.innerHeight + scrollTop - margin) {
+                                                        // Too far down, try above button
+                                                        const aboveTop = rect.top + scrollTop - reducedRect.height - 8;
+                                                        if (aboveTop >= scrollTop + margin) {
+                                                            top = aboveTop;
+                                                        } else {
+                                                            // Neither above nor below fits, position at bottom of window
+                                                            top = window.innerHeight + scrollTop - reducedRect.height - margin;
+                                                        }
+                                                    } else {
+                                                        // Fits below button, use preferred position
+                                                        top = preferredTop;
+                                                    }
+                                                    
+                                                    tooltipElement.style.left = `${left}px`;
+                                                    tooltipElement.style.top = `${top}px`;
+                                                    return; // Exit early if column reduction worked
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Still too big, apply size constraints
+                                    tooltipElement.style.maxWidth = `${maxWidth}px`;
+                                    tooltipElement.style.maxHeight = `${maxHeight}px`;
+                                    tooltipElement.style.overflow = 'auto';
+                                    
+                                    // Re-position if needed after constraining with smart logic
+                                    const constrainedRect = tooltipElement.getBoundingClientRect();
+                                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                                    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                                    const margin = 15;
+                                    
+                                    // Calculate preferred horizontal position (centered on button)
+                                    const preferredLeft = rect.left + scrollLeft + rect.width / 2 - constrainedRect.width / 2;
+                                    
+                                    // Calculate preferred vertical position (below button)
+                                    const preferredTop = rect.bottom + scrollTop + 8;
+                                    
+                                    // Horizontal positioning - shift left/right to stay in bounds
+                                    let left;
+                                    if (preferredLeft < margin) {
+                                        // Too far left, shift right
+                                        left = margin + scrollLeft;
+                                    } else if (preferredLeft + constrainedRect.width > window.innerWidth - margin) {
+                                        // Too far right, shift left
+                                        left = window.innerWidth - constrainedRect.width - margin + scrollLeft;
+                                    } else {
+                                        // Fits perfectly, use preferred position
+                                        left = preferredLeft;
+                                    }
+                                    
+                                    // Vertical positioning - shift up/down to stay in bounds
+                                    let top;
+                                    if (preferredTop + constrainedRect.height > window.innerHeight + scrollTop - margin) {
+                                        // Too far down, try above button
+                                        const aboveTop = rect.top + scrollTop - constrainedRect.height - 8;
+                                        if (aboveTop >= scrollTop + margin) {
+                                            top = aboveTop;
+                                        } else {
+                                            // Neither above nor below fits, position at bottom of window
+                                            top = window.innerHeight + scrollTop - constrainedRect.height - margin;
+                                        }
+                                    } else {
+                                        // Fits below button, use preferred position
+                                        top = preferredTop;
+                                    }
+                                    
+                                    tooltipElement.style.left = `${left}px`;
+                                    tooltipElement.style.top = `${top}px`;
+                                }
                             }
                         });
                     });

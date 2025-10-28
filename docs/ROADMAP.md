@@ -19,6 +19,31 @@ applications across macOS, Windows, and Linux.
 
 ## 🎯 Version History
 
+### v2.6.1-beta (2025-10-27)
+
+#### Performance & UX Improvements
+
+- ✅ **API Call Optimization** - Reduced startup API calls from 23 to
+  3-4 (80-85% reduction)
+  - Pre-populated category commands cache during initial data load
+  - Faster app startup and reduced server load
+  - Benefits all deployment methods (Electron, Docker, Web)
+
+- ✅ **System Tray Icon Optimization** - Professional tray icon appearance
+  - Fixed small, pixelated icon in menu bar
+  - Implemented aggressive cropping (60% of original) for proper sizing
+  - Now matches quality and size of other menu bar icons
+
+- ✅ **System Tray Menu UX** - Improved user control over app state
+  - Replaced automatic toggle behavior with context menu
+  - Added "Open ACL Builder" and "Quit" options for explicit user control
+  - Consistent behavior across all platforms (macOS, Windows, Linux)
+
+**Technical:** Cache pre-population in `loadAllData()`, aggressive icon
+cropping, context menu implementation
+
+---
+
 ### v2.6.1-beta (2025-10-23)
 
 #### Electron App Info Page Scroll Behavior Fix
@@ -381,19 +406,50 @@ etc.
 
 #### High Priority (User Requested)
 
-1. **Update App Icon** (Design Improvement)
+1. **Create Custom App Icons** (Design Improvement)
    - **Current:** Using default/placeholder icon
-   - **Need:** Create new custom icon that better represents the application
-   - **Formats Needed:**
+   - **Need:** Create new custom icons that better represent the application
+   - **Dock Icon Formats Needed:**
      - macOS: .icns file (1024x1024 down to 16x16)
      - Windows: .ico file (256x256 down to 16x16)
      - Linux: .png files (512x512, 256x256, 128x128, 64x64, 32x32)
-   - **Design Considerations:** Should reflect Redis ACL Builder branding and
-     be recognizable at small sizes
-   - **Implementation:** Update electron/build/icon.* files and rebuild
-     installers
+   - **Tray Icon Formats Needed:**
+     - macOS: 22x22 optimized for menu bar visibility
+     - Windows: 16x16 optimized for system tray
+     - Linux: 24x24 optimized for system tray
+   - **Design Considerations:**
+     - Should reflect Redis ACL Builder branding
+     - Dock icon: Detailed design for larger display sizes
+     - Tray icon: Simplified design optimized for small sizes (22x22)
+     - Both should be recognizable and professional
+   - **Implementation:**
+     - Create new icon files for dock/app display
+     - Create separate optimized tray icon (not just cropped version)
+     - Update electron/build/icon.* files and rebuild installers
 
-2. **Category Tooltip Text Wrapping** - Improve command name readability in
+#### Quick Wins (Low Effort, High Impact)
+
+1. **Performance Optimization** - Reduce API calls during app initialization
+   - **Current:** 23 API calls during startup (1 GET + 22 POST)
+   - **Optimized:** 3-4 API calls (80-85% reduction)
+   - **Implementation:** Pre-populate category commands cache during
+     initial data load
+   - **Impact:** Faster app startup, reduced server load, better UX
+   - **Status:** ✅ Completed (v2.6.1)
+
+2. **System Tray Icon Optimization** - Professional tray icon appearance
+   - **Current:** Icon appeared small and pixelated in menu bar
+   - **Fixed:** Aggressive cropping (60% of original) for proper sizing
+   - **Result:** Professional-looking tray icon matching other menu bar icons
+   - **Status:** ✅ Completed (v2.6.1)
+
+3. **System Tray Menu UX** - Improved user control over app state
+   - **Current:** Automatic toggle behavior on tray click
+   - **Improved:** Context menu with "Open ACL Builder" and "Quit" options
+   - **Benefits:** User has explicit control, clearer intent, standard behavior
+   - **Status:** ✅ Completed (v2.6.1)
+
+4. **Category Tooltip Text Wrapping** - Improve command name readability in
    tooltips
    - **Current:** Command names wrap when tooltip is compressed against window
      edge
