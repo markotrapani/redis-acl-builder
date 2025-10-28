@@ -2190,6 +2190,8 @@ button.test-button[disabled] {
   text-decoration: underline;
   font-weight: 600;
   transition: color 0.2s ease;
+  display: inline;
+  list-style: none;
 }
 
 .enhanced-tooltip .expandable-link:hover {
@@ -2287,6 +2289,7 @@ button.test-button[disabled] {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
+  /* Width set programmatically to prevent wrapping */
 }
 
 .enhanced-tooltip .tooltip-columns.cols-4 {
@@ -2295,7 +2298,7 @@ button.test-button[disabled] {
 
 .enhanced-tooltip .tooltip-column {
   min-width: 160px; /* Ensure columns don't shrink too much */
-  overflow: hidden;
+  overflow: visible; /* Allow content to be fully visible */
   flex: 1;
 }
 
@@ -2312,7 +2315,7 @@ button.test-button[disabled] {
   word-break: keep-all;
   font-size: 0.8rem;
   display: flex;
-  flex-wrap: wrap; /* Allow wrapping for multiple commands per line */
+  flex-wrap: nowrap; /* Prevent wrapping - keep commands on single line */
   gap: 2px;
   overflow: hidden;
   width: 100%;
@@ -2375,26 +2378,26 @@ button.test-button[disabled] {
 
 /* Expanded tooltip sizing - STRICT window constraint */
 .enhanced-tooltip.expanded {
-  max-width: min(80vw, 500px) !important;
+  max-width: min(90vw, 700px) !important; /* Increased to fit 3 columns (180px * 3 + gaps = ~572px) */
   min-width: 200px !important;
-  max-height: calc(100vh - 120px) !important; /* More conservative margin */
-  overflow: hidden !important;
+  max-height: calc(100vh - 20px) !important; /* 10px margin top + 10px margin bottom */
+  overflow: visible !important; /* Allow child scrollbar to be visible */
   position: fixed !important;
   z-index: 10000 !important;
 }
 
-/* Expanded tooltip content with STRICT scrolling */
+/* Expanded tooltip content - no separate constraint */
 .enhanced-tooltip.expanded .tooltip-content {
-  max-height: calc(100vh - 180px) !important; /* More conservative margin */
-  overflow-y: auto !important;
-  overflow-x: hidden !important; /* Prevent horizontal scroll */
+  max-height: none !important;
+  overflow: visible !important;
 }
 
-/* Expanded tooltip columns - STRICT width control */
+/* Expanded tooltip columns - main scrollable area */
 .enhanced-tooltip.expanded .tooltip-columns {
-  gap: 12px !important; /* Smaller gap to prevent overflow */
-  max-height: calc(100vh - 200px) !important;
+  gap: 12px !important;
+  max-height: calc(100vh - 180px) !important; /* Maximize space: 20px margins + 103px title + 26px content padding + 30px buffer */
   overflow-y: auto !important;
+  padding-bottom: 40px !important; /* Generous padding to ensure last row is fully visible */
 }
 
 .enhanced-tooltip.expanded .tooltip-columns.cols-2 {

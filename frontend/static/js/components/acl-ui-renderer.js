@@ -67,20 +67,21 @@ const ACLUIRenderer = {
             columns = 3; // Max 3 columns to prevent wrapping
         }
 
-        // Calculate available width and adjust columns if needed
-        const availableWidth = window.innerWidth - 100; // Account for margins
-        const baseMinColumnWidth = 150; // Minimum width per column
-        const maxColumnsForWidth = Math.floor(availableWidth / baseMinColumnWidth);
-        
-        // Use the smaller of calculated columns and width-constrained columns
-        columns = Math.min(columns, maxColumnsForWidth);
+        // Don't constrain columns based on window width - let the tooltip handle it
+        // The tooltip has max-width constraints and will scroll if needed
+        // We want to show 3 columns for large lists regardless of window size
 
-        // Calculate balanced distribution with priority-aware spreading
+        // Sort items: highlighted commands first, then regular commands (alphabetically within each group)
+        const highlightedItems = items.filter(item => boldSet.has(item)).sort();
+        const regularItems = items.filter(item => !boldSet.has(item)).sort();
+        const sortedItems = [...highlightedItems, ...regularItems];
+
+        // Calculate balanced distribution - each column should have equal items
         const columnData = Array.from({ length: columns }, () => []);
-        
-        // Distribute items in round-robin fashion to ensure even distribution
-        // This spreads important commands across all columns while maintaining order
-        items.forEach((item, index) => {
+
+        // Distribute items in round-robin fashion for perfectly balanced columns
+        // This fills columns vertically (top to bottom, left to right)
+        sortedItems.forEach((item, index) => {
             const columnIndex = index % columns;
             columnData[columnIndex].push(item);
         });
@@ -88,51 +89,30 @@ const ACLUIRenderer = {
         // Build DOM with flexbox layout to prevent wrapping
         const columnsContainer = document.createElement('div');
         columnsContainer.className = `tooltip-columns cols-${columns}`;
-        
-        // Calculate required width based on actual command name lengths
-        let maxColumnWidth = 0;
-        
-        try {
-            const tempSpan = document.createElement('span');
-            tempSpan.style.position = 'absolute';
-            tempSpan.style.visibility = 'hidden';
-            tempSpan.style.fontSize = '0.75rem'; // Match tooltip-command-name font size
-            tempSpan.style.fontFamily = 'inherit';
-            tempSpan.style.padding = '3px 8px'; // Match tooltip-command-name padding
-            tempSpan.style.whiteSpace = 'nowrap';
-            document.body.appendChild(tempSpan);
-            
-            // Find the longest command name in each column
-            columnData.forEach(columnItems => {
-                let columnMaxWidth = 0;
-                columnItems.forEach(item => {
-                    tempSpan.textContent = `${prefix}${item}`;
-                    const textWidth = tempSpan.getBoundingClientRect().width;
-                    columnMaxWidth = Math.max(columnMaxWidth, textWidth);
-                });
-                maxColumnWidth = Math.max(maxColumnWidth, columnMaxWidth);
-            });
-            
-            document.body.removeChild(tempSpan);
-        } catch (error) {
-            console.warn('Error measuring text width, using fallback:', error);
-            maxColumnWidth = 150; // Fallback to fixed width
-        }
-        
-        // Add padding and ensure minimum width
-        const minColumnWidth = Math.max(maxColumnWidth + 20, 120); // Add padding, minimum 120px
-        const gap = 16; // Gap between columns
+
+        // Use fixed column width to avoid expensive text measurement
+        // This is much faster than measuring every command name
+        const minColumnWidth = 180; // Fixed width for consistent, fast rendering
+        const gap = 12; // Gap between columns (reduced for tighter spacing)
         const requiredWidth = (columns * minColumnWidth) + ((columns - 1) * gap);
-        
-        // Set explicit width to prevent wrapping
+
+        // Set explicit width and flexbox layout to prevent wrapping
+        columnsContainer.style.display = 'flex'; // CRITICAL: Force flexbox (overrides grid)
+        columnsContainer.style.flexDirection = 'row'; // CRITICAL: Horizontal layout
         columnsContainer.style.width = `${requiredWidth}px`;
         columnsContainer.style.minWidth = `${requiredWidth}px`;
+        columnsContainer.style.maxWidth = `${requiredWidth}px`;
+        columnsContainer.style.gap = `${gap}px`; // Override CSS gap
+        columnsContainer.style.flexWrap = 'nowrap'; // CRITICAL: Prevent column wrapping
+        columnsContainer.style.overflow = 'visible'; // Allow content to be visible
 
         columnData.forEach(columnItems => {
             const columnDiv = document.createElement('div');
             columnDiv.className = 'tooltip-column';
+            columnDiv.style.width = `${minColumnWidth}px`; // Fixed width, not flex
             columnDiv.style.minWidth = `${minColumnWidth}px`;
-            columnDiv.style.flex = '1';
+            columnDiv.style.maxWidth = `${minColumnWidth}px`;
+            columnDiv.style.flex = 'none'; // Disable flex growing/shrinking
 
             const ul = document.createElement('ul');
             columnItems.forEach(item => {
@@ -423,7 +403,6 @@ const ACLUIRenderer = {
                             });
 
                             if (remaining > 0) {
-                                contentDiv.appendChild(document.createTextNode('• '));
                                 const linkColorClass = isInGrantedColumn ? 'granted' : (isInBlockedColumn ? 'blocked' : '');
                                 const expandLink = document.createElement('span');
                                 expandLink.className = `expandable-link ${linkColorClass}`;
@@ -506,7 +485,6 @@ const ACLUIRenderer = {
                             });
 
                             if (remaining > 0) {
-                                contentDiv.appendChild(document.createTextNode('• '));
                                 const linkColorClass = isInGrantedColumn ? 'granted' : (isInBlockedColumn ? 'blocked' : '');
                                 const expandLink = document.createElement('span');
                                 expandLink.className = `expandable-link ${linkColorClass}`;
@@ -546,16 +524,12 @@ const ACLUIRenderer = {
 
                     document.body.appendChild(tooltipElement);
 
-                    // Get tooltip dimensions
+                    // Get tooltip dimensions (CSS handles max size constraints)
                     const tooltipRect = tooltipElement.getBoundingClientRect();
 
-                    // Calculate maximum allowed dimensions based on window size
-                    // Allow tooltip to expand to accommodate columns without wrapping
-                    const maxWidth = Math.min(window.innerWidth - 40, 800); // Increased max width for columns
-                    const maxHeight = Math.min(window.innerHeight - 100, 500); // Increased max height
-
-                    // Check if tooltip needs constraint
-                    if (tooltipRect.width > maxWidth || tooltipRect.height > maxHeight) {
+                    // CSS handles size constraints, JavaScript only positions
+                    // Skip the size constraint logic - let CSS max-width and max-height handle it
+                    if (false) { // Disabled - CSS handles all sizing
                         // Try to reduce columns first to prevent overlap
                         const tooltipColumns = tooltipElement.querySelector('.tooltip-columns');
                         if (tooltipColumns) {
@@ -607,7 +581,7 @@ const ACLUIRenderer = {
 
         // Smart positioning logic - shift tooltip to stay within window bounds
         let left, top;
-        const margin = 15;
+        const margin = 5; // Minimal margin - CSS max-height prevents overflow
 
         // Calculate preferred horizontal position (centered on button)
         const preferredLeft = rect.left + scrollLeft + rect.width / 2 - tooltipRect.width / 2;
@@ -717,14 +691,36 @@ const ACLUIRenderer = {
                                 // Mark tooltip as expanded for larger sizing
                                 tooltipElement.classList.add('expanded');
 
-                                // Wait for layout to complete before measuring and repositioning
-                                requestAnimationFrame(() => {
-                                    // Re-constrain the expanded tooltip to window boundaries
-                                    const expandedRect = tooltipElement.getBoundingClientRect();
-                                    const maxWidth = Math.min(window.innerWidth - 40, 600); // Increased max width
-                                    const maxHeight = Math.min(window.innerHeight - 100, 500); // Increased max height
-                                
-                                if (expandedRect.width > maxWidth || expandedRect.height > maxHeight) {
+                                // Force layout recalculation with explicit width for proper column rendering
+                                tooltipElement.offsetHeight; // Force reflow
+
+                                // Reposition expanded tooltip - keep it roughly where it was, just adjust to stay in viewport
+                                // CSS handles max-width and max-height constraints
+                                const expandedRect = tooltipElement.getBoundingClientRect();
+                                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                                const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                                const margin = 10;
+
+                                // Get current position (where the unexpanded tooltip was)
+                                const currentLeft = parseInt(tooltipElement.style.left) || 0;
+                                const currentTop = parseInt(tooltipElement.style.top) || 0;
+
+                                // Adjust horizontal position only if it would overflow
+                                let newLeft = currentLeft;
+                                if (currentLeft < margin + scrollLeft) {
+                                    // Too far left, shift right
+                                    newLeft = margin + scrollLeft;
+                                } else if (currentLeft + expandedRect.width > window.innerWidth + scrollLeft - margin) {
+                                    // Too far right, shift left to fit
+                                    newLeft = window.innerWidth + scrollLeft - expandedRect.width - margin;
+                                }
+                                tooltipElement.style.left = `${newLeft}px`;
+
+                                // Adjust vertical position - always top for expanded to maximize space
+                                tooltipElement.style.top = `${margin + scrollTop}px`;
+
+                                // Skip the old size constraint logic - CSS handles all sizing now
+                                if (false) {
                                     // Try to reduce columns first to prevent overlap
                                     const tooltipColumns = tooltipElement.querySelector('.tooltip-columns');
                                     if (tooltipColumns) {
@@ -836,7 +832,6 @@ const ACLUIRenderer = {
                                     tooltipElement.style.left = `${left}px`;
                                     tooltipElement.style.top = `${top}px`;
                                 }
-                                }); // End requestAnimationFrame
                             }
                         });
                     });
