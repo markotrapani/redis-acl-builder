@@ -2127,7 +2127,8 @@ button.test-button[disabled] {
   border-radius: var(--radius-lg);
   font-size: 0.875rem;
   line-height: 1.4;
-  width: fit-content; /* Size precisely to content width */
+  max-width: 250px; /* Limit width to force description text wrapping */
+  width: fit-content; /* Size to content up to max-width */
   box-shadow: var(--shadow-lg);
   pointer-events: auto;
   opacity: 0;
