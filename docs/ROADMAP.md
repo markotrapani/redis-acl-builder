@@ -549,19 +549,41 @@ etc.
 - ✅ **Total Test Suite** - 255 tests (227 backend + 28 E2E), 100% pass
   rate
 
+### In Progress (v2.7.x)
+
+#### Category Organization by Type
+
+**Status**: 🔄 In Progress - Infrastructure Complete, UI Integration Pending
+
+**Goal**: Split categories into two logical sections in Blocked/Granted panels
+
+**Progress**:
+
+- ✅ Phase 1: Classification infrastructure (DATA_TYPE_CATEGORIES,
+  ACL_CATEGORIES constants)
+- ✅ Phase 1: Helper function classifyCategory()
+- ✅ Phase 1: renderCategorySection() method with alphabetical sorting
+- ⏳ Phase 2: Integrate section rendering into renderCategoryButtons()
+- ⏳ Phase 3: Add subtle CSS styling for section headers
+- ⏳ Phase 4: Test and adjust visual appearance
+- ⏳ Phase 5: Complete and commit feature
+
+**Design**:
+
+1. **📦 Data Type Categories** (16): bitmap, bloom, cms, cuckoo, geo, hash,
+   hyperloglog, json, list, pubsub, set, sortedset, stream, string, tdigest,
+   timeseries, topk
+2. **⚙️ ACL/Operational Categories** (13): admin, blocking, connection,
+   dangerous, fast, keyspace, read, scripting, search, slow, transaction, write
+
+**Benefits**: Better visual organization, easier category discovery, clearer
+separation between data structures and operations
+
+**Remaining Time**: 1-2 hours
+
+---
+
 ### Future Features (v2.7.x+)
-
-#### Category Display Improvements
-
-**Category Organization by Type** - Split categories into logical sections
-
-- Separate categories into two vertical sections in both Blocked/Granted panels:
-  1. **Data Type Categories**: set, hash, string, sortedset, list, stream, etc.
-  2. **ACL Categories**: fast, slow, admin, dangerous, read, write, etc.
-- Better visual organization and easier category discovery
-- Clearer separation between data structure permissions and operational
-  permissions
-- Estimate: 2-3 hours
 
 #### Smart Keyspace Pattern Optimization
 
