@@ -1,6 +1,6 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.6.4-beta
+**Current Version:** v2.6.5-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
@@ -18,6 +18,45 @@ applications across macOS, Windows, and Linux.
 ---
 
 ## 🎯 Version History
+
+### v2.6.5-beta (2025-10-29)
+
+#### Smart Keyspace Pattern Optimization
+
+- ✅ **Backend Pattern Analysis Engine** - Intelligent redundancy detection
+  - Glob-to-regex conversion for pattern matching (~*, ?, [abc], [a-z])
+  - Universal pattern detection: ~* makes all patterns redundant
+  - Heuristic redundancy detection: prefix matching + sample-based testing
+  - 95% threshold for sample-based redundancy detection
+  - RESTful API endpoint: POST /api/optimize-keyspace
+
+- ✅ **Frontend Pattern Extraction** - ACL rule pattern parsing
+  - Extracts keyspace patterns: ~*, ~user:*, ~cache:*
+  - Handles permission-flagged patterns: %R~*, %W~user:*, %RW~cache:*
+  - Returns cleaned patterns without ~ prefix for backend analysis
+
+- ✅ **UI Integration** - One-click optimization
+  - Yellow warning message for redundant patterns detected
+  - Blue clickable suggestion with optimized rule preview
+  - One-click application applies fixes automatically
+  - Integrated with existing optimization suggestion system
+
+- ✅ **Code Quality** - Debug logging cleanup
+  - Removed excessive console.log statements from category rendering
+  - Removed debug logs from category classification
+  - Cleaner console output for production use
+
+- ✅ **Info Page Styling** - Visual consistency improvements
+  - Added matching border to header: 1px solid var(--border)
+  - Added matching border to sections for visual consistency
+  - Consistent border-radius and box-shadow throughout
+
+**Technical:** backend/helpers/pattern_optimizer.py with PatternOptimizer class,
+/api/optimize-keyspace endpoint, extractKeyspacePatterns() and
+analyzeKeyspacePatterns() frontend methods, displayOptimizationSuggestions()
+UI integration
+
+---
 
 ### v2.6.4-beta (2025-10-29)
 
@@ -617,23 +656,6 @@ separation between data structures and operations
 ---
 
 ### Future Features (v2.7.x+)
-
-#### Smart Keyspace Pattern Optimization
-
-**Keyspace Pattern Redundancy Detection** - Detect and simplify redundant key
-patterns
-
-- Analyze keyspace access patterns (`~pattern`) for redundancy
-- Detect when one pattern makes another redundant (e.g., `~*` makes `~abc:*`
-  redundant)
-- Show optimization suggestions similar to command/category optimization
-- Examples:
-  - `~* ~abc:*` → `~*` (saves 1 term)
-  - `~user:* ~user:123:*` → `~user:*` (saves 1 term)
-  - `~* ~cache:*` → `~*` (universal pattern covers all)
-- Backend pattern analysis with glob matching logic
-- Frontend integration with existing optimization UI
-- Estimate: 4-6 hours
 
 #### Docker Update Modal UX Improvements
 
