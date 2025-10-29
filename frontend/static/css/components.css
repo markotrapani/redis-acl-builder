@@ -2127,7 +2127,8 @@ button.test-button[disabled] {
   border-radius: var(--radius-lg);
   font-size: 0.875rem;
   line-height: 1.4;
-  max-width: min(50vw, 300px); /* Smaller for single column */
+  max-width: max-content; /* Fit content width for collapsed tooltips */
+  width: fit-content; /* Prevent unnecessary width */
   min-width: 150px; /* Smaller minimum */
   box-shadow: var(--shadow-lg);
   pointer-events: auto;
@@ -2397,7 +2398,7 @@ button.test-button[disabled] {
   gap: 12px !important;
   max-height: calc(100vh - 180px) !important; /* Maximize space: 20px margins + 103px title + 26px content padding + 30px buffer */
   overflow-y: auto !important;
-  padding-bottom: 40px !important; /* Generous padding to ensure last row is fully visible */
+  padding-bottom: 12px !important; /* Minimal padding - just enough for visual breathing room */
 }
 
 .enhanced-tooltip.expanded .tooltip-columns.cols-2 {
