@@ -1,6 +1,6 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.7.1-beta
+**Current Version:** v2.7.3-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
@@ -19,7 +19,43 @@ applications across macOS, Windows, and Linux.
 
 ## 🎯 Version History
 
-### v2.7.1-beta (2025-10-29)
+### v2.7.3-beta (2025-10-29)
+
+#### Docker Update Modal UX Improvements
+
+- ✅ **Copy Button Repositioning** - Fixed visual overlap in update modal
+  - Moved copy button outside code-block div to prevent text overlap
+  - Button now appears cleanly above Docker CLI command
+  - Removed absolute positioning for better visual hierarchy
+  - Enhanced hover effect with lift animation and shadow
+  - Improved UX for Docker users upgrading installations
+
+**Technical:** Restructured HTML with `.upgrade-command-section` wrapper,
+changed copy button from absolute to inline-block positioning, enhanced CSS
+hover effects at
+[frontend/static/js/version-checker.js:131-136](frontend/static/js/version-checker.js#L131-L136)
+and
+[frontend/static/css/components.css:3012-3053](frontend/static/css/components.css#L3012-L3053)
+
+---
+
+### v2.7.2-beta (2025-10-29)
+
+#### Local Build Workflow & Documentation
+
+- ✅ **Automated Local Build Script** - Fixed local desktop build process
+  - Created `scripts/build-local-desktop.sh` for reliable local DMG builds
+  - Fixed PyInstaller output path issue (`--distpath ../dist`)
+  - Verified complete backend bundle with `_internal` directory
+  - Build script validates bundle structure before Electron packaging
+  - Eliminates manual path copying and ensures reproducible builds
+
+**Technical:** Automated build script with validation checks, PyInstaller
+`--distpath` argument fix, comprehensive build verification
+
+---
+
+### v2.7.1-beta (2025-10-29) - Deleted/Rolled into v2.7.2-beta
 
 #### Critical Auto-Update Fix
 
@@ -624,14 +660,10 @@ etc.
    - **Status:** ✅ Completed (v2.6.3-beta)
 
 5. **Smart Tooltip Positioning** - Prevent jarring repositioning on expansion
-   - **Current:** Tooltip calculates position based on collapsed height, then
-     repositions when expanded, causing it to jump from below to above button
-   - **Need:** Calculate final position anticipating expanded height before
-     initial display
-   - **Implementation:** Detect if expanded tooltip will fit below button,
-     if not position above from the start
-   - **Benefits:** Smooth UX, tooltip stays near mouse cursor, no jarring jumps
-   - Estimate: 1-2 hours
+   - **Status:** ✅ Completed (v2.7.0-beta)
+   - Tooltips now stay near trigger button when expanding
+   - Falls back to viewport top only when necessary to prevent overflow
+   - Smooth UX with no jarring jumps
 
 #### Medium Priority (Nice to Have)
 
@@ -706,17 +738,6 @@ separation between data structures and operations
 ---
 
 ### Future Features (v2.7.x+)
-
-#### Docker Update Modal UX Improvements
-
-**Copy Button Positioning** - Improve upgrade command copy experience
-
-- Move copy button out of code block and position it above the Docker CLI
-  command
-- Better UX for copying upgrade commands
-- Prevents button from being part of the command text
-- Consistent with modern CLI documentation patterns
-- Estimate: 15-30 minutes
 
 #### Advanced ACL Tools
 
