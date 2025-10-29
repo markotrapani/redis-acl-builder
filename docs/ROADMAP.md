@@ -483,6 +483,16 @@ etc.
 4. **Category Tooltip Text Wrapping** - Improve command name readability
    - **Status:** ✅ Completed (v2.6.3-beta)
 
+5. **Smart Tooltip Positioning** - Prevent jarring repositioning on expansion
+   - **Current:** Tooltip calculates position based on collapsed height, then
+     repositions when expanded, causing it to jump from below to above button
+   - **Need:** Calculate final position anticipating expanded height before
+     initial display
+   - **Implementation:** Detect if expanded tooltip will fit below button,
+     if not position above from the start
+   - **Benefits:** Smooth UX, tooltip stays near mouse cursor, no jarring jumps
+   - Estimate: 1-2 hours
+
 #### Medium Priority (Nice to Have)
 
 **Test Windows and Linux Auto-Update** (Untested - Complex Setup Required)
