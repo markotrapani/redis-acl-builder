@@ -2127,9 +2127,7 @@ button.test-button[disabled] {
   border-radius: var(--radius-lg);
   font-size: 0.875rem;
   line-height: 1.4;
-  max-width: max-content; /* Fit content width for collapsed tooltips */
-  width: fit-content; /* Prevent unnecessary width */
-  min-width: 150px; /* Smaller minimum */
+  width: fit-content; /* Size precisely to content width */
   box-shadow: var(--shadow-lg);
   pointer-events: auto;
   opacity: 0;
