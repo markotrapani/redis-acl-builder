@@ -420,9 +420,14 @@ function setupAutoUpdater() {
             cancelId: 1
         }).then((result) => {
             if (result.response === 0) {
-                // Set isQuitting flag to allow window to close properly
+                // Set flags to allow clean auto-update restart
                 app.isQuitting = true;
-                autoUpdater.quitAndInstall();
+                app.isAutoUpdating = true;  // Special flag for auto-update flow
+
+                // Force quit and restart - isSilent=false (show), isForceRunAfter=true (restart immediately)
+                setImmediate(() => {
+                    autoUpdater.quitAndInstall(false, true);
+                });
             }
         });
     });
@@ -781,11 +786,25 @@ app.on('activate', () => {
 // Cleanup on quit
 app.on('will-quit', () => {
     console.log('📡 App will-quit event - cleaning up...');
+
+    // Skip cleanup during auto-update - let the updater handle it
+    if (app.isAutoUpdating) {
+        console.log('⚡ Auto-update in progress - skipping cleanup to allow restart');
+        return;
+    }
+
     cleanupAndExit();
 });
 
 app.on('before-quit', () => {
     console.log('📡 App before-quit event - cleaning up...');
     app.isQuitting = true;
+
+    // Skip cleanup during auto-update - let the updater handle it
+    if (app.isAutoUpdating) {
+        console.log('⚡ Auto-update in progress - skipping cleanup to allow restart');
+        return;
+    }
+
     cleanupAndExit();
 });
