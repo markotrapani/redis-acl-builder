@@ -90,29 +90,24 @@ const ACLUIRenderer = {
         const columnsContainer = document.createElement('div');
         columnsContainer.className = `tooltip-columns cols-${columns}`;
 
-        // Use fixed column width to avoid expensive text measurement
-        // This is much faster than measuring every command name
-        const minColumnWidth = 180; // Fixed width for consistent, fast rendering
+        // Let columns size to content for better space utilization
         const gap = 12; // Gap between columns (reduced for tighter spacing)
-        const requiredWidth = (columns * minColumnWidth) + ((columns - 1) * gap);
 
-        // Set explicit width and flexbox layout to prevent wrapping
+        // Set flexbox layout to prevent wrapping
         columnsContainer.style.display = 'flex'; // CRITICAL: Force flexbox (overrides grid)
         columnsContainer.style.flexDirection = 'row'; // CRITICAL: Horizontal layout
-        columnsContainer.style.width = `${requiredWidth}px`;
-        columnsContainer.style.minWidth = `${requiredWidth}px`;
-        columnsContainer.style.maxWidth = `${requiredWidth}px`;
         columnsContainer.style.gap = `${gap}px`; // Override CSS gap
         columnsContainer.style.flexWrap = 'nowrap'; // CRITICAL: Prevent column wrapping
         columnsContainer.style.overflow = 'visible'; // Allow content to be visible
+        columnsContainer.style.width = 'fit-content'; // Size to actual content width
 
         columnData.forEach(columnItems => {
             const columnDiv = document.createElement('div');
             columnDiv.className = 'tooltip-column';
-            columnDiv.style.width = `${minColumnWidth}px`; // Fixed width, not flex
-            columnDiv.style.minWidth = `${minColumnWidth}px`;
-            columnDiv.style.maxWidth = `${minColumnWidth}px`;
-            columnDiv.style.flex = 'none'; // Disable flex growing/shrinking
+            // Let columns size to their content, with minimum width for consistency
+            columnDiv.style.minWidth = '160px'; // Minimum width for readability
+            columnDiv.style.width = 'fit-content'; // Size to content
+            columnDiv.style.flex = '0 0 auto'; // Don't grow or shrink
 
             const ul = document.createElement('ul');
             columnItems.forEach(item => {
