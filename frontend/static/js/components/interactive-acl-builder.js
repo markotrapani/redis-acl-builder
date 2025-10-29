@@ -1452,11 +1452,11 @@ const InteractiveACLBuilder = {
         header.textContent = `${emoji} ${sectionTitle}`;
         section.appendChild(header);
 
-        // Sort categories alphabetically
-        const sortedCategories = [...categories].sort();
+        // IMPORTANT: DO NOT sort categories - preserve the priority order from caller
+        // Categories are already ordered by priority (explicit full → implicit full → explicit partial → implicit partial)
 
         // Render category buttons
-        for (const category of sortedCategories) {
+        for (const category of categories) {
             const categoryAnalysis = categoryAnalysisMap ? categoryAnalysisMap[category] : null;
             const button = await this.createCategoryButton(category, state, categoryAnalysis, blockType);
             // Reset display style to ensure SearchManager doesn't hide it
@@ -1748,15 +1748,19 @@ const InteractiveACLBuilder = {
                 const analyses = await Promise.all(categoryAnalysisPromises);
 
                 // Separate categories by type (Data Types vs ACL/Operational)
+                // CRITICAL: Preserve the original priority order within each section
                 const dataTypeCategories = [];
                 const aclCategories = [];
                 const analysisMap = {};
 
+                // First pass: build analysis map
                 for (const { category, categoryAnalysis } of analyses) {
-                    // Store analysis for later use
                     analysisMap[category] = categoryAnalysis;
+                }
 
-                    // Classify category (skip @all, it's handled specially)
+                // Second pass: classify and preserve order from effectivelyGrantedCategories
+                for (const category of effectivelyGrantedCategories) {
+                    // Skip @all, it's handled specially
                     if (category === 'all') {
                         continue; // @all will be rendered first outside sections
                     }
@@ -1835,13 +1839,11 @@ const InteractiveACLBuilder = {
                 }
             }
 
-            // Update the granted categories header (exclude @all and partial categories from count)
-            // Only count FULLY granted categories (explicit or implicit via @all)
-            const fullyGrantedCategories = effectivelyGrantedCategories.filter(cat =>
-                cat !== 'all' && !implicitPartialCategories.has(cat)
-            );
+            // Update the granted categories header (count ALL visible granted categories, including partial)
+            // effectivelyGrantedCategories already contains all categories shown (full + partial)
+            const grantedCategoryCount = effectivelyGrantedCategories.filter(cat => cat !== 'all').length;
             const totalCategories = this.state.allCategories.filter(cat => cat !== 'all').length;
-            this.updateCategorySectionHeader('granted', fullyGrantedCategories.length, totalCategories);
+            this.updateCategorySectionHeader('granted', grantedCategoryCount, totalCategories);
         }
 
         // Render available categories as clickable buttons
@@ -2197,15 +2199,9 @@ const InteractiveACLBuilder = {
             // The "No categories available" message is now shown earlier (before @all button)
             // This block is no longer needed
 
-            // Update the blocked categories header (exclude @all and partial categories from count)
-            // Only count FULLY blocked categories (explicit blocks + available/not granted)
-            const fullyBlockedCategories = effectivelyBlockedCategories.filter(cat =>
-                cat !== 'all' && !implicitPartialBlockedCategories.has(cat)
-            );
-            const fullyAvailableCategories = availableCategories.filter(cat =>
-                cat !== 'all' && !implicitPartialBlockedCategories.has(cat)
-            );
-            const blockedCategoryCount = fullyBlockedCategories.length + fullyAvailableCategories.length;
+            // Update the blocked categories header (count ALL visible blocked categories, including partial)
+            // blockedCategories array already contains all categories that will be rendered (full + partial + available)
+            const blockedCategoryCount = blockedCategories.filter(item => item.category !== 'all').length;
             const totalCategories = this.state.allCategories.filter(cat => cat !== 'all').length;
             this.updateCategorySectionHeader('blocked', blockedCategoryCount, totalCategories);
         }

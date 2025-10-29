@@ -755,7 +755,7 @@ button.test-button[disabled] {
   border-color: #1565c0 !important;
 }
 /* Interactive buttons for categories and commands */
-.category-button, 
+.category-button,
 .command-button {
   padding: var(--spacing-sm) 12px;
   border: 1px solid var(--border);
@@ -771,7 +771,8 @@ button.test-button[disabled] {
   word-wrap: break-word;
   overflow-wrap: break-word;
   max-width: 100%;
-  flex-shrink: 1;
+  flex: 0 1 auto; /* Don't grow, allow shrink, auto width based on content */
+  min-width: fit-content; /* Respect content width but allow wrapping words if needed */
 }
 
 /* Category button specific styling */

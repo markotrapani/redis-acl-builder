@@ -1,6 +1,6 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.6.5-beta
+**Current Version:** v2.7.0-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
@@ -18,6 +18,41 @@ applications across macOS, Windows, and Linux.
 ---
 
 ## 🎯 Version History
+
+### v2.7.0-beta (2025-10-29)
+
+#### Category UI & Organization Improvements
+
+- ✅ **Category Organization** - Improved category panel structure
+  - Separated categories into "Data Types" and "ACL/Operational" sections
+  - Section headers clearly indicate category type (📦 Data Types vs ⚙️
+    ACL/Operational)
+  - Maintains priority ordering within each section (explicit → implicit,
+    full → partial)
+  - Better visual hierarchy and navigation
+
+- ✅ **Category Search Refinement** - Enhanced search experience
+  - Section headers automatically hide during active searches
+  - Matched categories display prominently without visual clutter
+  - Perfect restoration of original layout when search is cleared
+  - DOM cloning ensures button positions remain stable after search
+
+- ✅ **Accurate Category Counts** - Fixed count display logic
+  - Count headers now accurately reflect all visible categories
+  - Includes both fully and partially granted/blocked categories in totals
+  - Eliminates confusing discrepancies between count and visible buttons
+  - Fixed double-counting bug in granted/blocked category calculations
+
+- ✅ **Button Layout Optimization** - Improved category button wrapping
+  - Better space utilization with `flex: 0 1 auto` + `min-width: fit-content`
+  - Reduced awkward gaps and orphaned buttons on wrapping
+  - Natural wrapping behavior that respects content width
+
+- ✅ **Tooltip Positioning** - Smart tooltip expansion behavior
+  - Tooltips stay near trigger button when expanding (instead of always
+    jumping to top)
+  - Falls back to viewport top only when necessary to prevent overflow
+  - Improved user experience when exploring command details
 
 ### v2.6.5-beta (2025-10-29)
 

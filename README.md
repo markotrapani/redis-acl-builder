@@ -569,6 +569,35 @@ synchronization, drag-drop panel reordering, and perfect responsive design
 
 ## ✨ What's New
 
+### v2.7.0-beta
+
+- **📦 Category Organization**: Improved category panel structure and clarity
+  - Separated categories into "Data Types" and "ACL/Operational" sections
+  - Section headers clearly indicate category type for better navigation
+  - Maintains priority ordering within each section (explicit → implicit, full →
+    partial)
+- **🔍 Category Search Refinement**: Enhanced search experience
+  - Category section headers automatically hide during active searches
+  - Matched categories display prominently without visual clutter
+  - Perfect restoration of original layout when search is cleared
+  - DOM cloning ensures button positions remain stable
+- **📊 Accurate Category Counts**: Fixed category count display logic
+  - Count headers now accurately reflect all visible categories
+  - Includes both fully and partially granted/blocked categories in totals
+  - Eliminates confusing discrepancies between count and visible buttons
+- **🎨 Button Layout Optimization**: Improved category button wrapping
+  - Better space utilization with `flex: 0 1 auto` and `min-width: fit-content`
+  - Reduced awkward gaps and orphaned buttons
+  - Natural wrapping behavior that respects content width
+- **🔧 Tooltip Positioning**: Smart tooltip expansion behavior
+  - Tooltips stay near trigger button when expanding (instead of always jumping
+    to top)
+  - Falls back to viewport top only when necessary to prevent overflow
+  - Improved user experience when exploring command details
+
+<details>
+<summary><strong>View Previous v2.x Releases</strong></summary>
+
 ### v2.3.4-beta
 
 - **🎨 UI/UX Improvements** (from v2.3.2-beta): Version badge and update button
@@ -587,9 +616,6 @@ synchronization, drag-drop panel reordering, and perfect responsive design
   - Updated all version references across README.md, CLAUDE.md, ROADMAP.md
   - Added comprehensive v2.3.2-beta and v2.3.4-beta accomplishment tracking
   - Ensures complete documentation parity between Docker and Desktop platforms
-
-<details>
-<summary><strong>View Previous v2.x Releases</strong></summary>
 
 ### v2.3.2-beta
 

@@ -343,42 +343,38 @@ const SearchManager = {
 
         if (!buttonsContainer) return;
 
-        // If search is empty, restore original order
+        // If search is empty, restore original DOM structure from saved clone
         if (!searchTermLower) {
-            categoryButtons.forEach(button => {
-                button.style.display = '';
-                // Restore original order by using dataset.originalIndex
-                const originalIndex = parseInt(button.dataset.originalIndex || '0');
-                button.dataset.currentIndex = originalIndex;
-            });
+            // Check if we have a saved clone of the original structure
+            const savedClone = buttonsContainer.dataset.originalStructureClone;
+            if (savedClone) {
+                // Restore the entire original structure
+                buttonsContainer.innerHTML = savedClone;
+                // Clean up the saved clone
+                delete buttonsContainer.dataset.originalStructureClone;
+            } else {
+                // Fallback: just show all buttons (shouldn't happen in normal flow)
+                categoryButtons.forEach(button => {
+                    button.style.display = '';
+                });
 
-            // Sort by original index to restore order
-            const buttonsArray = Array.from(categoryButtons);
-            buttonsArray.sort((a, b) => {
-                const aIndex = parseInt(a.dataset.originalIndex || '0');
-                const bIndex = parseInt(b.dataset.originalIndex || '0');
-                return aIndex - bIndex;
-            });
-
-            // Re-append in original order (skip buttons inside .category-section for v2.7.0 organization)
-            buttonsArray.forEach(button => {
-                // Skip if button is inside a .category-section or is a special category (@all)
-                if (!button.closest('.category-section') && !button.dataset.specialCategory) {
-                    buttonsContainer.appendChild(button);
-                }
-            });
+                const categorySections = container.querySelectorAll('.category-section');
+                categorySections.forEach(section => {
+                    section.style.display = '';
+                });
+            }
 
             this.updateResultsCount(containerId, categoryButtons.length, categoryButtons.length, 'categories');
             return;
         }
 
-        // Store original indices if not already stored
-        categoryButtons.forEach((button, index) => {
-            if (!button.dataset.originalIndex) {
-                button.dataset.originalIndex = index.toString();
-            }
-        });
+        // Save original DOM structure before first search (for perfect restoration later)
+        if (!buttonsContainer.dataset.originalStructureClone) {
+            buttonsContainer.dataset.originalStructureClone = buttonsContainer.innerHTML;
+        }
 
+        // Filter categories and temporarily move matched ones out of hidden sections
+        // IMPORTANT: Must move buttons OUT of sections because parent display:none hides children
         let visibleCount = 0;
         const matchedButtons = [];
 
@@ -388,24 +384,27 @@ const SearchManager = {
 
             if (matches) {
                 visibleCount++;
-                // Calculate match score for sorting
-                const score = this.calculateMatchScore(categoryName, searchTermLower);
-                matchedButtons.push({ button, score });
+                matchedButtons.push(button);
             } else {
                 button.style.display = 'none';
             }
         });
 
-        // Sort matched buttons by score (higher score = better match = appears first)
-        matchedButtons.sort((a, b) => b.score - a.score);
-
-        // Re-append buttons in sorted order (by relevance score)
-        matchedButtons.forEach(({ button }) => {
+        // Move matched buttons to main container (outside hidden sections)
+        matchedButtons.forEach(button => {
             button.style.display = '';
-            buttonsContainer.appendChild(button);
+            if (button.parentElement !== buttonsContainer) {
+                buttonsContainer.appendChild(button);
+            }
         });
 
-        // Update results count (optional enhancement)
+        // Hide all category sections when search is active
+        const categorySections = container.querySelectorAll('.category-section');
+        categorySections.forEach(section => {
+            section.style.display = 'none';
+        });
+
+        // Update results count
         this.updateResultsCount(containerId, visibleCount, categoryButtons.length, 'categories');
     },
 

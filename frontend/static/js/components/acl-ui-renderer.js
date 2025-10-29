@@ -711,8 +711,33 @@ const ACLUIRenderer = {
                                 }
                                 tooltipElement.style.left = `${newLeft}px`;
 
-                                // Adjust vertical position - always top for expanded to maximize space
-                                tooltipElement.style.top = `${margin + scrollTop}px`;
+                                // Adjust vertical position - try to keep near button, only move if necessary
+                                let newTop = currentTop;
+
+                                // Check if expanded tooltip would overflow bottom of viewport
+                                if (currentTop + expandedRect.height > window.innerHeight + scrollTop - margin) {
+                                    // Would overflow bottom - try positioning above button instead
+                                    const buttonRect = button.getBoundingClientRect();
+                                    const aboveButtonTop = buttonRect.top + scrollTop - expandedRect.height - 8;
+
+                                    if (aboveButtonTop >= margin + scrollTop) {
+                                        // Fits above button
+                                        newTop = aboveButtonTop;
+                                    } else {
+                                        // Doesn't fit above or below - position at top of viewport for maximum visibility
+                                        newTop = margin + scrollTop;
+                                    }
+                                } else {
+                                    // Fits below button at current position - keep it there
+                                    newTop = currentTop;
+                                }
+
+                                // Ensure tooltip doesn't go above viewport
+                                if (newTop < margin + scrollTop) {
+                                    newTop = margin + scrollTop;
+                                }
+
+                                tooltipElement.style.top = `${newTop}px`;
 
                                 // Skip the old size constraint logic - CSS handles all sizing now
                                 if (false) {
