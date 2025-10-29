@@ -412,6 +412,51 @@ def api_optimize_rule() -> Union[Response, Tuple[Response, int]]:
         logger.error(f"Error in api_optimize_rule: {str(e)}")
         return handle_api_error(f"Internal error: {str(e)}", 500)
 
+@app.route('/api/optimize-keyspace', methods=['POST'])
+def api_optimize_keyspace() -> Union[Response, Tuple[Response, int]]:
+    """
+    Optimize keyspace patterns for redundancy.
+
+    Request body:
+    {
+        "patterns": ["*", "abc:*", "user:*"]
+    }
+
+    Response:
+    {
+        "original": ["*", "abc:*", "user:*"],
+        "optimized": ["*"],
+        "redundancies": [
+            {"pattern": "abc:*", "made_redundant_by": "*"},
+            {"pattern": "user:*", "made_redundant_by": "*"}
+        ],
+        "savings": 2
+    }
+    """
+    try:
+        data = request.get_json()
+
+        if not data or 'patterns' not in data:
+            return handle_api_error('Missing required field: patterns')
+
+        patterns = data['patterns']
+
+        if not isinstance(patterns, list):
+            return handle_api_error('patterns must be an array')
+
+        # Remove empty patterns
+        patterns = [p.strip() for p in patterns if p and p.strip()]
+
+        # Optimize patterns
+        from helpers.pattern_optimizer import PatternOptimizer
+        result = PatternOptimizer.optimize_patterns(patterns)
+
+        return jsonify(result)
+
+    except Exception as e:
+        logger.error(f"Error in api_optimize_keyspace: {str(e)}")
+        return handle_api_error(f"Internal error: {str(e)}", 500)
+
 @app.route('/api/test-command-key', methods=['POST'])
 def api_test_command_key() -> Union[Response, Tuple[Response, int]]:
     """Test if a command on a specific key is allowed (integrated command+key testing)."""

@@ -208,7 +208,6 @@ const InteractiveACLBuilder = {
                         const cacheKey = `${AppState.currentVersion}:${category}`;
                         this._categoryCommandsCache.set(cacheKey, commands);
                     }
-                    console.log(`✅ Pre-populated cache for ${Object.keys(groupedResponse.grouped_commands).length} categories`);
                 }
             } catch (error) {
                 console.warn('⚠️ Failed to pre-populate category cache:', error);
@@ -439,8 +438,9 @@ const InteractiveACLBuilder = {
         const redundantExclusions = await this.detectRedundantExclusions();
         const implicitCategories = await this.detectImplicitFullyGrantedCategories();
         const blockThenRegrantPatterns = await this.detectBlockThenRegrantPatterns();
+        const keyspaceOptimization = await this.analyzeKeyspacePatterns(ruleText);
 
-        const hasOptimizations = redundantExclusions.length > 0 || implicitCategories.length > 0 || blockThenRegrantPatterns.length > 0;
+        const hasOptimizations = redundantExclusions.length > 0 || implicitCategories.length > 0 || blockThenRegrantPatterns.length > 0 || keyspaceOptimization;
 
         // If no frontend optimizations were detected, no need to show anything
         if (!hasOptimizations) {
@@ -713,6 +713,69 @@ const InteractiveACLBuilder = {
 
                     suggestionsList.appendChild(suggestionDiv);
                 });
+
+                // Add suggestions for redundant keyspace patterns
+                if (keyspaceOptimization) {
+                    const { original, optimized, redundancies, savings } = keyspaceOptimization;
+
+                    // Build the optimized rule by replacing redundant patterns with optimized ones
+                    const tokens = ruleText.split(/\s+/);
+                    const optimizedTokens = tokens.map(token => {
+                        // Check if this token is a keyspace pattern
+                        if (token.startsWith('~') || token.includes('~')) {
+                            // Extract pattern from token
+                            const tildeIndex = token.indexOf('~');
+                            const pattern = token.substring(tildeIndex + 1);
+
+                            // If this pattern was made redundant, skip it
+                            if (redundancies.some(r => r.pattern === pattern)) {
+                                return null; // Mark for removal
+                            }
+                        }
+                        return token;
+                    }).filter(t => t !== null).join(' ');
+
+                    // Only add warning if backend hasn't already provided warnings
+                    if (!backendHasWarnings) {
+                        const warningDiv = document.createElement('div');
+                        warningDiv.className = 'warning-item';
+                        if (savings === 1) {
+                            warningDiv.textContent = `Redundant keyspace pattern detected: 1 pattern can be removed.`;
+                        } else {
+                            warningDiv.textContent = `Redundant keyspace patterns detected: ${savings} patterns can be removed.`;
+                        }
+                        warningsList.appendChild(warningDiv);
+                    }
+
+                    // Add suggestion with clickable simplified rule
+                    const suggestionDiv = document.createElement('div');
+                    suggestionDiv.className = 'suggestion-item';
+                    suggestionDiv.appendChild(document.createTextNode('Optimized patterns: '));
+
+                    const ruleSpan = DOMUtils.createClickableRule(optimizedTokens, async () => {
+                        // Update ACL rule textarea with optimized rule
+                        this.elements.aclRuleInput.value = optimizedTokens;
+
+                        // Sync state from updated rule
+                        await this.syncFromRuleText();
+
+                        // Re-render UI
+                        this.scheduleRender();
+
+                        // Trigger re-analysis which will clear the warnings/suggestions
+                        import('../managers/rule-manager.js').then(({ default: RuleManager }) => {
+                            RuleManager.parseRule();
+                        });
+
+                        // Show success notification
+                        import('../core/utils.js').then(({ default: Utils }) => {
+                            Utils.showNotification(`Applied optimization: removed ${savings} redundant keyspace pattern${savings > 1 ? 's' : ''}`, 'success');
+                        });
+                    });
+                    suggestionDiv.appendChild(ruleSpan);
+
+                    suggestionsList.appendChild(suggestionDiv);
+                }
 
                 // Show the warnings container if it's hidden
                 warningsContainer.style.display = 'block';
@@ -1374,11 +1437,7 @@ const InteractiveACLBuilder = {
      * @param {string} blockType - Block type for blocked categories
      */
     async renderCategorySection(container, sectionTitle, categories, state, categoryAnalysisMap = null, blockType = null) {
-        console.log(`[renderCategorySection] Section: ${sectionTitle}, Categories:`, categories, 'State:', state);
-        console.log(`[renderCategorySection] categoryAnalysisMap:`, categoryAnalysisMap);
-
         if (categories.length === 0) {
-            console.log(`[renderCategorySection] Skipping empty section: ${sectionTitle}`);
             return; // Don't render empty sections
         }
 
@@ -1399,29 +1458,13 @@ const InteractiveACLBuilder = {
         // Render category buttons
         for (const category of sortedCategories) {
             const categoryAnalysis = categoryAnalysisMap ? categoryAnalysisMap[category] : null;
-            console.log(`[renderCategorySection] Rendering button for ${category}, analysis:`, categoryAnalysis);
             const button = await this.createCategoryButton(category, state, categoryAnalysis, blockType);
             // Reset display style to ensure SearchManager doesn't hide it
             button.style.display = '';
-            console.log(`[renderCategorySection] Button created for ${category}:`, button);
             section.appendChild(button);
         }
 
-        console.log(`[renderCategorySection] Appending section to container, section has ${section.children.length} children`);
         container.appendChild(section);
-
-        // Check if button is still there after appending
-        const sectionId = `section-${sectionTitle.replace(/\s+/g, '-')}`;
-        section.dataset.sectionId = sectionId;
-        setTimeout(() => {
-            const checkSection = container.querySelector(`[data-section-id="${sectionId}"]`);
-            if (checkSection) {
-                console.log(`[renderCategorySection] POST-APPEND CHECK (${sectionTitle}): Section in DOM has ${checkSection.children.length} children`);
-                if (checkSection.children.length === 1) {
-                    console.error(`[renderCategorySection] BUG! Button disappeared for section "${sectionTitle}"!`);
-                }
-            }
-        }, 100);
     },
 
     /**
@@ -1719,15 +1762,12 @@ const InteractiveACLBuilder = {
                     }
 
                     const categoryType = classifyCategory(category);
-                    console.log(`[Category Classification] ${category} → ${categoryType}`);
                     if (categoryType === 'data-type') {
                         dataTypeCategories.push(category);
                     } else {
                         aclCategories.push(category);
                     }
                 }
-                console.log('[Category Organization] Data Types:', dataTypeCategories);
-                console.log('[Category Organization] ACL/Operational:', aclCategories);
 
                 // Render @all first (if present) - outside sections for prominence
                 if (effectivelyGrantedCategories.includes('all')) {
@@ -3332,6 +3372,76 @@ const InteractiveACLBuilder = {
 
         const rootRule = rootParts.join(' ').trim();
         return { rootRule, selectors };
+    },
+
+    /**
+     * Extract keyspace patterns from ACL rule
+     * @param {string} aclRule - Full ACL rule string
+     * @returns {string[]} - Array of keyspace patterns (without ~ prefix)
+     */
+    extractKeyspacePatterns(aclRule) {
+        const patterns = [];
+        const tokens = aclRule.split(/\s+/).filter(token => token.length > 0);
+
+        for (const token of tokens) {
+            // Match tokens starting with ~ (keyspace patterns)
+            // Includes: ~*, ~user:*, %R~*, %W~cache:*, %RW~*
+            if (token.startsWith('~')) {
+                // Remove ~ prefix and any permission flags (%R, %W, %RW)
+                let pattern = token.substring(1); // Remove ~
+                patterns.push(pattern);
+            } else if (token.includes('~')) {
+                // Handle permission-flagged patterns like %R~*, %W~user:*
+                const tildeIndex = token.indexOf('~');
+                const pattern = token.substring(tildeIndex + 1); // Extract after ~
+                patterns.push(pattern);
+            }
+        }
+
+        return patterns;
+    },
+
+    /**
+     * Analyze keyspace patterns for redundancy
+     * @param {string} aclRule - Full ACL rule string
+     * @returns {Promise<Object|null>} - Optimization result or null if no patterns
+     */
+    async analyzeKeyspacePatterns(aclRule) {
+        try {
+            // Extract patterns from rule
+            const patterns = this.extractKeyspacePatterns(aclRule);
+
+            // No patterns = nothing to optimize
+            if (patterns.length === 0) {
+                return null;
+            }
+
+            // Call backend API to analyze redundancies
+            const response = await fetch('/api/optimize-keyspace', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ patterns })
+            });
+
+            if (!response.ok) {
+                console.warn('⚠️ Keyspace optimization API error:', response.status);
+                return null;
+            }
+
+            const result = await response.json();
+
+            // Return null if no optimization possible
+            if (result.savings === 0) {
+                return null;
+            }
+
+            return result;
+        } catch (error) {
+            console.warn('⚠️ Failed to analyze keyspace patterns:', error);
+            return null;
+        }
     },
 
     /**
