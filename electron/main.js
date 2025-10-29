@@ -420,6 +420,8 @@ function setupAutoUpdater() {
             cancelId: 1
         }).then((result) => {
             if (result.response === 0) {
+                // Set isQuitting flag to allow window to close properly
+                app.isQuitting = true;
                 autoUpdater.quitAndInstall();
             }
         });

@@ -1,6 +1,6 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.7.0-beta
+**Current Version:** v2.7.1-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
@@ -18,6 +18,21 @@ applications across macOS, Windows, and Linux.
 ---
 
 ## 🎯 Version History
+
+### v2.7.1-beta (2025-10-29)
+
+#### Critical Auto-Update Fix
+
+- ✅ **Auto-Update Restart Fix** - Resolved critical regression in Electron app
+  - Fixed restart button not closing app during auto-update flow
+  - Set `app.isQuitting = true` before calling `autoUpdater.quitAndInstall()`
+  - Prevents window close handler from blocking the update restart
+  - Ensures smooth auto-update experience for users
+
+**Technical:** Added `app.isQuitting = true` in `update-downloaded` event handler
+before `autoUpdater.quitAndInstall()` call at [electron/main.js:424](electron/main.js#L424)
+
+---
 
 ### v2.7.0-beta (2025-10-29)
 
