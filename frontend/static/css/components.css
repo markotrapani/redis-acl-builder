@@ -3009,13 +3009,18 @@ body.dark-theme .check-updates-btn:active {
   color: #4caf50;
 }
 
+/* Upgrade command section wrapper */
+.update-modal-content .upgrade-command-section {
+  margin: 10px 0;
+}
+
 .update-modal-content .code-block {
   position: relative;
   background-color: #2d2d2d;
   color: #f8f8f2;
   padding: 15px;
   border-radius: 5px;
-  margin: 10px 0;
+  margin-top: 8px;
   overflow-x: auto;
   font-family: 'Courier New', monospace;
   font-size: 13px;
@@ -3028,21 +3033,23 @@ body.dark-theme .check-updates-btn:active {
 }
 
 .update-modal-content .copy-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 5px 10px;
+  padding: 6px 12px;
   background-color: #4caf50;
   color: white;
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.2s;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: inline-block;
+  margin-bottom: 0;
 }
 
 .update-modal-content .copy-btn:hover {
   background-color: #45a049;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
 }
 
 .update-modal-content .copy-btn.copied {
