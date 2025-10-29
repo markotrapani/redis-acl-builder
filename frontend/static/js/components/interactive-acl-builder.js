@@ -18,6 +18,34 @@ import ACLCategoryManager from './acl-category-manager.js';
 import ACLUIRenderer from './acl-ui-renderer.js';
 import ACLStateManager from './acl-state-manager.js';
 
+// Category classification for visual organization (v2.7.0-beta)
+const DATA_TYPE_CATEGORIES = new Set([
+    'bitmap', 'bloom', 'cms', 'cuckoo', 'geo', 'hash',
+    'hyperloglog', 'json', 'list', 'pubsub', 'set',
+    'sortedset', 'stream', 'string', 'tdigest', 'timeseries', 'topk'
+]);
+
+const ACL_CATEGORIES = new Set([
+    'admin', 'blocking', 'connection', 'dangerous', 'fast',
+    'keyspace', 'read', 'scripting', 'search', 'slow',
+    'transaction', 'write'
+]);
+
+/**
+ * Classify a category as data type or ACL/operational
+ * @param {string} category - Category name without @ prefix
+ * @returns {'data-type'|'acl'} Category type
+ */
+function classifyCategory(category) {
+    if (DATA_TYPE_CATEGORIES.has(category)) {
+        return 'data-type';
+    } else if (ACL_CATEGORIES.has(category)) {
+        return 'acl';
+    }
+    // Default to ACL if unknown (future-proofing for new categories)
+    return 'acl';
+}
+
 const InteractiveACLBuilder = {
     // State management
     state: {
@@ -1334,6 +1362,44 @@ const InteractiveACLBuilder = {
                 await this.checkAndAutoOptimize();
             }
         }, 50); // Reduced since we now use proper frame timing for overlay removal
+    },
+
+    /**
+     * Helper to render a category section with header and buttons
+     * @param {HTMLElement} container - Container element to append to
+     * @param {string} sectionTitle - Section title (e.g., "Data Types")
+     * @param {Array<string>} categories - Categories to render in this section
+     * @param {string} state - Button state (granted/blocked/available)
+     * @param {Object} categoryAnalysisMap - Map of category analyses
+     * @param {string} blockType - Block type for blocked categories
+     */
+    async renderCategorySection(container, sectionTitle, categories, state, categoryAnalysisMap = null, blockType = null) {
+        if (categories.length === 0) {
+            return; // Don't render empty sections
+        }
+
+        // Create section container
+        const section = document.createElement('div');
+        section.className = 'category-section';
+
+        // Create section header
+        const header = document.createElement('h4');
+        header.className = 'category-section-header';
+        const emoji = sectionTitle === 'Data Types' ? '📦' : '⚙️';
+        header.textContent = `${emoji} ${sectionTitle}`;
+        section.appendChild(header);
+
+        // Sort categories alphabetically
+        const sortedCategories = [...categories].sort();
+
+        // Render category buttons
+        for (const category of sortedCategories) {
+            const categoryAnalysis = categoryAnalysisMap ? { [category]: categoryAnalysisMap[category] } : null;
+            const button = await this.createCategoryButton(category, state, categoryAnalysis, blockType);
+            section.appendChild(button);
+        }
+
+        container.appendChild(section);
     },
 
     /**
