@@ -21,16 +21,34 @@ applications across macOS, Windows, and Linux.
 
 ### v2.6.3-beta (2025-10-28)
 
-#### Tooltip UX Improvements
+#### Tooltip UX Improvements (5 fixes)
 
-- ✅ **Category Tooltip Text Wrapping Fix** - Improved command name readability
-  - Command names no longer wrap when tooltip is compressed against window edge
-  - Added `white-space: nowrap` for cleaner visual appearance
-  - Added fine outline around each command name to visually distinguish them
+- ✅ **Collapsed Tooltip Width Optimization** - Precise content-based sizing
+  - Changed from fixed `min(50vw, 300px)` to `fit-content`
+  - Tooltips now size precisely to their content width
+  - Eliminates unnecessary horizontal whitespace
+
+- ✅ **Expanded Tooltip Bottom Padding** - Better space utilization
+  - Reduced from 40px to 12px
+  - Maximizes content visibility while maintaining breathing room
+  - Eliminates excessive whitespace at bottom
+
+- ✅ **Tooltip Column Widths** - Efficient multi-column layout
+  - Changed from fixed 180px to `fit-content` with 160px minimum
+  - Columns now size to actual content
+  - Removes excessive whitespace in third column
+
+- ✅ **Description Text Wrapping** - Narrower, more efficient tooltips
+  - Added 250px max-width constraint
+  - Long descriptions wrap onto multiple lines
+  - Command names remain on single lines with `white-space: nowrap`
+
+- ✅ **Category Tooltip Text Wrapping** - Visual distinction
+  - Added fine outline around command names
   - Better professional appearance and readability
 
-**Technical:** CSS `white-space: nowrap` on command name elements, subtle
-border styling for visual distinction
+**Technical:** CSS width optimizations (`fit-content`, `max-width: 250px`),
+padding adjustments, `white-space: nowrap` on command names
 
 ---
 
