@@ -1,11 +1,11 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.6.3-beta
+**Current Version:** v2.6.4-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
 
-**Last Updated:** 2025-10-28
+**Last Updated:** 2025-10-29
 
 ---
 
@@ -18,6 +18,37 @@ applications across macOS, Windows, and Linux.
 ---
 
 ## 🎯 Version History
+
+### v2.6.4-beta (2025-10-29)
+
+#### Category Organization by Type
+
+- ✅ **Visual Category Organization** - Improved UI structure for category
+  display
+  - Categories now grouped into "📦 Data Types" and "⚙️ ACL/Operational"
+    sections
+  - Data types: hash, list, string, json, timeseries, bloom, etc.
+  - ACL/Operational: read, write, admin, dangerous, fast, slow, etc.
+  - Alphabetical sorting within each section
+  - @all category always appears first (above both sections)
+  - Consistent minimal spacing (4px) between all buttons and sections
+
+- ✅ **SearchManager Integration** - Smart handling of category sections
+  - Prevents section buttons from being reordered during search operations
+  - Special @all button handling to maintain top position
+  - Section headers remain visible with organized categories
+
+- ✅ **CSS Optimization** - Consistent spacing throughout UI
+  - Unified button spacing: 4px gap for categories, commands, and sections
+  - Removed conflicting margin rules from themes.css
+  - Clean section styling with subtle headers
+
+**Technical:** Category classification with DATA_TYPE_CATEGORIES and
+ACL_CATEGORIES constants, renderCategorySection() helper method,
+SearchManager skip logic for `.category-section` elements, CSS
+`gap: var(--spacing-xs)` consistency
+
+---
 
 ### v2.6.3-beta (2025-10-28)
 
@@ -453,6 +484,8 @@ etc.
 
 ### Next Up: Desktop App Polish (v2.7.x)
 
+**Priority Order**: Quick Wins (#5 below) → Custom App Icons → Medium Priority items
+
 #### High Priority (User Requested)
 
 1. **Create Custom App Icons** (Design Improvement)
@@ -549,24 +582,24 @@ etc.
 - ✅ **Total Test Suite** - 255 tests (227 backend + 28 E2E), 100% pass
   rate
 
-### In Progress (v2.7.x)
+### Completed Features (v2.6.4-beta)
 
-#### Category Organization by Type
+#### Feature: Category Organization by Type
 
-**Status**: 🔄 In Progress - Infrastructure Complete, UI Integration Pending
+**Status**: ✅ Complete
 
 **Goal**: Split categories into two logical sections in Blocked/Granted panels
 
-**Progress**:
+**Implementation**:
 
 - ✅ Phase 1: Classification infrastructure (DATA_TYPE_CATEGORIES,
   ACL_CATEGORIES constants)
-- ✅ Phase 1: Helper function classifyCategory()
-- ✅ Phase 1: renderCategorySection() method with alphabetical sorting
-- ⏳ Phase 2: Integrate section rendering into renderCategoryButtons()
-- ⏳ Phase 3: Add subtle CSS styling for section headers
-- ⏳ Phase 4: Test and adjust visual appearance
-- ⏳ Phase 5: Complete and commit feature
+- ✅ Phase 2: Helper function classifyCategory()
+- ✅ Phase 3: renderCategorySection() method with alphabetical sorting
+- ✅ Phase 4: Integrated section rendering into renderCategoryButtons()
+- ✅ Phase 5: Added subtle CSS styling for section headers
+- ✅ Phase 6: SearchManager integration with skip logic
+- ✅ Phase 7: CSS optimization for consistent spacing (4px gaps)
 
 **Design**:
 

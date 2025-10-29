@@ -78,8 +78,22 @@ pwd && git remote get-url origin
 
 ⚠️ **CRITICAL: ALWAYS rebuild minified CSS/JS after making changes!**
 
+⚠️ **CRITICAL: ALWAYS review NON-MINIFIED CSS source files, NOT
+styles.min.css!**
+
 **Why**: The app uses minified CSS/JS files (`styles.min.css`, minified `.js`
 files). Changes to source files won't appear until rebuilt.
+
+**CSS Source Files** (modular, non-minified):
+
+- `frontend/static/css/base.css` - Base styles and theme variables
+- `frontend/static/css/components.css` - Component-specific styling
+- `frontend/static/css/layout.css` - Layout and grid systems
+- `frontend/static/css/themes.css` - Theme-specific rules
+- `frontend/static/css/drag-drop.css` - Panel drag-and-drop interactions
+- `frontend/static/css/resizable.css` - Container resizing functionality
+
+**NEVER edit `styles.min.css` directly - it's auto-generated!**
 
 **After ANY changes to CSS or JS files, ALWAYS run:**
 

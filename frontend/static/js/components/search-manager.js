@@ -360,8 +360,13 @@ const SearchManager = {
                 return aIndex - bIndex;
             });
 
-            // Re-append in original order
-            buttonsArray.forEach(button => buttonsContainer.appendChild(button));
+            // Re-append in original order (skip buttons inside .category-section for v2.7.0 organization)
+            buttonsArray.forEach(button => {
+                // Skip if button is inside a .category-section or is a special category (@all)
+                if (!button.closest('.category-section') && !button.dataset.specialCategory) {
+                    buttonsContainer.appendChild(button);
+                }
+            });
 
             this.updateResultsCount(containerId, categoryButtons.length, categoryButtons.length, 'categories');
             return;
@@ -436,8 +441,13 @@ const SearchManager = {
                 return aIndex - bIndex;
             });
 
-            // Re-append in original order
-            buttonsArray.forEach(button => buttonsContainer.appendChild(button));
+            // Re-append in original order (skip buttons inside .category-section for v2.7.0 organization)
+            buttonsArray.forEach(button => {
+                // Skip if button is inside a .category-section or is a special category (@all)
+                if (!button.closest('.category-section') && !button.dataset.specialCategory) {
+                    buttonsContainer.appendChild(button);
+                }
+            });
 
             this.updateResultsCount(containerId, commandButtons.length, commandButtons.length, 'commands');
             return;

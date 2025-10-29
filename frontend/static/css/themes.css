@@ -448,9 +448,7 @@
 }
 
 /* Categories */
-.category-section {
-  margin-bottom: var(--spacing-xl);
-}
+/* Note: .category-section margin is now controlled in components.css (v2.7.0-beta) */
 
 .category-header {
   background: var(--primary-color);

@@ -1374,7 +1374,11 @@ const InteractiveACLBuilder = {
      * @param {string} blockType - Block type for blocked categories
      */
     async renderCategorySection(container, sectionTitle, categories, state, categoryAnalysisMap = null, blockType = null) {
+        console.log(`[renderCategorySection] Section: ${sectionTitle}, Categories:`, categories, 'State:', state);
+        console.log(`[renderCategorySection] categoryAnalysisMap:`, categoryAnalysisMap);
+
         if (categories.length === 0) {
+            console.log(`[renderCategorySection] Skipping empty section: ${sectionTitle}`);
             return; // Don't render empty sections
         }
 
@@ -1394,12 +1398,30 @@ const InteractiveACLBuilder = {
 
         // Render category buttons
         for (const category of sortedCategories) {
-            const categoryAnalysis = categoryAnalysisMap ? { [category]: categoryAnalysisMap[category] } : null;
+            const categoryAnalysis = categoryAnalysisMap ? categoryAnalysisMap[category] : null;
+            console.log(`[renderCategorySection] Rendering button for ${category}, analysis:`, categoryAnalysis);
             const button = await this.createCategoryButton(category, state, categoryAnalysis, blockType);
+            // Reset display style to ensure SearchManager doesn't hide it
+            button.style.display = '';
+            console.log(`[renderCategorySection] Button created for ${category}:`, button);
             section.appendChild(button);
         }
 
+        console.log(`[renderCategorySection] Appending section to container, section has ${section.children.length} children`);
         container.appendChild(section);
+
+        // Check if button is still there after appending
+        const sectionId = `section-${sectionTitle.replace(/\s+/g, '-')}`;
+        section.dataset.sectionId = sectionId;
+        setTimeout(() => {
+            const checkSection = container.querySelector(`[data-section-id="${sectionId}"]`);
+            if (checkSection) {
+                console.log(`[renderCategorySection] POST-APPEND CHECK (${sectionTitle}): Section in DOM has ${checkSection.children.length} children`);
+                if (checkSection.children.length === 1) {
+                    console.error(`[renderCategorySection] BUG! Button disappeared for section "${sectionTitle}"!`);
+                }
+            }
+        }, 100);
     },
 
     /**
@@ -1682,41 +1704,94 @@ const InteractiveACLBuilder = {
                 // Wait for all analyses to complete
                 const analyses = await Promise.all(categoryAnalysisPromises);
 
+                // Separate categories by type (Data Types vs ACL/Operational)
+                const dataTypeCategories = [];
+                const aclCategories = [];
+                const analysisMap = {};
+
                 for (const { category, categoryAnalysis } of analyses) {
-                    const button = await this.createCategoryButton(category, 'granted', categoryAnalysis);
-                    
-                    // Special handling for @all case - adjust tooltips and click behavior only
-                    // (Visual styling is now handled by CSS classes in createCategoryButton)
-                    if (hasAllCategory && !this.state.grantedCategories.has(category)) {
-                        // Check if this is a partially explicitly blocked category - preserve its special handler
-                        const isPartiallyBlocked = this.state.blockedCategories.has(category);
+                    // Store analysis for later use
+                    analysisMap[category] = categoryAnalysis;
 
-                        if (category === 'fast') {
-                        }
-
-                        if (!isPartiallyBlocked) {
-                            // Check if this button already has a smart handler (e.g., removeAllCategoryRelatedTerms)
-                            const hasSmartHandler = button.onclick?.toString().includes('removeAllCategoryRelatedTerms') ||
-                                                   button.onclick?.toString().includes('removeConflictingIndividualCommands');
-
-                            if (!hasSmartHandler) {
-                                // Normal case: This category is granted via @all, clicking should block it
-                                button.dataset.stateInfo = `@${category} category (granted via @all) - Click to block`;
-                                button.onclick = () => this.blockCategory(category);
-
-                            } else {
-                                // Keep the smart handler that was set by createCategoryButton
-                            }
-                        }
-                        // For partially blocked categories, keep the handler from createCategoryButton
-                    } else if (hasAllCategory && this.state.grantedCategories.has(category)) {
-                        // This category is explicitly granted in addition to @all
-                        button.dataset.stateInfo = `@${category} category (explicitly granted) - Click to toggle`;
-                        // Keep default toggleCategory behavior
+                    // Classify category (skip @all, it's handled specially)
+                    if (category === 'all') {
+                        continue; // @all will be rendered first outside sections
                     }
-                    
-                    this.elements.grantedCategoriesButtons.appendChild(button);
 
+                    const categoryType = classifyCategory(category);
+                    console.log(`[Category Classification] ${category} → ${categoryType}`);
+                    if (categoryType === 'data-type') {
+                        dataTypeCategories.push(category);
+                    } else {
+                        aclCategories.push(category);
+                    }
+                }
+                console.log('[Category Organization] Data Types:', dataTypeCategories);
+                console.log('[Category Organization] ACL/Operational:', aclCategories);
+
+                // Render @all first (if present) - outside sections for prominence
+                if (effectivelyGrantedCategories.includes('all')) {
+                    const allAnalysis = analysisMap['all'];
+                    const button = await this.createCategoryButton('all', 'granted', allAnalysis);
+
+                    // Mark as special @all button to prevent SearchManager from reordering it
+                    button.dataset.specialCategory = 'all';
+                    button.style.display = ''; // Ensure visible
+
+                    // Special handling for @all case
+                    if (hasAllCategory) {
+                        button.dataset.stateInfo = `@all category (explicitly granted) - Click to toggle`;
+                    }
+
+                    this.elements.grantedCategoriesButtons.appendChild(button);
+                }
+
+                // Render category sections
+                await this.renderCategorySection(
+                    this.elements.grantedCategoriesButtons,
+                    'Data Types',
+                    dataTypeCategories,
+                    'granted',
+                    analysisMap
+                );
+
+                await this.renderCategorySection(
+                    this.elements.grantedCategoriesButtons,
+                    'ACL/Operational',
+                    aclCategories,
+                    'granted',
+                    analysisMap
+                );
+
+                // Apply special handlers for @all case categories
+                if (hasAllCategory) {
+                    // Re-query buttons to apply special handlers
+                    const allButtons = this.elements.grantedCategoriesButtons.querySelectorAll('.category-button');
+                    for (const button of allButtons) {
+                        const category = button.textContent.replace('@', '');
+
+                        if (category === 'all') continue; // Already handled above
+
+                        if (!this.state.grantedCategories.has(category)) {
+                            // Check if this is a partially explicitly blocked category
+                            const isPartiallyBlocked = this.state.blockedCategories.has(category);
+
+                            if (!isPartiallyBlocked) {
+                                // Check if this button already has a smart handler
+                                const hasSmartHandler = button.onclick?.toString().includes('removeAllCategoryRelatedTerms') ||
+                                                       button.onclick?.toString().includes('removeConflictingIndividualCommands');
+
+                                if (!hasSmartHandler) {
+                                    // Normal case: granted via @all, clicking should block it
+                                    button.dataset.stateInfo = `@${category} category (granted via @all) - Click to block`;
+                                    button.onclick = () => this.blockCategory(category);
+                                }
+                            }
+                        } else {
+                            // Explicitly granted in addition to @all
+                            button.dataset.stateInfo = `@${category} category (explicitly granted) - Click to toggle`;
+                        }
+                    }
                 }
             }
 
@@ -1951,6 +2026,12 @@ const InteractiveACLBuilder = {
                 });
 
                 // Note: @all is already first due to sort comparator
+                // Separate categories by type (Data Types vs ACL/Operational)
+                const blockedDataTypes = [];
+                const blockedAclCategories = [];
+                const categoryAnalysisMap = {};
+                let allCategory = null;
+
                 // Process blocked categories with partial detection
                 for (const { category, type } of blockedCategories) {
                     // Check if this category needs partial analysis
@@ -1964,9 +2045,58 @@ const InteractiveACLBuilder = {
                         categoryAnalysis = { [category]: 'partial' };
                     }
 
-                    const button = await this.createCategoryButton(category, 'blocked', categoryAnalysis, type);
+                    // Store analysis
+                    categoryAnalysisMap[category] = categoryAnalysis;
+
+                    // Separate @all from regular categories
+                    if (category === 'all') {
+                        allCategory = { category, type, categoryAnalysis };
+                        continue;
+                    }
+
+                    // Classify category
+                    const categoryType = classifyCategory(category);
+                    if (categoryType === 'data-type') {
+                        blockedDataTypes.push(category);
+                    } else {
+                        blockedAclCategories.push(category);
+                    }
+                }
+
+                // Render @all first (if present) - outside sections for prominence
+                if (allCategory) {
+                    const button = await this.createCategoryButton(
+                        allCategory.category,
+                        'blocked',
+                        allCategory.categoryAnalysis,
+                        allCategory.type
+                    );
+
+                    // Mark as special @all button to prevent SearchManager from reordering it
+                    button.dataset.specialCategory = 'all';
+                    button.style.display = ''; // Ensure visible
+
                     this.elements.blockedCategoriesButtons.appendChild(button);
                 }
+
+                // Render category sections
+                await this.renderCategorySection(
+                    this.elements.blockedCategoriesButtons,
+                    'Data Types',
+                    blockedDataTypes,
+                    'blocked',
+                    categoryAnalysisMap,
+                    null // blockType not needed - already handled in analysis map
+                );
+
+                await this.renderCategorySection(
+                    this.elements.blockedCategoriesButtons,
+                    'ACL/Operational',
+                    blockedAclCategories,
+                    'blocked',
+                    categoryAnalysisMap,
+                    null
+                );
             }
 
             // NOTE: Available categories are now included in blockedCategories list above for proper sorting
