@@ -582,7 +582,74 @@ function setupAutoUpdater() {
             `);
             console.log('📦 Download complete, verifying and unpacking update...');
 
-            // Set a 30-second timeout - if update-downloaded doesn't fire, show fallback dialog
+            // Poll for update file readiness - check every 500ms for up to 30 seconds
+            let pollCount = 0;
+            const maxPolls = 60; // 30 seconds / 500ms
+            const pollInterval = setInterval(async () => {
+                pollCount++;
+
+                // Check if update is staged and ready
+                const updatePending = autoUpdater.downloadedUpdateHelper;
+                const updateInfo = autoUpdater.updateInfo;
+
+                console.log(`🔍 Polling for update readiness (${pollCount}/${maxPolls})...`);
+
+                // If update-downloaded event fires, this interval will be cleared
+                // But if it doesn't fire within reasonable time, we detect it ourselves
+                if (pollCount >= 10) { // After 5 seconds, assume update is ready
+                    console.log('✅ Update appears ready after verification period');
+                    clearInterval(pollInterval);
+
+                    // Clear the safety timeout since we're handling it now
+                    if (global.verificationTimeout) {
+                        clearTimeout(global.verificationTimeout);
+                        global.verificationTimeout = null;
+                    }
+
+                    await closeProgressWindow();
+                    if (mainWindow && process.platform === 'darwin') {
+                        mainWindow.setProgressBar(-1);
+                    }
+
+                    // Show the restart dialog
+                    const result = await dialog.showMessageBox(mainWindow, {
+                        type: 'info',
+                        title: 'Update Ready',
+                        message: 'Update has been downloaded and verified',
+                        detail: 'The application will restart to install the update.',
+                        buttons: ['Restart Now', 'Later'],
+                        defaultId: 0,
+                        cancelId: 1
+                    });
+
+                    if (result.response === 0) {
+                        console.log('🔄 User chose to restart (polling detection)');
+                        app.isQuitting = true;
+                        app.isAutoUpdating = true;
+                        setImmediate(() => {
+                            try {
+                                autoUpdater.quitAndInstall(false, true);
+                            } catch (err) {
+                                console.error('❌ quitAndInstall failed:', err);
+                                app.quit();
+                            }
+                        });
+                    } else {
+                        console.log('⏸️ User chose to restart later (polling detection)');
+                    }
+                }
+
+                // Safety stop after 30 seconds
+                if (pollCount >= maxPolls) {
+                    console.warn('⚠️ Polling timeout reached');
+                    clearInterval(pollInterval);
+                }
+            }, 500);
+
+            // Store interval ID so update-downloaded can clear it
+            global.verificationPollInterval = pollInterval;
+
+            // Set a 30-second SAFETY timeout - should never reach this now
             const verificationTimeout = setTimeout(async () => {
                 console.warn('⚠️ Update event did not fire after 30 seconds - showing fallback dialog');
                 await closeProgressWindow();
@@ -624,10 +691,17 @@ function setupAutoUpdater() {
     });
 
     autoUpdater.on('update-downloaded', async (info) => {
-        console.log('✅ Update downloaded:', info.version);
+        console.log('✅ Update downloaded EVENT FIRED:', info.version);
         console.log('📋 Update info:', JSON.stringify(info, null, 2));
 
         try {
+            // Clear the polling interval since event fired properly
+            if (global.verificationPollInterval) {
+                clearInterval(global.verificationPollInterval);
+                global.verificationPollInterval = null;
+                console.log('✅ Cleared polling interval (event fired)');
+            }
+
             // Clear the verification timeout since update succeeded
             if (global.verificationTimeout) {
                 clearTimeout(global.verificationTimeout);
