@@ -1,11 +1,11 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.7.3-beta
+**Current Version:** v2.7.11-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
 
-**Last Updated:** 2025-10-29
+**Last Updated:** 2025-10-31
 
 ---
 
@@ -18,6 +18,32 @@ applications across macOS, Windows, and Linux.
 ---
 
 ## 🎯 Version History
+
+### v2.7.11-beta (2025-10-31)
+
+#### Version Controls UI Refinement
+
+- ✅ **Flexbox Container Layout** - Simplified version indicator positioning
+  - Refactored version indicator and "Check for Updates" button to use flexbox
+    container
+  - Eliminated JavaScript-based dynamic positioning logic
+  - Pure CSS solution with `.version-controls-container` wrapper
+  - Automatic spacing and alignment with flexbox properties
+  - Cleaner, more maintainable code
+
+- ✅ **Optimized Visual Spacing** - Compact button positioning
+  - Reduced flexbox gap from 15px to 8px for tighter spacing
+  - Better visual balance between version label and update button
+  - More compact top-left corner layout
+  - Consistent spacing across all themes
+
+**Technical:** HTML structure refactoring with flexbox wrapper in
+[index.html](frontend/templates/index.html) and
+[info.html](frontend/templates/info.html), CSS flexbox layout in
+[components.css](frontend/static/css/components.css) with `gap: 8px`, removed
+JavaScript positioning code
+
+---
 
 ### v2.7.3-beta (2025-10-29)
 
