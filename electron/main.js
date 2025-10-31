@@ -546,6 +546,15 @@ function setupAutoUpdater() {
         if (process.platform === 'darwin' && mainWindow) {
             mainWindow.setProgressBar(progressObj.percent / 100);
         }
+
+        // When download reaches 100%, show "Verifying..." message
+        // (electron-updater verifies/unpacks after download, which can take 30-60s)
+        if (percent === 100 && progressWindow) {
+            progressWindow.webContents.executeJavaScript(`
+                document.getElementById('speedText').textContent = 'Verifying and preparing update...';
+            `);
+            console.log('📦 Download complete, verifying and unpacking update...');
+        }
     });
 
     autoUpdater.on('update-downloaded', (info) => {
@@ -559,7 +568,10 @@ function setupAutoUpdater() {
             mainWindow.setProgressBar(-1); // -1 removes the progress bar
         }
 
-        dialog.showMessageBox(mainWindow, {
+        // Wait a moment for progress window to fully close before showing dialog
+        // This prevents the modal progress window from blocking the restart dialog
+        setTimeout(() => {
+            dialog.showMessageBox(mainWindow, {
             type: 'info',
             title: 'Update Ready',
             message: 'Update has been downloaded',
@@ -567,18 +579,19 @@ function setupAutoUpdater() {
             buttons: ['Restart Now', 'Later'],
             defaultId: 0,
             cancelId: 1
-        }).then((result) => {
-            if (result.response === 0) {
-                // Set flags to allow clean auto-update restart
-                app.isQuitting = true;
-                app.isAutoUpdating = true;  // Special flag for auto-update flow
+            }).then((result) => {
+                if (result.response === 0) {
+                    // Set flags to allow clean auto-update restart
+                    app.isQuitting = true;
+                    app.isAutoUpdating = true;  // Special flag for auto-update flow
 
-                // Force quit and restart - isSilent=false (show), isForceRunAfter=true (restart immediately)
-                setImmediate(() => {
-                    autoUpdater.quitAndInstall(false, true);
-                });
-            }
-        });
+                    // Force quit and restart - isSilent=false (show), isForceRunAfter=true (restart immediately)
+                    setImmediate(() => {
+                        autoUpdater.quitAndInstall(false, true);
+                    });
+                }
+            });
+        }, 300); // 300ms delay to let progress window close
     });
 }
 
