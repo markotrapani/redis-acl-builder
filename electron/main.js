@@ -582,21 +582,41 @@ function setupAutoUpdater() {
             `);
             console.log('📦 Download complete, verifying and unpacking update...');
 
-            // Set a 2-minute timeout for verification - if it hangs, clean up gracefully
+            // Set a 30-second timeout - if update-downloaded doesn't fire, show fallback dialog
             const verificationTimeout = setTimeout(async () => {
-                console.warn('⚠️ Update verification timed out after 2 minutes');
+                console.warn('⚠️ Update event did not fire after 30 seconds - showing fallback dialog');
                 await closeProgressWindow();
                 if (mainWindow && process.platform === 'darwin') {
                     mainWindow.setProgressBar(-1);
                 }
-                dialog.showMessageBox(mainWindow, {
-                    type: 'warning',
-                    title: 'Update Verification Timeout',
-                    message: 'Update verification took too long',
-                    detail: 'The update download may be corrupted. Please try checking for updates again, or restart the application.',
-                    buttons: ['OK']
+
+                const result = await dialog.showMessageBox(mainWindow, {
+                    type: 'question',
+                    title: 'Update Ready',
+                    message: 'Update verification complete',
+                    detail: 'The update appears to be ready. Would you like to restart now to complete the installation?\n\nNote: If you choose "Later", the update will be applied the next time you restart the app.',
+                    buttons: ['Restart Now', 'Later'],
+                    defaultId: 0,
+                    cancelId: 1
                 });
-            }, 120000); // 2 minutes
+
+                if (result.response === 0) {
+                    console.log('🔄 User chose to restart (fallback dialog)');
+                    app.isQuitting = true;
+                    app.isAutoUpdating = true;
+                    setImmediate(() => {
+                        // If autoUpdater.quitAndInstall doesn't work, force quit
+                        try {
+                            autoUpdater.quitAndInstall(false, true);
+                        } catch (err) {
+                            console.error('❌ quitAndInstall failed, force quitting:', err);
+                            app.quit();
+                        }
+                    });
+                } else {
+                    console.log('⏸️ User chose to restart later (fallback dialog)');
+                }
+            }, 30000); // 30 seconds
 
             // Store timeout ID so we can clear it when update succeeds
             global.verificationTimeout = verificationTimeout;
