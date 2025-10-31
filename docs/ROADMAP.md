@@ -19,6 +19,38 @@ applications across macOS, Windows, and Linux.
 
 ## 🎯 Version History
 
+### v2.7.13-beta (2025-10-31)
+
+#### Docker Update Modal Button Positioning
+
+- ✅ **Copy Button Layout** - Restored far-right button positioning
+  - Reverted Copy button to use `space-between` justification
+  - Button positioned at far right of modal header (not inline with text)
+  - Gap restored to 15px for proper spacing
+  - Text uses `flex: 1` to fill available space
+
+**Technical:** CSS layout in
+[components.css](frontend/static/css/components.css) with `justify-content:
+space-between`, `gap: 15px`, restored `flex: 1` on paragraph element
+
+---
+
+### v2.7.12-beta (2025-10-31)
+
+#### Version Controls Spacing Refinement
+
+- ✅ **Compact Version Controls** - Production build with optimized spacing
+  - Built and published Docker image with gap: 8px
+  - Built and published Electron apps with gap: 8px
+  - All platforms include version controls flexbox refactoring
+  - Clean spacing between version label and Check for Updates button
+
+**Technical:** First production build with flexbox container layout from
+v2.7.11-beta, Docker image published to Docker Hub, desktop installers
+published to GitHub releases
+
+---
+
 ### v2.7.11-beta (2025-10-31)
 
 #### Version Controls UI Refinement
