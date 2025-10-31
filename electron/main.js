@@ -12,6 +12,7 @@ const { autoUpdater } = require('electron-updater');
 let mainWindow = null;
 let pythonProcess = null;
 let tray = null;  // System tray
+let progressWindow = null;  // Download progress window
 const FLASK_PORT = 7381;  // Use 7381 for Electron desktop, 7380 for Docker, 5001 for web dev
 
 // Simple development mode detection
@@ -283,6 +284,119 @@ function createSystemTray() {
     console.log('✅ System tray created');
 }
 
+// Create download progress window
+function createProgressWindow() {
+    if (progressWindow) {
+        return; // Already exists
+    }
+
+    progressWindow = new BrowserWindow({
+        width: 500,
+        height: 200,
+        parent: mainWindow,
+        modal: true,
+        show: false,
+        frame: true,
+        resizable: false,
+        minimizable: false,
+        maximizable: false,
+        closable: false,
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true
+        }
+    });
+
+    // Simple HTML for progress display
+    const progressHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                    padding: 30px;
+                    margin: 0;
+                    background: #f5f5f5;
+                }
+                .container {
+                    text-align: center;
+                }
+                h2 {
+                    color: #333;
+                    font-size: 18px;
+                    margin-bottom: 20px;
+                }
+                .progress-bar-container {
+                    background: #e0e0e0;
+                    border-radius: 10px;
+                    height: 20px;
+                    overflow: hidden;
+                    margin-bottom: 15px;
+                }
+                .progress-bar {
+                    background: linear-gradient(90deg, #4CAF50, #45a049);
+                    height: 100%;
+                    width: 0%;
+                    transition: width 0.3s ease;
+                }
+                .progress-text {
+                    color: #666;
+                    font-size: 14px;
+                    margin-top: 10px;
+                }
+                .speed-text {
+                    color: #999;
+                    font-size: 12px;
+                    margin-top: 5px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h2>Downloading Update...</h2>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="progress-text" id="progressText">0%</div>
+                <div class="speed-text" id="speedText">Preparing download...</div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    progressWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(progressHTML)}`);
+
+    progressWindow.once('ready-to-show', () => {
+        progressWindow.show();
+    });
+
+    progressWindow.on('closed', () => {
+        progressWindow = null;
+    });
+}
+
+// Update progress window
+function updateProgressWindow(percent, speedMBs) {
+    if (!progressWindow) return;
+
+    const roundedPercent = Math.round(percent);
+
+    progressWindow.webContents.executeJavaScript(`
+        document.getElementById('progressBar').style.width = '${percent}%';
+        document.getElementById('progressText').textContent = '${roundedPercent}%';
+        document.getElementById('speedText').textContent = '${speedMBs} MB/s';
+    `);
+}
+
+// Close progress window
+function closeProgressWindow() {
+    if (progressWindow) {
+        progressWindow.close();
+        progressWindow = null;
+    }
+}
+
 // Configure auto-updater
 function setupAutoUpdater() {
     const isDevMode = isDevelopment();
@@ -342,6 +456,8 @@ function setupAutoUpdater() {
             cancelId: 1
         }).then((result) => {
             if (result.response === 0) {
+                // Create progress window before starting download
+                createProgressWindow();
                 autoUpdater.downloadUpdate();
             }
         });
@@ -367,6 +483,14 @@ function setupAutoUpdater() {
 
     autoUpdater.on('error', (err) => {
         console.error('❌ Auto-update error:', err);
+
+        // Close progress window if it's open
+        closeProgressWindow();
+
+        // Reset dock progress bar
+        if (mainWindow && process.platform === 'darwin') {
+            mainWindow.setProgressBar(-1);
+        }
 
         // Check if error is due to missing latest.yml (incomplete release)
         const isMissingYamlError = err.message && (
@@ -415,24 +539,24 @@ function setupAutoUpdater() {
         const message = `Download speed: ${speedMBs} MB/s - Downloaded ${percent}%`;
         console.log(`📥 ${message}`);
 
-        // Update macOS dock progress bar (simple and native)
+        // Update progress window (primary UI)
+        updateProgressWindow(progressObj.percent, speedMBs);
+
+        // Also update macOS dock progress bar
         if (process.platform === 'darwin' && mainWindow) {
             mainWindow.setProgressBar(progressObj.percent / 100);
-        }
-
-        // Update window title with progress
-        if (mainWindow) {
-            mainWindow.setTitle(`Redis ACL Builder - Downloading Update (${percent}%)`);
         }
     });
 
     autoUpdater.on('update-downloaded', (info) => {
         console.log('✅ Update downloaded:', info.version);
 
-        // Reset progress bar and title
-        if (mainWindow) {
+        // Close progress window
+        closeProgressWindow();
+
+        // Reset dock progress bar
+        if (mainWindow && process.platform === 'darwin') {
             mainWindow.setProgressBar(-1); // -1 removes the progress bar
-            mainWindow.setTitle('Redis ACL Builder');
         }
 
         dialog.showMessageBox(mainWindow, {
