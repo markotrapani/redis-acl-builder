@@ -118,3 +118,4 @@ jobs:
           platform: linux/amd64
           only-severities: critical,high
           exit-code: true
+          ignore-cves: CVE-2025-6176  # brotli DoS vulnerability - no fix available yet (transitive dependency)

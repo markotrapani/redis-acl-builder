@@ -29,9 +29,17 @@ applications across macOS, Windows, and Linux.
   - Gap restored to 15px for proper spacing
   - Text uses `flex: 1` to fill available space
 
+- ⚠️ **Known Security Issue** - CVE-2025-6176 (brotli)
+  - HIGH severity DoS vulnerability in brotli (transitive dependency)
+  - No fix available yet - temporarily suppressed in Docker Scout
+  - Impact: Uncontrolled resource consumption (DoS only, not data breach)
+  - Action: Monitor for upstream fix and update when available
+  - Suppressed in: `.github/workflows/docker-publish.yml`
+
 **Technical:** CSS layout in
 [components.css](frontend/static/css/components.css) with `justify-content:
-space-between`, `gap: 15px`, restored `flex: 1` on paragraph element
+space-between`, `gap: 15px`, restored `flex: 1` on paragraph element. CVE
+suppression added to Docker Scout workflow with inline comment.
 
 ---
 
