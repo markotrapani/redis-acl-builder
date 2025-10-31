@@ -315,7 +315,14 @@ function setupAutoUpdater() {
 
     // Check for updates when app starts (silently - no dialog if up to date)
     isManualUpdateCheck = false;
-    autoUpdater.checkForUpdates();
+
+    // Wrap in try-catch to prevent crashes from auto-updater errors
+    try {
+        autoUpdater.checkForUpdates();
+    } catch (err) {
+        console.error('❌ Error during initial update check:', err);
+        // Silently ignore - error event handler will handle it
+    }
 
     // Auto-updater event handlers
     autoUpdater.on('checking-for-update', () => {
