@@ -233,9 +233,9 @@ analysis.
 
 ### Key Project: Redis ACL Builder
 
-- **Version**: v2.7.1-beta (Desktop + Web App + Auto-Update Fix)
+- **Version**: v2.7.12-beta (Desktop + Web App + UI Refinements)
 - **Test Coverage**: E2E: 100% (28/28 Playwright tests passing)
-- **Latest Release**: Critical auto-update restart fix (v2.7.1-beta)
+- **Latest Release**: Version controls UI refinement (v2.7.12-beta)
 - **Purpose**: Interactive web interface for parsing, testing, and validating
 Redis ACL permissions
 - **Redis Support**: Based on **Redis OSS** (Open Source) command sets
