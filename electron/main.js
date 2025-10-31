@@ -340,6 +340,16 @@ function createProgressWindow() {
                     width: 0%;
                     transition: width 0.3s ease;
                 }
+                .progress-bar.verifying {
+                    width: 100%;
+                    background: linear-gradient(90deg, #2196F3, #1976D2, #2196F3);
+                    background-size: 200% 100%;
+                    animation: verifyingAnimation 2s linear infinite;
+                }
+                @keyframes verifyingAnimation {
+                    0% { background-position: 0% 0%; }
+                    100% { background-position: 200% 0%; }
+                }
                 .progress-text {
                     color: #666;
                     font-size: 14px;
@@ -557,11 +567,18 @@ function setupAutoUpdater() {
             mainWindow.setProgressBar(progressObj.percent / 100);
         }
 
-        // When download reaches 100%, show "Verifying..." message and start timeout
+        // When download reaches 100%, show "Verifying..." with animated progress
         // (electron-updater verifies/unpacks after download, which should take 10-30s)
         if (percent === 100 && progressWindow) {
             progressWindow.webContents.executeJavaScript(`
-                document.getElementById('speedText').textContent = 'Verifying and preparing update...';
+                const progressBar = document.getElementById('progressBar');
+                const progressText = document.getElementById('progressText');
+                const speedText = document.getElementById('speedText');
+
+                // Switch to animated "verifying" state
+                progressBar.classList.add('verifying');
+                progressText.textContent = 'Verifying...';
+                speedText.textContent = 'Verifying signature and preparing update...';
             `);
             console.log('📦 Download complete, verifying and unpacking update...');
 
@@ -588,42 +605,66 @@ function setupAutoUpdater() {
 
     autoUpdater.on('update-downloaded', async (info) => {
         console.log('✅ Update downloaded:', info.version);
+        console.log('📋 Update info:', JSON.stringify(info, null, 2));
 
-        // Clear the verification timeout since update succeeded
-        if (global.verificationTimeout) {
-            clearTimeout(global.verificationTimeout);
-            global.verificationTimeout = null;
-        }
+        try {
+            // Clear the verification timeout since update succeeded
+            if (global.verificationTimeout) {
+                clearTimeout(global.verificationTimeout);
+                global.verificationTimeout = null;
+                console.log('✅ Cleared verification timeout');
+            }
 
-        // Close progress window and wait for it to fully close
-        await closeProgressWindow();
+            // Close progress window and wait for it to fully close
+            console.log('🔄 Closing progress window...');
+            await closeProgressWindow();
+            console.log('✅ Progress window closed');
 
-        // Reset dock progress bar
-        if (mainWindow && process.platform === 'darwin') {
-            mainWindow.setProgressBar(-1); // -1 removes the progress bar
-        }
+            // Reset dock progress bar
+            if (mainWindow && process.platform === 'darwin') {
+                mainWindow.setProgressBar(-1); // -1 removes the progress bar
+                console.log('✅ Dock progress bar reset');
+            }
 
-        // Now show the restart dialog (window is guaranteed to be closed)
-        dialog.showMessageBox(mainWindow, {
-            type: 'info',
-            title: 'Update Ready',
-            message: 'Update has been downloaded',
-            detail: 'The application will restart to install the update.',
-            buttons: ['Restart Now', 'Later'],
-            defaultId: 0,
-            cancelId: 1
-        }).then((result) => {
+            // Ensure mainWindow exists before showing dialog
+            if (!mainWindow || mainWindow.isDestroyed()) {
+                console.error('❌ Main window is destroyed or null, cannot show restart dialog');
+                return;
+            }
+
+            console.log('📋 Showing restart dialog...');
+
+            // Now show the restart dialog (window is guaranteed to be closed)
+            const result = await dialog.showMessageBox(mainWindow, {
+                type: 'info',
+                title: 'Update Ready',
+                message: 'Update has been downloaded',
+                detail: 'The application will restart to install the update.',
+                buttons: ['Restart Now', 'Later'],
+                defaultId: 0,
+                cancelId: 1
+            });
+
+            console.log('✅ Dialog shown, user response:', result.response === 0 ? 'Restart Now' : 'Later');
+
             if (result.response === 0) {
                 // Set flags to allow clean auto-update restart
                 app.isQuitting = true;
                 app.isAutoUpdating = true;  // Special flag for auto-update flow
 
+                console.log('🔄 User chose to restart, calling quitAndInstall...');
+
                 // Force quit and restart - isSilent=false (show), isForceRunAfter=true (restart immediately)
                 setImmediate(() => {
                     autoUpdater.quitAndInstall(false, true);
                 });
+            } else {
+                console.log('⏸️ User chose to restart later');
             }
-        });
+        } catch (error) {
+            console.error('❌ Error in update-downloaded handler:', error);
+            console.error('Stack trace:', error.stack);
+        }
     });
 }
 
