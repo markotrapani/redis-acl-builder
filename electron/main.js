@@ -410,12 +410,30 @@ function setupAutoUpdater() {
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
-        const message = `Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}%`;
+        const percent = Math.round(progressObj.percent);
+        const speedMBs = (progressObj.bytesPerSecond / 1024 / 1024).toFixed(2);
+        const message = `Download speed: ${speedMBs} MB/s - Downloaded ${percent}%`;
         console.log(`📥 ${message}`);
+
+        // Update macOS dock progress bar (simple and native)
+        if (process.platform === 'darwin' && mainWindow) {
+            mainWindow.setProgressBar(progressObj.percent / 100);
+        }
+
+        // Update window title with progress
+        if (mainWindow) {
+            mainWindow.setTitle(`Redis ACL Builder - Downloading Update (${percent}%)`);
+        }
     });
 
     autoUpdater.on('update-downloaded', (info) => {
         console.log('✅ Update downloaded:', info.version);
+
+        // Reset progress bar and title
+        if (mainWindow) {
+            mainWindow.setProgressBar(-1); // -1 removes the progress bar
+            mainWindow.setTitle('Redis ACL Builder');
+        }
 
         dialog.showMessageBox(mainWindow, {
             type: 'info',
