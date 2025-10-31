@@ -557,18 +557,43 @@ function setupAutoUpdater() {
             mainWindow.setProgressBar(progressObj.percent / 100);
         }
 
-        // When download reaches 100%, show "Verifying..." message
-        // (electron-updater verifies/unpacks after download, which can take 30-60s)
+        // When download reaches 100%, show "Verifying..." message and start timeout
+        // (electron-updater verifies/unpacks after download, which should take 10-30s)
         if (percent === 100 && progressWindow) {
             progressWindow.webContents.executeJavaScript(`
                 document.getElementById('speedText').textContent = 'Verifying and preparing update...';
             `);
             console.log('📦 Download complete, verifying and unpacking update...');
+
+            // Set a 2-minute timeout for verification - if it hangs, clean up gracefully
+            const verificationTimeout = setTimeout(async () => {
+                console.warn('⚠️ Update verification timed out after 2 minutes');
+                await closeProgressWindow();
+                if (mainWindow && process.platform === 'darwin') {
+                    mainWindow.setProgressBar(-1);
+                }
+                dialog.showMessageBox(mainWindow, {
+                    type: 'warning',
+                    title: 'Update Verification Timeout',
+                    message: 'Update verification took too long',
+                    detail: 'The update download may be corrupted. Please try checking for updates again, or restart the application.',
+                    buttons: ['OK']
+                });
+            }, 120000); // 2 minutes
+
+            // Store timeout ID so we can clear it when update succeeds
+            global.verificationTimeout = verificationTimeout;
         }
     });
 
     autoUpdater.on('update-downloaded', async (info) => {
         console.log('✅ Update downloaded:', info.version);
+
+        // Clear the verification timeout since update succeeded
+        if (global.verificationTimeout) {
+            clearTimeout(global.verificationTimeout);
+            global.verificationTimeout = null;
+        }
 
         // Close progress window and wait for it to fully close
         await closeProgressWindow();
