@@ -695,13 +695,31 @@ function cleanupAndExit() {
 
 // Handle all possible termination events
 process.on('SIGTERM', () => {
-    console.log('📡 Received SIGTERM - cleaning up...');
+    console.log('📡 Received SIGTERM');
+
+    // Skip cleanup during auto-update - let the updater handle it
+    if (app.isAutoUpdating) {
+        console.log('⚡ Auto-update in progress - allowing clean termination');
+        process.exit(0);
+        return;
+    }
+
+    console.log('📡 Cleaning up...');
     cleanupAndExit();
     process.exit(0);
 });
 
 process.on('SIGINT', () => {
-    console.log('📡 Received SIGINT - cleaning up...');
+    console.log('📡 Received SIGINT');
+
+    // Skip cleanup during auto-update - let the updater handle it
+    if (app.isAutoUpdating) {
+        console.log('⚡ Auto-update in progress - allowing clean termination');
+        process.exit(0);
+        return;
+    }
+
+    console.log('📡 Cleaning up...');
     cleanupAndExit();
     process.exit(0);
 });
