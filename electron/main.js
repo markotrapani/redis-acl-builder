@@ -389,12 +389,22 @@ function updateProgressWindow(percent, speedMBs) {
     `);
 }
 
-// Close progress window
+// Close progress window (returns a promise that resolves when window is closed)
 function closeProgressWindow() {
-    if (progressWindow) {
+    return new Promise((resolve) => {
+        if (!progressWindow) {
+            resolve();
+            return;
+        }
+
+        // Wait for window to actually close before resolving
+        progressWindow.once('closed', () => {
+            progressWindow = null;
+            resolve();
+        });
+
         progressWindow.close();
-        progressWindow = null;
-    }
+    });
 }
 
 // Configure auto-updater
@@ -557,21 +567,19 @@ function setupAutoUpdater() {
         }
     });
 
-    autoUpdater.on('update-downloaded', (info) => {
+    autoUpdater.on('update-downloaded', async (info) => {
         console.log('✅ Update downloaded:', info.version);
 
-        // Close progress window
-        closeProgressWindow();
+        // Close progress window and wait for it to fully close
+        await closeProgressWindow();
 
         // Reset dock progress bar
         if (mainWindow && process.platform === 'darwin') {
             mainWindow.setProgressBar(-1); // -1 removes the progress bar
         }
 
-        // Wait a moment for progress window to fully close before showing dialog
-        // This prevents the modal progress window from blocking the restart dialog
-        setTimeout(() => {
-            dialog.showMessageBox(mainWindow, {
+        // Now show the restart dialog (window is guaranteed to be closed)
+        dialog.showMessageBox(mainWindow, {
             type: 'info',
             title: 'Update Ready',
             message: 'Update has been downloaded',
@@ -579,19 +587,18 @@ function setupAutoUpdater() {
             buttons: ['Restart Now', 'Later'],
             defaultId: 0,
             cancelId: 1
-            }).then((result) => {
-                if (result.response === 0) {
-                    // Set flags to allow clean auto-update restart
-                    app.isQuitting = true;
-                    app.isAutoUpdating = true;  // Special flag for auto-update flow
+        }).then((result) => {
+            if (result.response === 0) {
+                // Set flags to allow clean auto-update restart
+                app.isQuitting = true;
+                app.isAutoUpdating = true;  // Special flag for auto-update flow
 
-                    // Force quit and restart - isSilent=false (show), isForceRunAfter=true (restart immediately)
-                    setImmediate(() => {
-                        autoUpdater.quitAndInstall(false, true);
-                    });
-                }
-            });
-        }, 300); // 300ms delay to let progress window close
+                // Force quit and restart - isSilent=false (show), isForceRunAfter=true (restart immediately)
+                setImmediate(() => {
+                    autoUpdater.quitAndInstall(false, true);
+                });
+            }
+        });
     });
 }
 
