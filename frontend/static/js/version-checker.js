@@ -126,10 +126,12 @@ export class VersionChecker {
                     </div>
 
                     <h3>Upgrade Instructions:</h3>
-                    <p>Run this command to upgrade your Docker installation:</p>
+                    <div class="upgrade-command-header">
+                        <p>Run this command to upgrade your Docker installation:</p>
+                        <button class="copy-btn" data-copy="${this.escapeHtml(updateInfo.docker_upgrade_command)}">Copy</button>
+                    </div>
 
                     <div class="upgrade-command-section">
-                        <button class="copy-btn" data-copy="${this.escapeHtml(updateInfo.docker_upgrade_command)}">Copy Command</button>
                         <div class="code-block">
                             <code>${this.escapeHtml(updateInfo.docker_upgrade_command)}</code>
                         </div>

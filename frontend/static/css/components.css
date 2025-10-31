@@ -3009,9 +3009,23 @@ body.dark-theme .check-updates-btn:active {
   color: #4caf50;
 }
 
+/* Upgrade command header with inline Copy button */
+.update-modal-content .upgrade-command-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.update-modal-content .upgrade-command-header p {
+  margin: 0;
+  flex: 1;
+}
+
 /* Upgrade command section wrapper */
 .update-modal-content .upgrade-command-section {
-  margin: 10px 0;
+  margin: 0 0 10px 0;
 }
 
 .update-modal-content .code-block {
