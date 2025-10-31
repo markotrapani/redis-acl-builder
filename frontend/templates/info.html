@@ -252,19 +252,18 @@
         }
     </script>
 
-    <!-- Version indicator in top-left corner (web app only - Electron shows version in About menu) -->
-    <div class="version-indicator" id="versionIndicator" style="display: none;">v{{ version }}</div>
+    <!-- Version indicator and Check for Updates button container (web app only - Electron shows version in About menu) -->
+    <div class="version-controls-container" id="versionControlsContainer" style="display: none;">
+        <div class="version-indicator">v{{ version }}</div>
+        <button class="check-updates-btn" id="checkUpdatesBtn" title="Check for newer Docker image">
+            Check for Updates
+        </button>
+    </div>
 
-    <!-- Check for Updates button positioned to the right of version (Docker/web only) -->
-    <button class="check-updates-btn" id="checkUpdatesBtn" title="Check for newer Docker image" style="display: none;">
-        Check for Updates
-    </button>
-
-    <!-- Show version elements only in web/Docker (not Electron) -->
+    <!-- Show version controls only in web/Docker (not Electron) -->
     <script>
         if (!window.electronAPI || !window.electronAPI.isElectron) {
-            document.getElementById('versionIndicator').style.display = '';
-            document.getElementById('checkUpdatesBtn').style.display = '';
+            document.getElementById('versionControlsContainer').style.display = '';
         }
     </script>
 
