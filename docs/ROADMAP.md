@@ -1,11 +1,11 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.7.21-beta
+**Current Version:** v2.7.28-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
 
-**Last Updated:** 2025-10-31
+**Last Updated:** 2025-11-01
 
 ---
 
@@ -19,36 +19,57 @@ applications across macOS, Windows, and Linux.
 
 ## 🎯 Version History
 
-### v2.7.21-beta (2025-10-31) - IN PROGRESS
+### v2.7.28-beta (2025-11-01) - CURRENT
 
-#### File-Based Logging for Auto-Updater Debugging
+#### Auto-Update System Fully Functional
 
-- 🔧 **Persistent Logging System** - Debug auto-update event issues
-  - All console output now writes to persistent log file
+- ✅ **Progress Window Close Fix** - Resolved hanging issue
+  - Fixed progress window closing with `destroy()` instead of `close()`
+  - Root cause: `.close()` waits for 'closed' event which wasn't firing
+  - Solution: Use `.destroy()` for immediate synchronous cleanup
+  - Auto-update now works seamlessly without timeouts
+
+- ✅ **Clean Logging** - Improved log clarity
+  - Flask stderr output now labeled as `[Python]` instead of `[Python Error]`
+  - Persistent logs in `~/Library/Logs/Redis ACL Builder/auto-updater.log`
+  - Help menu provides easy access to logs
+
+**Status:** ✅ Tested and working - Auto-update chain v2.7.27 → v2.7.28 successful
+
+**Technical:** Changed `closeProgressWindow()` to use `progressWindow.destroy()`
+for immediate cleanup, eliminating dependency on 'closed' event in
+[main.js](electron/main.js)
+
+---
+
+### v2.7.27-beta (2025-11-01)
+
+#### Progress Window Close Fix Implementation
+
+- 🔧 **BrowserWindow Lifecycle Fix** - Proper window cleanup
+  - Switched from `.close()` to `.destroy()` for progress window
+  - Added debug logging to track window state during close attempts
+  - Researched Electron documentation confirming 'closed' event fires after
+  destruction
+
+**Technical:** Updated `closeProgressWindow()` function in
+[main.js](electron/main.js) to use synchronous `destroy()` method
+
+---
+
+### v2.7.26-beta (2025-11-01)
+
+#### Auto-Update Logging and Debugging
+
+- 🔧 **File-Based Logging** - Debug auto-update event issues
+  - Persistent log file survives app restarts
   - Log location: `~/Library/Logs/Redis ACL Builder/auto-updater.log`
-  - Logs survive app restarts for post-mortem analysis
-  - Added "Open Log File" and "View Logs Folder" menu items under Help
-  - Log file path displayed on app startup
+  - Help menu items for easy log access
 
-- ⚠️ **Known Issue - Auto-Update Restart Dialog**
-  - `update-downloaded` event not firing reliably after download completes
-  - Download reaches 100% but restart dialog doesn't appear
-  - Current workaround: 10-second timeout fallback after download hits 100%
-  - Root cause under investigation with new logging system
+- ⚠️ **Known Issue** - Progress window hung on close (fixed in v2.7.27)
 
-**Status:** Build triggered, waiting for GitHub Actions to complete
-
-**Next Steps:**
-
-1. Wait for v2.7.21-beta build to complete
-2. Test auto-update from v2.7.20-beta → v2.7.21-beta
-3. Check log file via Help > Open Log File to investigate why
-`update-downloaded` event isn't firing
-4. Determine proper fix to replace timeout-based workaround
-
-**Technical:** Logging utility in [main.js](electron/main.js) intercepts
-console.log/error/warn, writes to both console and file, menu items added to
-Help menu for easy log access
+**Technical:** Logging system in [main.js](electron/main.js) intercepts
+console methods
 
 ---
 
