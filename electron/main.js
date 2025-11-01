@@ -218,14 +218,15 @@ function createAppMenu() {
                 {
                     label: 'Open Log File',
                     click: () => {
-                        // Open the log file in Finder
-                        shell.showItemInFolder(LOG_FILE);
+                        // Open the log file in default text editor
+                        shell.openPath(LOG_FILE);
                     }
                 },
                 {
-                    label: 'View Logs Folder',
+                    label: 'Show Log File in Finder',
                     click: () => {
-                        shell.openPath(LOG_DIR);
+                        // Highlight the log file in Finder
+                        shell.showItemInFolder(LOG_FILE);
                     }
                 }
             ]
