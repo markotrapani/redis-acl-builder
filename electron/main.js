@@ -567,126 +567,46 @@ function setupAutoUpdater() {
             mainWindow.setProgressBar(progressObj.percent / 100);
         }
 
-        // When download reaches 100%, show "Verifying..." with animated progress
-        // (electron-updater verifies/unpacks after download, which should take 10-30s)
+        // When download reaches 100%, IMMEDIATELY show restart dialog
+        // Verification happens AFTER restart during app launch (macOS Gatekeeper)
         if (percent === 100 && progressWindow) {
-            progressWindow.webContents.executeJavaScript(`
-                const progressBar = document.getElementById('progressBar');
-                const progressText = document.getElementById('progressText');
-                const speedText = document.getElementById('speedText');
+            console.log('📦 Download complete at 100% - showing restart dialog immediately');
 
-                // Switch to animated "verifying" state
-                progressBar.classList.add('verifying');
-                progressText.textContent = 'Verifying...';
-                speedText.textContent = 'Verifying signature and preparing update...';
-            `);
-            console.log('📦 Download complete, verifying and unpacking update...');
-
-            // Poll for update file readiness - check every 500ms for up to 30 seconds
-            let pollCount = 0;
-            const maxPolls = 60; // 30 seconds / 500ms
-            const pollInterval = setInterval(async () => {
-                pollCount++;
-
-                // Check if update is staged and ready
-                const updatePending = autoUpdater.downloadedUpdateHelper;
-                const updateInfo = autoUpdater.updateInfo;
-
-                console.log(`🔍 Polling for update readiness (${pollCount}/${maxPolls})...`);
-
-                // If update-downloaded event fires, this interval will be cleared
-                // But if it doesn't fire within reasonable time, we detect it ourselves
-                if (pollCount >= 10) { // After 5 seconds, assume update is ready
-                    console.log('✅ Update appears ready after verification period');
-                    clearInterval(pollInterval);
-
-                    // Clear the safety timeout since we're handling it now
-                    if (global.verificationTimeout) {
-                        clearTimeout(global.verificationTimeout);
-                        global.verificationTimeout = null;
-                    }
-
-                    await closeProgressWindow();
-                    if (mainWindow && process.platform === 'darwin') {
-                        mainWindow.setProgressBar(-1);
-                    }
-
-                    // Show the restart dialog
-                    const result = await dialog.showMessageBox(mainWindow, {
-                        type: 'info',
-                        title: 'Update Ready',
-                        message: 'Update has been downloaded and verified',
-                        detail: 'The application will restart to install the update.',
-                        buttons: ['Restart Now', 'Later'],
-                        defaultId: 0,
-                        cancelId: 1
-                    });
-
-                    if (result.response === 0) {
-                        console.log('🔄 User chose to restart (polling detection)');
-                        app.isQuitting = true;
-                        app.isAutoUpdating = true;
-                        setImmediate(() => {
-                            try {
-                                autoUpdater.quitAndInstall(false, true);
-                            } catch (err) {
-                                console.error('❌ quitAndInstall failed:', err);
-                                app.quit();
-                            }
-                        });
-                    } else {
-                        console.log('⏸️ User chose to restart later (polling detection)');
-                    }
-                }
-
-                // Safety stop after 30 seconds
-                if (pollCount >= maxPolls) {
-                    console.warn('⚠️ Polling timeout reached');
-                    clearInterval(pollInterval);
-                }
-            }, 500);
-
-            // Store interval ID so update-downloaded can clear it
-            global.verificationPollInterval = pollInterval;
-
-            // Set a 30-second SAFETY timeout - should never reach this now
-            const verificationTimeout = setTimeout(async () => {
-                console.warn('⚠️ Update event did not fire after 30 seconds - showing fallback dialog');
-                await closeProgressWindow();
+            // Close progress window immediately
+            closeProgressWindow().then(async () => {
                 if (mainWindow && process.platform === 'darwin') {
                     mainWindow.setProgressBar(-1);
                 }
 
+                // Show restart dialog immediately - no waiting, no polling, no verification delays
                 const result = await dialog.showMessageBox(mainWindow, {
-                    type: 'question',
-                    title: 'Update Ready',
-                    message: 'Update verification complete',
-                    detail: 'The update appears to be ready. Would you like to restart now to complete the installation?\n\nNote: If you choose "Later", the update will be applied the next time you restart the app.',
+                    type: 'info',
+                    title: 'Update Downloaded',
+                    message: 'Update has been downloaded successfully',
+                    detail: 'The application will restart to install the update.',
                     buttons: ['Restart Now', 'Later'],
                     defaultId: 0,
                     cancelId: 1
                 });
 
                 if (result.response === 0) {
-                    console.log('🔄 User chose to restart (fallback dialog)');
+                    console.log('🔄 User chose to restart immediately');
                     app.isQuitting = true;
                     app.isAutoUpdating = true;
                     setImmediate(() => {
-                        // If autoUpdater.quitAndInstall doesn't work, force quit
                         try {
                             autoUpdater.quitAndInstall(false, true);
                         } catch (err) {
-                            console.error('❌ quitAndInstall failed, force quitting:', err);
+                            console.error('❌ quitAndInstall failed:', err);
                             app.quit();
                         }
                     });
                 } else {
-                    console.log('⏸️ User chose to restart later (fallback dialog)');
+                    console.log('⏸️ User chose to restart later');
                 }
-            }, 30000); // 30 seconds
-
-            // Store timeout ID so we can clear it when update succeeds
-            global.verificationTimeout = verificationTimeout;
+            }).catch(err => {
+                console.error('❌ Error in download completion handler:', err);
+            });
         }
     });
 
