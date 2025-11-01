@@ -16,13 +16,9 @@ let progressWindow = null;  // Download progress window
 const FLASK_PORT = 7381;  // Use 7381 for Electron desktop, 7380 for Docker, 5001 for web dev
 
 // File-based logging for debugging auto-updater issues
-const LOG_DIR = path.join(app.getPath('logs'));
-const LOG_FILE = path.join(LOG_DIR, 'auto-updater.log');
-
-// Ensure log directory exists
-if (!fs.existsSync(LOG_DIR)) {
-    fs.mkdirSync(LOG_DIR, { recursive: true });
-}
+// NOTE: These will be initialized in app.whenReady() - cannot call app.getPath() before app is ready
+let LOG_DIR = null;
+let LOG_FILE = null;
 
 // Logging utility that writes to both console and file
 function log(level, ...args) {
@@ -36,11 +32,13 @@ function log(level, ...args) {
     // Write to console
     console.log(...args);
 
-    // Write to file (append mode)
-    try {
-        fs.appendFileSync(LOG_FILE, logLine);
-    } catch (err) {
-        console.error('Failed to write to log file:', err);
+    // Write to file (append mode) - only if LOG_FILE is initialized
+    if (LOG_FILE) {
+        try {
+            fs.appendFileSync(LOG_FILE, logLine);
+        } catch (err) {
+            console.error('Failed to write to log file:', err);
+        }
     }
 }
 
@@ -1060,6 +1058,15 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // App lifecycle
 app.whenReady().then(async () => {
+    // Initialize logging paths NOW that app is ready
+    LOG_DIR = app.getPath('logs');
+    LOG_FILE = path.join(LOG_DIR, 'auto-updater.log');
+
+    // Ensure log directory exists
+    if (!fs.existsSync(LOG_DIR)) {
+        fs.mkdirSync(LOG_DIR, { recursive: true });
+    }
+
     console.log('🚀 Redis ACL Builder v2.1.7-beta - Testing unsigned builds for auto-update installation');
     console.log('📝 Log file location:', LOG_FILE);
     console.log('   You can view logs via Help > Open Log File');
