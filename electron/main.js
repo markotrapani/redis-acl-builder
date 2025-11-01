@@ -13,6 +13,7 @@ let mainWindow = null;
 let pythonProcess = null;
 let tray = null;  // System tray
 let progressWindow = null;  // Download progress window
+let updateDownloadedSuccessfully = false;  // Track if update-downloaded event fired
 const FLASK_PORT = 7381;  // Use 7381 for Electron desktop, 7380 for Docker, 5001 for web dev
 
 // File-based logging for debugging auto-updater issues
@@ -563,6 +564,9 @@ function setupAutoUpdater() {
     autoUpdater.on('update-available', (info) => {
         console.log('✨ Update available:', info.version);
 
+        // Reset flag when starting a new download
+        updateDownloadedSuccessfully = false;
+
         dialog.showMessageBox(mainWindow, {
             type: 'info',
             title: 'Update Available',
@@ -669,17 +673,32 @@ function setupAutoUpdater() {
         if (percent === 100) {
             console.log('📦 Download reached 100%');
             console.log(`   progressWindow exists: ${!!progressWindow}`);
+            console.log(`   updateDownloadedSuccessfully: ${updateDownloadedSuccessfully}`);
             console.log('   Waiting 10 seconds for update-downloaded event...');
+
+            // Reset flag at start of download
+            updateDownloadedSuccessfully = false;
 
             // Set a timeout to force-show dialog if update-downloaded doesn't fire
             setTimeout(async () => {
-                // Only show if update-downloaded hasn't fired yet
-                if (progressWindow) {
+                // Only show if update-downloaded event hasn't fired successfully
+                if (!updateDownloadedSuccessfully) {
                     console.warn('⚠️ update-downloaded event did not fire, forcing restart dialog');
+                    console.log(`   progressWindow exists: ${!!progressWindow}`);
 
-                    await closeProgressWindow();
+                    // Close progress window if it still exists
+                    if (progressWindow) {
+                        await closeProgressWindow();
+                    }
+
                     if (mainWindow && process.platform === 'darwin') {
                         mainWindow.setProgressBar(-1);
+                    }
+
+                    // Check if mainWindow is still valid
+                    if (!mainWindow || mainWindow.isDestroyed()) {
+                        console.error('❌ Main window destroyed, cannot show restart dialog');
+                        return;
                     }
 
                     const result = await dialog.showMessageBox(mainWindow, {
@@ -707,6 +726,8 @@ function setupAutoUpdater() {
                     } else {
                         console.log('⏸️ User chose to restart later (forced dialog)');
                     }
+                } else {
+                    console.log('✅ update-downloaded event fired successfully, skipping timeout fallback');
                 }
             }, 10000); // 10 second timeout
         }
@@ -715,6 +736,9 @@ function setupAutoUpdater() {
     autoUpdater.on('update-downloaded', async (info) => {
         console.log('✅ Update downloaded EVENT FIRED:', info.version);
         console.log('📋 Update info:', JSON.stringify(info, null, 2));
+
+        // Set flag to prevent timeout from showing duplicate dialog
+        updateDownloadedSuccessfully = true;
 
         try {
             // Clear the polling interval since event fired properly
