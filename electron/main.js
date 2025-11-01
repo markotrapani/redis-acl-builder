@@ -501,17 +501,47 @@ function updateProgressWindow(percent, speedMBs) {
 function closeProgressWindow() {
     return new Promise((resolve) => {
         if (!progressWindow) {
+            console.log('✅ No progress window to close');
             resolve();
             return;
         }
 
+        console.log('🔄 Attempting to close progress window...');
+        console.log(`   Window destroyed? ${progressWindow.isDestroyed()}`);
+        console.log(`   Window closable? ${progressWindow.isClosable()}`);
+
         // Wait for window to actually close before resolving
         progressWindow.once('closed', () => {
+            console.log('✅ Progress window closed successfully');
             progressWindow = null;
             resolve();
         });
 
-        progressWindow.close();
+        // Listen for close event (happens before 'closed')
+        progressWindow.once('close', (event) => {
+            console.log('🔔 Progress window close event fired');
+        });
+
+        // Try to close the window
+        try {
+            if (!progressWindow.isDestroyed()) {
+                // Use destroy() instead of close() to force immediate closure
+                // This bypasses any beforeunload handlers or other blocking
+                progressWindow.destroy();
+                console.log('✅ Destroy command sent to progress window');
+                // Window is destroyed immediately, no need to wait
+                progressWindow = null;
+                resolve();
+            } else {
+                console.log('⚠️ Progress window already destroyed');
+                progressWindow = null;
+                resolve();
+            }
+        } catch (error) {
+            console.error('❌ Error closing progress window:', error);
+            progressWindow = null;
+            resolve();
+        }
     });
 }
 
