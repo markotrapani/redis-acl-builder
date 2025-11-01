@@ -1,6 +1,6 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.7.15-beta
+**Current Version:** v2.7.21-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
@@ -18,6 +18,69 @@ applications across macOS, Windows, and Linux.
 ---
 
 ## 🎯 Version History
+
+### v2.7.21-beta (2025-10-31) - IN PROGRESS
+
+#### File-Based Logging for Auto-Updater Debugging
+
+- 🔧 **Persistent Logging System** - Debug auto-update event issues
+  - All console output now writes to persistent log file
+  - Log location: `~/Library/Logs/Redis ACL Builder/auto-updater.log`
+  - Logs survive app restarts for post-mortem analysis
+  - Added "Open Log File" and "View Logs Folder" menu items under Help
+  - Log file path displayed on app startup
+
+- ⚠️ **Known Issue - Auto-Update Restart Dialog**
+  - `update-downloaded` event not firing reliably after download completes
+  - Download reaches 100% but restart dialog doesn't appear
+  - Current workaround: 10-second timeout fallback after download hits 100%
+  - Root cause under investigation with new logging system
+
+**Status:** Build triggered, waiting for GitHub Actions to complete
+
+**Next Steps:**
+
+1. Wait for v2.7.21-beta build to complete
+2. Test auto-update from v2.7.20-beta → v2.7.21-beta
+3. Check log file via Help > Open Log File to investigate why
+`update-downloaded` event isn't firing
+4. Determine proper fix to replace timeout-based workaround
+
+**Technical:** Logging utility in [main.js](electron/main.js) intercepts
+console.log/error/warn, writes to both console and file, menu items added to
+Help menu for easy log access
+
+---
+
+### v2.7.20-beta (2025-10-31)
+
+#### Auto-Update Timeout Fallback
+
+- ⚠️ **Temporary Workaround** - 10-second timeout after download completion
+  - If `update-downloaded` event doesn't fire within 10 seconds, force-show
+  restart dialog
+  - Timeout only starts after download reaches 100%
+  - Not ideal solution but prevents users from getting stuck
+
+**Technical:** Timeout logic in download-progress handler in
+[main.js](electron/main.js)
+
+---
+
+### v2.7.18-beta (2025-10-31)
+
+#### Auto-Updater Error Handling
+
+- ✅ **Prevent Crash on Auto-Updater Errors** - Fixed app crashing on startup
+  - Modified unhandledRejection handler to ignore auto-updater errors
+  - App won't crash if latest-mac.yml is missing or update check fails
+  - Non-critical auto-updater errors no longer terminate app
+  - Fixes crash loop when release builds fail or are incomplete
+
+**Technical:** Error filtering in global unhandledRejection handler in
+[main.js](electron/main.js)
+
+---
 
 ### v2.7.13-beta (2025-10-31)
 
