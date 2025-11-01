@@ -918,7 +918,8 @@ function startBackendProcess() {
     });
 
     pythonProcess.stderr.on('data', (data) => {
-        console.error(`[Python Error] ${data.toString().trim()}`);
+        // Flask/Werkzeug writes INFO logs to stderr, so use console.log instead of console.error
+        console.log(`[Python] ${data.toString().trim()}`);
     });
 
     pythonProcess.on('close', (code) => {
