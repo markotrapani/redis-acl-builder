@@ -252,13 +252,14 @@ jobs:
       - name: Clean up draft releases for this tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true  # Don't fail build if cleanup fails
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           echo "Checking for draft releases with tag: $VERSION"
 
           # Get all draft release IDs for this tag
           DRAFT_IDS=$(gh api /repos/${{ github.repository }}/releases \
-            --jq ".[] | select(.draft == true and .tag_name == \"$VERSION\") | .id")
+            --jq ".[] | select(.draft == true and .tag_name == \"$VERSION\") | .id" || echo "")
 
           if [ -n "$DRAFT_IDS" ]; then
             echo "Found draft release(s) to delete:"
