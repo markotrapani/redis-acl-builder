@@ -15,6 +15,55 @@ let tray = null;  // System tray
 let progressWindow = null;  // Download progress window
 const FLASK_PORT = 7381;  // Use 7381 for Electron desktop, 7380 for Docker, 5001 for web dev
 
+// File-based logging for debugging auto-updater issues
+const LOG_DIR = path.join(app.getPath('logs'));
+const LOG_FILE = path.join(LOG_DIR, 'auto-updater.log');
+
+// Ensure log directory exists
+if (!fs.existsSync(LOG_DIR)) {
+    fs.mkdirSync(LOG_DIR, { recursive: true });
+}
+
+// Logging utility that writes to both console and file
+function log(level, ...args) {
+    const timestamp = new Date().toISOString();
+    const message = args.map(arg =>
+        typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+    ).join(' ');
+
+    const logLine = `[${timestamp}] [${level}] ${message}\n`;
+
+    // Write to console
+    console.log(...args);
+
+    // Write to file (append mode)
+    try {
+        fs.appendFileSync(LOG_FILE, logLine);
+    } catch (err) {
+        console.error('Failed to write to log file:', err);
+    }
+}
+
+// Replace console.log with our logging utility for auto-updater events
+const originalLog = console.log;
+const originalError = console.error;
+const originalWarn = console.warn;
+
+console.log = (...args) => {
+    originalLog(...args);
+    log('INFO', ...args);
+};
+
+console.error = (...args) => {
+    originalError(...args);
+    log('ERROR', ...args);
+};
+
+console.warn = (...args) => {
+    originalWarn(...args);
+    log('WARN', ...args);
+};
+
 // Simple development mode detection
 function isDevelopment() {
     // Check if we're running from source (electron/main.js exists) vs packaged
@@ -128,6 +177,20 @@ function createAppMenu() {
                     label: 'View on GitHub',
                     click: () => {
                         shell.openExternal('https://github.com/markotrapani/redis-acl-builder');
+                    }
+                },
+                { type: 'separator' },
+                {
+                    label: 'Open Log File',
+                    click: () => {
+                        // Open the log file in Finder
+                        shell.showItemInFolder(LOG_FILE);
+                    }
+                },
+                {
+                    label: 'View Logs Folder',
+                    click: () => {
+                        shell.openPath(LOG_DIR);
                     }
                 }
             ]
@@ -998,6 +1061,8 @@ process.on('unhandledRejection', (reason, promise) => {
 // App lifecycle
 app.whenReady().then(async () => {
     console.log('🚀 Redis ACL Builder v2.1.7-beta - Testing unsigned builds for auto-update installation');
+    console.log('📝 Log file location:', LOG_FILE);
+    console.log('   You can view logs via Help > Open Log File');
 
     // Set app name (important for macOS - shows in menu bar and About panel)
     app.setName('Redis ACL Builder');
