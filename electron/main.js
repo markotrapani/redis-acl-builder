@@ -567,46 +567,51 @@ function setupAutoUpdater() {
             mainWindow.setProgressBar(progressObj.percent / 100);
         }
 
-        // When download reaches 100%, IMMEDIATELY show restart dialog
-        // Verification happens AFTER restart during app launch (macOS Gatekeeper)
-        if (percent === 100 && progressWindow) {
-            console.log('📦 Download complete at 100% - showing restart dialog immediately');
+        // When download reaches 100%, wait briefly for update-downloaded event
+        // If it doesn't fire, force-show the restart dialog
+        if (percent === 100) {
+            console.log('📦 Download reached 100%');
+            console.log(`   progressWindow exists: ${!!progressWindow}`);
+            console.log('   Waiting 10 seconds for update-downloaded event...');
 
-            // Close progress window immediately
-            closeProgressWindow().then(async () => {
-                if (mainWindow && process.platform === 'darwin') {
-                    mainWindow.setProgressBar(-1);
-                }
+            // Set a timeout to force-show dialog if update-downloaded doesn't fire
+            setTimeout(async () => {
+                // Only show if update-downloaded hasn't fired yet
+                if (progressWindow) {
+                    console.warn('⚠️ update-downloaded event did not fire, forcing restart dialog');
 
-                // Show restart dialog immediately - no waiting, no polling, no verification delays
-                const result = await dialog.showMessageBox(mainWindow, {
-                    type: 'info',
-                    title: 'Update Downloaded',
-                    message: 'Update has been downloaded successfully',
-                    detail: 'The application will restart to install the update.',
-                    buttons: ['Restart Now', 'Later'],
-                    defaultId: 0,
-                    cancelId: 1
-                });
+                    await closeProgressWindow();
+                    if (mainWindow && process.platform === 'darwin') {
+                        mainWindow.setProgressBar(-1);
+                    }
 
-                if (result.response === 0) {
-                    console.log('🔄 User chose to restart immediately');
-                    app.isQuitting = true;
-                    app.isAutoUpdating = true;
-                    setImmediate(() => {
-                        try {
-                            autoUpdater.quitAndInstall(false, true);
-                        } catch (err) {
-                            console.error('❌ quitAndInstall failed:', err);
-                            app.quit();
-                        }
+                    const result = await dialog.showMessageBox(mainWindow, {
+                        type: 'info',
+                        title: 'Update Ready',
+                        message: 'Update has been downloaded',
+                        detail: 'The application will restart to install the update.',
+                        buttons: ['Restart Now', 'Later'],
+                        defaultId: 0,
+                        cancelId: 1
                     });
-                } else {
-                    console.log('⏸️ User chose to restart later');
+
+                    if (result.response === 0) {
+                        console.log('🔄 User chose to restart (forced dialog)');
+                        app.isQuitting = true;
+                        app.isAutoUpdating = true;
+                        setImmediate(() => {
+                            try {
+                                autoUpdater.quitAndInstall(false, true);
+                            } catch (err) {
+                                console.error('❌ quitAndInstall failed:', err);
+                                app.quit();
+                            }
+                        });
+                    } else {
+                        console.log('⏸️ User chose to restart later (forced dialog)');
+                    }
                 }
-            }).catch(err => {
-                console.error('❌ Error in download completion handler:', err);
-            });
+            }, 10000); // 10 second timeout
         }
     });
 
