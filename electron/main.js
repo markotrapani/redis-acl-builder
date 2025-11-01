@@ -974,6 +974,18 @@ process.on('uncaughtException', (error) => {
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('💥 Unhandled rejection at:', promise, 'reason:', reason);
+
+    // Don't crash the app for auto-updater errors - these are non-critical
+    if (reason && (
+        reason.code === 'ERR_UPDATER_CHANNEL_FILE_NOT_FOUND' ||
+        reason.message?.includes('latest-mac.yml') ||
+        reason.message?.includes('Cannot find latest')
+    )) {
+        console.warn('⚠️ Auto-updater error ignored - app will continue running');
+        return;
+    }
+
+    // For other unhandled rejections, crash the app
     cleanupAndExit();
     process.exit(1);
 });
