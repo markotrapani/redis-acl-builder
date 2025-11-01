@@ -20,6 +20,11 @@ const FLASK_PORT = 7381;  // Use 7381 for Electron desktop, 7380 for Docker, 500
 let LOG_DIR = null;
 let LOG_FILE = null;
 
+// Save original console methods FIRST before any functions are defined
+const originalLog = console.log;
+const originalError = console.error;
+const originalWarn = console.warn;
+
 // Logging utility that writes to both console and file
 function log(level, ...args) {
     const timestamp = new Date().toISOString();
@@ -29,37 +34,68 @@ function log(level, ...args) {
 
     const logLine = `[${timestamp}] [${level}] ${message}\n`;
 
-    // Write to console
-    console.log(...args);
+    // Write to console using ORIGINAL console.log (not the overridden one)
+    originalLog(...args);
 
     // Write to file (append mode) - only if LOG_FILE is initialized
     if (LOG_FILE) {
         try {
             fs.appendFileSync(LOG_FILE, logLine);
         } catch (err) {
-            console.error('Failed to write to log file:', err);
+            // Use original console.error to avoid recursion
+            originalError('Failed to write to log file:', err);
         }
     }
 }
 
-// Replace console.log with our logging utility for auto-updater events
-const originalLog = console.log;
-const originalError = console.error;
-const originalWarn = console.warn;
-
+// Replace console methods with logging wrappers
 console.log = (...args) => {
     originalLog(...args);
-    log('INFO', ...args);
+    // Only write to file if LOG_FILE is set
+    if (LOG_FILE) {
+        const timestamp = new Date().toISOString();
+        const message = args.map(arg =>
+            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+        ).join(' ');
+        const logLine = `[${timestamp}] [INFO] ${message}\n`;
+        try {
+            fs.appendFileSync(LOG_FILE, logLine);
+        } catch (err) {
+            originalError('Failed to write to log file:', err);
+        }
+    }
 };
 
 console.error = (...args) => {
     originalError(...args);
-    log('ERROR', ...args);
+    if (LOG_FILE) {
+        const timestamp = new Date().toISOString();
+        const message = args.map(arg =>
+            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+        ).join(' ');
+        const logLine = `[${timestamp}] [ERROR] ${message}\n`;
+        try {
+            fs.appendFileSync(LOG_FILE, logLine);
+        } catch (err) {
+            originalError('Failed to write to log file:', err);
+        }
+    }
 };
 
 console.warn = (...args) => {
     originalWarn(...args);
-    log('WARN', ...args);
+    if (LOG_FILE) {
+        const timestamp = new Date().toISOString();
+        const message = args.map(arg =>
+            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+        ).join(' ');
+        const logLine = `[${timestamp}] [WARN] ${message}\n`;
+        try {
+            fs.appendFileSync(LOG_FILE, logLine);
+        } catch (err) {
+            originalError('Failed to write to log file:', err);
+        }
+    }
 };
 
 // Simple development mode detection
