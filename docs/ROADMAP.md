@@ -552,6 +552,26 @@ animations
 
 ---
 
+### v2.8.0-beta (2025-11-03)
+
+#### Custom App Icons - Complete Redesign
+
+- **Professional Custom Icons**: Created brand-new custom dock/app icons with clean
+  transparency and professional appearance
+- **Optimal Sizing**: Icon sized at 83% canvas fill (849x836 pixels on 1024x1024
+  canvas) for perfect dock visibility
+- **RedisInsight Color Matching**: Balanced muted coral/red tone (-15% saturation,
+  -5% brightness) matching Redis branding
+- **Multi-Platform Support**: Generated all platform formats (macOS .icns, Windows
+  .ico, Linux PNGs)
+- **Build System**: Organized icon build scripts in
+  electron/build/icons/scripts/ with automated generation tools
+
+**Technical:** PIL/Pillow image processing, macOS iconutil, Python icon generation
+scripts
+
+---
+
 ### v2.4.0-beta (2025-10-20)
 
 #### Major UI/UX Enhancements
@@ -765,10 +785,11 @@ Branding → Medium Priority items
 #### High Priority (User Requested)
 
 1. **Create Custom App Icons** (Design Improvement)
-   - **Status:** ✅ Completed (v2.7.29-beta)
+   - **Status:** ✅ Completed (v2.8.0-beta)
    - Created professional custom icons with clean transparency
    - All platform formats generated (macOS .icns, Windows .ico, Linux PNGs)
-   - Icon sized at 90% canvas fill for optimal dock visibility
+   - Icon sized at 83% canvas fill for optimal dock visibility
+   - Color-matched to RedisInsight branding (-15% saturation, -5% brightness)
    - Organized icon build system in electron/build/icons/scripts/
 
 2. **Redis Official Branding & UI Modernization** (Visual Polish)
