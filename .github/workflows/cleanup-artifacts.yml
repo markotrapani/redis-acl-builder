@@ -145,6 +145,66 @@ jobs:
 
           echo "✅ Release cleanup complete! Deleted $RELEASES_TO_DELETE old releases"
 
+      - name: Clean up old tags
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Finding old tags to delete (keeping last 3)..."
+
+          # Get the 3 most recent release tags
+          RECENT_TAGS=$(git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | head -3)
+
+          if [ -z "$RECENT_TAGS" ]; then
+            echo "✅ No version tags found, nothing to delete"
+            exit 0
+          fi
+
+          echo "📌 Keeping most recent 3 tags:"
+          echo "$RECENT_TAGS" | sed 's/^/  - /'
+
+          # Get all version tags sorted by version (newest first)
+          ALL_TAGS=$(git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+')
+          TOTAL_TAGS=$(echo "$ALL_TAGS" | wc -l)
+
+          if [ "$TOTAL_TAGS" -le 3 ]; then
+            echo "✅ Only $TOTAL_TAGS tags exist (≤3), nothing to delete"
+            exit 0
+          fi
+
+          # Get tags to delete (skip first 3)
+          OLD_TAGS=$(echo "$ALL_TAGS" | tail -n +4)
+          TAGS_TO_DELETE=$(echo "$OLD_TAGS" | wc -l)
+
+          echo ""
+          echo "🗑️  Deleting $TAGS_TO_DELETE old tags:"
+          echo "$OLD_TAGS" | sed 's/^/  - /'
+
+          # Delete old tags (track failures in temp file)
+          FAILED_FILE=$(mktemp)
+          echo "0" > "$FAILED_FILE"
+
+          echo "$OLD_TAGS" | while read -r tag; do
+            echo "Deleting tag: $tag"
+            if ! git push origin --delete "$tag" 2>&1; then
+              echo "❌ Failed to delete tag $tag"
+              echo "$(($(cat "$FAILED_FILE") + 1))" > "$FAILED_FILE"
+            else
+              echo "✅ Successfully deleted tag $tag"
+            fi
+            sleep 0.5  # Rate limiting
+          done
+
+          # Check if any deletions failed
+          FAILED_DELETIONS=$(cat "$FAILED_FILE")
+          rm -f "$FAILED_FILE"
+
+          if [ "$FAILED_DELETIONS" -gt 0 ]; then
+            echo "❌ $FAILED_DELETIONS tags failed to delete"
+            exit 1
+          fi
+
+          echo "✅ Tag cleanup complete! Deleted $TAGS_TO_DELETE old tags"
+
       - name: Summary
         if: always()
         env:
