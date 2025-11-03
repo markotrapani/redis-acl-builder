@@ -11,7 +11,7 @@ jobs:
     name: Delete Old Artifacts
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write  # Changed from 'read' to 'write' for release deletion
       actions: write
       id-token: write
 
@@ -62,21 +62,26 @@ jobs:
 
           echo "🗑️  Found $ARTIFACT_COUNT artifacts to delete (${TOTAL_SIZE} GB)"
 
-          # Delete each artifact
-          FAILED_DELETIONS=0
+          # Delete each artifact (track failures in temp file)
+          FAILED_FILE=$(mktemp)
+          echo "0" > "$FAILED_FILE"
+
           echo "$OLD_ARTIFACTS" | while IFS=$'\t' read -r id name created_at size; do
             echo "Deleting: $name (ID: $id, Created: $created_at)"
-            if ! gh api --method DELETE "/repos/${{ github.repository }}/actions/artifacts/$id"; then
-              echo "❌ Failed to delete $id"
-              FAILED_DELETIONS=$((FAILED_DELETIONS + 1))
+            if ! gh api --method DELETE "/repos/${{ github.repository }}/actions/artifacts/$id" 2>&1; then
+              echo "❌ Failed to delete artifact $id"
+              echo "$(($(cat "$FAILED_FILE") + 1))" > "$FAILED_FILE"
             else
-              echo "✅ Successfully deleted $id"
+              echo "✅ Successfully deleted artifact $id"
             fi
             sleep 0.5  # Rate limiting
           done
-          
+
           # Check if any deletions failed
-          if [ $FAILED_DELETIONS -gt 0 ]; then
+          FAILED_DELETIONS=$(cat "$FAILED_FILE")
+          rm -f "$FAILED_FILE"
+
+          if [ "$FAILED_DELETIONS" -gt 0 ]; then
             echo "❌ $FAILED_DELETIONS artifacts failed to delete"
             exit 1
           fi
@@ -114,20 +119,26 @@ jobs:
           echo "🗑️  Deleting $RELEASES_TO_DELETE old releases:"
           echo "$OLD_RELEASES" | awk -F'\t' '{print "  - " $2 " (" $4 ")"}'
 
-          # Delete old releases
-          FAILED_DELETIONS=0
+          # Delete old releases (track failures in temp file)
+          FAILED_FILE=$(mktemp)
+          echo "0" > "$FAILED_FILE"
+
           echo "$OLD_RELEASES" | while IFS=$'\t' read -r id tag created_at name; do
             echo "Deleting release: $tag (ID: $id)"
-            if ! gh api --method DELETE "/repos/${{ github.repository }}/releases/$id"; then
+            if ! gh api --method DELETE "/repos/${{ github.repository }}/releases/$id" 2>&1; then
               echo "❌ Failed to delete release $tag"
-              FAILED_DELETIONS=$((FAILED_DELETIONS + 1))
+              echo "$(($(cat "$FAILED_FILE") + 1))" > "$FAILED_FILE"
             else
               echo "✅ Successfully deleted release $tag"
             fi
             sleep 0.5  # Rate limiting
           done
 
-          if [ $FAILED_DELETIONS -gt 0 ]; then
+          # Check if any deletions failed
+          FAILED_DELETIONS=$(cat "$FAILED_FILE")
+          rm -f "$FAILED_FILE"
+
+          if [ "$FAILED_DELETIONS" -gt 0 ]; then
             echo "❌ $FAILED_DELETIONS releases failed to delete"
             exit 1
           fi
