@@ -244,109 +244,67 @@ let isManualUpdateCheck = false;
 
 // Create system tray icon and menu
 function createSystemTray() {
-    // In production, icons are in app.asar.unpacked or Resources root
-    // In development, icons are in electron/build/
-    let iconPath;
-    
-    if (isDevelopment()) {
-        // Development mode: use build directory
-        iconPath = path.join(__dirname, 'build',
-            process.platform === 'darwin' ? 'icon.icns' :
-            process.platform === 'win32' ? 'icon.ico' :
-            'icon.png'
-        );
-    } else {
-        // Production mode: use Resources directory
-        iconPath = process.resourcesPath
-            ? path.join(process.resourcesPath,
-                process.platform === 'darwin' ? 'icon.icns' :
-                process.platform === 'win32' ? 'icon.ico' :
-                'icon.png')
-            : path.join(__dirname, '..', '..', 'icon.icns');
-    }
+    // Use dedicated tray icons from build/icons/tray/
+    let trayIconPath;
 
-    console.log('🔍 Looking for system tray icon at:', iconPath);
-    console.log('🔍 __dirname:', __dirname);
-    console.log('🔍 process.resourcesPath:', process.resourcesPath);
-    
-    if (!fs.existsSync(iconPath)) {
-        console.error('❌ System tray icon not found:', iconPath);
-        // Try fallback location
-        const fallbackPath = path.join(__dirname, '..', 'icon.icns');
-        if (fs.existsSync(fallbackPath)) {
-            console.log('✅ Using fallback icon:', fallbackPath);
-            iconPath = fallbackPath;
+    if (isDevelopment()) {
+        // Development mode: use build/icons/tray directory
+        if (process.platform === 'darwin') {
+            trayIconPath = path.join(__dirname, 'build', 'icons', 'tray', 'tray-icon-mac.png');
+        } else if (process.platform === 'win32') {
+            trayIconPath = path.join(__dirname, 'build', 'icons', 'tray', 'tray-icon-win.png');
         } else {
-            console.error('❌ Fallback icon also not found - creating tray with programmatic icon');
-            // Create a simple 16x16 black square as fallback
-            const iconSize = 16;
-            const buffer = Buffer.alloc(iconSize * iconSize * 4); // RGBA
-            
-            // Fill with solid black pixels
-            for (let i = 0; i < buffer.length; i += 4) {
-                buffer[i] = 0;     // R
-                buffer[i + 1] = 0; // G  
-                buffer[i + 2] = 0; // B
-                buffer[i + 3] = 255; // A (opaque)
-            }
-            
-            const fallbackIcon = nativeImage.createFromBuffer(buffer, { width: iconSize, height: iconSize });
-            fallbackIcon.setTemplateImage(true);
-            tray = new Tray(fallbackIcon);
-            console.log('✅ System tray created with programmatic fallback icon');
-            return;
+            trayIconPath = path.join(__dirname, 'build', 'icons', 'tray', 'tray-icon-linux.png');
         }
     } else {
-        console.log('✅ Found system tray icon:', iconPath);
+        // Production mode: tray icons are in Resources directory
+        const trayIconName = process.platform === 'darwin' ? 'tray-icon-mac.png' :
+                             process.platform === 'win32' ? 'tray-icon-win.png' :
+                             'tray-icon-linux.png';
+
+        trayIconPath = process.resourcesPath
+            ? path.join(process.resourcesPath, 'build', 'icons', 'tray', trayIconName)
+            : path.join(__dirname, 'build', 'icons', 'tray', trayIconName);
     }
+
+    console.log('🔍 Looking for system tray icon at:', trayIconPath);
+
+    if (!fs.existsSync(trayIconPath)) {
+        console.error('❌ System tray icon not found:', trayIconPath);
+        // Create a simple fallback icon
+        const iconSize = 16;
+        const buffer = Buffer.alloc(iconSize * iconSize * 4); // RGBA
+
+        // Fill with solid black pixels
+        for (let i = 0; i < buffer.length; i += 4) {
+            buffer[i] = 0;     // R
+            buffer[i + 1] = 0; // G
+            buffer[i + 2] = 0; // B
+            buffer[i + 3] = 255; // A (opaque)
+        }
+
+        const fallbackIcon = nativeImage.createFromBuffer(buffer, { width: iconSize, height: iconSize });
+        if (process.platform === 'darwin') {
+            fallbackIcon.setTemplateImage(true);
+        }
+        tray = new Tray(fallbackIcon);
+        console.log('✅ System tray created with programmatic fallback icon');
+        return;
+    }
+
+    console.log('✅ Found system tray icon:', trayIconPath);
 
     // Create tray icon
-    let trayIcon;
-    
+    const trayIcon = nativeImage.createFromPath(trayIconPath);
+
+    // For macOS, mark as template image (auto-adapts to dark/light mode)
     if (process.platform === 'darwin') {
-        // For macOS, use our actual app icon properly resized
-        console.log('🔒 Using app icon for tray...');
-        const appIconPath = path.join(__dirname, 'build', 'icon.png');
-        console.log('🔒 App icon path:', appIconPath);
-        
-        trayIcon = nativeImage.createFromPath(appIconPath);
-        console.log('🔒 App icon loaded, isEmpty:', trayIcon.isEmpty());
-        console.log('🔒 App icon size:', trayIcon.getSize());
-        
-        // Use 22x22 for better visibility in macOS menu bar
-        if (!trayIcon.isEmpty()) {
-            // Extremely aggressive cropping - assume the actual icon is only in the center 60% of the image
-            const originalSize = trayIcon.getSize();
-            console.log('🔒 Original icon size:', originalSize);
-            
-            // Very aggressive crop - use only 60% of the original image
-            const cropFactor = 0.6; // Use only 60% of the image (removes 20% padding on each side)
-            const cropWidth = Math.floor(originalSize.width * cropFactor);
-            const cropHeight = Math.floor(originalSize.height * cropFactor);
-            const cropX = Math.floor((originalSize.width - cropWidth) / 2);
-            const cropY = Math.floor((originalSize.height - cropHeight) / 2);
-            
-            console.log('🔒 Aggressive cropping to:', { x: cropX, y: cropY, width: cropWidth, height: cropHeight });
-            
-            // Crop first, then resize
-            const croppedIcon = trayIcon.crop({ x: cropX, y: cropY, width: cropWidth, height: cropHeight });
-            trayIcon = croppedIcon.resize({ width: 22, height: 22 });
-            console.log('🔒 Aggressively cropped and resized to 22x22 for menu bar');
-        } else {
-            console.log('🔒 Custom icon failed, falling back to PNG...');
-            const pngIconPath = path.join(__dirname, 'build', 'icon.png');
-            trayIcon = nativeImage.createFromPath(pngIconPath);
-            if (!trayIcon.isEmpty()) {
-                trayIcon = trayIcon.resize({ width: 22, height: 22 });
-                console.log('🔒 Using PNG fallback, resized to 22x22');
-            }
-        }
-    } else {
-        // For other platforms, use the regular icon
-        trayIcon = nativeImage.createFromPath(iconPath);
+        trayIcon.setTemplateImage(true);
+        console.log('✅ macOS tray icon set as template image');
     }
-    
+
     tray = new Tray(trayIcon);
+    console.log('✅ System tray created successfully');
 
     // Create context menu
     const contextMenu = Menu.buildFromTemplate([
