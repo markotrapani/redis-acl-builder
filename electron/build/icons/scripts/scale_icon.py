@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Scale icon to 88% fill (slightly larger than current 85%)."""
+"""Scale icon to specified canvas fill percentage (default 90%)."""
 
 from PIL import Image
 import os
 
-def scale_to_target(input_path, output_path, target_fill=0.88):
+def scale_to_target(input_path, output_path, target_fill=0.90):
     """Scale icon content to target fill percentage."""
 
     source = Image.open(input_path).convert('RGBA')
@@ -59,9 +59,15 @@ def scale_to_target(input_path, output_path, target_fill=0.88):
     print(f"✓ Saved to {output_path}")
 
 if __name__ == '__main__':
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    input_file = os.path.join(script_dir, 'new-dock-icon.png')
-    output_file = os.path.join(script_dir, 'new-dock-icon.png')
+    import sys
 
-    scale_to_target(input_file, output_file, target_fill=0.88)
-    print("\n✅ Scaled to 88% fill!")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    icons_dir = os.path.dirname(script_dir)  # Go up to icons/ directory
+    input_file = os.path.join(icons_dir, 'source', 'new-dock-icon.png')
+    output_file = os.path.join(icons_dir, 'source', 'new-dock-icon.png')
+
+    # Allow custom fill percentage as command-line argument
+    target_fill = float(sys.argv[1]) if len(sys.argv) > 1 else 0.90
+
+    scale_to_target(input_file, output_file, target_fill=target_fill)
+    print(f"\n✅ Scaled to {target_fill*100:.0f}% fill!")

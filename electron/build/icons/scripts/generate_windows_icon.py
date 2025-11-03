@@ -6,8 +6,9 @@ import os
 
 def generate_windows_icon():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    source_path = os.path.join(script_dir, 'source', 'new-dock-icon.png')
-    output_path = os.path.join(script_dir, 'win', 'icon.ico')
+    icons_dir = os.path.dirname(script_dir)  # Go up to icons/ directory
+    source_path = os.path.join(icons_dir, 'source', 'new-dock-icon.png')
+    output_path = os.path.join(icons_dir, 'win', 'icon.ico')
 
     # Load source image
     img = Image.open(source_path)

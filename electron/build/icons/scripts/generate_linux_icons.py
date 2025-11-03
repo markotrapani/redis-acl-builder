@@ -6,8 +6,9 @@ import os
 
 def generate_linux_icons():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    source_path = os.path.join(script_dir, 'source', 'new-dock-icon.png')
-    linux_dir = os.path.join(script_dir, 'linux')
+    icons_dir = os.path.dirname(script_dir)  # Go up to icons/ directory
+    source_path = os.path.join(icons_dir, 'source', 'new-dock-icon.png')
+    linux_dir = os.path.join(icons_dir, 'linux')
 
     # Ensure linux directory exists
     os.makedirs(linux_dir, exist_ok=True)
