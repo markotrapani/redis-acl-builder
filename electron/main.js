@@ -250,7 +250,7 @@ function createSystemTray() {
     if (isDevelopment()) {
         // Development mode: use build/icons/tray directory
         if (process.platform === 'darwin') {
-            trayIconPath = path.join(__dirname, 'build', 'icons', 'tray', 'tray-icon-mac.png');
+            trayIconPath = path.join(__dirname, 'build', 'icons', 'tray', 'tray-icon-macTemplate.png');
         } else if (process.platform === 'win32') {
             trayIconPath = path.join(__dirname, 'build', 'icons', 'tray', 'tray-icon-win.png');
         } else {
@@ -258,7 +258,7 @@ function createSystemTray() {
         }
     } else {
         // Production mode: tray icons are in Resources directory
-        const trayIconName = process.platform === 'darwin' ? 'tray-icon-mac.png' :
+        const trayIconName = process.platform === 'darwin' ? 'tray-icon-macTemplate.png' :
                              process.platform === 'win32' ? 'tray-icon-win.png' :
                              'tray-icon-linux.png';
 
@@ -967,10 +967,10 @@ function createWindow() {
         titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
         trafficLightPosition: process.platform === 'darwin' ? { x: 15, y: 15 } : undefined,
         // Set app icon (platform-specific formats)
-        icon: path.join(__dirname, 'build',
-            process.platform === 'darwin' ? 'icon.icns' :   // macOS
-            process.platform === 'win32' ? 'icon.ico' :      // Windows
-            'icon.png'                                        // Linux
+        icon: path.join(__dirname, 'build', 'icons',
+            process.platform === 'darwin' ? 'mac/icon.icns' :   // macOS
+            process.platform === 'win32' ? 'win/icon.ico' :      // Windows
+            'source/icon-dock-1024.png'                          // Linux
         ),
         show: false // Don't show until ready
     });
