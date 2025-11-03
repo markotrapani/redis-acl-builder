@@ -759,11 +759,51 @@ etc.
 
 ### Next Up: Desktop App Polish (v2.7.x)
 
-**Priority Order**: Quick Wins (#5 below) → Custom App Icons → Medium Priority items
+**Priority Order**: Quick Wins (#5 below) → Custom App Icons → Redis Official
+Branding → Medium Priority items
 
 #### High Priority (User Requested)
 
 1. **Create Custom App Icons** (Design Improvement)
+   - **Status:** ✅ Completed (v2.7.29-beta)
+   - Created professional custom icons with clean transparency
+   - All platform formats generated (macOS .icns, Windows .ico, Linux PNGs)
+   - Icon sized at 90% canvas fill for optimal dock visibility
+   - Organized icon build system in electron/build/icons/scripts/
+
+2. **Redis Official Branding & UI Modernization** (Visual Polish)
+   - **Current:** Generic web interface appearance with basic styling
+   - **Goal:** Professional Redis-branded UI that looks official and enterprise-ready
+   - **Branding Elements to Add:**
+     - Redis logo and brand colors (Redis red #DC382D, dark mode accents)
+     - "Powered by Redis" or "Redis ACL Builder" branding in header/footer
+     - Redis OSS/Enterprise compatible badges and visual indicators
+     - Professional color scheme matching Redis documentation/website
+     - Redis-style button designs and component styling
+   - **UI Improvements:**
+     - Modernize layout with Redis design language
+     - Add Redis-inspired iconography throughout the interface
+     - Professional header with Redis branding
+     - Footer with Redis community links and documentation
+     - Splash screen for desktop app with Redis branding (optional)
+   - **Design Assets Needed:**
+     - Redis official logo files (SVG/PNG)
+     - Brand guidelines (colors, typography, spacing)
+     - Icon set matching Redis style
+   - **Implementation:**
+     - Update CSS with Redis brand colors and design tokens
+     - Add branded header/footer components
+     - Create branded theme variants (Redis Light, Redis Dark)
+     - Update info page with Redis-centric content and styling
+   - **Benefits:**
+     - Professional appearance increases user trust
+     - Clear association with Redis ecosystem
+     - Better integration with Redis documentation and tooling
+     - More appealing for enterprise adoption
+   - **Estimated Effort:** 8-12 hours (design research + implementation)
+   - **Dependencies:** Redis brand guidelines, official logo assets
+
+3. **Original App Icons Item** (COMPLETED - kept for reference)
    - **Current:** Using default/placeholder icon
    - **Need:** Create new custom icons that better represent the application
    - **Dock Icon Formats Needed:**
