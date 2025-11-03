@@ -69,7 +69,7 @@
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
-      "icon": "build/icon.icns",
+      "icon": "build/icons/mac/icon.icns",
       "target": [
         {
           "target": "dmg",
@@ -108,13 +108,13 @@
       "background": "build/background-light.png"
     },
     "win": {
-      "icon": "build/icon.png",
+      "icon": "build/icons/win/icon.ico",
       "target": [
         "nsis"
       ]
     },
     "linux": {
-      "icon": "build/icon.png",
+      "icon": "build/icons/source/icon.png",
       "target": [
         "AppImage"
       ],
