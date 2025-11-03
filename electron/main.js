@@ -1130,14 +1130,14 @@ app.whenReady().then(async () => {
     // Create system tray
     createSystemTray();
 
-    // Set dock icon on macOS using larger cropped icon
+    // Set dock icon on macOS using new dock icon
     if (process.platform === 'darwin') {
-        const iconPath = path.join(__dirname, 'build', 'icon-cropped-larger.png');
+        const iconPath = path.join(__dirname, 'build', 'icons', 'source', 'new-dock-icon.png');
         if (fs.existsSync(iconPath)) {
             try {
-                // Use the larger cropped icon (15% bigger to match dock icon sizes)
+                // Use the new dock icon with transparent background
                 await app.dock.setIcon(iconPath);
-                console.log('✅ Dock icon set with larger icon (matches dock size)');
+                console.log('✅ Dock icon set with new transparent icon');
             } catch (err) {
                 console.error('❌ Failed to set dock icon:', err.message);
             }
