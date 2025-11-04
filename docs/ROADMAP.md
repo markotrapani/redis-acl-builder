@@ -954,9 +954,6 @@ separation between data structures and operations
 
 - Rule comparison mode (side-by-side diff viewer)
 - ACL diff tool showing permission changes
-- Import existing Redis ACL configs for editing
-- Export to Redis config file format
-- Rule validation history with localStorage
 
 ---
 
