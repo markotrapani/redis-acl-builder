@@ -780,11 +780,40 @@ etc.
 ### Next Up: Desktop App Polish (v2.7.x)
 
 **Priority Order**: ✅ Quick Wins (Complete) → ✅ Custom App Icons (Complete) →
-🎯 Redis Official Branding (Next) → Medium Priority items
+🎯 Redis Enterprise/OSS Toggle (Next) → Redis Official Branding → Medium
+Priority items
 
 #### High Priority (User Requested)
 
-1. **Create Custom App Icons** (Design Improvement)
+1. **Redis Enterprise/OSS Command Set Toggle** (Critical Feature)
+   - **Current:** Only supports Redis OSS command sets (Redis 7: 379 commands,
+     Redis 8: 446 commands)
+   - **Goal:** Allow users to toggle between Redis OSS and Redis Enterprise
+     command sets
+   - **Why Important:** Redis Enterprise restricts certain OSS commands for
+     security (cluster, replication, dangerous operations)
+   - **Implementation:**
+     - Add toggle switch in UI (OSS / Enterprise mode)
+     - Filter out restricted commands when Enterprise mode is selected
+     - Restricted command categories to exclude in Enterprise mode:
+       - Cluster management commands (CLUSTER.*)
+       - Replication commands (REPLICAOF, SLAVEOF, etc.)
+       - Dangerous admin operations (FLUSHALL, FLUSHDB, SHUTDOWN, etc.)
+       - Module management (MODULE LOAD, MODULE UNLOAD, etc.)
+     - Update data_loader.py to maintain separate command lists for OSS vs
+       Enterprise
+     - Add visual indicators showing which mode is active
+     - Persist mode selection in localStorage
+   - **Benefits:**
+     - Accurate ACL testing for Redis Enterprise users
+     - No more false positives when testing on Enterprise
+     - Better alignment with actual deployment environments
+     - Clearer documentation of command availability differences
+   - **Estimated Effort:** 4-6 hours (backend filtering + UI toggle + testing)
+   - **Dependencies:** Research exact list of restricted commands in Redis
+     Enterprise
+
+2. **Create Custom App Icons** (Design Improvement)
    - **Status:** ✅ Completed (v2.8.0-beta)
    - Created professional custom icons with clean transparency
    - All platform formats generated (macOS .icns, Windows .ico, Linux PNGs)
@@ -792,7 +821,7 @@ etc.
    - Color-matched to RedisInsight branding (-15% saturation, -5% brightness)
    - Organized icon build system in electron/build/icons/scripts/
 
-2. **Redis Official Branding & UI Modernization** (Visual Polish)
+3. **Redis Official Branding & UI Modernization** (Visual Polish)
    - **Current:** Generic web interface appearance with basic styling
    - **Goal:** Professional Redis-branded UI that looks official and enterprise-ready
    - **Branding Elements to Add:**
@@ -824,7 +853,7 @@ etc.
    - **Estimated Effort:** 8-12 hours (design research + implementation)
    - **Dependencies:** Redis brand guidelines, official logo assets
 
-3. **Original App Icons Item** (COMPLETED - kept for reference)
+4. **Original App Icons Item** (COMPLETED - kept for reference)
    - **Current:** Using default/placeholder icon
    - **Need:** Create new custom icons that better represent the application
    - **Dock Icon Formats Needed:**
