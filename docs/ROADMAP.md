@@ -1111,32 +1111,36 @@ timeline**
 
 **Quick Summary:**
 
+- [ ] **Interactive Intro/Tutorial** - In-app splash page or sub-window
+  teaching basic ACL rule construction (4-6 hours)
+  - How to construct rules by clicking category/command buttons
+  - Basic keyspace pattern usage
+  - Command testing workflow
+  - Quick visual walkthrough for first-time users
 - [ ] **User Guide** - Installation, features, troubleshooting (8-10 hours)
-- [ ] **Video Tutorials** - Installation, basic usage, advanced features
-  (12-15 hours)
 - [ ] **FAQ** - Common questions and answers (3-4 hours)
 - [ ] **API Documentation** - All 12 endpoints with examples (6-8 hours)
 - [ ] **Architecture Guide** - System design and data flow (5-6 hours)
 - [ ] **Testing Guide** - How to run and write tests (4-5 hours)
 
-### GitHub Wiki Plan
+### GitHub Wiki Status
 
-**📄 Full Details:** [WIKI-PLAN.md](./WIKI-PLAN.md)
+**Status:** ✅ **Already Created** (v2.6.0-beta)
 
-**Timeline:** Create after GA release (v3.0.0) to avoid duplicate maintenance
+**URL:** <https://github.com/markotrapani/redis-acl-builder/wiki>
 
 **8-Section Structure:**
 
-1. Home - Welcome and navigation
-2. Installation - All platforms (Desktop, Docker, Local Python)
-3. User Guide - Complete feature documentation
-4. Advanced Topics - Selectors, patterns, versioning
-5. API Reference - Complete endpoint documentation
-6. Development - Contributing, testing, architecture
-7. Troubleshooting - Common issues and solutions
-8. FAQ - Quick answers to common questions
+1. ✅ Home - Welcome and navigation
+2. ✅ Installation - All platforms (Desktop, Docker, Local Python)
+3. ✅ User Guide - Complete feature documentation
+4. ✅ Advanced Topics - Selectors, patterns, versioning
+5. ✅ API Reference - Complete endpoint documentation
+6. ✅ Development - Contributing, testing, architecture
+7. ✅ Troubleshooting - Common issues and solutions
+8. ✅ FAQ - Quick answers to common questions
 
-**Implementation:** 48-64 hours total (3 phases over 8 weeks post-GA)
+**Scope:** ~60K of comprehensive documentation across 8 wiki pages
 
 ---
 
