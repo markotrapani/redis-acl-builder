@@ -785,33 +785,60 @@ Priority items
 
 #### High Priority (User Requested)
 
-1. **Redis Enterprise/OSS Command Set Toggle** (Critical Feature)
-   - **Current:** Only supports Redis OSS command sets (Redis 7: 379 commands,
-     Redis 8: 446 commands)
-   - **Goal:** Allow users to toggle between Redis OSS and Redis Enterprise
-     command sets
-   - **Why Important:** Redis Enterprise restricts certain OSS commands for
-     security (cluster, replication, dangerous operations)
-   - **Implementation:**
-     - Add toggle switch in UI (OSS / Enterprise mode)
-     - Filter out restricted commands when Enterprise mode is selected
-     - Restricted command categories to exclude in Enterprise mode:
-       - Cluster management commands (CLUSTER.*)
-       - Replication commands (REPLICAOF, SLAVEOF, etc.)
-       - Dangerous admin operations (FLUSHALL, FLUSHDB, SHUTDOWN, etc.)
-       - Module management (MODULE LOAD, MODULE UNLOAD, etc.)
-     - Update data_loader.py to maintain separate command lists for OSS vs
-       Enterprise
-     - Add visual indicators showing which mode is active
-     - Persist mode selection in localStorage
-   - **Benefits:**
-     - Accurate ACL testing for Redis Enterprise users
-     - No more false positives when testing on Enterprise
-     - Better alignment with actual deployment environments
-     - Clearer documentation of command availability differences
-   - **Estimated Effort:** 4-6 hours (backend filtering + UI toggle + testing)
-   - **Dependencies:** Research exact list of restricted commands in Redis
-     Enterprise
+1. **Redis Enterprise/OSS Command Set Toggle** (Critical Feature) - 🚧 IN
+   PROGRESS (75% Complete)
+
+   **Overall Progress:**
+
+   - ✅ Backend (100%) - Mode filtering, dual parsers, all endpoints updated
+   - ✅ Frontend Infrastructure (100%) - AppState, API client, URL params,
+     localStorage
+   - ✅ Frontend Integration (100%) - All 18 API call sites updated,
+     minified assets rebuilt
+   - ⏳ UI Implementation (0%) - **NEXT UP**
+   - ⏳ Testing (0%)
+
+   **Current Status:** Backend and frontend integration complete. Ready to
+   implement UI toggle component.
+
+   **Next Session Tasks (2-3 hours):**
+
+   - Add mode toggle HTML structure to
+     [index.html:308](frontend/templates/index.html#L308)
+   - Add purple/gold Enterprise styling to
+     [components.css](frontend/static/css/components.css)
+   - Add toggle event handler to
+     [event-handlers.js](frontend/static/js/handlers/event-handlers.js)
+   - Wire up re-rendering when mode switches
+   - Update command count display (XX/YY format for Enterprise mode)
+
+   **Implementation Details:**
+
+   - **Backend Filtering:** 6 commands restricted in Enterprise mode
+     (cluster|addslots, cluster|delslots, cluster|flushslots, replicaof,
+     slaveof, shutdown)
+   - **UI Toggle Location:** Same row as Redis Version toggle (line ~320)
+   - **Color Scheme:** Purple gradient (#6B46C1 → #9333EA) with gold text
+     (#FFD700) for Enterprise mode
+   - **Persistence:** localStorage + URL parameters (?mode=enterprise)
+   - **Cache Invalidation:** All API caches cleared on mode switch
+   - **Command Counts:**
+     - Redis 7 OSS: 379 commands
+     - Redis 7 Enterprise: 373/379 commands
+     - Redis 8 OSS: 446 commands
+     - Redis 8 Enterprise: 440/446 commands
+
+   **Testing Strategy:**
+
+   - Manual testing: Toggle switches, URL updates, cache clears
+   - Backend API tests: Verify Enterprise mode filtering
+   - E2E Playwright tests: UI toggle behavior
+   - Test restricted commands disappear in Enterprise mode
+
+   **Estimated Time to Completion:** ~3-4 hours remaining
+
+   **Benefits:** Accurate ACL testing for Redis Enterprise users, no false
+   positives, better deployment alignment
 
 2. **Create Custom App Icons** (Design Improvement)
    - **Status:** ✅ Completed (v2.8.0-beta)
