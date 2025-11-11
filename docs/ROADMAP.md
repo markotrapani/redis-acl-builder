@@ -790,11 +790,11 @@ Priority items
 
    **Overall Progress:**
 
-   - ✅ Backend (100%) - Mode filtering, dual parsers, all endpoints updated
+   - ✅ Backend (100%) - Mode filtering, dual parsers, 10 endpoints updated
    - ✅ Frontend Infrastructure (100%) - AppState, API client, URL params,
      localStorage
-   - ✅ Frontend Integration (100%) - All 18 API call sites updated,
-     minified assets rebuilt
+   - ✅ Frontend Integration (100%) - 18 API call sites updated, minified
+     assets rebuilt
    - ⏳ UI Implementation (0%) - **NEXT UP**
    - ⏳ Testing (0%)
 
@@ -803,42 +803,105 @@ Priority items
 
    **Next Session Tasks (2-3 hours):**
 
-   - Add mode toggle HTML structure to
-     [index.html:308](frontend/templates/index.html#L308)
-   - Add purple/gold Enterprise styling to
-     [components.css](frontend/static/css/components.css)
-   - Add toggle event handler to
-     [event-handlers.js](frontend/static/js/handlers/event-handlers.js)
+   - Add mode toggle HTML structure (same row as Redis Version toggle)
+   - Add purple/gold Enterprise styling to components.css
+   - Add toggle event handler to event-handlers.js
    - Wire up re-rendering when mode switches
    - Update command count display (XX/YY format for Enterprise mode)
 
+   **Completed Work:**
+
+   - **Backend (data_loader.py):**
+     - Added `REDIS_ENTERPRISE_7_RESTRICTED_COMMANDS` (74 commands)
+     - Added `REDIS_ENTERPRISE_8_RESTRICTED_COMMANDS` (48 commands)
+     - Implemented `_filter_enterprise_commands()` function
+     - Command filtering preserves all category structures
+   - **Backend (app.py):**
+     - Updated all 9 POST endpoints to accept `mode` parameter
+     - Updated 1 GET endpoint (`/api/categories`) with mode query param
+     - Created dual parser sets: `PARSERS_OSS` and `PARSERS_ENTERPRISE`
+     - Server startup logs both OSS and Enterprise command counts
+   - **Frontend (app-state.js):**
+     - URL parameter parsing (`?version=redis8&mode=enterprise`)
+     - localStorage persistence (`redis-acl-builder-mode`)
+     - Priority: URL params > localStorage > defaults
+     - Added `AppState.update()` and `AppState.updateURL()` helpers
+   - **Frontend (api-client.js):**
+     - Updated all 10 API methods to accept `mode` parameter
+     - Updated cache keys to include mode
+     - Cache invalidation on mode switch
+   - **Frontend Integration:**
+     - Updated 18 API calls across 9 JavaScript files
+     - Rebuilt minified assets (567 KB → 269 KB, 52.5% reduction)
+
    **Implementation Details:**
 
-   - **Backend Filtering:** 6 commands restricted in Enterprise mode
-     (cluster|addslots, cluster|delslots, cluster|flushslots, replicaof,
-     slaveof, shutdown)
-   - **UI Toggle Location:** Same row as Redis Version toggle (line ~320)
-   - **Color Scheme:** Purple gradient (#6B46C1 → #9333EA) with gold text
-     (#FFD700) for Enterprise mode
+   - **Command Restrictions:**
+     - Redis 7: 379 OSS → 305 Enterprise (74 restricted)
+     - Redis 8: 488 OSS → 440 Enterprise (48 restricted)
+   - **Restricted Categories:**
+     - Cluster management (`cluster|addslots`, `cluster|replicate`, etc.)
+     - Replication (`replicaof`, `slaveof`, `sync`, `psync`)
+     - Dangerous admin (`save`, `bgsave`, `shutdown`, `debug`)
+     - Module loading (`module|load`, `module|unload`)
+     - Client management (pause, tracking, caching - varies by version)
+     - Latency monitoring (`latency|doctor`, `latency|histogram`)
+   - **UI Design:**
+     - Location: Same row as Redis Version toggle (line ~320)
+     - Color: Purple gradient (#6B46C1 → #9333EA) with gold text (#FFD700)
+     - Tooltip: "OSS: All Redis commands | Enterprise: Cloud-restricted"
+     - Format: `Mode: [OSS] [Enterprise]`
    - **Persistence:** localStorage + URL parameters (?mode=enterprise)
-   - **Cache Invalidation:** All API caches cleared on mode switch
-   - **Command Counts:**
-     - Redis 7 OSS: 379 commands
-     - Redis 7 Enterprise: 373/379 commands
-     - Redis 8 OSS: 446 commands
-     - Redis 8 Enterprise: 440/446 commands
+   - **Architecture:**
+     - Dual parser sets (OSS/Enterprise pre-initialized on server startup)
+     - Cache includes both version AND mode to prevent cross-contamination
+     - Cache invalidation on mode switch ensures fresh data
 
    **Testing Strategy:**
 
-   - Manual testing: Toggle switches, URL updates, cache clears
-   - Backend API tests: Verify Enterprise mode filtering
-   - E2E Playwright tests: UI toggle behavior
-   - Test restricted commands disappear in Enterprise mode
+   - **Manual Testing:**
+     - Toggle switches between OSS and Enterprise visually
+     - URL updates correctly (`?mode=enterprise`)
+     - localStorage persists mode selection across reloads
+     - Command counts update when mode switches
+     - Restricted commands disappear in Enterprise mode
+   - **Backend Testing:**
+     - Verify Redis 7 OSS returns 379 commands
+     - Verify Redis 7 Enterprise returns 305 commands (74 fewer)
+     - Verify Redis 8 OSS returns 488 commands
+     - Verify Redis 8 Enterprise returns 440 commands (48 fewer)
+     - Test all 10 API endpoints with both modes
+   - **E2E Testing:**
+     - Update Playwright tests to cover Enterprise mode
+     - Test URL parameter parsing and localStorage persistence
+     - Test mode toggle switching and UI re-rendering
 
-   **Estimated Time to Completion:** ~3-4 hours remaining
+   **Backend Testing (Ready Now):**
 
-   **Benefits:** Accurate ACL testing for Redis Enterprise users, no false
-   positives, better deployment alignment
+   ```bash
+   # Test Redis 7 OSS (should return 379 commands)
+   curl -X POST http://localhost:5001/api/parse \
+     -H "Content-Type: application/json" \
+     -d '{"rule": "+@all", "version": "redis7", "mode": "oss"}' | \
+     jq '.total_granted'
+
+   # Test Redis 7 Enterprise (should return 305 commands)
+   curl -X POST http://localhost:5001/api/parse \
+     -H "Content-Type: application/json" \
+     -d '{"rule": "+@all", "version": "redis7", "mode": "enterprise"}' | \
+     jq '.total_granted'
+   ```
+
+   **Estimated Time to Completion:** ~2-4 hours remaining
+
+   **Benefits:**
+   - Accurate ACL testing for Redis Enterprise users
+   - No more false positives when testing on Enterprise
+   - Better alignment with actual deployment environments
+   - Clearer documentation of command availability differences
+
+   **📄 Archived:** See `docs/archive/ENTERPRISE_MODE_IMPLEMENTATION_STATUS.md`
+   for complete technical implementation notes (archived after consolidation)
 
 2. **Create Custom App Icons** (Design Improvement)
    - **Status:** ✅ Completed (v2.8.0-beta)
