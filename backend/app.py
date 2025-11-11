@@ -20,7 +20,7 @@ from functools import lru_cache
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Import our helper modules
-from helpers.data_loader import get_redis_data, build_command_indexes, RedisVersionData
+from helpers.data_loader import get_redis_data, build_command_indexes, RedisVersionData, ModeType
 from helpers.acl_parser import ACLParser
 from helpers import __version__
 
@@ -95,23 +95,36 @@ def add_cache_headers(response: Response) -> Response:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load Redis data on startup
+# Load Redis data on startup (both OSS and Enterprise modes)
 logger.info("Loading Redis command data...")
-_redis_data = get_redis_data()
-REDIS_DATA: Dict[str, RedisVersionData] = build_command_indexes(_redis_data)
-logger.info(f"Loaded data for Redis 7 ({len(REDIS_DATA['redis7']['commands'])} commands) and Redis 8 ({len(REDIS_DATA['redis8']['commands'])} commands)")
 
-# Global parsers for each version
-PARSERS: Dict[str, ACLParser] = {
-    'redis7': ACLParser(REDIS_DATA, 'redis7'),
-    'redis8': ACLParser(REDIS_DATA, 'redis8')
+# OSS mode data
+_redis_data_oss = get_redis_data(mode='oss')
+REDIS_DATA_OSS: Dict[str, RedisVersionData] = build_command_indexes(_redis_data_oss)
+logger.info(f"Loaded OSS data for Redis 7 ({len(REDIS_DATA_OSS['redis7']['commands'])} commands) and Redis 8 ({len(REDIS_DATA_OSS['redis8']['commands'])} commands)")
+
+# Enterprise mode data
+_redis_data_enterprise = get_redis_data(mode='enterprise')
+REDIS_DATA_ENTERPRISE: Dict[str, RedisVersionData] = build_command_indexes(_redis_data_enterprise)
+logger.info(f"Loaded Enterprise data for Redis 7 ({len(REDIS_DATA_ENTERPRISE['redis7']['commands'])} commands) and Redis 8 ({len(REDIS_DATA_ENTERPRISE['redis8']['commands'])} commands)")
+
+# Global parsers for each version and mode
+PARSERS_OSS: Dict[str, ACLParser] = {
+    'redis7': ACLParser(REDIS_DATA_OSS, 'redis7'),
+    'redis8': ACLParser(REDIS_DATA_OSS, 'redis8')
 }
 
-def get_parser(version: str) -> ACLParser:
-    """Get parser for specified Redis version."""
-    if version not in PARSERS:
+PARSERS_ENTERPRISE: Dict[str, ACLParser] = {
+    'redis7': ACLParser(REDIS_DATA_ENTERPRISE, 'redis7'),
+    'redis8': ACLParser(REDIS_DATA_ENTERPRISE, 'redis8')
+}
+
+def get_parser(version: str, mode: ModeType = 'oss') -> ACLParser:
+    """Get parser for specified Redis version and mode."""
+    parsers = PARSERS_OSS if mode == 'oss' else PARSERS_ENTERPRISE
+    if version not in parsers:
         raise ValueError(f"Unsupported Redis version: {version}")
-    return PARSERS[version]
+    return parsers[version]
 
 def handle_api_error(error_msg: str, status_code: int = 400) -> Tuple[Any, int]:
     """Standard error response format."""
@@ -157,7 +170,7 @@ def api_parse() -> Union[Response, Tuple[Response, int]]:
     try:
         req_data = validate_pydantic_request(ParseACLRequest)
 
-        parser = get_parser(req_data.version)
+        parser = get_parser(req_data.version, req_data.mode)
 
         # Validate rule syntax
         is_valid, errors = parser.validate_rule_syntax(req_data.rule)
@@ -217,7 +230,7 @@ def api_test_command() -> Union[Response, Tuple[Response, int]]:
     try:
         req_data = validate_pydantic_request(TestCommandRequest)
 
-        parser = get_parser(req_data.version)
+        parser = get_parser(req_data.version, req_data.mode)
 
         # Validate rule syntax
         is_valid, errors = parser.validate_rule_syntax(req_data.rule)
@@ -250,7 +263,7 @@ def api_command_info() -> Union[Response, Tuple[Response, int]]:
     try:
         req_data = validate_pydantic_request(CommandInfoRequest)
 
-        parser = get_parser(req_data.version)
+        parser = get_parser(req_data.version, req_data.mode)
         categories = parser.get_command_categories(req_data.command)
 
         response = CommandInfoResponse(
@@ -273,10 +286,17 @@ def api_categories() -> Union[Response, Tuple[Response, int]]:
     """Get all available categories for a Redis version."""
     try:
         version = request.args.get('version', 'redis8')
-        if version not in PARSERS:
+        mode: ModeType = cast(ModeType, request.args.get('mode', 'oss'))
+
+        # Validate mode
+        if mode not in ['oss', 'enterprise']:
+            raise ValueError(f'Invalid Redis mode: {mode}. Must be "oss" or "enterprise"')
+
+        parsers = PARSERS_OSS if mode == 'oss' else PARSERS_ENTERPRISE
+        if version not in parsers:
             raise ValueError(f'Invalid Redis version: {version}. Must be "redis7" or "redis8"')
 
-        parser = get_parser(version)
+        parser = get_parser(version, mode)
         category_info = parser.get_category_info()
 
         # Convert category_info to nested dict format expected by Pydantic
@@ -307,7 +327,7 @@ def api_search_commands() -> Union[Response, Tuple[Response, int]]:
     try:
         req_data = validate_pydantic_request(SearchCommandsRequest)
 
-        parser = get_parser(req_data.version)
+        parser = get_parser(req_data.version, req_data.mode)
         matching_commands = parser.search_commands(req_data.pattern)
 
         # Limit results and add category info
@@ -342,7 +362,7 @@ def api_validate_rule() -> Union[Response, Tuple[Response, int]]:
     try:
         req_data = validate_pydantic_request(ValidateRuleRequest)
 
-        parser = get_parser(req_data.version)
+        parser = get_parser(req_data.version, req_data.mode)
         is_valid, errors = parser.validate_rule_syntax(req_data.rule)
 
         response = ValidateRuleResponse(
@@ -366,7 +386,7 @@ def api_analyze_redundancy() -> Union[Response, Tuple[Response, int]]:
     try:
         req_data = validate_pydantic_request(AnalyzeRedundancyRequest)
 
-        parser = get_parser(req_data.version)
+        parser = get_parser(req_data.version, req_data.mode)
         analysis = parser.analyze_rule_redundancy(req_data.rule)
 
         response = AnalyzeRedundancyResponse(
@@ -389,7 +409,7 @@ def api_optimize_rule() -> Union[Response, Tuple[Response, int]]:
     try:
         req_data = validate_pydantic_request(OptimizeRuleRequest)
 
-        parser = get_parser(req_data.version)
+        parser = get_parser(req_data.version, req_data.mode)
         optimization = parser.optimize_rule(req_data.rule)
 
         response = OptimizeRuleResponse(
@@ -463,7 +483,7 @@ def api_test_command_key() -> Union[Response, Tuple[Response, int]]:
     try:
         req_data = validate_pydantic_request(TestCommandKeyRequest)
 
-        parser = get_parser(req_data.version)
+        parser = get_parser(req_data.version, req_data.mode)
 
         # Validate rule syntax
         is_valid, errors = parser.validate_rule_syntax(req_data.rule)
@@ -572,9 +592,11 @@ if __name__ == '__main__':
     print("\n" + "="*60)
     print("🔐 Redis ACL Builder Starting Up")
     print("="*60)
-    print(f"✅ Redis 7: {len(REDIS_DATA['redis7']['commands'])} commands, {len(REDIS_DATA['redis7']['categories'])} categories")
-    print(f"✅ Redis 8: {len(REDIS_DATA['redis8']['commands'])} commands, {len(REDIS_DATA['redis8']['categories'])} categories")
+    print(f"✅ Redis 7 OSS: {len(REDIS_DATA_OSS['redis7']['commands'])} commands, {len(REDIS_DATA_OSS['redis7']['categories'])} categories")
+    print(f"✅ Redis 8 OSS: {len(REDIS_DATA_OSS['redis8']['commands'])} commands, {len(REDIS_DATA_OSS['redis8']['categories'])} categories")
+    print(f"✅ Redis 7 Enterprise: {len(REDIS_DATA_ENTERPRISE['redis7']['commands'])} commands, {len(REDIS_DATA_ENTERPRISE['redis7']['categories'])} categories")
+    print(f"✅ Redis 8 Enterprise: {len(REDIS_DATA_ENTERPRISE['redis8']['commands'])} commands, {len(REDIS_DATA_ENTERPRISE['redis8']['categories'])} categories")
     print(f"🌐 Server starting at http://localhost:{DEFAULT_PORT}")
     print("="*60 + "\n")
-    
+
     app.run(debug=DEBUG_MODE, host='0.0.0.0', port=DEFAULT_PORT)

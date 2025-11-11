@@ -8,12 +8,13 @@ const ACLCategoryManager = {
      * Get commands that belong to a specific category
      * @param {string} category - The category name (without @ prefix)
      * @param {string} currentVersion - Redis version (e.g., 'redis7' or 'redis8')
+     * @param {string} currentMode - Redis mode (e.g., 'oss' or 'enterprise')
      * @param {Object} API - API client for making requests
      * @returns {Promise<Array<string>>} - Array of command names
      */
-    async getCategoryCommands(category, currentVersion, API) {
+    async getCategoryCommands(category, currentVersion, currentMode, API) {
         try {
-            const result = await API.parseRule(`+@${category}`, currentVersion);
+            const result = await API.parseRule(`+@${category}`, currentVersion, currentMode);
             return result.granted_commands || [];
         } catch (error) {
             console.error(`Error getting commands for category ${category}:`, error);
@@ -45,10 +46,11 @@ const ACLCategoryManager = {
      * Get all commands that would be granted by current category grants
      * @param {Set} grantedCategories - Set of granted categories
      * @param {string} currentVersion - Redis version
+     * @param {string} currentMode - Redis mode
      * @param {Object} API - API client
      * @returns {Promise<Array<string>>} - Array of command names
      */
-    async getCommandsGrantedByCategories(grantedCategories, currentVersion, API) {
+    async getCommandsGrantedByCategories(grantedCategories, currentVersion, currentMode, API) {
         if (grantedCategories.size === 0) {
             return [];
         }
@@ -59,7 +61,7 @@ const ACLCategoryManager = {
                 .map(cat => `+@${cat}`)
                 .join(' ');
 
-            const response = await API.parseRule(categoryRule, currentVersion);
+            const response = await API.parseRule(categoryRule, currentVersion, currentMode);
             if (response && response.grouped_commands) {
                 // Extract all commands from all categories
                 const commands = new Set();

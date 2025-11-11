@@ -122,8 +122,8 @@ const RuleManager = {
         }
         
         try {
-            const data = await API.parseRule(rule, AppState.currentVersion);
-            
+            const data = await API.parseRule(rule, AppState.currentVersion, AppState.currentMode);
+
             // Update summary
             this.updateResultsSummary(rule, data);
             
@@ -173,7 +173,7 @@ const RuleManager = {
         }
 
         try {
-            const response = await API.analyzeRedundancy(rule, AppState.currentVersion);
+            const response = await API.analyzeRedundancy(rule, AppState.currentVersion, AppState.currentMode);
 
             if (response.success && response.analysis) {
                 // Check for optimization opportunities
@@ -192,7 +192,7 @@ const RuleManager = {
      */
     async checkForOptimization(rule, redundancyAnalysis) {
         try {
-            const optimizeResponse = await API.optimizeRule(rule, AppState.currentVersion);
+            const optimizeResponse = await API.optimizeRule(rule, AppState.currentVersion, AppState.currentMode);
 
             if (optimizeResponse.success && optimizeResponse.savings > 0) {
                 // Check if backend already has suggestions (empty rule or other simplifications)

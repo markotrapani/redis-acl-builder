@@ -2,14 +2,58 @@
 """
 Redis Data Parser - Loads and processes Redis command categories
 """
-from typing import Dict, List, TypedDict, cast
+from typing import Dict, List, TypedDict, cast, Literal
 
 class RedisVersionData(TypedDict):
     """Type definition for Redis version data structure."""
     categories: Dict[str, List[str]]  # category_name -> list of commands
     commands: Dict[str, List[str]]    # command_name -> list of categories
 
-def get_redis_data() -> Dict[str, RedisVersionData]:
+# Redis Enterprise restricted commands
+# These commands are NOT available in Redis Enterprise Cloud/Software
+# Source: ACL CAT output from Redis Enterprise 7 and 8 databases
+
+REDIS_ENTERPRISE_7_RESTRICTED_COMMANDS = {
+    'acl|dryrun', 'asking', 'bgrewriteaof', 'bgsave', 'client|caching',
+    'client|getredir', 'client|no-evict', 'client|pause', 'client|reply',
+    'client|tracking', 'client|trackinginfo', 'client|unpause',
+    'cluster|addslots', 'cluster|addslotsrange', 'cluster|bumpepoch',
+    'cluster|count-failure-reports', 'cluster|countkeysinslot',
+    'cluster|delslots', 'cluster|delslotsrange', 'cluster|failover',
+    'cluster|flushslots', 'cluster|forget', 'cluster|getkeysinslot',
+    'cluster|links', 'cluster|meet', 'cluster|myid', 'cluster|replicas',
+    'cluster|replicate', 'cluster|reset', 'cluster|saveconfig',
+    'cluster|setslot', 'cluster|slaves', 'debug', 'failover', 'function',
+    'function|dump', 'function|help', 'function|kill', 'function|list',
+    'function|stats', 'lastsave', 'latency', 'latency|doctor',
+    'latency|graph', 'latency|help', 'latency|histogram', 'latency|history',
+    'latency|latest', 'latency|reset', 'lolwut', 'memory|doctor',
+    'memory|malloc-stats', 'memory|purge', 'memory|stats', 'migrate',
+    'module|help', 'module|load', 'module|loadex', 'module|unload', 'move',
+    'pfdebug', 'pfselftest', 'psync', 'readonly', 'readwrite', 'replconf',
+    'replicaof', 'restore-asking', 'role', 'save', 'shutdown', 'slaveof',
+    'swapdb', 'sync'
+}
+
+REDIS_ENTERPRISE_8_RESTRICTED_COMMANDS = {
+    'acl|dryrun', 'bgrewriteaof', 'bgsave', 'client|no-evict',
+    'client|pause', 'client|unpause', 'cluster|addslots',
+    'cluster|addslotsrange', 'cluster|bumpepoch',
+    'cluster|count-failure-reports', 'cluster|delslots',
+    'cluster|delslotsrange', 'cluster|failover', 'cluster|flushslots',
+    'cluster|forget', 'cluster|meet', 'cluster|replicas', 'cluster|replicate',
+    'cluster|reset', 'cluster|saveconfig', 'cluster|setslot',
+    'cluster|slaves', 'debug', 'failover', 'ft.config', 'lastsave',
+    'latency|doctor', 'latency|graph', 'latency|histogram', 'latency|history',
+    'latency|latest', 'latency|reset', 'migrate', 'module|load',
+    'module|loadex', 'module|unload', 'pfdebug', 'pfselftest', 'psync',
+    'replconf', 'replicaof', 'restore-asking', 'role', 'save', 'shutdown',
+    'slaveof', 'swapdb', 'sync'
+}
+
+ModeType = Literal['oss', 'enterprise']
+
+def get_redis_data(mode: ModeType = 'oss') -> Dict[str, RedisVersionData]:
     """Return the complete Redis command and category data for both versions."""
 
     redis_data: Dict[str, RedisVersionData] = cast(Dict[str, RedisVersionData], {
@@ -128,7 +172,44 @@ def get_redis_data() -> Dict[str, RedisVersionData]:
         }
     })
 
+    # Apply Enterprise mode filtering if requested
+    if mode == 'enterprise':
+        redis_data = _filter_enterprise_commands(redis_data)
+
     return redis_data
+
+
+def _filter_enterprise_commands(redis_data: Dict[str, RedisVersionData]) -> Dict[str, RedisVersionData]:
+    """
+    Filter out commands that are not available in Redis Enterprise.
+
+    This removes cluster management, replication, dangerous admin commands,
+    and other OSS-only features that are restricted in Enterprise deployments.
+    """
+    filtered_data: Dict[str, RedisVersionData] = cast(Dict[str, RedisVersionData], {})
+
+    for version in ['redis7', 'redis8']:
+        # Select appropriate restriction set
+        restricted = (REDIS_ENTERPRISE_7_RESTRICTED_COMMANDS
+                     if version == 'redis7'
+                     else REDIS_ENTERPRISE_8_RESTRICTED_COMMANDS)
+
+        # Filter categories to remove restricted commands
+        filtered_categories: Dict[str, List[str]] = {}
+        for category, commands in redis_data[version]['categories'].items():
+            # Remove restricted commands from this category
+            allowed_commands = [cmd for cmd in commands if cmd not in restricted]
+
+            # Only include category if it still has commands after filtering
+            if allowed_commands:
+                filtered_categories[category] = allowed_commands
+
+        filtered_data[version] = {
+            'categories': filtered_categories,
+            'commands': {}  # Will be populated by build_command_indexes()
+        }
+
+    return filtered_data
 
 
 def build_command_indexes(redis_data: Dict[str, RedisVersionData]) -> Dict[str, RedisVersionData]:

@@ -199,7 +199,7 @@ async function testIntegrated() {
     }
 
     try {
-        const result = await API.testCommandKey(rule, command, key, AppState.currentVersion);
+        const result = await API.testCommandKey(rule, command, key, AppState.currentVersion, AppState.currentMode);
         showIntegratedResult(result, false);
     } catch (error) {
         showIntegratedResult({

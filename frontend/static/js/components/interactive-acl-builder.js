@@ -187,8 +187,8 @@ const InteractiveACLBuilder = {
      */
     async loadAllData() {
         try {
-            const response = await API.getCategories(AppState.currentVersion);
-            
+            const response = await API.getCategories(AppState.currentVersion, AppState.currentMode);
+
             if (response && response.categories) {
                 this.state.allCategories = response.categories.sort();
             } else {
@@ -196,13 +196,13 @@ const InteractiveACLBuilder = {
             }
 
             // Also load all commands
-            this.state.allCommands = await API.getAllCommands(AppState.currentVersion);
-            
+            this.state.allCommands = await API.getAllCommands(AppState.currentVersion, AppState.currentMode);
+
             // Pre-populate category commands cache to avoid individual API calls during rendering
             // This significantly reduces the number of API calls during initialization
             // Note: getAllCommands returns a flat array, so we need to make one more call to get grouped data
             try {
-                const groupedResponse = await API.parseRule('+@all', AppState.currentVersion);
+                const groupedResponse = await API.parseRule('+@all', AppState.currentVersion, AppState.currentMode);
                 if (groupedResponse && groupedResponse.grouped_commands) {
                     for (const [category, commands] of Object.entries(groupedResponse.grouped_commands)) {
                         const cacheKey = `${AppState.currentVersion}:${category}`;
@@ -1335,7 +1335,7 @@ const InteractiveACLBuilder = {
             // Then refresh API response data for partial category detection
             const currentRule = this.elements.aclRuleInput.value.trim();
             try {
-                const response = await API.parseRule(currentRule, AppState.currentVersion);
+                const response = await API.parseRule(currentRule, AppState.currentVersion, AppState.currentMode);
                 if (response && response.success) {
                     this.lastApiResponse = response;
                 }
@@ -1382,7 +1382,7 @@ const InteractiveACLBuilder = {
                     }
                     const optimizedRule = this.elements.aclRuleInput.value.trim();
                     try {
-                        const optimizedResponse = await API.parseRule(optimizedRule, AppState.currentVersion);
+                        const optimizedResponse = await API.parseRule(optimizedRule, AppState.currentVersion, AppState.currentMode);
                         if (optimizedResponse && optimizedResponse.success) {
                             this.lastApiResponse = optimizedResponse;
                         }
@@ -2272,6 +2272,7 @@ const InteractiveACLBuilder = {
         return ACLCategoryManager.getCommandsGrantedByCategories(
             this.state.grantedCategories,
             AppState.currentVersion,
+            AppState.currentMode,
             API
         );
     },
@@ -2556,7 +2557,7 @@ const InteractiveACLBuilder = {
      * Get commands for a specific category
      */
     async getCategoryCommands(category) {
-        return ACLCategoryManager.getCategoryCommands(category, AppState.currentVersion, API);
+        return ACLCategoryManager.getCategoryCommands(category, AppState.currentVersion, AppState.currentMode, API);
     },
     
     /**
@@ -3167,7 +3168,7 @@ const InteractiveACLBuilder = {
     async checkAndAutoOptimize() {
         const currentRule = this.elements.aclRuleInput.value.trim();
 
-        return ACLOptimizer.checkAndAutoOptimize(currentRule, AppState.currentVersion, {
+        return ACLOptimizer.checkAndAutoOptimize(currentRule, AppState.currentVersion, AppState.currentMode, {
             updateRuleText: (optimizedRule) => {
                 this.elements.aclRuleInput.value = optimizedRule;
             },
@@ -3567,7 +3568,7 @@ const InteractiveACLBuilder = {
             // Always make API call, even for empty rules, to get accurate granted commands
             try {
                 // Use the same API call that RuleManager uses for accurate parsing
-                const data = await API.parseRule(ruleText, AppState.currentVersion);
+                const data = await API.parseRule(ruleText, AppState.currentVersion, AppState.currentMode);
 
                 if (data && data.success) {
                     // Store the API response for partial category detection

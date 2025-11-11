@@ -19,10 +19,11 @@ const ACLOptimizer = {
      *
      * @param {string} currentRule - The current ACL rule text
      * @param {string} currentVersion - The Redis version (e.g., 'redis7' or 'redis8')
+     * @param {string} currentMode - The Redis mode (e.g., 'oss' or 'enterprise')
      * @param {Object} callbacks - Object containing callbacks: { updateRuleText, syncFromRuleText, updateLastGeneratedRule }
      * @returns {Promise<void>}
      */
-    async checkAndAutoOptimize(currentRule, currentVersion, callbacks) {
+    async checkAndAutoOptimize(currentRule, currentVersion, currentMode, callbacks) {
         // Skip optimization for empty rules
         if (!currentRule || !currentRule.trim()) {
             return;
@@ -30,7 +31,7 @@ const ACLOptimizer = {
 
         try {
             const API = await import('../api/api-client.js').then(m => m.default);
-            const optimizeResponse = await API.optimizeRule(currentRule, currentVersion);
+            const optimizeResponse = await API.optimizeRule(currentRule, currentVersion, currentMode);
 
             if (optimizeResponse.success && optimizeResponse.savings > 0) {
                 // Auto-apply the optimization for button clicks

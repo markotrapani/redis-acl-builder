@@ -136,7 +136,7 @@ const ACLRuleParser = {
 
         for (const category of state.blockedCategories) {
             try {
-                const result = await API.parseRule(`+@${category}`, AppState.currentVersion);
+                const result = await API.parseRule(`+@${category}`, AppState.currentVersion, AppState.currentMode);
                 if (result && result.success && result.granted_commands) {
                     result.granted_commands.forEach(cmd => blockedCommands.add(cmd));
                 }

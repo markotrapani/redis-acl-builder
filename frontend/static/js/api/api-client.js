@@ -99,77 +99,77 @@ const API = {
     /**
      * Parse ACL rule (with caching)
      */
-    async parseRule(rule, version) {
-        const cached = parseCache.get('/api/parse', { rule, version });
+    async parseRule(rule, version, mode) {
+        const cached = parseCache.get('/api/parse', { rule, version, mode });
         if (cached) {
             return cached;
         }
 
-        const result = await this.makeCall('/api/parse', { rule, version });
-        parseCache.set('/api/parse', { rule, version }, result);
+        const result = await this.makeCall('/api/parse', { rule, version, mode });
+        parseCache.set('/api/parse', { rule, version, mode }, result);
         return result;
     },
 
     /**
      * Test specific command (with caching)
      */
-    async testCommand(rule, command, version) {
-        const cached = testCache.get('/api/test-command', { rule, command, version });
+    async testCommand(rule, command, version, mode) {
+        const cached = testCache.get('/api/test-command', { rule, command, version, mode });
         if (cached) {
             return cached;
         }
 
-        const result = await this.makeCall('/api/test-command', { rule, command, version });
-        testCache.set('/api/test-command', { rule, command, version }, result);
+        const result = await this.makeCall('/api/test-command', { rule, command, version, mode });
+        testCache.set('/api/test-command', { rule, command, version, mode }, result);
         return result;
     },
 
     /**
      * Validate rule syntax
      */
-    async validateRule(rule, version) {
-        return this.makeCall('/api/validate-rule', { rule, version });
+    async validateRule(rule, version, mode) {
+        return this.makeCall('/api/validate-rule', { rule, version, mode });
     },
-    
+
     /**
      * Analyze rule for redundancy and optimization opportunities
      */
-    async analyzeRedundancy(rule, version) {
-        return this.makeCall('/api/analyze-redundancy', { rule, version });
+    async analyzeRedundancy(rule, version, mode) {
+        return this.makeCall('/api/analyze-redundancy', { rule, version, mode });
     },
 
     /**
      * Optimize ACL rule to find shortest equivalent representation
      */
-    async optimizeRule(rule, version) {
-        return this.makeCall('/api/optimize-rule', { rule, version });
+    async optimizeRule(rule, version, mode) {
+        return this.makeCall('/api/optimize-rule', { rule, version, mode });
     },
 
     /**
      * Search commands
      */
-    async searchCommands(pattern, version, limit = 50) {
-        return this.makeCall('/api/search-commands', { pattern, version, limit });
+    async searchCommands(pattern, version, mode, limit = 50) {
+        return this.makeCall('/api/search-commands', { pattern, version, mode, limit });
     },
 
     /**
      * Get command info
      */
-    async getCommandInfo(command, version) {
-        return this.makeCall('/api/command-info', { command, version });
+    async getCommandInfo(command, version, mode) {
+        return this.makeCall('/api/command-info', { command, version, mode });
     },
 
     /**
      * Get categories for version (with caching - static data)
      */
-    async getCategories(version) {
-        const cached = staticDataCache.get('/api/categories', { version });
+    async getCategories(version, mode) {
+        const cached = staticDataCache.get('/api/categories', { version, mode });
         if (cached) {
             return cached;
         }
 
         try {
-            const response = await fetch(`/api/categories?version=${version}`);
+            const response = await fetch(`/api/categories?version=${version}&mode=${mode}`);
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
@@ -179,7 +179,7 @@ const API = {
             }
 
             // Cache for 1 hour (static data)
-            staticDataCache.set('/api/categories', { version }, result);
+            staticDataCache.set('/api/categories', { version, mode }, result);
             return result;
         } catch (error) {
             console.error('API call to /api/categories failed:', error);
@@ -190,13 +190,13 @@ const API = {
     /**
      * Get all commands for version by parsing empty rule (with caching - static data)
      */
-    async getAllCommands(version) {
-        const cached = staticDataCache.get('/api/allcommands', { version });
+    async getAllCommands(version, mode) {
+        const cached = staticDataCache.get('/api/allcommands', { version, mode });
         if (cached) {
             return cached;
         }
 
-        const fullRuleResponse = await this.parseRule('+@all', version);
+        const fullRuleResponse = await this.parseRule('+@all', version, mode);
 
         if (fullRuleResponse && fullRuleResponse.grouped_commands) {
             // Extract all commands from all categories
@@ -207,7 +207,7 @@ const API = {
             const result = Array.from(allCommands).sort();
 
             // Cache for 1 hour (static data)
-            staticDataCache.set('/api/allcommands', { version }, result);
+            staticDataCache.set('/api/allcommands', { version, mode }, result);
             return result;
         }
 
@@ -217,14 +217,14 @@ const API = {
     /**
      * Test command+key access (integrated testing, with caching)
      */
-    async testCommandKey(rule, command, key, version) {
-        const cached = testCache.get('/api/test-command-key', { rule, command, key, version });
+    async testCommandKey(rule, command, key, version, mode) {
+        const cached = testCache.get('/api/test-command-key', { rule, command, key, version, mode });
         if (cached) {
             return cached;
         }
 
-        const result = await this.makeCall('/api/test-command-key', { rule, command, key, version });
-        testCache.set('/api/test-command-key', { rule, command, key, version }, result);
+        const result = await this.makeCall('/api/test-command-key', { rule, command, key, version, mode });
+        testCache.set('/api/test-command-key', { rule, command, key, version, mode }, result);
         return result;
     },
 

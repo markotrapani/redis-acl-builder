@@ -39,10 +39,10 @@ const CommandTester = {
         if (AppState.isLoading) return;
         
         Utils.showLoading(DOMElements.testResult);
-        
+
         try {
-            const data = await API.testCommand(rule, command, AppState.currentVersion);
-            
+            const data = await API.testCommand(rule, command, AppState.currentVersion, AppState.currentMode);
+
             this.displayTestResult(data);
             
         } catch (error) {

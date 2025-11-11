@@ -205,7 +205,7 @@ const Utils = {
         try {
             // Import API dynamically to avoid circular dependencies
             const { default: API } = await import('../api/api-client.js');
-            const categoriesData = await API.getCategories(AppState.currentVersion);
+            const categoriesData = await API.getCategories(AppState.currentVersion, AppState.currentMode);
             if (categoriesData && categoriesData.categories) {
                 // categoriesData.categories is an array, not an object
                 validCategories = new Set(categoriesData.categories);
@@ -217,7 +217,7 @@ const Utils = {
         try {
             // Import API dynamically to avoid circular dependencies
             const { default: API } = await import('../api/api-client.js');
-            const commandsArray = await API.getAllCommands(AppState.currentVersion);
+            const commandsArray = await API.getAllCommands(AppState.currentVersion, AppState.currentMode);
             if (commandsArray && Array.isArray(commandsArray)) {
                 validCommands = new Set(commandsArray.map(cmd => cmd.toLowerCase()));
             }

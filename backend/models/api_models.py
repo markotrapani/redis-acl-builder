@@ -4,12 +4,13 @@ Provides type-safe API contracts with automatic validation
 """
 
 from pydantic import BaseModel, Field, field_validator
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Literal
 
 
 class RedisVersionMixin(BaseModel):
-    """Mixin for Redis version validation"""
+    """Mixin for Redis version and mode validation"""
     version: str = Field(default="redis8", description="Redis version (redis7 or redis8)")
+    mode: Literal['oss', 'enterprise'] = Field(default="oss", description="Redis mode (oss or enterprise)")
 
     @field_validator('version')
     @classmethod
@@ -17,6 +18,14 @@ class RedisVersionMixin(BaseModel):
         """Validate Redis version is supported"""
         if v not in ['redis7', 'redis8']:
             raise ValueError(f'Invalid Redis version: {v}. Must be "redis7" or "redis8"')
+        return v
+
+    @field_validator('mode')
+    @classmethod
+    def validate_mode(cls, v: str) -> str:
+        """Validate Redis mode is supported"""
+        if v not in ['oss', 'enterprise']:
+            raise ValueError(f'Invalid Redis mode: {v}. Must be "oss" or "enterprise"')
         return v
 
 

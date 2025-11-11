@@ -378,7 +378,7 @@ const ACLUIRenderer = {
                     // Add relationship information
                     if (type === 'command') {
                         // Get categories for this command
-                        const response = await API.getCommandInfo(name, AppState.currentVersion);
+                        const response = await API.getCommandInfo(name, AppState.currentVersion, AppState.currentMode);
                         const contentDiv = document.createElement('div');
                         contentDiv.className = 'tooltip-content';
 
