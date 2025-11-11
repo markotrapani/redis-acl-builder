@@ -900,9 +900,6 @@ Priority items
    - Better alignment with actual deployment environments
    - Clearer documentation of command availability differences
 
-   **📄 Archived:** See `docs/archive/ENTERPRISE_MODE_IMPLEMENTATION_STATUS.md`
-   for complete technical implementation notes (archived after consolidation)
-
 2. **Create Custom App Icons** (Design Improvement)
    - **Status:** ✅ Completed (v2.8.0-beta)
    - Created professional custom icons with clean transparency
