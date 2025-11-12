@@ -324,10 +324,19 @@ const EventHandlers = {
                 // Re-parse with new mode to update allowed/blocked lists
                 RuleManager.parseRuleInternal(false, false); // Allow redundancy analysis, skip error notifications
 
-                // Update interactive builder if it's loaded
+                // Update interactive builder if it's loaded - MUST re-render to show new command counts
                 import('../components/interactive-acl-builder.js').then(({ default: InteractiveACLBuilder }) => {
                     if (InteractiveACLBuilder.state.isInitialized) {
-                        InteractiveACLBuilder.loadAllData(); // Update lists without rendering
+                        InteractiveACLBuilder.loadAllData(); // Update command/category data
+                        InteractiveACLBuilder.scheduleRender(); // Re-render UI to show updated counts/lists
+                    }
+                });
+            } else {
+                // Even with no rule, update interactive builder to reflect new mode's command counts
+                import('../components/interactive-acl-builder.js').then(({ default: InteractiveACLBuilder }) => {
+                    if (InteractiveACLBuilder.state.isInitialized) {
+                        InteractiveACLBuilder.loadAllData(); // Update command/category data
+                        InteractiveACLBuilder.scheduleRender(); // Re-render UI
                     }
                 });
             }
