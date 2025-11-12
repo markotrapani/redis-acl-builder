@@ -313,8 +313,21 @@ const EventHandlers = {
             // Update version detail text to show Enterprise command count format
             updateVersionDetail();
 
-            // Reload all data with new mode
-            self.loadAllData();
+            // Reload all data with new mode (reparse current rule if exists)
+            const aclRuleTextarea = document.getElementById('aclRule');
+            const currentRule = aclRuleTextarea?.value.trim();
+
+            if (currentRule) {
+                // Re-parse with new mode to update allowed/blocked lists
+                RuleManager.parseRuleInternal(false, false); // Allow redundancy analysis, skip error notifications
+
+                // Update interactive builder if it's loaded
+                import('../components/interactive-acl-builder.js').then(({ default: InteractiveACLBuilder }) => {
+                    if (InteractiveACLBuilder.state.isInitialized) {
+                        InteractiveACLBuilder.loadAllData(); // Update lists without rendering
+                    }
+                });
+            }
         };
 
         // Test command input
