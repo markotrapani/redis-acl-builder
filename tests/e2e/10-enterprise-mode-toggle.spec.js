@@ -35,14 +35,14 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     const toggleLabel = page.locator('label[for="modeToggle"]');
     await expect(toggleLabel).toBeVisible();
     await expect(toggleLabel).toHaveAttribute('title',
-      'OSS: All Redis commands | Enterprise: Cloud-restricted command set');
+      'OSS: All Redis commands | ENT: Cloud-restricted command set');
 
     // Mode toggle options should be present
     const ossOption = page.locator('.mode-toggle .toggle-option-left');
     await expect(ossOption).toHaveText('OSS');
 
     const enterpriseOption = page.locator('.mode-toggle .toggle-option-right');
-    await expect(enterpriseOption).toHaveText('Enterprise');
+    await expect(enterpriseOption).toHaveText('ENT');
   });
 
   test('should default to OSS mode on page load', async ({ page }) => {

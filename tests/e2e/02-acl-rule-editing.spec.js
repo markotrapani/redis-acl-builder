@@ -86,16 +86,14 @@ test.describe('ACL Rule Editing Tests', () => {
     await expect(submitBtn).toBeVisible();
     await submitBtn.click();
 
-    // Wait for API response
-    await page.waitForResponse(response =>
-      response.url().includes('/api/parse') && response.status() === 200
-    );
+    // Wait for clear button to become enabled (indicates parse is complete and rule is committed)
+    await expect(clearBtn).not.toBeDisabled({ timeout: 5000 });
 
-    // NOW the clear button should be enabled (because we have committed content)
-    await expect(clearBtn).not.toBeDisabled({ timeout: 2000 });
-
-    // Click clear button (bomb emoji 💣)
+    // Click clear button (bomb emoji 💣) - this will trigger another parse with empty rule
     await clearBtn.click();
+
+    // Wait a moment for the clear operation to complete
+    await page.waitForTimeout(500);
 
     // Textarea should be empty
     await expect(textarea).toHaveValue('');

@@ -55,7 +55,10 @@ button.test-button[disabled] {
 .version-selector {
   margin-bottom: var(--spacing-lg);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md);
 }
 
 .version-selector .version-label {
@@ -181,7 +184,7 @@ button.test-button[disabled] {
 
 /* Mode Toggle Styles (Enterprise/OSS) */
 .mode-toggle-container {
-  margin-left: var(--spacing-lg);
+  /* No margin needed - inline with version selector via flex gap */
 }
 
 .mode-label {
@@ -191,12 +194,12 @@ button.test-button[disabled] {
 }
 
 .mode-toggle .toggle-label {
-  width: 140px;
+  width: 100px;
 }
 
 .mode-toggle .toggle-slider {
-  background: var(--blue-gradient);
-  box-shadow: var(--blue-shadow);
+  background: var(--purple-gradient);
+  box-shadow: var(--purple-shadow);
 }
 
 .mode-toggle .toggle-option {
@@ -204,16 +207,16 @@ button.test-button[disabled] {
   font-weight: 600;
 }
 
-/* Default state (OSS - Blue) */
+/* Default state (OSS - Purple with Gold text) */
 .mode-toggle .toggle-option-left {
   width: 60px;
   left: var(--spacing-xs);
-  color: var(--black);
-  text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
+  color: var(--gold-color);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6);
 }
 
 .mode-toggle .toggle-option-right {
-  width: 70px;
+  width: 30px;
   right: var(--spacing-xs);
   color: white;
   text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 5px rgba(0,0,0,0.5);
@@ -223,10 +226,10 @@ button.test-button[disabled] {
   width: 60px;
 }
 
-/* Unchecked state (OSS - Blue) */
+/* Unchecked state (OSS - Purple with Gold text) */
 .mode-toggle .toggle-input:not(:checked) + .toggle-label .toggle-option-left {
-  color: var(--black);
-  text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
+  color: var(--gold-color) !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6);
 }
 
 .mode-toggle .toggle-input:not(:checked) + .toggle-label .toggle-option-right {
@@ -241,7 +244,7 @@ button.test-button[disabled] {
 }
 
 .mode-toggle .toggle-input:checked + .toggle-label .toggle-slider::before {
-  transform: translateX(72px);
+  transform: translateX(32px);
 }
 
 .mode-toggle .toggle-input:checked + .toggle-label .toggle-option-left {
