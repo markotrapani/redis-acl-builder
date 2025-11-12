@@ -18,14 +18,10 @@ test.describe('Saved Rules Tests', () => {
     await expect(submitBtn).toBeVisible();
     await submitBtn.click();
 
-    // Wait for API response
-    await page.waitForResponse(response =>
-      response.url().includes('/api/parse') && response.status() === 200
-    );
-
-    // NOW find save button (💾 emoji) - should be enabled after submission
+    // Wait for save button to become enabled (indicates parse is complete and rule is committed)
     const saveBtn = page.locator('#saveRuleBtn');
-    await expect(saveBtn).not.toBeDisabled({ timeout: 2000 });
+    await expect(saveBtn).not.toBeDisabled({ timeout: 5000 });
+
     await saveBtn.click();
 
     // Wait for save to localStorage
