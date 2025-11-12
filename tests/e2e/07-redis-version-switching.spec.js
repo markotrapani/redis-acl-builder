@@ -62,7 +62,7 @@ test.describe('Redis Version Switching Tests', () => {
     const versionDetail = page.locator('#versionDetail');
     const version7Text = await versionDetail.textContent();
     expect(version7Text).toContain('Redis 7');
-    expect(version7Text).toContain('311 commands');
+    expect(version7Text).toContain('379 commands');
 
     // Switch to Redis 8 using the toggle label
     const versionToggleLabel = page.locator('label[for="versionToggle"]');
@@ -72,7 +72,7 @@ test.describe('Redis Version Switching Tests', () => {
     // Check version changed
     const version8Text = await versionDetail.textContent();
     expect(version8Text).toContain('Redis 8');
-    expect(version8Text).toContain('446 commands');
+    expect(version8Text).toContain('488 commands');
     expect(version8Text).not.toBe(version7Text);
   });
 });

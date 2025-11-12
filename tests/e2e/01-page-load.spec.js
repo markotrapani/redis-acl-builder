@@ -25,7 +25,7 @@ test.describe('Page Load Tests', () => {
     const versionDetail = page.locator('#versionDetail');
     await expect(versionDetail).toBeVisible();
     await expect(versionDetail).toContainText('Redis 7');
-    await expect(versionDetail).toContainText('21 categories, 311 commands');
+    await expect(versionDetail).toContainText('21 categories, 379 commands');
   });
 
   test('should display three-column layout', async ({ page }) => {
