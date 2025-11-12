@@ -328,7 +328,7 @@ const EventHandlers = {
                 import('../components/interactive-acl-builder.js').then(({ default: InteractiveACLBuilder }) => {
                     if (InteractiveACLBuilder.state.isInitialized) {
                         InteractiveACLBuilder.loadAllData(); // Update command/category data
-                        InteractiveACLBuilder.scheduleRender(); // Re-render UI to show updated counts/lists
+                        InteractiveACLBuilder.scheduleRender(false); // Re-render without adding to history (mode switch, not user action)
                     }
                 });
             } else {
@@ -336,7 +336,7 @@ const EventHandlers = {
                 import('../components/interactive-acl-builder.js').then(({ default: InteractiveACLBuilder }) => {
                     if (InteractiveACLBuilder.state.isInitialized) {
                         InteractiveACLBuilder.loadAllData(); // Update command/category data
-                        InteractiveACLBuilder.scheduleRender(); // Re-render UI
+                        InteractiveACLBuilder.scheduleRender(false); // Re-render without adding to history
                     }
                 });
             }
