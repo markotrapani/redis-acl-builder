@@ -378,15 +378,26 @@
                                 try {
                                     const toggle = document.getElementById('modeToggle');
 
-                                    // Read directly from localStorage to avoid race conditions
+                                    // Priority: URL params > localStorage > default
                                     let initialMode = 'oss'; // Default
                                     try {
-                                        const savedMode = localStorage.getItem('redis-acl-builder-mode');
-                                        if (savedMode) {
-                                            initialMode = savedMode;
+                                        // Check URL parameters first (highest priority)
+                                        const urlParams = new URLSearchParams(window.location.search);
+                                        const modeParam = urlParams.get('mode');
+
+                                        if (modeParam && ['oss', 'enterprise'].includes(modeParam)) {
+                                            initialMode = modeParam;
+                                            // Save to localStorage for next visit
+                                            localStorage.setItem('redis-acl-builder-mode', modeParam);
+                                        } else {
+                                            // Fall back to localStorage
+                                            const savedMode = localStorage.getItem('redis-acl-builder-mode');
+                                            if (savedMode && ['oss', 'enterprise'].includes(savedMode)) {
+                                                initialMode = savedMode;
+                                            }
                                         }
                                     } catch (e) {
-                                        // Fallback to default if localStorage fails
+                                        // Fallback to default if any error occurs
                                         initialMode = 'oss';
                                     }
 

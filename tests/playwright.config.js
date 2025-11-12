@@ -7,7 +7,7 @@ const { defineConfig, devices } = require('@playwright/test');
  * @see https://playwright.dev/docs/test-configuration
  */
 module.exports = defineConfig({
-  testDir: './tests/e2e',
+  testDir: './e2e',
 
   // Maximum time one test can run
   timeout: 30 * 1000,
@@ -31,7 +31,7 @@ module.exports = defineConfig({
   reporter: 'html',
 
   // Output folders - keep organized in tests directory
-  outputDir: './tests/e2e-results',
+  outputDir: './e2e-results',
 
   // Shared settings for all the projects below
   use: {
