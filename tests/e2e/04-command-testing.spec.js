@@ -102,23 +102,11 @@ test.describe('Command Testing Tests', () => {
     });
     await page.reload();
 
-    // First set up a valid ACL rule so the test has context
-    const textarea = page.locator('#aclRule');
-    await textarea.fill('+@all');
-
-    const submitBtn = page.locator('#submitChangesBtn');
-    await expect(submitBtn).toBeVisible();
-    await submitBtn.click();
-
-    await page.waitForResponse(response =>
-      response.url().includes('/api/parse') && response.status() === 200
-    );
-
     // In integrated mode, use integrated tester inputs
     const commandInput = page.locator('#integratedCommand');
     const keyInput = page.locator('#integratedKey');
 
-    // Fill in invalid command and a test key
+    // Fill in invalid command and a test key (no ACL rule needed - just test the command validation)
     await commandInput.fill('INVALID_COMMAND_XYZ');
     await keyInput.fill('test:key');
 
@@ -126,8 +114,11 @@ test.describe('Command Testing Tests', () => {
     await expect(testBtn).toBeEnabled();
     await testBtn.click();
 
-    // Wait for API response (integrated mode calls backend even for invalid commands)
-    await page.waitForTimeout(1000);
+    // Wait for API response
+    await page.waitForResponse(
+      response => response.url().includes('/api/test-command-key'),
+      { timeout: 10000 }
+    );
 
     // Should show error or unknown command message
     const result = page.locator('#integratedTestResult');
