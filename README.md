@@ -5,7 +5,7 @@ List (ACL) rules with real-time command analysis and interactive visual
 feedback.
 
 ![license MIT](https://img.shields.io/badge/license-MIT-blue.svg)
-![version](https://img.shields.io/badge/version-2.6.3--beta-green.svg)
+![version](https://img.shields.io/badge/version-2.9.0--beta-green.svg)
 ![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Docker-lightgrey.svg)
 ![Redis](https://img.shields.io/badge/Redis-7%20%7C%208-red.svg)
 
@@ -568,6 +568,28 @@ desktop app
 synchronization, drag-drop panel reordering, and perfect responsive design
 
 ## ✨ What's New
+
+### v2.9.0-beta
+
+- **🏢 Enterprise/OSS Mode Toggle**: New mode selector for Redis deployment types
+  - Toggle between OSS (all commands) and Enterprise (cloud-restricted) modes
+  - Purple gradient for OSS mode, gold gradient for Enterprise mode
+  - Shows "Redis E. X" prefix when in Enterprise mode
+  - Command counts update in real-time: Redis 7 (379 OSS / 305 ENT),
+    Redis 8 (488 OSS / 440 ENT)
+- **✨ UI Enhancements**: Polished toggle interface
+  - Matches Redis Version toggle styling for consistency
+  - Proper layout with toggles side-by-side and version info below
+  - Text colors adapt to background (black on white pill, white on colored background)
+  - No text wrapping with `white-space: nowrap` on version detail
+- **🔧 Mode Switching Logic**: Seamless mode transitions
+  - Preserves ACL rules when switching modes
+  - Re-parses rules with new command set automatically
+  - localStorage persistence and URL parameter support
+  - Updates Interactive ACL Builder lists in real-time
+- **✅ Test Coverage**: 100% passing (42/42 E2E tests)
+  - 14 new tests specifically for Enterprise/OSS mode toggle
+  - All core functionality tests updated and passing
 
 ### v2.7.0-beta
 
