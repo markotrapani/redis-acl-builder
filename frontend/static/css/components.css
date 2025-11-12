@@ -179,6 +179,81 @@ button.test-button[disabled] {
   text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
 }
 
+/* Mode Toggle Styles (Enterprise/OSS) */
+.mode-toggle-container {
+  margin-left: var(--spacing-lg);
+}
+
+.mode-label {
+  font-weight: 600;
+  font-size: var(--font-size-md);
+  color: var(--text-primary);
+}
+
+.mode-toggle .toggle-label {
+  width: 140px;
+}
+
+.mode-toggle .toggle-slider {
+  background: var(--blue-gradient);
+  box-shadow: var(--blue-shadow);
+}
+
+.mode-toggle .toggle-option {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Default state (OSS - Blue) */
+.mode-toggle .toggle-option-left {
+  width: 60px;
+  left: var(--spacing-xs);
+  color: var(--black);
+  text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
+}
+
+.mode-toggle .toggle-option-right {
+  width: 70px;
+  right: var(--spacing-xs);
+  color: white;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 5px rgba(0,0,0,0.5);
+}
+
+.mode-toggle .toggle-slider::before {
+  width: 60px;
+}
+
+/* Unchecked state (OSS - Blue) */
+.mode-toggle .toggle-input:not(:checked) + .toggle-label .toggle-option-left {
+  color: var(--black);
+  text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
+}
+
+.mode-toggle .toggle-input:not(:checked) + .toggle-label .toggle-option-right {
+  color: white !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 5px rgba(0,0,0,0.5);
+}
+
+/* Checked state (Enterprise - Purple with Gold text) */
+.mode-toggle .toggle-input:checked + .toggle-label .toggle-slider {
+  background: var(--purple-gradient);
+  box-shadow: var(--purple-shadow);
+}
+
+.mode-toggle .toggle-input:checked + .toggle-label .toggle-slider::before {
+  transform: translateX(72px);
+}
+
+.mode-toggle .toggle-input:checked + .toggle-label .toggle-option-left {
+  color: white !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 5px rgba(0,0,0,0.5);
+}
+
+.mode-toggle .toggle-input:checked + .toggle-label .toggle-option-right {
+  color: var(--gold-color) !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6);
+}
+
 /* Version info display */
 .version-info {
   align-self: flex-start;

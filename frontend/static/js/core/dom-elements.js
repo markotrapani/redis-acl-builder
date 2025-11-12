@@ -11,8 +11,9 @@ const DOMElements = {
     testKeyspaceInput: null,
     testResult: null,
     versionToggle: null,
+    modeToggle: null,
     versionDetail: null,
-    
+
     // Initialize DOM references
     init() {
         this.aclRuleInput = document.getElementById('aclRule');
@@ -22,6 +23,7 @@ const DOMElements = {
         this.testKeyspaceInput = document.getElementById('testKeyspace');
         this.testResult = document.getElementById('testResult');
         this.versionToggle = document.getElementById('versionToggle');
+        this.modeToggle = document.getElementById('modeToggle');
         this.versionDetail = document.getElementById('versionDetail');
     }
 };

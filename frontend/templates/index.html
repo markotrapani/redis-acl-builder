@@ -361,16 +361,88 @@
                             })();
                         </script>
                     </div>
+                    <div class="toggle-switch-container mode-toggle-container">
+                        <div class="mode-label">Mode:</div>
+                        <div class="toggle-switch mode-toggle">
+                            <input type="checkbox" id="modeToggle" class="toggle-input">
+                            <label for="modeToggle" class="toggle-label" title="OSS: All Redis commands | Enterprise: Cloud-restricted command set">
+                                <span class="toggle-slider">
+                                    <span class="toggle-option toggle-option-left">OSS</span>
+                                    <span class="toggle-option toggle-option-right">Enterprise</span>
+                                </span>
+                            </label>
+                        </div>
+                        <!-- Set initial mode toggle state to prevent visual jump -->
+                        <script>
+                            (function() {
+                                try {
+                                    const toggle = document.getElementById('modeToggle');
+
+                                    // Read directly from localStorage to avoid race conditions
+                                    let initialMode = 'oss'; // Default
+                                    try {
+                                        const savedMode = localStorage.getItem('redis-acl-builder-mode');
+                                        if (savedMode) {
+                                            initialMode = savedMode;
+                                        }
+                                    } catch (e) {
+                                        // Fallback to default if localStorage fails
+                                        initialMode = 'oss';
+                                    }
+
+                                    if (toggle && initialMode === 'enterprise') {
+                                        // Disable transitions temporarily to prevent animation flash on page load
+                                        const slider = document.querySelector('.mode-toggle .toggle-slider');
+                                        if (slider) {
+                                            slider.style.setProperty('--transition-slow', '0s');
+                                        }
+
+                                        toggle.checked = true;
+
+                                        // Re-enable transitions after a brief delay
+                                        setTimeout(() => {
+                                            if (slider) {
+                                                slider.style.removeProperty('--transition-slow');
+                                            }
+                                        }, 50);
+                                    }
+
+                                    // Store the mode for use in the version detail element
+                                    window._initialMode = initialMode;
+                                } catch (e) {
+                                    console.warn('Failed to set initial mode toggle state:', e);
+                                }
+                            })();
+                        </script>
+                    </div>
                     <div class="version-info">
                         <span class="version-detail" id="versionDetail">
                             <script>
-                                // Set correct initial text based on saved version to prevent flash
+                                // Set correct initial text based on saved version and mode to prevent flash
                                 (function() {
-                                    const initialVersion = window._initialVersionForDetail || 'redis7';
+                                    const initialVersion = window._initialVersionForDetail || 'redis8';
+                                    const initialMode = window._initialMode || 'oss';
                                     const categoryCount = initialVersion === 'redis8' ? '29' : '21';
-                                    const commandCount = initialVersion === 'redis8' ? '446' : '311';
                                     const versionNumber = initialVersion.slice(-1);
-                                    document.write(`Redis ${versionNumber} (${categoryCount} categories, ${commandCount} commands)`);
+
+                                    // Command counts for OSS and Enterprise modes
+                                    const commandCounts = {
+                                        redis7: { oss: 379, enterprise: 305 },
+                                        redis8: { oss: 488, enterprise: 440 }
+                                    };
+
+                                    const ossCount = commandCounts[initialVersion].oss;
+                                    const enterpriseCount = commandCounts[initialVersion].enterprise;
+
+                                    // Show "XX/YY commands" format for Enterprise mode
+                                    let commandText;
+                                    if (initialMode === 'enterprise') {
+                                        commandText = `${enterpriseCount}/${ossCount} commands`;
+                                    } else {
+                                        commandText = `${ossCount} commands`;
+                                    }
+
+                                    document.write(`Redis ${versionNumber} (${categoryCount} categories, ${commandText})`);
                                 })();
                             </script>
                         </span>

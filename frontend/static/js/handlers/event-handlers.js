@@ -223,6 +223,34 @@ const EventHandlers = {
             }
         });
         
+        // Helper function to update version detail text (considers both version and mode)
+        const updateVersionDetail = function() {
+            const version = AppState.currentVersion;
+            const mode = AppState.currentMode;
+            const versionNumber = version.slice(-1);
+            const categoryCount = version === 'redis8' ? '29' : '21';
+
+            // Command counts for OSS and Enterprise modes
+            const commandCounts = {
+                redis7: { oss: 379, enterprise: 305 },
+                redis8: { oss: 488, enterprise: 440 }
+            };
+
+            const ossCount = commandCounts[version].oss;
+            const enterpriseCount = commandCounts[version].enterprise;
+            const currentCount = mode === 'enterprise' ? enterpriseCount : ossCount;
+
+            // Show "XX/YY commands" format for Enterprise mode
+            let commandText;
+            if (mode === 'enterprise') {
+                commandText = `${enterpriseCount}/${ossCount} commands`;
+            } else {
+                commandText = `${ossCount} commands`;
+            }
+
+            DOMElements.versionDetail.textContent = `Redis ${versionNumber} (${categoryCount} categories, ${commandText})`;
+        };
+
         // Helper function to perform the actual version switch
         const self = this; // Capture EventHandlers context
         DOMElements.versionToggle.performVersionSwitch = function(newVersion, isRestoration = false) {
@@ -232,9 +260,7 @@ const EventHandlers = {
             Storage.saveRedisVersion(newVersion);
 
             // Update version detail text
-            const categoryCount = newVersion === 'redis8' ? '29' : '21';
-            const commandCount = newVersion === 'redis8' ? '446' : '311';
-            DOMElements.versionDetail.textContent = `Redis ${newVersion.slice(-1)} (${categoryCount} categories, ${commandCount} commands)`;
+            updateVersionDetail();
 
             // Check if there are unsaved changes (Submit Changes button is visible)
             const submitBtn = document.getElementById('submitChangesBtn');
@@ -269,7 +295,32 @@ const EventHandlers = {
                 }
             }
         };
-        
+
+        // Mode toggle (OSS/Enterprise)
+        DOMElements.modeToggle.addEventListener('change', function() {
+            const newMode = this.checked ? 'enterprise' : 'oss';
+            if (AppState.currentMode !== newMode) {
+                this.performModeSwitch(newMode);
+            }
+        });
+
+        // Helper function to perform the actual mode switch
+        DOMElements.modeToggle.performModeSwitch = function(newMode) {
+            const oldMode = AppState.currentMode;
+
+            // Update app state and persist to localStorage + URL
+            AppState.update({ currentMode: newMode });
+            AppState.updateURL(AppState.currentVersion, newMode);
+
+            console.log(`Mode switched from ${oldMode} to ${newMode}`);
+
+            // Update version detail text to show Enterprise command count format
+            updateVersionDetail();
+
+            // Reload all data with new mode
+            self.loadAllData();
+        };
+
         // Test command input
         DOMElements.testCommandInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
