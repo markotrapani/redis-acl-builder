@@ -240,7 +240,11 @@ const EventHandlers = {
                 ? commandCounts[version].enterprise
                 : commandCounts[version].oss;
 
-            DOMElements.versionDetail.textContent = `Redis ${versionNumber} (${categoryCount} categories, ${commandCount} commands)`;
+            const versionLabel = mode === 'enterprise'
+                ? `Redis E. ${versionNumber}`
+                : `Redis ${versionNumber}`;
+
+            DOMElements.versionDetail.textContent = `${versionLabel} (${categoryCount} categories, ${commandCount} commands)`;
         };
 
         // Helper function to perform the actual version switch

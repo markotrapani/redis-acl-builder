@@ -81,6 +81,7 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
 
     // Command count should now show Enterprise count (305 for Redis 7)
     const enterpriseText = await versionDetail.textContent();
+    expect(enterpriseText).toContain('Redis E. 7'); // Enterprise prefix
     expect(enterpriseText).toContain('305 commands'); // Redis 7 Enterprise
     expect(enterpriseText).not.toBe(ossText);
   });
@@ -95,6 +96,7 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
 
     // Verify we're in Enterprise mode (305 commands for Redis 7)
     const enterpriseText = await versionDetail.textContent();
+    expect(enterpriseText).toContain('Redis E. 7');
     expect(enterpriseText).toContain('305 commands');
 
     // Switch back to OSS
@@ -129,7 +131,7 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
 
     // Enterprise mode: 440 commands (48 restricted)
     text = await versionDetail.textContent();
-    expect(text).toContain('Redis 8');
+    expect(text).toContain('Redis E. 8');
     expect(text).toContain('440 commands');
   });
 
@@ -150,7 +152,7 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
 
     // Enterprise mode: 305 commands (74 restricted)
     text = await versionDetail.textContent();
-    expect(text).toContain('Redis 7');
+    expect(text).toContain('Redis E. 7');
     expect(text).toContain('305 commands');
   });
 
@@ -168,14 +170,14 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     await modeToggleLabel.click();
     await page.waitForTimeout(1000);
     text = await versionDetail.textContent();
-    expect(text).toContain('Redis 7');
+    expect(text).toContain('Redis E. 7');
     expect(text).toContain('305 commands');
 
     // Combination 3: Redis 8 + Enterprise
     await versionToggleLabel.click();
     await page.waitForTimeout(1000);
     text = await versionDetail.textContent();
-    expect(text).toContain('Redis 8');
+    expect(text).toContain('Redis E. 8');
     expect(text).toContain('440 commands');
 
     // Combination 4: Redis 8 + OSS
@@ -196,6 +198,7 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
 
     // Verify we're in Enterprise mode (305 commands for Redis 7)
     let text = await versionDetail.textContent();
+    expect(text).toContain('Redis E. 7');
     expect(text).toContain('305 commands');
 
     // Reload page
@@ -207,6 +210,7 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     await expect(modeToggle).toBeChecked();
 
     text = await versionDetail.textContent();
+    expect(text).toContain('Redis E. 7');
     expect(text).toContain('305 commands');
   });
 
@@ -249,6 +253,7 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     // Command count should show Enterprise count (305 for Redis 7)
     const versionDetail = page.locator('#versionDetail');
     const text = await versionDetail.textContent();
+    expect(text).toContain('Redis E. 7');
     expect(text).toContain('305 commands');
   });
 
@@ -270,7 +275,7 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     // Command count should show Redis 7 Enterprise
     const versionDetail = page.locator('#versionDetail');
     const text = await versionDetail.textContent();
-    expect(text).toContain('Redis 7');
+    expect(text).toContain('Redis E. 7');
     expect(text).toContain('305 commands');
   });
 
@@ -309,6 +314,7 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     await page.waitForTimeout(1000);
 
     text = await versionDetail.textContent();
+    expect(text).toContain('Redis E. 7');
     expect(text).toContain('305 commands');
 
     // Switch back to OSS: should show 379 commands again
