@@ -569,6 +569,13 @@ synchronization, drag-drop panel reordering, and perfect responsive design
 
 ## ✨ What's New
 
+### v2.9.1-beta
+
+- **🐛 Bug Fix**: URL parameter synchronization
+  - Fixed URL not updating when switching between Redis 7 and Redis 8
+  - URL now correctly reflects selected Redis version (e.g., `?version=redis8`)
+  - Ensures URL state stays in sync with application state
+
 ### v2.9.0-beta
 
 - **🏢 Enterprise/OSS Mode Toggle**: New mode selector for Redis deployment types

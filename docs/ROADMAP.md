@@ -19,7 +19,24 @@ applications across macOS, Windows, and Linux.
 
 ## 🎯 Version History
 
-### v2.9.0-beta (2025-11-12) - CURRENT
+### v2.9.1-beta (Unreleased) - NEXT
+
+#### Bug Fixes
+
+- 🐛 **URL Parameter Synchronization** - Fixed version toggle URL update
+  - URL now correctly updates when switching between Redis 7 and Redis 8
+  - Added `AppState.updateURL()` call to `performVersionSwitch()` function
+  - Ensures URL state stays in sync with application state
+
+**Technical:** Fixed in
+[frontend/static/js/handlers/event-handlers.js][event-handlers] - added missing
+`AppState.updateURL(newVersion, AppState.currentMode)` call
+
+[event-handlers]: frontend/static/js/handlers/event-handlers.js
+
+---
+
+### v2.9.0-beta (2025-11-12)
 
 #### Enterprise/OSS Mode Toggle Release
 
