@@ -28,9 +28,14 @@ applications across macOS, Windows, and Linux.
   - Added `AppState.updateURL()` call to `performVersionSwitch()` function
   - Ensures URL state stays in sync with application state
 
-**Technical:** Fixed in
-[frontend/static/js/handlers/event-handlers.js][event-handlers] - added missing
-`AppState.updateURL(newVersion, AppState.currentMode)` call
+- 🐛 **Interactive ACL Builder UI Refresh** - Fixed mode toggle not updating UI
+  - Category/command buttons and counts now update when switching OSS/Enterprise
+  - Command counts correctly reflect mode changes (e.g., Redis 7: 379→305)
+  - Added `scheduleRender()` call after `loadAllData()` in `performModeSwitch()`
+  - Works with both existing ACL rules and empty state
+
+**Technical:** Both fixes in
+[frontend/static/js/handlers/event-handlers.js][event-handlers]
 
 [event-handlers]: frontend/static/js/handlers/event-handlers.js
 
