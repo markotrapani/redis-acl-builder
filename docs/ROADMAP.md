@@ -34,7 +34,13 @@ applications across macOS, Windows, and Linux.
   - Added `scheduleRender()` call after `loadAllData()` in `performModeSwitch()`
   - Works with both existing ACL rules and empty state
 
-**Technical:** Both fixes in
+- 🐛 **History Pollution on Mode Switch** - Fixed Clear button enabling bug
+  - Mode switches no longer add entries to ACL rule history
+  - Clear button state now correctly reflects actual user changes
+  - Pass `addToHistory=false` to `scheduleRender()` during mode switches
+  - Prevents undo/redo history pollution from non-user actions
+
+**Technical:** All three fixes in
 [frontend/static/js/handlers/event-handlers.js][event-handlers]
 
 [event-handlers]: frontend/static/js/handlers/event-handlers.js
