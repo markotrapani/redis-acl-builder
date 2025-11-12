@@ -255,6 +255,9 @@ const EventHandlers = {
             // Save version preference to localStorage
             Storage.saveRedisVersion(newVersion);
 
+            // Update URL parameters with new version
+            AppState.updateURL(newVersion, AppState.currentMode);
+
             // Update version detail text
             updateVersionDetail();
 
