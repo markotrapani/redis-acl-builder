@@ -56,7 +56,7 @@ button.test-button[disabled] {
   margin-bottom: var(--spacing-lg);
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--spacing-md);
 }
@@ -185,6 +185,7 @@ button.test-button[disabled] {
 /* Mode Toggle Styles (Enterprise/OSS) */
 .mode-toggle-container {
   /* No margin needed - inline with version selector via flex gap */
+  flex-shrink: 0; /* Prevent shrinking that could cause wrapping */
 }
 
 .mode-label {
@@ -194,67 +195,72 @@ button.test-button[disabled] {
 }
 
 .mode-toggle .toggle-label {
-  width: 100px;
+  width: 90px;
 }
 
+.mode-toggle .toggle-slider::before {
+  width: 38px;
+}
+
+.mode-toggle .toggle-option {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* OSS mode (unchecked) - Purple background */
 .mode-toggle .toggle-slider {
   background: var(--purple-gradient);
   box-shadow: var(--purple-shadow);
 }
 
-.mode-toggle .toggle-option {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-/* Default state (OSS - Purple with Gold text) */
 .mode-toggle .toggle-option-left {
-  width: 60px;
+  width: 38px;
   left: var(--spacing-xs);
-  color: var(--gold-color);
-  text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6);
+  color: var(--black);
+  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
 }
 
 .mode-toggle .toggle-option-right {
-  width: 30px;
+  width: 38px;
   right: var(--spacing-xs);
   color: white;
   text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 5px rgba(0,0,0,0.5);
 }
 
-.mode-toggle .toggle-slider::before {
-  width: 60px;
-}
-
-/* Unchecked state (OSS - Purple with Gold text) */
-.mode-toggle .toggle-input:not(:checked) + .toggle-label .toggle-option-left {
-  color: var(--gold-color) !important;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6);
-}
-
-.mode-toggle .toggle-input:not(:checked) + .toggle-label .toggle-option-right {
-  color: white !important;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 5px rgba(0,0,0,0.5);
-}
-
-/* Checked state (Enterprise - Purple with Gold text) */
-.mode-toggle .toggle-input:checked + .toggle-label .toggle-slider {
+/* Unchecked state (OSS) - Purple background */
+.mode-toggle .toggle-input:not(:checked) + .toggle-label .toggle-slider {
   background: var(--purple-gradient);
   box-shadow: var(--purple-shadow);
 }
 
+.mode-toggle .toggle-input:not(:checked) + .toggle-label .toggle-option-left {
+  color: var(--black) !important; /* OSS text on white pill */
+  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+}
+
+.mode-toggle .toggle-input:not(:checked) + .toggle-label .toggle-option-right {
+  color: white !important; /* ENT text on purple background */
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 5px rgba(0,0,0,0.5);
+}
+
+/* Checked state (Enterprise) - Gold background */
+.mode-toggle .toggle-input:checked + .toggle-label .toggle-slider {
+  background: var(--gold-gradient);
+  box-shadow: var(--gold-shadow);
+}
+
 .mode-toggle .toggle-input:checked + .toggle-label .toggle-slider::before {
-  transform: translateX(32px);
+  transform: translateX(44px);
 }
 
 .mode-toggle .toggle-input:checked + .toggle-label .toggle-option-left {
-  color: white !important;
+  color: white !important; /* OSS text on gold background */
   text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 5px rgba(0,0,0,0.5);
 }
 
 .mode-toggle .toggle-input:checked + .toggle-label .toggle-option-right {
-  color: var(--gold-color) !important;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6);
+  color: var(--black) !important; /* ENT text on white pill */
+  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
 }
 
 /* Version info display */
