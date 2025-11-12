@@ -55,8 +55,13 @@ button.test-button[disabled] {
 .version-selector {
   margin-bottom: var(--spacing-lg);
   display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.version-selector-row {
+  display: flex;
   flex-direction: row;
-  flex-wrap: nowrap;
   align-items: center;
   gap: var(--spacing-md);
 }
@@ -65,6 +70,8 @@ button.test-button[disabled] {
   font-weight: 600;
   margin-right: 0;
   display: inline-block;
+  font-size: var(--font-size-md);
+  color: var(--text-primary);
 }
 
 /* Modern Toggle Switch */
@@ -185,7 +192,6 @@ button.test-button[disabled] {
 /* Mode Toggle Styles (Enterprise/OSS) */
 .mode-toggle-container {
   /* No margin needed - inline with version selector via flex gap */
-  flex-shrink: 0; /* Prevent shrinking that could cause wrapping */
 }
 
 .mode-label {
@@ -195,7 +201,7 @@ button.test-button[disabled] {
 }
 
 .mode-toggle .toggle-label {
-  width: 90px;
+  width: 88px; /* OSS (38px) + ENT (38px) + gap (12px) */
 }
 
 .mode-toggle .toggle-slider::before {
@@ -203,8 +209,10 @@ button.test-button[disabled] {
 }
 
 .mode-toggle .toggle-option {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
+  width: 38px; /* Explicit width for both options */
+  text-align: center;
 }
 
 /* OSS mode (unchecked) - Purple background */
@@ -214,14 +222,12 @@ button.test-button[disabled] {
 }
 
 .mode-toggle .toggle-option-left {
-  width: 38px;
   left: var(--spacing-xs);
   color: var(--black);
-  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+  text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
 }
 
 .mode-toggle .toggle-option-right {
-  width: 38px;
   right: var(--spacing-xs);
   color: white;
   text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 5px rgba(0,0,0,0.5);
@@ -235,7 +241,7 @@ button.test-button[disabled] {
 
 .mode-toggle .toggle-input:not(:checked) + .toggle-label .toggle-option-left {
   color: var(--black) !important; /* OSS text on white pill */
-  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+  text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
 }
 
 .mode-toggle .toggle-input:not(:checked) + .toggle-label .toggle-option-right {
@@ -250,7 +256,7 @@ button.test-button[disabled] {
 }
 
 .mode-toggle .toggle-input:checked + .toggle-label .toggle-slider::before {
-  transform: translateX(44px);
+  transform: translateX(42px); /* 38px width + 4px spacing */
 }
 
 .mode-toggle .toggle-input:checked + .toggle-label .toggle-option-left {
@@ -260,7 +266,7 @@ button.test-button[disabled] {
 
 .mode-toggle .toggle-input:checked + .toggle-label .toggle-option-right {
   color: var(--black) !important; /* ENT text on white pill */
-  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+  text-shadow: 0 1px 3px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.6);
 }
 
 /* Version info display */
@@ -276,6 +282,7 @@ button.test-button[disabled] {
   font-size: var(--font-size-md);
   color: var(--text-secondary);
   font-weight: 500;
+  white-space: nowrap;
 }
 
 /* Inline action buttons */

@@ -236,19 +236,11 @@ const EventHandlers = {
                 redis8: { oss: 488, enterprise: 440 }
             };
 
-            const ossCount = commandCounts[version].oss;
-            const enterpriseCount = commandCounts[version].enterprise;
-            const currentCount = mode === 'enterprise' ? enterpriseCount : ossCount;
+            const commandCount = mode === 'enterprise'
+                ? commandCounts[version].enterprise
+                : commandCounts[version].oss;
 
-            // Show "XX/YY commands" format for Enterprise mode
-            let commandText;
-            if (mode === 'enterprise') {
-                commandText = `${enterpriseCount}/${ossCount} commands`;
-            } else {
-                commandText = `${ossCount} commands`;
-            }
-
-            DOMElements.versionDetail.textContent = `Redis ${versionNumber} (${categoryCount} categories, ${commandText})`;
+            DOMElements.versionDetail.textContent = `Redis ${versionNumber} (${categoryCount} categories, ${commandCount} commands)`;
         };
 
         // Helper function to perform the actual version switch
