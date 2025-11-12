@@ -189,6 +189,7 @@ node_modules/
 
 # Playwright E2E testing artifacts
 tests/e2e-results/
+tests/tests/
 test-results/
 playwright-report/
 playwright-test-output.txt
