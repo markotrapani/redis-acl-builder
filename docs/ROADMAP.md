@@ -1,11 +1,11 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.7.28-beta
+**Current Version:** v2.9.0-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
 
-**Last Updated:** 2025-11-01
+**Last Updated:** 2025-11-12
 
 ---
 
@@ -19,7 +19,41 @@ applications across macOS, Windows, and Linux.
 
 ## 🎯 Version History
 
-### v2.7.28-beta (2025-11-01) - CURRENT
+### v2.9.0-beta (2025-11-12) - CURRENT
+
+#### Enterprise/OSS Mode Toggle Release
+
+- ✅ **Mode Selector UI** - Toggle between Redis deployment types
+  - Purple gradient for OSS mode (all commands available)
+  - Gold gradient for Enterprise mode (cloud-restricted command set)
+  - "Redis E. X" prefix displays when in Enterprise mode
+  - Side-by-side layout with Redis Version toggle for consistency
+
+- ✅ **Dynamic Command Counts** - Real-time command set updates
+  - Redis 7: 379 OSS commands / 305 Enterprise commands
+  - Redis 8: 488 OSS commands / 440 Enterprise commands
+  - Command counts update instantly when switching modes
+  - Simplified count display (no fractional format)
+
+- ✅ **Seamless Mode Switching** - Intelligent state management
+  - Preserves ACL rules when switching between OSS/Enterprise modes
+  - Automatically re-parses rules with new command set
+  - localStorage persistence for mode preference
+  - URL parameter support (`?mode=oss` or `?mode=enterprise`)
+  - Real-time updates to Interactive ACL Builder panels
+
+- ✅ **Test Coverage** - 100% passing (42/42 E2E tests)
+  - 14 new tests specifically for Enterprise/OSS mode toggle
+  - Covers mode persistence, URL parameters, and command filtering
+  - All existing tests updated and passing with new feature
+
+**Technical:** New `EnterpriseOSSModeToggle` component in
+[frontend/static/js/components/](frontend/static/js/components/), integrated
+with `app-state.js` for centralized state management
+
+---
+
+### v2.7.28-beta (2025-11-01)
 
 #### Auto-Update System Fully Functional
 
