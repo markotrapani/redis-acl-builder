@@ -7,7 +7,7 @@ const { test, expect } = require('@playwright/test');
  * Tests the Enterprise/OSS mode toggle functionality including:
  * - UI rendering and visibility
  * - Mode switching between OSS and Enterprise
- * - Command count display format (XX/YY for Enterprise)
+ * - Command count display (different counts for OSS vs Enterprise)
  * - localStorage persistence
  * - URL parameter support
  * - Integration with Redis version selector
@@ -64,10 +64,9 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
   test('should switch from OSS to Enterprise mode', async ({ page }) => {
     const versionDetail = page.locator('#versionDetail');
 
-    // Get initial text (OSS mode)
+    // Get initial text (OSS mode) - Redis 7 default: 379 commands
     const ossText = await versionDetail.textContent();
-    expect(ossText).toMatch(/\d+ commands/); // "488 commands"
-    expect(ossText).not.toMatch(/\d+\/\d+ commands/); // Not "440/488 commands"
+    expect(ossText).toContain('379 commands'); // Redis 7 OSS
 
     // Click mode toggle to switch to Enterprise
     const toggleLabel = page.locator('label[for="modeToggle"]');
@@ -80,9 +79,9 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     const modeToggle = page.locator('#modeToggle');
     await expect(modeToggle).toBeChecked();
 
-    // Command count should now show Enterprise format (XX/YY)
+    // Command count should now show Enterprise count (305 for Redis 7)
     const enterpriseText = await versionDetail.textContent();
-    expect(enterpriseText).toMatch(/\d+\/\d+ commands/); // "440/488 commands"
+    expect(enterpriseText).toContain('305 commands'); // Redis 7 Enterprise
     expect(enterpriseText).not.toBe(ossText);
   });
 
@@ -94,18 +93,17 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     await toggleLabel.click();
     await page.waitForTimeout(500);
 
-    // Verify we're in Enterprise mode
+    // Verify we're in Enterprise mode (305 commands for Redis 7)
     const enterpriseText = await versionDetail.textContent();
-    expect(enterpriseText).toMatch(/\d+\/\d+ commands/);
+    expect(enterpriseText).toContain('305 commands');
 
     // Switch back to OSS
     await toggleLabel.click();
     await page.waitForTimeout(500);
 
-    // Verify we're back in OSS mode
+    // Verify we're back in OSS mode (379 commands for Redis 7)
     const ossText = await versionDetail.textContent();
-    expect(ossText).toMatch(/\d+ commands/);
-    expect(ossText).not.toMatch(/\d+\/\d+ commands/);
+    expect(ossText).toContain('379 commands');
     expect(ossText).not.toBe(enterpriseText);
   });
 
@@ -129,10 +127,10 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     await modeToggleLabel.click();
     await page.waitForTimeout(1000);
 
-    // Enterprise mode: 440/488 commands (48 restricted)
+    // Enterprise mode: 440 commands (48 restricted)
     text = await versionDetail.textContent();
     expect(text).toContain('Redis 8');
-    expect(text).toContain('440/488 commands');
+    expect(text).toContain('440 commands');
   });
 
   test('should show correct command counts for Redis 7', async ({ page }) => {
@@ -150,10 +148,10 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     await modeToggleLabel.click();
     await page.waitForTimeout(1000);
 
-    // Enterprise mode: 305/379 commands (74 restricted)
+    // Enterprise mode: 305 commands (74 restricted)
     text = await versionDetail.textContent();
     expect(text).toContain('Redis 7');
-    expect(text).toContain('305/379 commands');
+    expect(text).toContain('305 commands');
   });
 
   test('should test all 4 version+mode combinations', async ({ page }) => {
@@ -171,14 +169,14 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     await page.waitForTimeout(1000);
     text = await versionDetail.textContent();
     expect(text).toContain('Redis 7');
-    expect(text).toContain('305/379 commands');
+    expect(text).toContain('305 commands');
 
     // Combination 3: Redis 8 + Enterprise
     await versionToggleLabel.click();
     await page.waitForTimeout(1000);
     text = await versionDetail.textContent();
     expect(text).toContain('Redis 8');
-    expect(text).toContain('440/488 commands');
+    expect(text).toContain('440 commands');
 
     // Combination 4: Redis 8 + OSS
     await modeToggleLabel.click();
@@ -196,9 +194,9 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     await toggleLabel.click();
     await page.waitForTimeout(500);
 
-    // Verify we're in Enterprise mode
+    // Verify we're in Enterprise mode (305 commands for Redis 7)
     let text = await versionDetail.textContent();
-    expect(text).toMatch(/\d+\/\d+ commands/);
+    expect(text).toContain('305 commands');
 
     // Reload page
     await page.reload();
@@ -209,7 +207,7 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     await expect(modeToggle).toBeChecked();
 
     text = await versionDetail.textContent();
-    expect(text).toMatch(/\d+\/\d+ commands/);
+    expect(text).toContain('305 commands');
   });
 
   test('should update URL with mode parameter', async ({ page }) => {
@@ -248,10 +246,10 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     const modeToggle = page.locator('#modeToggle');
     await expect(modeToggle).toBeChecked();
 
-    // Command count should show Enterprise format
+    // Command count should show Enterprise count (305 for Redis 7)
     const versionDetail = page.locator('#versionDetail');
     const text = await versionDetail.textContent();
-    expect(text).toMatch(/\d+\/\d+ commands/);
+    expect(text).toContain('305 commands');
   });
 
   test('should load with version and mode from URL parameters', async ({ page }) => {
@@ -273,7 +271,7 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     const versionDetail = page.locator('#versionDetail');
     const text = await versionDetail.textContent();
     expect(text).toContain('Redis 7');
-    expect(text).toContain('305/379 commands');
+    expect(text).toContain('305 commands');
   });
 
   test('should preserve ACL rule when switching modes', async ({ page }) => {
@@ -305,14 +303,13 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
     // Default is Redis 7 OSS: 379 commands
     let text = await versionDetail.textContent();
     expect(text).toContain('379 commands');
-    expect(text).not.toMatch(/\d+\/\d+ commands/);
 
-    // Switch to Enterprise mode: should show 305/379 (74 commands restricted)
+    // Switch to Enterprise mode: should show 305 (74 commands restricted)
     await modeToggleLabel.click();
     await page.waitForTimeout(1000);
 
     text = await versionDetail.textContent();
-    expect(text).toContain('305/379 commands');
+    expect(text).toContain('305 commands');
 
     // Switch back to OSS: should show 379 commands again
     await modeToggleLabel.click();
@@ -320,7 +317,6 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
 
     text = await versionDetail.textContent();
     expect(text).toContain('379 commands');
-    expect(text).not.toMatch(/\d+\/\d+ commands/);
   });
 
   test('should handle rapid mode toggle clicks gracefully', async ({ page }) => {
@@ -342,13 +338,12 @@ test.describe('Enterprise/OSS Mode Toggle Tests', () => {
 
     const text = await versionDetail.textContent();
 
-    // If checked (Enterprise), should show XX/YY format
-    // If unchecked (OSS), should show XX format only
+    // Should show appropriate command count based on mode
+    // Redis 7 default: OSS=379, ENT=305
     if (isChecked) {
-      expect(text).toMatch(/\d+\/\d+ commands/);
+      expect(text).toContain('305 commands'); // Enterprise
     } else {
-      expect(text).toMatch(/\d+ commands/);
-      expect(text).not.toMatch(/\d+\/\d+ commands/);
+      expect(text).toContain('379 commands'); // OSS
     }
 
     // No console errors should have occurred
