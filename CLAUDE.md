@@ -917,8 +917,37 @@ ensure ALL documentation is updated consistently.
 **BEFORE creating any version tag, ALWAYS:**
 
 1. **Update version numbers FIRST** (before git tag)
-2. **Commit version updates separately**
+2. **Commit version updates with MEANINGFUL commit message**
 3. **Then create and push the version tag**
+
+### Version Update Commit Message Requirements
+
+**❌ NEVER use meaningless commit messages like:**
+
+- `chore: Bump version to v2.9.0-beta`
+- `chore: Update version to v2.7.15-beta`
+- `release: v2.9.0-beta` (no description)
+
+These commits are useless - they don't tell anyone WHAT changed in the version.
+
+**✅ ALWAYS use descriptive commit messages that explain WHAT changed:**
+
+- `release: v2.9.0-beta - Enterprise/OSS Mode Toggle`
+- `release: v2.8.0-beta - Custom App Icons Complete`
+- `release: v2.7.0-beta - Category UI Improvements`
+- `fix: Resolve critical auto-update restart regression (v2.7.1-beta)`
+
+**Format:**
+
+```text
+release: vX.X.X-beta - [Short Feature/Fix Summary]
+
+[Optional: Detailed explanation of major changes]
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: marko.trapani@redis.com
+```
 
 This prevents the documentation drift that just occurred with v1.15.9-beta.
 
