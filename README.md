@@ -5,7 +5,7 @@ List (ACL) rules with real-time command analysis and interactive visual
 feedback.
 
 ![license MIT](https://img.shields.io/badge/license-MIT-blue.svg)
-![version](https://img.shields.io/badge/version-2.9.0--beta-green.svg)
+![version](https://img.shields.io/badge/version-2.9.1--beta-green.svg)
 ![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Docker-lightgrey.svg)
 ![Redis](https://img.shields.io/badge/Redis-7%20%7C%208-red.svg)
 
@@ -34,8 +34,8 @@ performance
 
 ```bash
 # Download the .dmg for your architecture
-# - Redis-ACL-Builder-2.3.0-beta-arm64.dmg (Apple Silicon - M1/M2/M3)
-# - Redis-ACL-Builder-2.3.0-beta-x64.dmg (Intel Macs)
+# - Redis-ACL-Builder-2.9.1-beta-arm64.dmg (Apple Silicon - M1/M2/M3)
+# - Redis-ACL-Builder-2.9.1-beta-x64.dmg (Intel Macs)
 
 # Install:
 # 1. Open the DMG file
@@ -46,7 +46,7 @@ performance
 **Windows:**
 
 ```bash
-# Download Redis-ACL-Builder-Setup-2.3.0-beta.exe
+# Download Redis-ACL-Builder-Setup-2.9.1-beta.exe
 # Run the installer and follow the prompts
 # App will be available in Start Menu
 ```
@@ -54,12 +54,12 @@ performance
 **Linux:**
 
 ```bash
-# Download Redis-ACL-Builder-2.3.0-beta.AppImage
-chmod +x Redis-ACL-Builder-2.3.0-beta.AppImage
-./Redis-ACL-Builder-2.3.0-beta.AppImage
+# Download Redis-ACL-Builder-2.9.1-beta.AppImage
+chmod +x Redis-ACL-Builder-2.9.1-beta.AppImage
+./Redis-ACL-Builder-2.9.1-beta.AppImage
 
 # Or install the .deb package (Debian/Ubuntu)
-sudo dpkg -i Redis-ACL-Builder_2.3.0-beta_amd64.deb
+sudo dpkg -i Redis-ACL-Builder_2.9.1-beta_amd64.deb
 ```
 
 </details>

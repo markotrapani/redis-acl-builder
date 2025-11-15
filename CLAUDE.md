@@ -272,7 +272,7 @@ analysis.
 
 ### Key Project: Redis ACL Builder
 
-- **Version**: v2.9.0-beta (Enterprise/OSS Mode Toggle Release)
+- **Version**: v2.9.1-beta (Partial Category Detection Improvements)
 - **Test Coverage**: E2E: 100% (42/42 Playwright tests passing)
 - **Latest Release**: Enterprise/OSS Mode Toggle (v2.9.0-beta)
 - **Purpose**: Interactive web interface for parsing, testing, and validating
