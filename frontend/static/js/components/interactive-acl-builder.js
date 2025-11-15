@@ -1487,6 +1487,7 @@ const InteractiveACLBuilder = {
             // Check if this category has partial grants (some commands granted individually)
             if (!this.state.grantedCategories.has(category)) {
                 const categoryAnalysis = await this.detectPartialCategory(category);
+
                 if (categoryAnalysis[category] === 'partial') {
                     implicitPartialCategories.add(category);
                 } else if (categoryAnalysis[category] === 'fully-granted') {
@@ -1985,13 +1986,27 @@ const InteractiveACLBuilder = {
             });
 
             // Add fully available categories (not granted, not partial) so they can be sorted with partial categories
-            availableCategories.forEach(category => {
+            for (const category of availableCategories) {
                 // Only add if not already in the list and not partial
                 if (!blockedCategories.find(item => item.category === category) &&
                     !implicitPartialBlockedCategories.has(category)) {
-                    blockedCategories.push({ category, type: 'implicit-full', priority: 2 }); // After explicit full
+
+                    // Check if this available category has any granted commands
+                    // (e.g., @hyperloglog when +@admin grants pfdebug and pfselftest)
+                    const categoryCommands = await this.getCategoryCommandsCached(category);
+                    const allGrantedCommands = new Set(this.lastApiResponse?.granted_commands || []);
+                    const grantedCount = categoryCommands.filter(cmd => allGrantedCommands.has(cmd)).length;
+
+                    if (grantedCount > 0) {
+                        // Available category with some commands granted via other categories
+                        // Should be rendered as partial, not full
+                        blockedCategories.push({ category, type: 'implicit-partial', priority: 4 });
+                    } else {
+                        // Fully available category (no commands granted)
+                        blockedCategories.push({ category, type: 'implicit-full', priority: 2 }); // After explicit full
+                    }
                 }
-            });
+            }
 
             // Special handling for explicitly blocked @all (e.g., rule "-@all")
             if (this.state.blockedCategories.has('all') && !blockedCategories.find(item => item.category === 'all')) {

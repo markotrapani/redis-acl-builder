@@ -996,7 +996,7 @@ const ACLUIRenderer = {
                 buttonClass = `category-button blocked explicit`;
                 tooltipText = `@${category} category (explicitly blocked) - Click to toggle`;
                 clickHandler = () => handlers.toggleCategory(category);
-            } else if (blockType === 'implicit-partial' || blockType === 'partial') {
+            } else if (analysisState === 'partial' || blockType === 'implicit-partial' || blockType === 'partial') {
                 // Implicitly partially blocked category (some commands blocked individually)
                 // Use hollow yellow/orange styling with warning icon
                 buttonClass = `category-button blocked partial implicit`;
