@@ -74,6 +74,45 @@ pwd && git remote get-url origin
 
 ## ⚠️ CRITICAL REMINDERS ⚠️
 
+### Git Commit Message Quality
+
+⚠️ **CRITICAL: NEVER create meaningless version bump commit messages!**
+
+**❌ UNACCEPTABLE commit messages:**
+
+- `chore: Bump version to v2.9.0-beta` - Tells NOTHING about what changed
+- `chore: Update version to v2.7.15-beta` - Useless for git history
+- `release: v2.9.0-beta` - Missing description of changes
+- `docs: Update version numbers` - What feature/fix is this for?
+
+**✅ REQUIRED commit message format:**
+
+- `release: v2.9.0-beta - Enterprise/OSS Mode Toggle`
+- `release: v2.8.0-beta - Custom App Icons Complete`
+- `fix: Resolve critical auto-update restart regression (v2.7.1-beta)`
+- `docs: Update v2.9.0-beta release notes with mode toggle feature`
+
+**Why this matters:**
+
+- Git history should explain WHAT changed, not just that version incremented
+- Meaningless commits make debugging and code archaeology impossible
+- Version numbers alone don't tell contributors what features/fixes shipped
+- Good commit messages help users understand release history
+
+**Format template:**
+
+```text
+[type]: vX.X.X-beta - [Feature/Fix Summary]
+
+[Optional: Detailed explanation of major changes]
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: marko.trapani@redis.com
+```
+
+See "Version Update Commit Message Requirements" section below for full details.
+
 ### CSS/JS Build System
 
 ⚠️ **CRITICAL: ALWAYS rebuild minified CSS/JS after making changes!**
