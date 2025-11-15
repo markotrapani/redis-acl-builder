@@ -859,39 +859,37 @@ etc.
 - ✅ **Templates & Presets** - Quick Examples + Saved Rules with localStorage
   (v1.x)
 
-### Next Up: Desktop App Polish (v2.7.x)
+### Next Up: Desktop App Polish & Feature Additions
 
 **Priority Order**: ✅ Quick Wins (Complete) → ✅ Custom App Icons (Complete) →
-🎯 Redis Enterprise/OSS Toggle (Next) → Redis Official Branding → Medium
-Priority items
+✅ Enterprise/OSS Toggle (Complete) → 🎯 **Redis Official Branding** (Next) →
+Manual Testing → Medium Priority items
 
-#### High Priority (User Requested)
+#### High Priority (Next Development Focus)
 
-1. **Redis Enterprise/OSS Command Set Toggle** (Critical Feature) - 🚧 IN
-   PROGRESS (75% Complete)
+1. **Redis Official Branding & UI Modernization** (Visual Polish) - 🎯 **NEXT
+   UP**
+   - **Current:** Generic web interface appearance with basic styling
+   - **Goal:** Professional Redis-branded UI that looks official and
+     enterprise-ready
+   - **Status:** Not started (estimated 8-12 hours)
+   - **Dependencies:** Redis brand guidelines, official logo assets
+   - See detailed plan in item #3 below
 
-   **Overall Progress:**
+2. **Manual Testing & Quality Assurance** (Release Preparation)
+   - **Status:** Ongoing - 65/65 Playwright tests passing
+   - **Focus:** Cross-browser testing, visual quality, desktop app experience
+   - **Checklist:** See [MANUAL-TEST-CHECKLIST.md](../MANUAL-TEST-CHECKLIST.md)
+   - **Priority:** Before each major release (v3.0.0 GA)
 
-   - ✅ Backend (100%) - Mode filtering, dual parsers, 10 endpoints updated
-   - ✅ Frontend Infrastructure (100%) - AppState, API client, URL params,
-     localStorage
-   - ✅ Frontend Integration (100%) - 18 API call sites updated, minified
-     assets rebuilt
-   - ⏳ UI Implementation (0%) - **NEXT UP**
-   - ⏳ Testing (0%)
+#### Completed High Priority Features
 
-   **Current Status:** Backend and frontend integration complete. Ready to
-   implement UI toggle component.
+1. **Redis Enterprise/OSS Command Set Toggle** (Critical Feature) - ✅
+   **COMPLETE** (v2.9.0-beta)
 
-   **Next Session Tasks (2-3 hours):**
+   **Status:** ✅ Shipped in v2.9.0-beta (2025-11-12)
 
-   - Add mode toggle HTML structure (same row as Redis Version toggle)
-   - Add purple/gold Enterprise styling to components.css
-   - Add toggle event handler to event-handlers.js
-   - Wire up re-rendering when mode switches
-   - Update command count display (XX/YY format for Enterprise mode)
-
-   **Completed Work:**
+   **What Was Built:**
 
    - **Backend (data_loader.py):**
      - Added `REDIS_ENTERPRISE_7_RESTRICTED_COMMANDS` (74 commands)
@@ -915,66 +913,16 @@ Priority items
    - **Frontend Integration:**
      - Updated 18 API calls across 9 JavaScript files
      - Rebuilt minified assets (567 KB → 269 KB, 52.5% reduction)
+   - **UI Component:**
+     - Purple gradient for OSS mode, gold gradient for Enterprise mode
+     - Side-by-side layout with Redis Version toggle
+     - Dynamic command counts: Redis 7 (379 OSS / 305 ENT), Redis 8 (488
+       OSS / 440 ENT)
+     - URL parameter support (`?mode=oss` or `?mode=enterprise`)
+     - localStorage persistence
 
-   **Implementation Details:**
-
-   - **Command Restrictions:**
-     - Redis 7: 379 OSS → 305 Enterprise (74 restricted)
-     - Redis 8: 488 OSS → 440 Enterprise (48 restricted)
-   - **Restricted Categories:**
-     - Cluster management (`cluster|addslots`, `cluster|replicate`, etc.)
-     - Replication (`replicaof`, `slaveof`, `sync`, `psync`)
-     - Dangerous admin (`save`, `bgsave`, `shutdown`, `debug`)
-     - Module loading (`module|load`, `module|unload`)
-     - Client management (pause, tracking, caching - varies by version)
-     - Latency monitoring (`latency|doctor`, `latency|histogram`)
-   - **UI Design:**
-     - Location: Same row as Redis Version toggle (line ~320)
-     - Color: Purple gradient (#6B46C1 → #9333EA) with gold text (#FFD700)
-     - Tooltip: "OSS: All Redis commands | Enterprise: Cloud-restricted"
-     - Format: `Mode: [OSS] [Enterprise]`
-   - **Persistence:** localStorage + URL parameters (?mode=enterprise)
-   - **Architecture:**
-     - Dual parser sets (OSS/Enterprise pre-initialized on server startup)
-     - Cache includes both version AND mode to prevent cross-contamination
-     - Cache invalidation on mode switch ensures fresh data
-
-   **Testing Strategy:**
-
-   - **Manual Testing:**
-     - Toggle switches between OSS and Enterprise visually
-     - URL updates correctly (`?mode=enterprise`)
-     - localStorage persists mode selection across reloads
-     - Command counts update when mode switches
-     - Restricted commands disappear in Enterprise mode
-   - **Backend Testing:**
-     - Verify Redis 7 OSS returns 379 commands
-     - Verify Redis 7 Enterprise returns 305 commands (74 fewer)
-     - Verify Redis 8 OSS returns 488 commands
-     - Verify Redis 8 Enterprise returns 440 commands (48 fewer)
-     - Test all 10 API endpoints with both modes
-   - **E2E Testing:**
-     - Update Playwright tests to cover Enterprise mode
-     - Test URL parameter parsing and localStorage persistence
-     - Test mode toggle switching and UI re-rendering
-
-   **Backend Testing (Ready Now):**
-
-   ```bash
-   # Test Redis 7 OSS (should return 379 commands)
-   curl -X POST http://localhost:5001/api/parse \
-     -H "Content-Type: application/json" \
-     -d '{"rule": "+@all", "version": "redis7", "mode": "oss"}' | \
-     jq '.total_granted'
-
-   # Test Redis 7 Enterprise (should return 305 commands)
-   curl -X POST http://localhost:5001/api/parse \
-     -H "Content-Type: application/json" \
-     -d '{"rule": "+@all", "version": "redis7", "mode": "enterprise"}' | \
-     jq '.total_granted'
-   ```
-
-   **Estimated Time to Completion:** ~2-4 hours remaining
+   **Test Coverage:** 14 new Playwright tests specifically for Enterprise/OSS
+   mode toggle (65/65 total tests passing)
 
    **Benefits:**
    - Accurate ACL testing for Redis Enterprise users
@@ -982,15 +930,18 @@ Priority items
    - Better alignment with actual deployment environments
    - Clearer documentation of command availability differences
 
-2. **Create Custom App Icons** (Design Improvement)
-   - **Status:** ✅ Completed (v2.8.0-beta)
+2. **Create Custom App Icons** (Design Improvement) - ✅ **COMPLETE**
+   (v2.8.0-beta)
    - Created professional custom icons with clean transparency
    - All platform formats generated (macOS .icns, Windows .ico, Linux PNGs)
    - Icon sized at 83% canvas fill for optimal dock visibility
    - Color-matched to RedisInsight branding (-15% saturation, -5% brightness)
    - Organized icon build system in electron/build/icons/scripts/
 
-3. **Redis Official Branding & UI Modernization** (Visual Polish)
+#### Future High Priority Features
+
+1. **Redis Official Branding & UI Modernization** (Visual Polish) - 🎯 **NEXT
+   UP**
    - **Current:** Generic web interface appearance with basic styling
    - **Goal:** Professional Redis-branded UI that looks official and enterprise-ready
    - **Branding Elements to Add:**
@@ -1021,27 +972,6 @@ Priority items
      - More appealing for enterprise adoption
    - **Estimated Effort:** 8-12 hours (design research + implementation)
    - **Dependencies:** Redis brand guidelines, official logo assets
-
-4. **Original App Icons Item** (COMPLETED - kept for reference)
-   - **Current:** Using default/placeholder icon
-   - **Need:** Create new custom icons that better represent the application
-   - **Dock Icon Formats Needed:**
-     - macOS: .icns file (1024x1024 down to 16x16)
-     - Windows: .ico file (256x256 down to 16x16)
-     - Linux: .png files (512x512, 256x256, 128x128, 64x64, 32x32)
-   - **Tray Icon Formats Needed:**
-     - macOS: 22x22 optimized for menu bar visibility
-     - Windows: 16x16 optimized for system tray
-     - Linux: 24x24 optimized for system tray
-   - **Design Considerations:**
-     - Should reflect Redis ACL Builder branding
-     - Dock icon: Detailed design for larger display sizes
-     - Tray icon: Simplified design optimized for small sizes (22x22)
-     - Both should be recognizable and professional
-   - **Implementation:**
-     - Create new icon files for dock/app display
-     - Create separate optimized tray icon (not just cropped version)
-     - Update electron/build/icon.* files and rebuild installers
 
 #### Quick Wins (Low Effort, High Impact) - ✅ ALL COMPLETE
 
