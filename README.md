@@ -13,9 +13,16 @@ feedback.
 deployment. Desktop apps feature auto-updates, offline support, and native
 performance without requiring Python installation.
 
+📖 **[Visit the Wiki](https://github.com/markotrapani/redis-acl-builder/wiki)**
+for comprehensive guides, tutorials, and documentation.
+
 ---
 
 ## 🚀 Quick Start
+
+> 📖 **New to Redis ACL Builder?** Check out the [Getting Started
+> Guide](https://github.com/markotrapani/redis-acl-builder/wiki/Getting-Started)
+> in the wiki for a complete walkthrough.
 
 ### Option 1: Desktop App (Recommended for End Users)
 
@@ -25,6 +32,10 @@ Signed and notarized installers
 
 **Features:** No Python required • Auto-updates • Offline support • Native
 performance
+
+> 📖 **Detailed installation instructions:** See the
+> [Installation Guide](https://github.com/markotrapani/redis-acl-builder/wiki/Installation)
+> in the wiki.
 
 <!-- markdownlint-disable MD033 -->
 <details>
@@ -165,9 +176,14 @@ Linux)
 
 ## Usage Guide
 
+> 📖 **Complete Usage Guide:** For detailed usage instructions, examples, and
+> best practices, see the
+> [User Guide](https://github.com/markotrapani/redis-acl-builder/wiki/User-Guide)
+> in the wiki.
+>
 > ⚠️ **Important:** This tool is designed for testing and validating ACL rules
-in development/staging environments. Always test thoroughly before applying ACL
-rules to production Redis instances.
+> in development/staging environments. Always test thoroughly before applying
+> ACL rules to production Redis instances.
 
 ### Basic Usage
 
@@ -193,6 +209,10 @@ or denied.
 
 <details>
 <summary><b>📝 ACL Rule Syntax (Click to expand)</b></summary>
+
+> 📖 **Full syntax reference:** See the
+> [User Guide](https://github.com/markotrapani/redis-acl-builder/wiki/User-Guide)
+> for comprehensive ACL syntax documentation.
 
 The application supports standard Redis ACL syntax:
 
@@ -283,6 +303,10 @@ docker run -d --name redis-acl-builder -p 8080:7380 --restart unless-stopped mar
 <details>
 <summary><b>🔌 API Endpoints (Click to expand)</b></summary>
 
+> 📖 **Complete API documentation:** See the
+> [API Reference](https://github.com/markotrapani/redis-acl-builder/wiki/API-Reference)
+> for detailed endpoint documentation, request/response schemas, and examples.
+
 The application provides a RESTful API for programmatic access:
 
 ### Core Endpoints
@@ -318,6 +342,11 @@ curl -X POST http://localhost:7380/api/validate-rule \
 
 <details>
 <summary><b>💻 Development (Click to expand)</b></summary>
+
+> 📖 **Developer documentation:** See the
+> [Development Guide](https://github.com/markotrapani/redis-acl-builder/wiki/Development)
+> for detailed setup instructions, architecture overview, and contribution
+> guidelines.
 
 ## Development
 
@@ -371,6 +400,10 @@ curl -X POST http://localhost:7380/api/validate-rule \
 
 <details>
 <summary><b>🧪 Testing (Click to expand)</b></summary>
+
+> 📖 **Testing guidelines:** See the
+> [Development Guide](https://github.com/markotrapani/redis-acl-builder/wiki/Development#testing)
+> for detailed testing documentation and contribution workflow.
 
 ## Testing
 
@@ -914,13 +947,19 @@ This project is provided as-is for educational and development purposes.
 
 For questions, feedback, or issues:
 
-1. **Contact**: [Marko Trapani](https://github.com/markotrapani) - Project
+1. **FAQ**: Check the
+   [Frequently Asked Questions](https://github.com/markotrapani/redis-acl-builder/wiki/FAQ)
+   wiki page
+2. **Troubleshooting**: See the
+   [Troubleshooting Guide](https://github.com/markotrapani/redis-acl-builder/wiki/Troubleshooting)
+   for common issues and solutions
+3. **Contact**: [Marko Trapani](https://github.com/markotrapani) - Project
    Developer
-2. **Technical Issues**: Run `python test_imports.py` for diagnostics
-3. **Test Verification**: Check results with `./tests/run_tests.sh`
-4. **Docker Deployment**: See [Docker Hub
+4. **Technical Issues**: Run `python test_imports.py` for diagnostics
+5. **Test Verification**: Check results with `./tests/run_tests.sh`
+6. **Docker Deployment**: See [Docker Hub
    Repository](https://hub.docker.com/r/markotrapani608/redis-acl-builder)
-5. **Setup Issues**: Ensure all files are in the correct locations per
+7. **Setup Issues**: Ensure all files are in the correct locations per
    installation guide
 
 ---
