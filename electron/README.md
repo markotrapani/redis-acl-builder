@@ -1,6 +1,6 @@
 # Redis ACL Builder - Desktop App (Electron)
 
-> **Status**: v2.9.1-beta - Production Ready - Auto-Update Test Target
+> **Status**: v2.9.2-beta - Production Ready - Auto-Update Test Target
 
 Desktop application wrapper for Redis ACL Builder using Electron.
 

@@ -1,11 +1,11 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.9.1-beta
+**Current Version:** v2.9.2-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
 
-**Last Updated:** 2025-11-12
+**Last Updated:** 2025-11-14
 
 ---
 
@@ -19,7 +19,27 @@ applications across macOS, Windows, and Linux.
 
 ## 🎯 Version History
 
-### v2.9.1-beta (Unreleased) - NEXT
+### v2.9.2-beta (2025-11-14)
+
+#### Documentation & Wiki Integration
+
+- 📖 **Comprehensive Wiki References** - Added wiki links throughout README
+  - Quick Start section: Link to Getting Started guide
+  - Installation section: Link to detailed Installation guide
+  - Usage Guide: Link to complete User Guide with syntax reference
+  - API Endpoints: Link to full API Reference documentation
+  - Development: Link to Development guide and contribution guidelines
+  - Testing: Link to testing guidelines and workflow
+  - Support: Links to FAQ and Troubleshooting guides
+  - **Benefits**: Improved discoverability, better onboarding, reduced README
+    bloat
+
+**Technical:** README.md restructured with strategic wiki references,
+maintaining markdown compliance
+
+---
+
+### v2.9.1-beta (2025-11-13)
 
 #### Bug Fixes
 
