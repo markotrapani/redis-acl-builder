@@ -1,6 +1,6 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.9.0-beta
+**Current Version:** v2.9.1-beta
 
 **Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
 Deployment
