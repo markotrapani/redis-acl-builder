@@ -1,315 +1,259 @@
-# Manual Testing Checklist - Redis ACL Builder
+# Pre-Release Manual Testing Checklist
 
+**Release Version:** _____________
 **Test Date:** _____________
 **Tester:** _____________
-**Environment:** [ ] Web (localhost:5001) [ ] Desktop App [ ] Docker
+
+> **Note:** Functional tests (mode switching, category detection, URL parameters, etc.) are covered by automated Playwright tests (65/65 passing). This checklist focuses on **manual-only items** that require human judgment and cannot be easily automated.
 
 ---
 
-## 🆕 Partial Category Detection Tests
+## ✅ Automated Test Status
 
-### Cross-Category Command Grant Detection
+Run automated tests **before** manual testing:
 
-- [ ] **Test Case 1: @admin granting commands from @hyperloglog**
-  - [ ] Clear ACL rule, start fresh
-  - [ ] Enter rule: `+@admin`
-  - [ ] Verify @hyperloglog appears in **Blocked Commands** panel
-  - [ ] Check @hyperloglog styling: Should show **hollow yellow/orange** (partial)
-  - [ ] Tooltip should indicate "partially blocked" or similar
-  - [ ] Expand @hyperloglog category
-  - [ ] Verify some commands are **granted** (e.g., pfdebug, pfselftest)
-  - [ ] Verify some commands are **blocked** (remaining hyperloglog commands)
+```bash
+npx playwright test --config=tests/playwright.config.js
+```
 
-- [ ] **Test Case 2: Multiple overlapping categories**
-  - [ ] Clear ACL rule
-  - [ ] Enter rule: `+@read +@write`
-  - [ ] Check categories with partial grants (e.g., @admin, @dangerous)
-  - [ ] Verify partial categories show **hollow styling** (not solid)
-  - [ ] Verify fully blocked categories show **solid styling**
-  - [ ] Verify granted categories appear in Granted Commands panel
-
-- [ ] **Test Case 3: Available category → Partial detection**
-  - [ ] Start with minimal rule: `+@read`
-  - [ ] Grant additional category: `+@admin`
-  - [ ] Check if previously "fully available" categories now show as "partial"
-  - [ ] Example: @hyperloglog was fully blocked, now shows as partial
-  - [ ] Verify styling changes from solid to hollow yellow/orange
-
-### Visual Styling Verification
-
-- [ ] **Partial categories show hollow styling:**
-  - [ ] Background: Transparent or light fill
-  - [ ] Border: Yellow/orange dashed or dotted border
-  - [ ] Icon: Warning triangle or partial indicator
-  - [ ] Text: Italic or muted color
-
-- [ ] **Full categories show solid styling:**
-  - [ ] Background: Solid color fill
-  - [ ] Border: Solid border (if any)
-  - [ ] Icon: X or block symbol
-  - [ ] Text: Normal weight
-
-### State Consistency
-
-- [ ] Partial detection works in **OSS Mode**
-- [ ] Partial detection works in **Enterprise Mode**
-- [ ] Partial detection works with **Redis 7**
-- [ ] Partial detection works with **Redis 8**
-- [ ] Switching modes preserves partial detection accuracy
-- [ ] Switching Redis versions updates partial detection correctly
+- [ ] All 65 Playwright E2E tests passing (100%)
+- [ ] No console errors reported by automated tests
+- [ ] All test screenshots/videos reviewed (if any failures)
 
 ---
 
-## 🎨 UI/Visual Tests
+## 🎨 Visual Quality & UX Feel
 
-### Mode Toggle Display
+### Color & Gradients
 
-- [ ] Toggle switch appears next to Redis Version selector
-- [ ] Toggle has two states: OSS (left) and Enterprise (right)
-- [ ] **OSS Mode (default):**
-  - [ ] Left pill shows **purple gradient** background
-  - [ ] Text reads "OSS" in **white** on purple
-  - [ ] Right pill shows **white** background with black text
-  - [ ] Version label shows "Redis X" (no prefix)
-- [ ] **Enterprise Mode:**
-  - [ ] Right pill shows **gold gradient** background (#FFD700 to #FFA500)
-  - [ ] Text reads "Enterprise" in **white** on gold
-  - [ ] Left pill shows **white** background with black text
-  - [ ] Version label shows "**Redis E. X**" (bold "E." prefix)
+- [ ] **OSS mode toggle** - Purple gradient looks **vibrant and professional** (not washed out)
+- [ ] **Enterprise mode toggle** - Gold gradient looks **premium and polished** (not garish)
+- [ ] **Partial category styling** - Hollow yellow/orange border is **clearly distinguishable** from solid blocked categories
+- [ ] **Color contrast** - All text is **easily readable** against backgrounds
+- [ ] **Dark/light theme** - Colors work well in both themes, no jarring transitions
 
-### Command Count Display
+### Typography & Layout
 
-- [ ] **Redis 7 + OSS Mode:** Shows "379 commands"
-- [ ] **Redis 7 + Enterprise Mode:** Shows "305 commands"
-- [ ] **Redis 8 + OSS Mode:** Shows "488 commands"
-- [ ] **Redis 8 + Enterprise Mode:** Shows "440 commands"
-- [ ] Command count updates **immediately** when toggling mode
-- [ ] Command count updates when switching Redis version
+- [ ] **Font sizes** - All text is **comfortable to read** (not too small/large)
+- [ ] **Line spacing** - Text doesn't feel **cramped or too loose**
+- [ ] **Alignment** - Elements are **visually aligned** (toggles, labels, counts)
+- [ ] **Spacing** - White space feels **balanced and intentional**
+- [ ] **Version label** - "Redis E. 7" prefix is **bold and noticeable** in Enterprise mode
 
-### Layout & Positioning
+### Animation & Smoothness
 
-- [ ] Mode toggle and Redis version toggle side-by-side (horizontal layout)
-- [ ] Command count appears below toggles, centered
-- [ ] Version info text doesn't wrap (`white-space: nowrap`)
-- [ ] Proper spacing between toggles (gap: 1rem)
-- [ ] Responsive on tablet/mobile (stacks properly)
+- [ ] **Mode toggle transition** - Switches **smoothly** without jarring jumps
+- [ ] **Category expand/collapse** - Animations feel **fluid and responsive**
+- [ ] **Panel updates** - Granted/blocked lists update **without visual glitches**
+- [ ] **Loading states** - API calls show appropriate feedback (no frozen UI)
+- [ ] **Hover effects** - Category buttons respond **smoothly** to mouse hover
 
----
+### Responsive Design
 
-## ⚡ Functionality Tests
-
-### Mode Switching
-
-- [ ] Click OSS → Enterprise: Mode changes immediately
-- [ ] Click Enterprise → OSS: Mode changes back immediately
-- [ ] Mode change triggers ACL rule re-parsing
-- [ ] Granted/blocked command lists update in real-time
-- [ ] Partial category detection updates when switching modes
-- [ ] No page reload required
-- [ ] No flash or visual glitches during transition
-
-### ACL Rule Preservation
-
-- [ ] Enter ACL rule in OSS mode
-- [ ] Switch to Enterprise mode
-- [ ] **ACL rule text preserved** (not cleared)
-- [ ] Rule re-parsed with Enterprise command set
-- [ ] Partial categories recalculated correctly
-- [ ] Switch back to OSS mode
-- [ ] Rule still preserved, re-parsed with OSS commands
-
-### Command Filtering
-
-- [ ] **OSS Mode includes:**
-  - [ ] CLUSTER commands (CLUSTER INFO, CLUSTER NODES, etc.)
-  - [ ] MODULE commands (MODULE LOAD, MODULE UNLOAD, etc.)
-  - [ ] Replication commands (REPLICAOF, ROLE, etc.)
-  - [ ] All dangerous commands (FLUSHALL, FLUSHDB, SHUTDOWN, etc.)
-- [ ] **Enterprise Mode excludes:**
-  - [ ] CLUSTER commands (not in granted/blocked lists)
-  - [ ] MODULE commands (not available)
-  - [ ] Some replication commands (restricted)
-  - [ ] Some dangerous commands (restricted)
-
-### State Persistence
-
-- [ ] Set mode to Enterprise
-- [ ] Refresh page (F5 or Cmd+R)
-- [ ] Mode still set to Enterprise after reload
-- [ ] Set mode to OSS
-- [ ] Refresh page
-- [ ] Mode still set to OSS after reload
-
-### URL Parameter Support
-
-- [ ] Navigate to `?mode=oss`
-  - [ ] OSS mode activated
-  - [ ] Purple gradient visible
-- [ ] Navigate to `?mode=enterprise`
-  - [ ] Enterprise mode activated
-  - [ ] Gold gradient visible
-- [ ] URL parameter overrides localStorage
-- [ ] Change mode → URL updates with new mode
+- [ ] **Desktop (1920x1080)** - Layout is **spacious and uncluttered**
+- [ ] **Laptop (1440x900)** - All elements visible, **no awkward wrapping**
+- [ ] **Tablet (768x1024)** - Toggles stack vertically or adapt **gracefully**
+- [ ] **Mobile (375x667)** - Touch targets are **large enough**, text is **readable**
 
 ---
 
-## 🔄 Integration Tests
+## 🌐 Cross-Browser Visual Testing
 
-### Interactive ACL Builder
+> **Note:** Automated tests only run in Chromium. Manual testing ensures visual consistency across browsers.
 
-- [ ] Grant a category in OSS mode (e.g., `+@admin`)
-- [ ] Verify CLUSTER commands appear in granted list
-- [ ] Check if @hyperloglog shows as partial (not full)
-- [ ] Switch to Enterprise mode
-- [ ] CLUSTER commands disappear from granted list
-- [ ] Category still shows as granted (but fewer commands)
-- [ ] Partial detection still accurate in Enterprise mode
-- [ ] Switch back to OSS mode
-- [ ] CLUSTER commands reappear
-- [ ] Partial categories still styled correctly
+### Firefox
 
-### Command Tester
+- [ ] Open <http://localhost:5001> in **Firefox**
+- [ ] Purple/gold gradients render **correctly** (no color banding)
+- [ ] Partial category hollow styling **matches Chromium** appearance
+- [ ] All fonts render **clearly** (no substitution issues)
+- [ ] Flexbox layouts **don't break** (toggles, panels, buttons)
+- [ ] localStorage persistence works (mode/theme/version)
 
-- [ ] **In OSS Mode:**
-  - [ ] Test `CLUSTER INFO` → Shows as **Granted** or **Blocked** based on ACL
-  - [ ] Result appears correctly
-- [ ] **Switch to Enterprise Mode:**
-  - [ ] Test `CLUSTER INFO` → Should show **error or blocked** (command not in set)
-  - [ ] Test valid Enterprise command (e.g., `GET`) → Works normally
+### Safari (macOS only)
 
-### Keyspace Tester
-
-- [ ] Enter keyspace pattern (e.g., `~*`)
-- [ ] Switch between OSS/Enterprise modes
-- [ ] Keyspace test results remain consistent
-- [ ] No unexpected errors
-
-### Search Functionality
-
-- [ ] **In OSS Mode:**
-  - [ ] Search "CLUSTER" in blocked/granted panels
-  - [ ] CLUSTER commands appear in search results
-- [ ] **Switch to Enterprise Mode:**
-  - [ ] Search "CLUSTER" in panels
-  - [ ] No CLUSTER commands in results (filtered out)
-
----
-
-## 🧪 Edge Cases & Error Handling
-
-### Empty/Invalid ACL Rules
-
-- [ ] Mode toggle works with **no ACL rule** entered
-- [ ] No partial categories shown when ACL is empty
-- [ ] Mode toggle works with **invalid ACL rule**
-- [ ] Error messages display correctly in both modes
-- [ ] Switching modes doesn't crash app
-
-### Redis Version + Mode Combinations
-
-- [ ] Test all 4 combinations:
-  - [ ] Redis 7 + OSS
-  - [ ] Redis 7 + Enterprise
-  - [ ] Redis 8 + OSS
-  - [ ] Redis 8 + Enterprise
-- [ ] Command counts correct for each combination
-- [ ] Partial detection works in all 4 combinations
-- [ ] No JavaScript errors in console
-
-### Rapid Mode Switching
-
-- [ ] Toggle OSS → Enterprise → OSS → Enterprise rapidly (5x fast)
-- [ ] App remains responsive
-- [ ] Partial category calculations don't cause race conditions
-- [ ] No race conditions or stuck states
-- [ ] Final mode reflects last toggle
-
-### Browser Compatibility
-
-- [ ] Test in **Chrome/Edge** (Chromium)
-- [ ] Test in **Firefox**
-- [ ] Test in **Safari** (macOS only)
-- [ ] All visual styles render correctly
-- [ ] Partial category hollow styling works in all browsers
+- [ ] Open <http://localhost:5001> in **Safari**
+- [ ] Purple/gold gradients render **correctly** (Safari can have gradient issues)
+- [ ] Partial category styling **visible and clear**
+- [ ] No font rendering issues (Safari renders fonts differently)
+- [ ] CSS transforms/transitions work **smoothly**
 - [ ] localStorage persistence works
 
----
+### Edge (if different from Chrome)
 
-## 📱 Responsive Design Tests
-
-### Desktop (1920x1080)
-
-- [ ] Toggle layout perfect (side-by-side)
-- [ ] No wrapping or overflow
-- [ ] Proper spacing and alignment
-- [ ] Partial category styling visible and clear
-
-### Tablet (768x1024)
-
-- [ ] Toggle layout adapts (may stack vertically)
-- [ ] Still functional and usable
-- [ ] Text readable
-- [ ] Partial category indicators still visible
-
-### Mobile (375x667)
-
-- [ ] Toggle stacks vertically or adapts
-- [ ] Touch targets large enough (min 44x44px)
-- [ ] No horizontal scrolling
-- [ ] Partial categories distinguishable from full categories
+- [ ] Verify visual appearance in **Edge** (usually same as Chrome, but check)
+- [ ] No unexpected styling differences
 
 ---
 
-## 🖥️ Desktop App Specific Tests
+## 🖥️ Desktop App Experience (Electron)
 
-### Electron App
+> **Note:** Desktop app testing requires building and installing the app locally or downloading from GitHub releases.
 
-- [ ] Mode toggle renders correctly in Electron
-- [ ] Partial category detection works in Electron
-- [ ] localStorage works in Electron context
-- [ ] No preload.js security errors
-- [ ] Mode persists across app restarts
+### Installation & First Launch
 
-### Auto-Update
+- [ ] **macOS** - DMG installs without errors, app is **signed and notarized** (no security warnings)
+- [ ] **Windows** - NSIS installer runs smoothly, app appears in **Start Menu**
+- [ ] **Linux** - AppImage runs without errors, .deb package installs correctly
+- [ ] First launch opens to **clean state** (no localStorage from web version)
+- [ ] App icon appears correctly in **dock/taskbar**
 
-- [ ] Previous app version updates to latest
-- [ ] All features work after update
-- [ ] No migration issues from previous versions
+### Native Integration
+
+- [ ] **Window management** - Resize, minimize, maximize work smoothly
+- [ ] **Menu bar** - All menu items functional (File, Edit, View, etc.)
+- [ ] **Keyboard shortcuts** - Cmd+Q (macOS) / Alt+F4 (Windows) quits app
+- [ ] **System tray** - If implemented, icon appears and functions correctly
+- [ ] **Multi-window** - Opening multiple instances works (if supported)
+
+### Auto-Update Flow
+
+- [ ] Install **previous version** (e.g., v2.9.0-beta)
+- [ ] Launch app, check for updates
+- [ ] Update notification appears with **correct version** (v2.9.1-beta)
+- [ ] Click "Update Now" - download starts with **progress indicator**
+- [ ] After download, app **restarts automatically** or prompts to restart
+- [ ] New version launches successfully, mode toggle works
+- [ ] User data preserved (ACL rules, settings, localStorage)
+
+### Offline Functionality
+
+- [ ] Disconnect from internet
+- [ ] Launch desktop app - should work **fully offline**
+- [ ] All features function (parsing, testing, mode switching)
+- [ ] Only auto-update check should fail gracefully
 
 ---
 
-## ✅ Final Checks
+## ♿ Accessibility Testing
 
-- [ ] All E2E tests passing (42/42)
-- [ ] No JavaScript console errors
-- [ ] No visual glitches or flashing
-- [ ] Partial category detection accurate and consistent
-- [ ] Feature matches design specs
-- [ ] Documentation updated (README, ROADMAP, CLAUDE.md)
-- [ ] GitHub release notes accurate
+> **Note:** Basic keyboard navigation is covered by automated tests. This focuses on screen readers and advanced accessibility.
+
+### Screen Reader Testing
+
+- [ ] **macOS VoiceOver** (Cmd+F5) - Navigate app with screen reader
+  - [ ] Mode toggle announced correctly ("OSS mode" / "Enterprise mode")
+  - [ ] Category buttons read with status ("@read category, granted")
+  - [ ] Partial categories announced ("@hyperloglog category, partially blocked")
+  - [ ] Command counts read aloud ("Redis 7, 379 commands")
+  - [ ] No unlabeled buttons or inputs
+
+- [ ] **Windows NVDA/JAWS** (if available) - Test with Windows screen reader
+  - [ ] All interactive elements have **proper labels**
+  - [ ] Navigation follows **logical tab order**
+
+### Keyboard Navigation
+
+- [ ] **Tab order** - Pressing Tab moves through elements **in logical order**
+- [ ] **Focus indicators** - Currently focused element has **clearly visible outline**
+- [ ] **Enter/Space** - Activates buttons (mode toggle, category buttons)
+- [ ] **Escape key** - Closes modals/dialogs (if any)
+- [ ] **No keyboard traps** - Can navigate out of all sections
+
+### Color Contrast
+
+- [ ] **WCAG AA compliance** - Use browser DevTools or axe DevTools to check contrast ratios
+- [ ] Purple text on white background: **Ratio ≥ 4.5:1**
+- [ ] Gold text on white background: **Ratio ≥ 4.5:1**
+- [ ] Partial category hollow styling: **Border contrast sufficient**
+
+---
+
+## 🔍 Exploratory Testing
+
+> **Note:** Try unexpected things, look for bugs, test creative scenarios automated tests don't cover.
+
+### Edge Cases
+
+- [ ] Enter **extremely long ACL rule** (1000+ characters) - Does UI handle it gracefully?
+- [ ] Grant **all categories** (`+@all`) - Does app handle 379/488 granted commands?
+- [ ] Block **all categories** (`-@all`) - Does UI show all categories as blocked correctly?
+- [ ] Mix **many overlapping categories** (`+@read +@write +@admin +@dangerous`) - Performance OK?
+- [ ] Switch modes/versions **very rapidly** (10+ times) - Any visual glitches or race conditions?
+
+### Real-World ACL Rules
+
+Test with actual production ACL rules:
+
+- [ ] **Simple production rule** - e.g., `+@read ~cache:* -flushall -flushdb`
+- [ ] **Complex multi-user rule** - e.g., `+@admin ~admin:* -acl -cluster -module`
+- [ ] **Enterprise-restricted rule** - Use Enterprise mode with cloud-restricted commands
+- [ ] **Keyspace patterns** - Complex patterns like `~user:*:sessions ~cache:*:data`
+
+### Performance Testing
+
+- [ ] **Large ACL rules** - 50+ individual commands granted - UI responsive?
+- [ ] **Rapid category clicks** - Click 10+ categories quickly - No lag or freezing?
+- [ ] **Network latency simulation** - Use Chrome DevTools to throttle network to "Slow 3G"
+  - [ ] App shows loading states appropriately
+  - [ ] No timeout errors or crashes
+
+### Browser DevTools Checks
+
+- [ ] Open **Console** - No JavaScript errors during normal operation
+- [ ] Open **Network** - No failed API requests (404, 500 errors)
+- [ ] Open **Performance** - Record interaction, check for long tasks (> 50ms)
+- [ ] Open **Memory** - No obvious memory leaks after extended use
+
+---
+
+## 📊 Final Checks
+
+### Documentation
+
+- [ ] **README** - Installation instructions match current version
+- [ ] **CHANGELOG** - All new features/fixes documented for this release
+- [ ] **GitHub Release Notes** - Draft release notes accurate and complete
+
+### Release Artifacts
+
+- [ ] **GitHub Actions** - All workflows passed (Docker build, Electron packaging)
+- [ ] **Docker Hub** - New image tagged and pushed (`latest`, `v2.9.1-beta`)
+- [ ] **GitHub Releases** - All installers uploaded (DMG, EXE, AppImage, .deb)
+- [ ] **Source code archives** - DELETED (users should use installers, not source)
+
+### Smoke Test (5 Minutes)
+
+Quick sanity check on each platform:
+
+- [ ] **Web (localhost:5001)** - Mode toggle, partial detection, all features work
+- [ ] **Desktop (macOS)** - Launch app, basic features work
+- [ ] **Desktop (Windows)** - Launch app, basic features work
+- [ ] **Desktop (Linux)** - Launch app, basic features work
+- [ ] **Docker** - Pull image, run container, access <http://localhost:7380>
+
+---
+
+## ✅ Sign-Off
+
+- [ ] **All critical manual tests passed**
+- [ ] **All automated tests passed (65/65)**
+- [ ] **No P0/P1 bugs found during testing**
+- [ ] **Visual quality meets release standards**
+- [ ] **Cross-browser compatibility verified**
+- [ ] **Desktop app experience polished**
+- [ ] **Accessibility requirements met**
+
+**Ready for production release:** [ ] Yes [ ] No
+
+**Tester Signature:** _____________
+**Date:** _____________
 
 ---
 
 ## 🐛 Bugs Found
 
-_Document any issues discovered during testing:_
+_Document any issues discovered during manual testing:_
 
-1.
-2.
-3.
+| Priority | Issue | Repro Steps | Status |
+|----------|-------|-------------|--------|
+| P0 (Critical) | | | |
+| P1 (High) | | | |
+| P2 (Medium) | | | |
+| P3 (Low) | | | |
 
 ---
 
 ## 📝 Notes
 
-_Any additional observations or feedback:_
-
----
-
-**Sign-off:**
-
-- [ ] All critical tests passed
-- [ ] Ready for production release
-
-**Tester Signature:** _____________
-**Date:** _____________
+_Any additional observations, feedback, or suggestions:_
