@@ -1,11 +1,11 @@
 # Redis ACL Builder - Product Roadmap
 
-**Current Version:** v2.9.2-beta
+**Current Version:** v1.0.0
 
-**Status:** ✅ Production Ready - Multi-Platform Desktop App + Web/Docker
+**Status:** ✅ First Stable Release - Multi-Platform Desktop App + Web/Docker
 Deployment
 
-**Last Updated:** 2025-11-14
+**Last Updated:** 2025-12-17
 
 ---
 
@@ -18,6 +18,40 @@ applications across macOS, Windows, and Linux.
 ---
 
 ## 🎯 Version History
+
+### v1.0.0 (2025-12-17) - First Stable Release 🎉
+
+#### Production Ready
+
+- 🚀 **First Non-Beta Release** - After extensive beta testing since October 2024
+  - 65/65 E2E tests passing (100%)
+  - 227+ backend tests passing
+  - Comprehensive manual testing completed
+  - All major features stable and polished
+
+- 🏢 **Enterprise/OSS Mode Toggle** - Toggle between Redis deployment types
+  - Purple gradient for OSS mode, gold gradient for Enterprise mode
+  - Dynamic command counts: Redis 7 (379 OSS / 305 ENT), Redis 8 (488 OSS / 440 ENT)
+  - URL parameter and localStorage persistence
+
+- 🖥️ **Multi-Platform Desktop Apps** - Signed, notarized, auto-updating
+  - macOS (ARM64 + Intel) - Signed and notarized with Apple Developer ID
+  - Windows (x64) - NSIS installer
+  - Linux (x64) - AppImage
+
+- 🐳 **Docker Deployment** - Multi-arch images on Docker Hub
+  - AMD64 and ARM64 support
+  - Automated CI/CD with Docker Scout CVE scanning
+
+- 📖 **Comprehensive Documentation** - Wiki, API reference, user guides
+  - 8-page GitHub Wiki (~60K of documentation)
+  - Complete API reference with examples
+  - Installation guides for all platforms
+
+**Technical:** Clean break from beta versioning (v2.9.2-beta → v1.0.0) to signal
+production readiness
+
+---
 
 ### v2.9.2-beta (2025-11-14)
 
@@ -877,10 +911,9 @@ Manual Testing → Medium Priority items
    - See detailed plan in item #3 below
 
 2. **Manual Testing & Quality Assurance** (Release Preparation)
-   - **Status:** Ongoing - 65/65 Playwright tests passing
+   - **Status:** ✅ Completed for v1.0.0 - 65/65 Playwright tests passing
    - **Focus:** Cross-browser testing, visual quality, desktop app experience
-   - **Checklist:** See [MANUAL-TEST-CHECKLIST.md](../MANUAL-TEST-CHECKLIST.md)
-   - **Priority:** Before each major release (v3.0.0 GA)
+   - **Priority:** Before each major release
 
 #### Completed High Priority Features
 

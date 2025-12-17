@@ -1,25 +1,24 @@
-# Redis ACL Builder - GA Release Plan (v3.0.0)
+# Redis ACL Builder - GA Release Plan (v1.0.0)
 
-**Target Release:** Q2 2025
+**Target Release:** ✅ Released December 2025
 
-**Status:** Pre-GA Beta Testing
+**Status:** v1.0.0 Released (Clean break from beta versioning)
 
-**Last Updated:** 2025-10-22
+**Last Updated:** 2025-12-17
 
 ---
 
 ## 📋 Overview
 
 This document outlines the comprehensive plan for releasing Redis ACL Builder
-v3.0.0 as a General Availability (GA) production release. The GA release
-represents the transition from beta testing to production-ready software with
-enterprise support commitments.
+v1.0.0 as a General Availability (GA) production release. The GA release
+represents the transition from beta testing to production-ready software.
 
 **Timeline:**
 
-- **Current Status:** v2.4.7-beta (Beta Testing)
-- **Beta Testing Period:** October 2024 - March 2025 (6 months minimum)
-- **GA Release Target:** Q2 2025 (April - June 2025)
+- **Current Status:** ✅ v1.0.0 Released (December 2025)
+- **Beta Testing Period:** October 2024 - December 2025 (~3 months)
+- **GA Release:** December 17, 2025
 
 ---
 

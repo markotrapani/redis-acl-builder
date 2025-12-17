@@ -5,7 +5,7 @@ List (ACL) rules with real-time command analysis and interactive visual
 feedback.
 
 ![license MIT](https://img.shields.io/badge/license-MIT-blue.svg)
-![version](https://img.shields.io/badge/version-2.9.2--beta-green.svg)
+![version](https://img.shields.io/badge/version-1.0.0-green.svg)
 ![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Docker-lightgrey.svg)
 ![Redis](https://img.shields.io/badge/Redis-7%20%7C%208-red.svg)
 
@@ -45,8 +45,8 @@ performance
 
 ```bash
 # Download the .dmg for your architecture
-# - Redis-ACL-Builder-2.9.2-beta-arm64.dmg (Apple Silicon - M1/M2/M3)
-# - Redis-ACL-Builder-2.9.2-beta-x64.dmg (Intel Macs)
+# - Redis-ACL-Builder-1.0.0-arm64.dmg (Apple Silicon - M1/M2/M3)
+# - Redis-ACL-Builder-1.0.0-x64.dmg (Intel Macs)
 
 # Install:
 # 1. Open the DMG file
@@ -57,7 +57,7 @@ performance
 **Windows:**
 
 ```bash
-# Download Redis-ACL-Builder-Setup-2.9.2-beta.exe
+# Download Redis-ACL-Builder-Setup-1.0.0.exe
 # Run the installer and follow the prompts
 # App will be available in Start Menu
 ```
@@ -65,12 +65,12 @@ performance
 **Linux:**
 
 ```bash
-# Download Redis-ACL-Builder-2.9.2-beta.AppImage
-chmod +x Redis-ACL-Builder-2.9.2-beta.AppImage
-./Redis-ACL-Builder-2.9.2-beta.AppImage
+# Download Redis-ACL-Builder-1.0.0.AppImage
+chmod +x Redis-ACL-Builder-1.0.0.AppImage
+./Redis-ACL-Builder-1.0.0.AppImage
 
 # Or install the .deb package (Debian/Ubuntu)
-sudo dpkg -i Redis-ACL-Builder_2.9.2-beta_amd64.deb
+sudo dpkg -i Redis-ACL-Builder_1.0.0_amd64.deb
 ```
 
 </details>
@@ -601,6 +601,22 @@ desktop app
 synchronization, drag-drop panel reordering, and perfect responsive design
 
 ## ✨ What's New
+
+### v1.0.0 - First Stable Release 🎉
+
+- **🚀 Production Ready**: First non-beta release after extensive testing
+  - 65/65 E2E tests passing (100%)
+  - 227+ backend tests passing
+  - Comprehensive manual testing completed
+- **🏢 Enterprise/OSS Mode Toggle**: Toggle between Redis deployment types
+  - Purple gradient for OSS mode, gold gradient for Enterprise mode
+  - Dynamic command counts: Redis 7 (379 OSS / 305 ENT), Redis 8 (488 OSS / 440 ENT)
+- **🖥️ Multi-Platform Desktop Apps**: Signed, notarized, auto-updating
+  - macOS (ARM64 + Intel) - Signed and notarized
+  - Windows (x64) - NSIS installer
+  - Linux (x64) - AppImage
+- **🐳 Docker Deployment**: Multi-arch images on Docker Hub
+- **📖 Comprehensive Documentation**: Wiki, API reference, user guides
 
 ### v2.9.1-beta
 
