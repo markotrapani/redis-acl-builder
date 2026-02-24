@@ -1,6 +1,6 @@
 {
   "name": "redis-acl-builder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "**Version v1.25.1-beta** - Optimization Box Persistence & Backend Error Fix",
   "main": "index.js",
   "directories": {

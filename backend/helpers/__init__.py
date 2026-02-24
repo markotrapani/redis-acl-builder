@@ -11,5 +11,5 @@ This package contains helper modules for the Redis ACL Builder:
 # and potential issues with Flask app initialization.
 # The main app.py will import directly from the modules as needed.
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __author__ = "Redis ACL Builder"
