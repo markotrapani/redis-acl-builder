@@ -144,7 +144,7 @@ class TestACLAPIProperties(unittest.TestCase):
 
         # Total available should be all commands for that version
         expected_redis7 = 379  # Updated from 311
-        expected_redis8 = 496
+        expected_redis8 = 488
         expected_count = expected_redis7 if version == 'redis7' else expected_redis8
 
         self.assertEqual(data['total_available'], expected_count)

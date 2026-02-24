@@ -4,8 +4,9 @@ Import Test Script - Diagnose import issues
 """
 import sys
 import os
+from importlib.metadata import version
 
-def test_imports():
+def run_import_diagnostics():
     print("🔍 Redis ACL Builder - Import Diagnostics")
     print("=" * 50)
     
@@ -14,7 +15,13 @@ def test_imports():
     print(f"📁 Current directory: {current_dir}")
     
     # Check if we're in the right place
-    expected_files = ['app.py', 'helpers', 'tests', 'static', 'templates']
+    expected_files = [
+        'backend/app.py',
+        'backend/helpers',
+        'tests/backend',
+        'frontend/static',
+        'frontend/templates'
+    ]
     missing_files = []
     
     for file in expected_files:
@@ -32,19 +39,21 @@ def test_imports():
     print("\n📦 Testing Python imports...")
     print("-" * 30)
     
-    # Add current directory to Python path
-    sys.path.insert(0, current_dir)
+    # Add backend directory to Python path
+    backend_dir = os.path.join(current_dir, 'backend')
+    sys.path.insert(0, backend_dir)
     
     # Test basic imports
     try:
         import flask
-        print(f"✅ Flask {flask.__version__} imported successfully")
+        flask_version = version("flask")
+        print(f"✅ Flask {flask_version} imported successfully")
     except ImportError as e:
         print(f"❌ Flask import failed: {e}")
         return False
     
     # Test helpers directory structure
-    helpers_dir = os.path.join(current_dir, 'helpers')
+    helpers_dir = os.path.join(backend_dir, 'helpers')
     helpers_init = os.path.join(helpers_dir, '__init__.py')
     data_loader = os.path.join(helpers_dir, 'data_loader.py')
     acl_parser = os.path.join(helpers_dir, 'acl_parser.py')
@@ -92,13 +101,18 @@ def test_imports():
         return False
     
     print("\n🎉 All imports successful!")
-    print("✅ Ready to run: python app.py")
-    print("✅ Ready to test: python tests/test_app.py")
+    print("✅ Ready to run: python backend/app.py")
+    print("✅ Ready to test: pytest tests/backend/")
     
     return True
 
+
+def test_imports():
+    """Pytest entrypoint for import diagnostics."""
+    assert run_import_diagnostics()
+
 if __name__ == '__main__':
-    success = test_imports()
+    success = run_import_diagnostics()
     if not success:
         print(f"\n❌ Import test failed. Please fix the issues above.")
         print(f"💡 Make sure you're in the project root directory with this structure:")

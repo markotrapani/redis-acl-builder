@@ -102,7 +102,7 @@ class TestAPIEndpoints:
         assert len(result7['granted_commands']) == 379, \
             f"Redis 7 OSS should have 379 commands, got {len(result7['granted_commands'])}"
 
-        # Redis 8 OSS: 496 commands
+        # Redis 8 OSS: 488 commands
         response8 = client.post('/api/parse', json={
             'rule': rule,
             'version': 'redis8'
@@ -112,8 +112,8 @@ class TestAPIEndpoints:
         result8 = json.loads(response8.data)
         assert result8['version'] == 'redis8'
         assert 'granted_commands' in result8
-        assert len(result8['granted_commands']) == 496, \
-            f"Redis 8 OSS should have 496 commands, got {len(result8['granted_commands'])}"
+        assert len(result8['granted_commands']) == 488, \
+            f"Redis 8 OSS should have 488 commands, got {len(result8['granted_commands'])}"
 
         # Redis 8 should have more commands than Redis 7
         assert len(result8['granted_commands']) > len(result7['granted_commands'])

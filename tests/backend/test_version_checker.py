@@ -36,14 +36,14 @@ class TestVersionChecker(unittest.TestCase):
     @patch('helpers.version_checker.requests.get')
     def test_check_docker_updates_no_update_available(self, mock_get):
         """Test when current version is latest."""
-        # Mock Docker Hub response with older versions only
+        # Mock Docker Hub response with versions older than current (1.0.0)
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
             'results': [
                 {'name': 'latest'},
-                {'name': 'v2.0.0-beta'},  # Older than current
-                {'name': 'v1.0.0-beta'}
+                {'name': 'v0.9.9'},
+                {'name': 'v0.9.0-beta'}
             ]
         }
         mock_get.return_value = mock_response

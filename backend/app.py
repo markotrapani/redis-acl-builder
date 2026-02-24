@@ -559,10 +559,10 @@ def health_check() -> Response:
     """Health check endpoint."""
     response = HealthResponse(
         status='healthy',
-        redis_versions=list(PARSERS.keys()),
+        redis_versions=list(PARSERS_OSS.keys()),
         total_commands={
             version: len(parser.data['commands'])
-            for version, parser in PARSERS.items()
+            for version, parser in PARSERS_OSS.items()
         }
     )
     return jsonify(response.model_dump())
