@@ -16,6 +16,8 @@ performance without requiring Python installation.
 📖 **[Visit the Wiki](https://github.com/markotrapani/redis-acl-builder/wiki)**
 for comprehensive guides, tutorials, and documentation.
 
+![Redis ACL Builder screenshot](docs/images/app-screenshot.png)
+
 ---
 
 ## 🚀 Quick Start
