@@ -296,7 +296,7 @@ See **Quick Start** section above for Docker deployment options.
 
 ```bash
 # Specific version
-docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:2.3.0-beta
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:1.0.0
 
 # Custom port mapping
 docker run -d --name redis-acl-builder -p 8080:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
@@ -389,13 +389,13 @@ curl -X POST http://localhost:7380/api/validate-rule \
    npx playwright test --config=tests/playwright.config.js
    ```
 
-### Code Organization (Monorepo Structure - v2.3.4-beta)
+### Code Organization (Monorepo Structure)
 
 - **Backend**: `backend/` - Python Flask app, helpers, models
 - **Frontend**: `frontend/` - Static assets (CSS/JS) and templates
 - **Scripts**: `scripts/` - Helper scripts (run-web.sh, build-web.sh)
 - **Tests**: `tests/backend/` (pytest) and `tests/e2e/` (Playwright)
-- **Electron**: `electron/` - Desktop app wrapper (v2.3.4-beta - see
+- **Electron**: `electron/` - Desktop app wrapper (see
   [docs/ROADMAP.md](docs/ROADMAP.md))
 
 </details>
@@ -578,7 +578,7 @@ redis-acl-builder/
 ## 🏗️ Architecture
 
 The application features modern, modular frontend and backend architectures with
-a **monorepo structure** (v2.3.4-beta):
+a **monorepo structure**:
 
 - **Monorepo**: Organized into `backend/`, `frontend/`, `electron/`, `scripts/`,
 and `tests/` directories - single source of truth for both web app and Electron
@@ -596,7 +596,7 @@ desktop app
   replication, dangerous operations) for security. If a command test fails in
   Redis Enterprise, this is expected behavior - the command exists in OSS but is
   restricted in Enterprise.
-- **Testing**: 28 automated E2E tests (Playwright) with 100% pass rate
+- **Testing**: 65 automated E2E tests (Playwright) with 100% pass rate
 - **Type Safety**: Professional type annotations with 94% reduction in Pylance
   strict errors (comprehensive typing across all modules)
 - **UI/UX**: Elegant resizable container system with real-time content

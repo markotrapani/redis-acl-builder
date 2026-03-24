@@ -5,22 +5,20 @@
 - [Multi-Architecture Builds](MULTI-ARCH-README.md) - Building for AMD64/ARM64
 - [CI/CD Setup Guide](CI-CD-SETUP.md) - GitHub Actions automation
 
-**Version v2.0.3-alpha** - Desktop + Web App
+**Version v1.0.0** - First Stable Release
 
 A comprehensive application for testing and validating Redis Access Control List
 (ACL) rules with real-time command analysis, featuring Rule Selectors, Advanced
-Key Permissions, comprehensive E2E testing with 100% test coverage, and an
-elegant drag-drop interface. Also available as a native macOS desktop
-application.
+Key Permissions, comprehensive E2E testing with 100% test coverage (65/65
+Playwright tests), and an elegant drag-drop interface. Also available as a
+native desktop application (macOS, Windows, Linux).
 
-**What's New in v2.0.3-alpha**:
+**What's New in v1.0.0**:
 
-- **🎨 Enhanced Tooltips**: Category tooltips now show relevant commands first
-with color-coded bold text (green for granted, red for blocked)
-- **✅ Bug Fixes**: Tooltip expansion now correctly displays all commands, fixed
-parameter passing through function wrappers
-- **🧹 Code Cleanup**: Removed debug code, optimized CSS/JS with clean
-architecture
+- **🎉 First Stable Release**: Production-ready with comprehensive test coverage
+- **🏢 Enterprise/OSS Mode Toggle**: Switch between Redis deployment types
+- **🔧 Health Endpoint Fix**: Repaired health check endpoint for monitoring
+- **✅ 65/65 E2E Tests Passing**: 100% Playwright test coverage
 
 ## 🚀 Quick Start
 
@@ -45,7 +43,7 @@ open http://localhost:7380
 docker pull markotrapani608/redis-acl-builder:latest
 
 # Specific version
-docker pull markotrapani608/redis-acl-builder:2.0.0-alpha
+docker pull markotrapani608/redis-acl-builder:1.0.0
 
 # Beta releases
 docker pull markotrapani608/redis-acl-builder:beta
@@ -87,7 +85,7 @@ docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped mar
 
 ### Redis Support
 
-- Full Redis 7 (311 commands, 21 categories)
+- Full Redis 7 (379 commands, 21 categories)
 - Full Redis 8 (446 commands, 29 categories including modules)
 - Module support: RediSearch, RedisJSON, TimeSeries, Bloom, etc.
 
@@ -137,48 +135,29 @@ For questions about usage, feedback, or to report bugs, please reach out to:
 ## 📚 Additional Resources
 
 - **GitHub Repository**:
-  [markotrapani/marko-projects](https://github.com/markotrapani/marko-projects)
-- **Issue Tracker**: Report bugs and feature requests on GitHub
+  [markotrapani/redis-acl-builder](https://github.com/markotrapani/redis-acl-builder)
+- **Wiki**: [Comprehensive documentation](https://github.com/markotrapani/redis-acl-builder/wiki)
+- **Issue Tracker**: [Report bugs and feature requests](https://github.com/markotrapani/redis-acl-builder/issues)
 - **Documentation**: Full docs available in the running application (click
   "Info" in header)
 
 ## 🏷️ Available Tags
 
-- `latest` - Latest release (currently v2.0.3-alpha)
-- `beta` - Latest beta/alpha release
-- `v2.0.3-alpha` - Enhanced tooltips with smart command highlighting
-- `v2.0.0-alpha` - Desktop + Web App: Native macOS Electron app + web app with
-  shared codebase
-- `v1.27.0-beta` - Monorepo restructure for web + desktop support
-- `v1.26.1-beta` - Documentation update with accurate API endpoints and test
-  coverage
-- `v1.26.0-beta` - Complete E2E test suite with Playwright (28/28 tests passing)
+- `latest` - Latest stable release (currently v1.0.0)
+- `1.0.0` - First Stable Release
 - Multi-architecture support (AMD64/ARM64)
 
 ## 🔒 Security
 
-**Current Security Status (v2.0.3-alpha):**
-
-- ✅ **0 Critical vulnerabilities**
-- ✅ **0 High vulnerabilities**
-- ⚠️ **1 Medium vulnerability** - CVE-2025-8869 (pip 25.2) - waiting for pip
-  25.3 release
-  - **Low runtime risk**: Only affects pip install operations; production
-    container doesn't install packages
-  - All dependencies installed during build phase; runtime doesn't use pip
-- ⚠️ **2 Low vulnerabilities** in BusyBox (waiting for Alpine upstream to
-  package BusyBox 1.38.0+)
-
 **Security Features:**
 
-- **Python 3.13.7** with latest security patches
-- **Gunicorn 23.0.0** with HTTP Request Smuggling fixes (CVE-2024-1135,
-CVE-2024-6827 resolved)
-- **OpenSSL 3.5.4-r0** with CVE-2025-9230 patch
+- **Python 3.13** with latest security patches
+- **Gunicorn** with HTTP Request Smuggling fixes
 - **Automated package upgrades** via `apk upgrade` on every build
 - **Non-root user** execution (UID 1000)
-- **Alpine Linux 3.22** base with minimal attack surface
+- **Alpine Linux** base with minimal attack surface
 - **Build-time dependency installation** - pip not used at runtime
+- **Docker Scout CVE scanning** on every build
 
 We continuously monitor security advisories and update dependencies as fixes
 become available.
