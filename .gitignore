@@ -205,3 +205,6 @@ playwright-test-results.txt
 mutants/
 .mutmut-cache
 mutation_test_output.txt
+
+# Claude Code local config
+.claude/
