@@ -27,7 +27,6 @@
 <!-- ⚙️ CONFLUENCE: Add a /status lozenge here: "STABLE" in Green -->
 <!-- ⚙️ CONFLUENCE: Add /toc (Table of Contents) here -->
 
-**Version:** v1.0.0 (First Stable Release)
 **Maintainer:** Marko Trapani (<marko.trapani@redis.com>)
 **Repository:** [github.com/markotrapani/redis-acl-builder](https://github.com/markotrapani/redis-acl-builder) (private)
 **Docker Hub:** [markotrapani608/redis-acl-builder](https://hub.docker.com/r/markotrapani608/redis-acl-builder)
@@ -46,12 +45,12 @@ Redis ACL Builder is a visual tool for creating, testing, and validating Redis A
 
 ## Who is this for?
 
-| Role | Use Case |
-|------|----------|
-| **Solutions Architects** | Building ACL rules for customer deployments |
-| **Support Engineers** | Debugging ACL permission issues reported by customers |
-| **Field Engineers** | Demonstrating Redis ACL capabilities in live demos |
-| **Developers** | Testing ACL configurations before applying them to Redis |
+| Role                     | Use Case                                                 |
+| --------------------------| ----------------------------------------------------------|
+| **Solutions Architects** | Building ACL rules for customer deployments              |
+| **Support Engineers**    | Debugging ACL permission issues reported by customers    |
+| **Field Engineers**      | Demonstrating Redis ACL capabilities in live demos       |
+| **Developers**           | Testing ACL configurations before applying them to Redis |
 
 ---
 
@@ -65,13 +64,13 @@ Redis ACL Builder is a visual tool for creating, testing, and validating Redis A
 
 Download from [GitHub Releases](https://github.com/markotrapani/redis-acl-builder/releases/latest):
 
-| Platform | File | Notes |
-|----------|------|-------|
-| macOS (Apple Silicon) | `Redis-ACL-Builder-1.0.0-arm64.dmg` | M1/M2/M3/M4 |
-| macOS (Intel) | `Redis-ACL-Builder-1.0.0-x64.dmg` | Intel Macs |
-| Windows | `Redis-ACL-Builder-Setup-1.0.0.exe` | NSIS installer |
-| Linux (All distros) | `Redis-ACL-Builder-1.0.0.AppImage` | Universal |
-| Linux (Debian/Ubuntu) | `Redis-ACL-Builder_1.0.0_amd64.deb` | .deb package |
+| Platform              | Format               | Notes           |
+| -----------------------| ----------------------| -----------------|
+| macOS (Apple Silicon) | DMG                  | M1/M2/M3/M4     |
+| macOS (Intel)         | DMG                  | Intel Macs      |
+| Windows               | EXE (NSIS installer) | Windows 10+     |
+| Linux (All distros)   | AppImage             | Universal       |
+| Linux (Debian/Ubuntu) | .deb package         | apt-installable |
 
 <!-- ⚙️ CONFLUENCE: Wrap the Docker and Source sections below in /expand macros -->
 
@@ -111,12 +110,12 @@ Requires Python 3.10+ (3.12+ recommended).
 
 ### Redis Version Support
 
-| Version | Commands | Categories | Includes |
-|---------|----------|------------|----------|
-| Redis 7 OSS | 379 | 21 | Core commands, cluster, replication |
-| Redis 7 Enterprise | 305 | 21 | Excludes restricted commands |
-| Redis 8 OSS | 446+ | 29 | Adds RediSearch, JSON, TimeSeries, Bloom |
-| Redis 8 Enterprise | 440 | 29 | Excludes restricted commands |
+| Version            | Commands | Categories | Includes                                 |
+| --------------------| ----------| ------------| ------------------------------------------|
+| Redis 7 OSS        | 379      | 21         | Core commands, cluster, replication      |
+| Redis 7 Enterprise | 305      | 21         | Excludes restricted commands             |
+| Redis 8 OSS        | 446+     | 29         | Adds RediSearch, JSON, TimeSeries, Bloom |
+| Redis 8 Enterprise | 440      | 29         | Excludes restricted commands             |
 
 <!-- ⚙️ CONFLUENCE: Replace the paragraph below with a /note panel titled "Enterprise vs OSS Mode" -->
 
@@ -209,17 +208,17 @@ Toggle to Enterprise Mode to validate that your ACL rules work within Redis Clou
 
 The application exposes a REST API for programmatic access — useful for scripting or CI/CD integration.
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/parse` | POST | Parse ACL rule, return granted/blocked commands |
-| `/api/test-command` | POST | Test if a command is allowed |
-| `/api/test-command-key` | POST | Test command + key combination |
-| `/api/validate-rule` | POST | Validate ACL rule syntax |
-| `/api/command-info` | POST | Get command category information |
-| `/api/categories` | GET | List available categories |
-| `/api/search-commands` | POST | Search commands by pattern |
-| `/api/optimize-rule` | POST | Get optimization suggestions |
-| `/health` | GET | Health check |
+| Endpoint                | Method | Description                                     |
+| -------------------------| --------| -------------------------------------------------|
+| `/api/parse`            | POST   | Parse ACL rule, return granted/blocked commands |
+| `/api/test-command`     | POST   | Test if a command is allowed                    |
+| `/api/test-command-key` | POST   | Test command + key combination                  |
+| `/api/validate-rule`    | POST   | Validate ACL rule syntax                        |
+| `/api/command-info`     | POST   | Get command category information                |
+| `/api/categories`       | GET    | List available categories                       |
+| `/api/search-commands`  | POST   | Search commands by pattern                      |
+| `/api/optimize-rule`    | POST   | Get optimization suggestions                    |
+| `/health`               | GET    | Health check                                    |
 
 **Example:**
 
@@ -254,41 +253,41 @@ redis-acl-builder/
 └── scripts/           # Build and deployment helpers
 ```
 
-| Component | Technology |
-|-----------|-----------|
-| Backend | Python 3.12+, Flask, Gunicorn |
-| Frontend | Vanilla ES6 JavaScript (no framework), modular CSS |
-| Desktop | Electron with PyInstaller-bundled backend |
-| Testing | pytest (backend), Playwright (E2E) — 100% pass rate |
-| CI/CD | GitHub Actions (Docker multi-arch builds, Electron packaging) |
-| Container | Alpine Linux, multi-arch (AMD64/ARM64) |
+| Component | Technology                                                    |
+| -----------| ---------------------------------------------------------------|
+| Backend   | Python 3.12+, Flask, Gunicorn                                 |
+| Frontend  | Vanilla ES6 JavaScript (no framework), modular CSS            |
+| Desktop   | Electron with PyInstaller-bundled backend                     |
+| Testing   | pytest (backend), Playwright (E2E) — 100% pass rate           |
+| CI/CD     | GitHub Actions (Docker multi-arch builds, Electron packaging) |
+| Container | Alpine Linux, multi-arch (AMD64/ARM64)                        |
 
 ---
 
 ## Deployment Comparison
 
-| Method | Port | Best For | Auto-Updates | Dependencies |
-|--------|------|----------|--------------|-------------|
-| Desktop App | 7381 | Personal use, demos, offline | Yes | None |
-| Docker | 7380 | Shared team access, servers | Pull latest | Docker |
-| Local Dev | 5001 | Development, contributing | Git pull | Python 3.10+ |
+| Method      | Port | Best For                     | Auto-Updates | Dependencies |
+| -------------| ------| ------------------------------| --------------| --------------|
+| Desktop App | 7381 | Personal use, demos, offline | Yes          | None         |
+| Docker      | 7380 | Shared team access, servers  | Pull latest  | Docker       |
+| Local Dev   | 5001 | Development, contributing    | Git pull     | Python 3.10+ |
 
 ---
 
 ## Documentation & Support
 
-| Resource | Link |
-|----------|------|
-| GitHub Wiki (full docs) | [redis-acl-builder/wiki](https://github.com/markotrapani/redis-acl-builder/wiki) |
+| Resource                         | Link                                                                                             |
+| ----------------------------------| --------------------------------------------------------------------------------------------------|
+| GitHub Wiki (full docs)          | [redis-acl-builder/wiki](https://github.com/markotrapani/redis-acl-builder/wiki)                 |
 | Getting Started (5-min tutorial) | [Wiki - Getting Started](https://github.com/markotrapani/redis-acl-builder/wiki/Getting-Started) |
-| User Guide | [Wiki - User Guide](https://github.com/markotrapani/redis-acl-builder/wiki/User-Guide) |
-| API Reference | [Wiki - API Reference](https://github.com/markotrapani/redis-acl-builder/wiki/API-Reference) |
-| Troubleshooting | [Wiki - Troubleshooting](https://github.com/markotrapani/redis-acl-builder/wiki/Troubleshooting) |
-| FAQ | [Wiki - FAQ](https://github.com/markotrapani/redis-acl-builder/wiki/FAQ) |
-| Releases / Downloads | [GitHub Releases](https://github.com/markotrapani/redis-acl-builder/releases) |
-| Docker Hub | [markotrapani608/redis-acl-builder](https://hub.docker.com/r/markotrapani608/redis-acl-builder) |
-| Issues / Feedback | [GitHub Issues](https://github.com/markotrapani/redis-acl-builder/issues) |
-| Contact | <marko.trapani@redis.com> |
+| User Guide                       | [Wiki - User Guide](https://github.com/markotrapani/redis-acl-builder/wiki/User-Guide)           |
+| API Reference                    | [Wiki - API Reference](https://github.com/markotrapani/redis-acl-builder/wiki/API-Reference)     |
+| Troubleshooting                  | [Wiki - Troubleshooting](https://github.com/markotrapani/redis-acl-builder/wiki/Troubleshooting) |
+| FAQ                              | [Wiki - FAQ](https://github.com/markotrapani/redis-acl-builder/wiki/FAQ)                         |
+| Releases / Downloads             | [GitHub Releases](https://github.com/markotrapani/redis-acl-builder/releases)                    |
+| Docker Hub                       | [markotrapani608/redis-acl-builder](https://hub.docker.com/r/markotrapani608/redis-acl-builder)  |
+| Issues / Feedback                | [GitHub Issues](https://github.com/markotrapani/redis-acl-builder/issues)                        |
+| Contact                          | <marko.trapani@redis.com>                                                                        |
 
 ---
 
