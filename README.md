@@ -5,7 +5,7 @@ List (ACL) rules with real-time command analysis and interactive visual
 feedback.
 
 ![license MIT](https://img.shields.io/badge/license-MIT-blue.svg)
-![version](https://img.shields.io/badge/version-1.0.0-green.svg)
+![version](https://img.shields.io/badge/version-1.0.1-green.svg)
 ![platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Docker-lightgrey.svg)
 ![Redis](https://img.shields.io/badge/Redis-7%20%7C%208-red.svg)
 
@@ -47,8 +47,8 @@ performance
 
 ```bash
 # Download the .dmg for your architecture
-# - Redis-ACL-Builder-1.0.0-arm64.dmg (Apple Silicon - M1/M2/M3)
-# - Redis-ACL-Builder-1.0.0-x64.dmg (Intel Macs)
+# - Redis-ACL-Builder-1.0.1-arm64.dmg (Apple Silicon - M1/M2/M3)
+# - Redis-ACL-Builder-1.0.1-x64.dmg (Intel Macs)
 
 # Install:
 # 1. Open the DMG file
@@ -59,7 +59,7 @@ performance
 **Windows:**
 
 ```bash
-# Download Redis-ACL-Builder-Setup-1.0.0.exe
+# Download Redis-ACL-Builder-1.0.1-x64.exe
 # Run the installer and follow the prompts
 # App will be available in Start Menu
 ```
@@ -67,12 +67,9 @@ performance
 **Linux:**
 
 ```bash
-# Download Redis-ACL-Builder-1.0.0.AppImage
-chmod +x Redis-ACL-Builder-1.0.0.AppImage
-./Redis-ACL-Builder-1.0.0.AppImage
-
-# Or install the .deb package (Debian/Ubuntu)
-sudo dpkg -i Redis-ACL-Builder_1.0.0_amd64.deb
+# Download Redis-ACL-Builder-1.0.1-x86_64.AppImage
+chmod +x Redis-ACL-Builder-1.0.1-x86_64.AppImage
+./Redis-ACL-Builder-1.0.1-x86_64.AppImage
 ```
 
 </details>
@@ -296,7 +293,7 @@ See **Quick Start** section above for Docker deployment options.
 
 ```bash
 # Specific version
-docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:1.0.0
+docker run -d --name redis-acl-builder -p 7380:7380 --restart unless-stopped markotrapani608/redis-acl-builder:1.0.1
 
 # Custom port mapping
 docker run -d --name redis-acl-builder -p 8080:7380 --restart unless-stopped markotrapani608/redis-acl-builder:latest
@@ -603,6 +600,14 @@ desktop app
 synchronization, drag-drop panel reordering, and perfect responsive design
 
 ## ✨ What's New
+
+### v1.0.1 - Stability Patch
+
+- **🩺 Health endpoint repaired**: Fixed `/health` endpoint and aligned backend
+  tests so smoke checks pass against both Docker and desktop builds.
+- **📦 Version sync**: `package-lock.json` and release artifacts now pinned to
+  `1.0.1` consistently.
+- **📖 Docs**: Confluence guide cleaned up to avoid version-number staleness.
 
 ### v1.0.0 - First Stable Release 🎉
 
